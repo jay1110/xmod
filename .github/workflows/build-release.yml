@@ -32,6 +32,9 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y build-essential python3 zip m4
       
+      - name: Ensure scripts are executable
+        run: chmod +x project/info.py
+      
       - name: Build Linux 64-bit
         run: PLATFORM=linux64 make release
       
@@ -54,6 +57,9 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y build-essential python3 gcc-multilib g++-multilib zip m4
       
+      - name: Ensure scripts are executable
+        run: chmod +x project/info.py
+      
       - name: Build Linux 32-bit
         run: PLATFORM=linux make release
       
@@ -75,6 +81,9 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y build-essential python3 mingw-w64 zip m4
+      
+      - name: Ensure scripts are executable
+        run: chmod +x project/info.py
       
       - name: Build Windows 32-bit
         run: PLATFORM=mingw make release
