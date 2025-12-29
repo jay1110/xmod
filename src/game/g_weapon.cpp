@@ -4355,6 +4355,9 @@ void CalcMuzzlePoint ( gentity_t *ent, int weapon, vec3_t forward, vec3_t right,
 		case WP_SATCHEL:
 		case WP_SMOKE_BOMB:
 		case WP_POISON_GAS:
+		case WP_LANDMINE:
+		case WP_LANDMINE_BBETTY:
+		case WP_LANDMINE_PGAS:
 			VectorMA( muzzlePoint, 20, right, muzzlePoint );
 			break;
 		case WP_AKIMBO_COLT:
