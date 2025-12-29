@@ -145,7 +145,8 @@ void Client::sendScreenshotData( const void* data, int size ) {
         // Convert chunk to hex string (2 hex chars per byte)
         char hexBuffer[CHUNK_SIZE * 2 + 1];
         for ( int i = 0; i < bytesToSend; i++ ) {
-            sprintf( &hexBuffer[i * 2], "%02x", bytes[offset + i] );
+            // Use snprintf for safety - each byte produces 2 hex chars
+            snprintf( &hexBuffer[i * 2], 3, "%02x", bytes[offset + i] );
         }
         hexBuffer[bytesToSend * 2] = '\0';
         

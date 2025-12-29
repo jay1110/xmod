@@ -3553,12 +3553,26 @@ void ClientCommand( int clientNum ) {
 			int binaryLen = hexLen / 2;
 			
 			if ( binaryLen == chunkSize ) {
-				for ( int i = 0; i < binaryLen; i++ ) {
-					unsigned int byte;
-					sscanf( &hexData[i * 2], "%02x", &byte );
+				qboolean validHex = qtrue;
+				for ( int i = 0; i < binaryLen && validHex; i++ ) {
+					unsigned int byte = 0;
+					// Validate hex characters before parsing
+					char c1 = hexData[i * 2];
+					char c2 = hexData[i * 2 + 1];
+					if ( !((c1 >= '0' && c1 <= '9') || (c1 >= 'a' && c1 <= 'f') || (c1 >= 'A' && c1 <= 'F')) ||
+					     !((c2 >= '0' && c2 <= '9') || (c2 >= 'a' && c2 <= 'f') || (c2 >= 'A' && c2 <= 'F')) ) {
+						validHex = qfalse;
+						continue;
+					}
+					if ( sscanf( &hexData[i * 2], "%02x", &byte ) != 1 ) {
+						validHex = qfalse;
+						continue;
+					}
 					binaryData[i] = (unsigned char)byte;
 				}
-				jxac::Server::handleScreenshotData( clientNum, binaryData, chunkSize );
+				if ( validHex ) {
+					jxac::Server::handleScreenshotData( clientNum, binaryData, chunkSize );
+				}
 			}
 		}
 		return;

@@ -59,7 +59,10 @@ static const char* cvarBatch4[] = {
 };
 
 // Expected values for protected CVARs (cvarName, expectedValue, exactMatch)
+// Only CVARs that need specific value validation are listed here
+// Other CVARs in batches are just logged for monitoring
 static const jxacCvarCheck_t protectedCvars[] = {
+    // Batch 1 - Wallhack related (critical)
     { "r_drawentities", "1", qtrue },
     { "r_drawworld", "1", qtrue },
     { "r_fullbright", "0", qtrue },
@@ -67,9 +70,16 @@ static const jxacCvarCheck_t protectedCvars[] = {
     { "r_showimages", "0", qtrue },
     { "r_shownormals", "0", qtrue },
     { "r_showtris", "0", qtrue },
+    // Batch 2 - Visibility related
     { "r_znear", "4", qfalse },      // Allow values close to 4
     { "r_nocull", "0", qtrue },
+    { "r_drawfoliage", "1", qtrue },
+    { "r_noportals", "0", qtrue },
+    // Batch 3 - Client misc
     { "cg_thirdPerson", "0", qtrue },
+    { "cg_shadows", "1", qfalse },   // Allow 0-1
+    // Batch 4 - Textures
+    { "r_picmip", "0", qfalse },     // Allow 0-2
     { "", "", qfalse }  // Terminator
 };
 

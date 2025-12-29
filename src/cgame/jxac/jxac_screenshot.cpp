@@ -27,7 +27,13 @@ static void jpegWriteCallback( void* context, void* data, int size ) {
     // Expand buffer if needed
     while ( ctx->size + size > ctx->capacity ) {
         ctx->capacity = ctx->capacity * 2;
-        ctx->buffer = (unsigned char*)realloc( ctx->buffer, ctx->capacity );
+        unsigned char* newBuffer = (unsigned char*)realloc( ctx->buffer, ctx->capacity );
+        if ( !newBuffer ) {
+            // realloc failed - keep old buffer and mark failure
+            Com_Printf( "JXAC Screenshot: realloc failed in callback\n" );
+            return;
+        }
+        ctx->buffer = newBuffer;
     }
     
     // Copy data to buffer
