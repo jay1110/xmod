@@ -39,7 +39,7 @@ JxacKick::doExecute( Context& txt )
         str::concatArgs( txt._args, kickReason, 2 );
 
     Buffer buf;
-    buf << _name << ": Kicking " << xvalue( target->ent->client->pers.netname ) 
+    buf << _name << ": Kicking " << xvalue( target->gentity.client->pers.netname ) 
         << " (" << kickReason << ")";
     printCpm( txt._client, buf, true );
 

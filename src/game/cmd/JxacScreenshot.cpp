@@ -44,7 +44,7 @@ JxacScreenshot::doExecute( Context& txt )
     jxac::Server::requestScreenshot( target->slot, quality );
 
     Buffer buf;
-    buf << _name << ": Screenshot requested from " << xvalue( target->ent->client->pers.netname ) 
+    buf << _name << ": Screenshot requested from " << xvalue( target->gentity.client->pers.netname ) 
         << " (quality: " << quality << ")";
     printCpm( txt._client, buf, true );
 

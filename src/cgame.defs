@@ -1,6 +1,7 @@
 MODULE.CGAME.srcs.pch = $(sort \
 	$(wildcard $(PROJECT/)src/cgame/*.cpp) \
 	$(wildcard $(PROJECT/)src/cgame/cvar/*.cpp) \
+	$(wildcard $(PROJECT/)src/cgame/jxac/*.cpp) \
 	\
 	$(PROJECT/)src/bgame/Engine.cpp \
 	$(PROJECT/)src/bgame/Process.cpp \

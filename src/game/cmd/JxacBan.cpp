@@ -39,7 +39,7 @@ JxacBan::doExecute( Context& txt )
         str::concatArgs( txt._args, banReason, 2 );
 
     Buffer buf;
-    buf << _name << ": Banning " << xvalue( target->ent->client->pers.netname ) 
+    buf << _name << ": Banning " << xvalue( target->gentity.client->pers.netname ) 
         << " (" << banReason << ")";
     printCpm( txt._client, buf, true );
 
