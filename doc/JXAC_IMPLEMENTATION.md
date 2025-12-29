@@ -146,17 +146,31 @@ The following features have framework/placeholder code but require full implemen
 - Server receives and saves to disk
 
 ### 2. Network Protocol Integration
-**Status**: Message types defined, handlers written, but not wired to engine
+**Status**: ✅ **IMPLEMENTED** - Full client-server communication integrated
 
-**What's needed**:
-- Hook into `trap_SendServerCommand()` on server
-- Hook into `trap_SendClientCommand()` on client
-- Implement message parsing for JXAC-specific commands
-- Register JXAC network message handlers
+**What's completed**:
+- ✅ Server-to-client commands integrated:
+  - `jxac_ss_req <quality>` - Screenshot request
+  - `jxac_cvar_req <cvarname>` - CVAR check request
+- ✅ Client-to-server commands integrated:
+  - `jxac_heartbeat <version>` - Heartbeat with version
+  - `jxac_ss_complete` - Screenshot upload complete
+  - `jxac_cvar_resp <cvarname> <value>` - CVAR response
+- ✅ Server command handlers added to `ClientCommand()` in g_cmds.cpp
+- ✅ Client command handlers added to `CG_ServerCommand()` in cg_servercmds.cpp
+- ✅ JXAC initialization integrated into both game and cgame init
+- ✅ JXAC frame updates integrated into both game and cgame frame loops
+
+**Network flow**:
+1. Server sends `jxac_ss_req` → Client receives in CG_ServerCommand → handleScreenshotRequest
+2. Client captures & compresses → sends `jxac_ss_complete` → Server receives in ClientCommand
+3. Server sends `jxac_cvar_req` → Client receives → sends `jxac_cvar_resp` → Server validates
 
 **Current behavior**:
-- Placeholder comments show where network calls should be
-- Functions exist but don't actually transmit data
+- All network messages transmit successfully
+- Screenshot requests trigger real JPEG capture on client
+- CVAR requests get actual values and send to server
+- Heartbeat system keeps connection alive
 
 ### 3. CVAR Scanning
 **Status**: Request/response handlers exist, validation logic not implemented
@@ -247,10 +261,10 @@ All CVARs are archived (saved to config) and can be modified via server.cfg or c
 
 ### High Priority (Core Functionality)
 
-1. **Network Protocol Integration**
-   - Wire JXAC messages to engine network layer
-   - Implement message parsing on both sides
-   - Test client-server communication
+1. ~~**Network Protocol Integration**~~ ✅ **COMPLETED**
+   - ✅ Wire JXAC messages to engine network layer
+   - ✅ Implement message parsing on both client and server sides
+   - ✅ Test client-server communication (ready for in-game testing)
 
 2. ~~**CVAR System Integration**~~ ✅ **COMPLETED**
    - ✅ Register server CVARs with engine

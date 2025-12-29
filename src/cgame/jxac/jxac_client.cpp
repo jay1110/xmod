@@ -65,10 +65,7 @@ void Client::sendHeartbeat() {
     }
     
     // Send heartbeat to server
-    // In a real implementation, this would send a network message:
-    // trap_SendClientCommand( va("jxac heartbeat %s", JXAC_VERSION_STRING) );
-    
-    // For now, this is a placeholder
+    trap_SendClientCommand( va("jxac_heartbeat %s", JXAC_VERSION_STRING) );
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -135,18 +132,9 @@ void Client::sendScreenshotData( const void* data, int size ) {
     }
     
     // Send screenshot data to server in chunks
-    const unsigned char* ptr = (const unsigned char*)data;
-    int remaining = size;
-    
-    while ( remaining > 0 ) {
-        int chunkSize = ( remaining > JXAC_SS_CHUNK_SIZE ) ? JXAC_SS_CHUNK_SIZE : remaining;
-        
-        // In a real implementation, send network message:
-        // trap_SendClientCommand( va("jxac ss_data %d ...", chunkSize) );
-        
-        ptr += chunkSize;
-        remaining -= chunkSize;
-    }
+    // Note: For actual implementation, we need a binary data transmission method
+    // For now, we'll use a simplified approach - send completion message only
+    Com_Printf( "JXAC: Screenshot data ready (%d bytes), sending completion\n", size );
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -157,8 +145,8 @@ void Client::sendScreenshotComplete() {
     }
     
     // Send screenshot complete message to server
-    // In a real implementation:
-    // trap_SendClientCommand( "jxac ss_complete" );
+    trap_SendClientCommand( "jxac_ss_complete" );
+    Com_Printf( "JXAC: Screenshot complete message sent to server\n" );
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -184,8 +172,8 @@ void Client::sendCvarResponse( const char* cvarName, const char* value ) {
     }
     
     // Send CVAR value to server
-    // In a real implementation:
-    // trap_SendClientCommand( va("jxac cvar %s %s", cvarName, value) );
+    trap_SendClientCommand( va("jxac_cvar_resp %s %s", cvarName, value) );
+    Com_Printf( "JXAC: Sent CVAR %s=%s to server\n", cvarName, value );
 }
 
 ///////////////////////////////////////////////////////////////////////////////

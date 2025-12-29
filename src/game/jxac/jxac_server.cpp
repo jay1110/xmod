@@ -158,9 +158,8 @@ void Server::requestScreenshot( int clientNum, int quality ) {
     
     Com_Printf( "JXAC: Requesting screenshot from client %d (quality: %d)\n", clientNum, quality );
     
-    // Send screenshot request to client (placeholder)
-    // In a real implementation, this would send a network message:
-    // trap_SendServerCommand( clientNum, va("jxac ss_req %d", quality) );
+    // Send screenshot request to client
+    trap_SendServerCommand( clientNum, va("jxac_ss_req %d", quality) );
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -277,8 +276,9 @@ void Server::requestCvarCheck( int clientNum ) {
         return;
     }
     
-    // Placeholder for CVAR checking
-    // Would send request to client to report specific CVARs
+    // Example: Request r_drawentities CVAR from client
+    // In a full implementation, this would iterate through protected CVARs
+    trap_SendServerCommand( clientNum, "jxac_cvar_req r_drawentities" );
 }
 
 ///////////////////////////////////////////////////////////////////////////////
