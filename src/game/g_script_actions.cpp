@@ -1423,7 +1423,7 @@ qboolean G_ScriptAction_Trigger( gentity_t *ent, char *params )
 	}
 
 //	G_Error( "G_Scripting: trigger has unknown name: %s\n", name );
-	G_Printf("G_Scripting: trigger has unknown name: %s\n", name);
+//	G_Printf("G_Scripting: trigger has unknown name: %s\n", name);
 	return qtrue;	// shutup the compiler
 }
 
@@ -2083,7 +2083,7 @@ qboolean G_ScriptAction_Accum( gentity_t *ent, char *params )
 			if (found) return qtrue;
 			//
 //			G_Error( "G_Scripting: trigger has unknown name: %s\n", name );
-			G_Printf("G_Scripting: trigger has unknown name: %s\n", name);
+//			G_Printf("G_Scripting: trigger has unknown name: %s\n", name);
 			return qtrue;
 		}
 	} else if( !Q_stricmp(lastToken, "wait_while_equal") ) {
@@ -2294,7 +2294,7 @@ qboolean G_ScriptAction_GlobalAccum( gentity_t *ent, char *params )
 			if (found) return qtrue;
 
 //			G_Error( "G_Scripting: trigger has unknown name: %s\n", name );
-			G_Printf("G_Scripting: trigger has unknown name: %s\n", name);
+//			G_Printf("G_Scripting: trigger has unknown name: %s\n", name);
 			return qtrue;
 		}
 	} else if (!Q_stricmp(lastToken, "wait_while_equal")) {
@@ -4176,7 +4176,7 @@ qboolean G_ScriptAction_Cvar( gentity_t *ent, char *params )
 			if (found) return qtrue;
 			//
 //			G_Error( "G_Scripting: trigger has unknown name: %s\n", name );
-			G_Printf("G_Scripting: trigger has unknown name: %s\n", name);
+//			G_Printf("G_Scripting: trigger has unknown name: %s\n", name);
 			return qtrue;
 		}
 	} else if (!Q_stricmp(lastToken, "wait_while_equal")) {
