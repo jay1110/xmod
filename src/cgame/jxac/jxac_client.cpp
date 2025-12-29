@@ -1,6 +1,7 @@
 #include <bgame/impl.h>
 #include <bgame/jxac_common.h>
 #include <cgame/jxac/jxac_client.h>
+#include <cgame/jxac/jxac_screenshot.h>
 
 namespace jxac {
 
@@ -101,35 +102,29 @@ void Client::captureScreenshot( int quality ) {
     if ( quality < JXAC_SS_QUALITY_MIN ) quality = JXAC_SS_QUALITY_MIN;
     if ( quality > JXAC_SS_QUALITY_MAX ) quality = JXAC_SS_QUALITY_MAX;
     
-    Com_Printf( "JXAC: Capturing screenshot...\n" );
+    Com_Printf( "JXAC: Capturing screenshot (quality: %d)...\n", quality );
     
-    // This is a placeholder implementation
-    // In a real implementation, we would:
-    // 1. Capture the current framebuffer
-    // 2. Compress it to JPEG format
-    // 3. Send it to the server in chunks
+    // Use the Screenshot module to capture and compress
+    int jpegSize = 0;
+    unsigned char* jpegData = Screenshot::captureAndCompress( &jpegSize, quality );
     
-    // For now, we'll simulate a small screenshot
-    const int simulatedSize = 1024; // 1KB dummy data
-    unsigned char* dummyData = (unsigned char*)malloc( simulatedSize );
-    
-    if ( !dummyData ) {
-        Com_Printf( "JXAC: Failed to allocate screenshot buffer\n" );
+    if ( !jpegData || jpegSize <= 0 ) {
+        Com_Printf( "JXAC: Failed to capture/compress screenshot\n" );
         screenshotPending = qfalse;
         return;
     }
     
-    // Fill with dummy data (in real implementation, this would be JPEG data)
-    memset( dummyData, 0xFF, simulatedSize );
+    Com_Printf( "JXAC: Screenshot compressed to %d bytes\n", jpegSize );
     
-    // Send screenshot data to server
-    sendScreenshotData( dummyData, simulatedSize );
+    // Send screenshot data to server in chunks
+    sendScreenshotData( jpegData, jpegSize );
     sendScreenshotComplete();
     
-    free( dummyData );
+    // Clean up
+    free( jpegData );
     screenshotPending = qfalse;
     
-    Com_Printf( "JXAC: Screenshot captured and sent\n" );
+    Com_Printf( "JXAC: Screenshot sent successfully\n" );
 }
 
 ///////////////////////////////////////////////////////////////////////////////
