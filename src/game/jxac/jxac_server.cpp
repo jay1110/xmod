@@ -10,6 +10,86 @@ namespace jxac {
 static jxacPlayerData_t playerData[MAX_CLIENTS];
 static qboolean initialized = qfalse;
 
+// Protected CVARs to check - organized in batches
+// Batch 1: Renderer CVARs (wallhack related)
+static const char* cvarBatch1[] = {
+    "r_drawentities",
+    "r_drawworld",
+    "r_fullbright",
+    "r_lightmap",
+    "r_showimages",
+    "r_shownormals",
+    "r_showtris",
+    NULL
+};
+
+// Batch 2: Renderer CVARs (visibility related)
+static const char* cvarBatch2[] = {
+    "r_znear",
+    "r_zfar",
+    "r_nocull",
+    "r_drawfoliage",
+    "r_noportals",
+    "r_fastsky",
+    "r_drawSun",
+    NULL
+};
+
+// Batch 3: Client CVARs (misc cheats)
+static const char* cvarBatch3[] = {
+    "cg_shadows",
+    "cg_thirdPerson",
+    "cg_fov",
+    "cl_maxpackets",
+    "cl_timenudge",
+    "com_maxfps",
+    "snaps",
+    NULL
+};
+
+// Batch 4: Model/texture cheats
+static const char* cvarBatch4[] = {
+    "r_picmip",
+    "r_texturemode",
+    "r_lodCurveError",
+    "r_lodbias",
+    "r_subdivisions",
+    "r_dynamiclight",
+    NULL
+};
+
+// Expected values for protected CVARs (cvarName, expectedValue, exactMatch)
+// Only CVARs that need specific value validation are listed here
+// Other CVARs in batches are just logged for monitoring
+static const jxacCvarCheck_t protectedCvars[] = {
+    // Batch 1 - Wallhack related (critical)
+    { "r_drawentities", "1", qtrue },
+    { "r_drawworld", "1", qtrue },
+    { "r_fullbright", "0", qtrue },
+    { "r_lightmap", "0", qtrue },
+    { "r_showimages", "0", qtrue },
+    { "r_shownormals", "0", qtrue },
+    { "r_showtris", "0", qtrue },
+    // Batch 2 - Visibility related
+    { "r_znear", "4", qfalse },      // Allow values close to 4
+    { "r_nocull", "0", qtrue },
+    { "r_drawfoliage", "1", qtrue },
+    { "r_noportals", "0", qtrue },
+    // Batch 3 - Client misc
+    { "cg_thirdPerson", "0", qtrue },
+    { "cg_shadows", "1", qfalse },   // Allow 0-1
+    // Batch 4 - Textures
+    { "r_picmip", "0", qfalse },     // Allow 0-2
+    { "", "", qfalse }  // Terminator
+};
+
+// Current batch index per client for rotating checks
+static int currentCvarBatch[MAX_CLIENTS];
+
+// Time tracking for CVAR checks (check every 60 seconds)
+#define JXAC_CVAR_CHECK_INTERVAL 60000
+static int lastCvarCheckTime = 0;
+
 ///////////////////////////////////////////////////////////////////////////////
 
 void Server::init() {
@@ -21,6 +101,9 @@ void Server::init() {
     
     // Clear player data
     memset( playerData, 0, sizeof( playerData ) );
+    
+    // Initialize CVAR batch indexes
+    memset( currentCvarBatch, 0, sizeof( currentCvarBatch ) );
     
     initialized = qtrue;
     
@@ -59,6 +142,23 @@ void Server::frame() {
     
     // Check for pending screenshot timeouts
     checkTimeouts();
+    
+    // Periodic CVAR checks (one batch per interval)
+    if ( cvar::objects::g_jxacCheckCvars.ivalue && level.time - lastCvarCheckTime > JXAC_CVAR_CHECK_INTERVAL ) {
+        lastCvarCheckTime = level.time;
+        
+        // Request CVAR check from all connected players
+        for ( int i = 0; i < level.maxclients; i++ ) {
+            gentity_t* ent = &g_entities[i];
+            if ( ent->client && ent->client->pers.connected == CON_CONNECTED ) {
+                // Skip bots
+                if ( ent->r.svFlags & SVF_BOT ) {
+                    continue;
+                }
+                requestCvarCheck( i );
+            }
+        }
+    }
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -137,6 +237,12 @@ void Server::requestScreenshot( int clientNum, int quality ) {
     
     gentity_t* ent = &g_entities[clientNum];
     if ( !ent->client || ent->client->pers.connected != CON_CONNECTED ) {
+        return;
+    }
+    
+    // Skip bots - they don't run JXAC client module
+    if ( ent->r.svFlags & SVF_BOT ) {
+        Com_Printf( "JXAC: Skipping screenshot request for bot (client %d)\n", clientNum );
         return;
     }
     
@@ -276,9 +382,40 @@ void Server::requestCvarCheck( int clientNum ) {
         return;
     }
     
-    // Example: Request r_drawentities CVAR from client
-    // In a full implementation, this would iterate through protected CVARs
-    trap_SendServerCommand( clientNum, "jxac_cvar_req r_drawentities" );
+    if ( clientNum < 0 || clientNum >= MAX_CLIENTS ) {
+        return;
+    }
+    
+    gentity_t* ent = &g_entities[clientNum];
+    if ( !ent->client || ent->client->pers.connected != CON_CONNECTED ) {
+        return;
+    }
+    
+    // Skip bots
+    if ( ent->r.svFlags & SVF_BOT ) {
+        return;
+    }
+    
+    // Get current batch for this client
+    int batch = currentCvarBatch[clientNum];
+    const char** cvarList = NULL;
+    
+    switch ( batch ) {
+        case 0: cvarList = cvarBatch1; break;
+        case 1: cvarList = cvarBatch2; break;
+        case 2: cvarList = cvarBatch3; break;
+        case 3: cvarList = cvarBatch4; break;
+        default: batch = 0; cvarList = cvarBatch1; break;
+    }
+    
+    // Send all CVARs in current batch
+    while ( *cvarList ) {
+        trap_SendServerCommand( clientNum, va("jxac_cvar_req %s", *cvarList) );
+        cvarList++;
+    }
+    
+    // Rotate to next batch
+    currentCvarBatch[clientNum] = (batch + 1) % 4;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -288,8 +425,41 @@ void Server::handleCvarResponse( int clientNum, const char* cvarName, const char
         return;
     }
     
-    // Placeholder for CVAR validation
-    // Would check if the reported value matches expected values
+    if ( clientNum < 0 || clientNum >= MAX_CLIENTS || !cvarName || !value ) {
+        return;
+    }
+    
+    // Check against protected CVARs list
+    for ( int i = 0; protectedCvars[i].name[0] != '\0'; i++ ) {
+        if ( Q_stricmp( protectedCvars[i].name, cvarName ) == 0 ) {
+            qboolean violation = qfalse;
+            
+            if ( protectedCvars[i].exactMatch ) {
+                // Exact match required
+                if ( Q_stricmp( protectedCvars[i].expectedValue, value ) != 0 ) {
+                    violation = qtrue;
+                }
+            } else {
+                // Check if value is within acceptable range (for numeric values)
+                float expected = atof( protectedCvars[i].expectedValue );
+                float actual = atof( value );
+                
+                // Allow some tolerance for non-exact matches
+                if ( fabs( expected - actual ) > 0.5f ) {
+                    violation = qtrue;
+                }
+            }
+            
+            if ( violation ) {
+                char details[256];
+                Com_sprintf( details, sizeof(details), "Illegal CVAR: %s=%s (expected %s)", 
+                            cvarName, value, protectedCvars[i].expectedValue );
+                reportViolation( clientNum, JXAC_VIOLATION_CVAR, details );
+            }
+            
+            break;
+        }
+    }
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -585,6 +755,11 @@ void Server::checkHeartbeats() {
             continue;
         }
         
+        // Skip bots - they don't run JXAC client module
+        if ( ent->r.svFlags & SVF_BOT ) {
+            continue;
+        }
+        
         jxacPlayerData_t* pd = &playerData[i];
         
         // Check heartbeat timeout
@@ -598,6 +773,13 @@ void Server::checkHeartbeats() {
 
 void Server::checkTimeouts() {
     for ( int i = 0; i < level.maxclients; i++ ) {
+        gentity_t* ent = &g_entities[i];
+        
+        // Skip bots - they don't run JXAC client module
+        if ( ent->r.svFlags & SVF_BOT ) {
+            continue;
+        }
+        
         jxacPlayerData_t* pd = &playerData[i];
         
         // Check screenshot request timeout (30 seconds)

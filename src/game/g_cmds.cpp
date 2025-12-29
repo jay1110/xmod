@@ -3535,6 +3535,49 @@ void ClientCommand( int clientNum ) {
 		return;
 	}
 
+	// JXAC: Handle screenshot data chunk from client (hex-encoded)
+	if (Q_stricmp(cmd, "jxac_ss_data") == 0) {
+		char chunkNumStr[16];
+		char sizeStr[16];
+		char hexData[1024];  // Max ~900 hex chars (450 bytes binary)
+		
+		trap_Argv( 1, chunkNumStr, sizeof(chunkNumStr) );
+		trap_Argv( 2, sizeStr, sizeof(sizeStr) );
+		trap_Argv( 3, hexData, sizeof(hexData) );
+		
+		int chunkSize = atoi( sizeStr );
+		if ( chunkSize > 0 && chunkSize <= 450 ) {
+			// Convert hex string back to binary
+			unsigned char binaryData[450];
+			int hexLen = strlen( hexData );
+			int binaryLen = hexLen / 2;
+			
+			if ( binaryLen == chunkSize ) {
+				qboolean validHex = qtrue;
+				for ( int i = 0; i < binaryLen && validHex; i++ ) {
+					unsigned int byte = 0;
+					// Validate hex characters before parsing
+					char c1 = hexData[i * 2];
+					char c2 = hexData[i * 2 + 1];
+					if ( !((c1 >= '0' && c1 <= '9') || (c1 >= 'a' && c1 <= 'f') || (c1 >= 'A' && c1 <= 'F')) ||
+					     !((c2 >= '0' && c2 <= '9') || (c2 >= 'a' && c2 <= 'f') || (c2 >= 'A' && c2 <= 'F')) ) {
+						validHex = qfalse;
+						continue;
+					}
+					if ( sscanf( &hexData[i * 2], "%02x", &byte ) != 1 ) {
+						validHex = qfalse;
+						continue;
+					}
+					binaryData[i] = (unsigned char)byte;
+				}
+				if ( validHex ) {
+					jxac::Server::handleScreenshotData( clientNum, binaryData, chunkSize );
+				}
+			}
+		}
+		return;
+	}
+
 	// JXAC: Handle CVAR response from client
 	if (Q_stricmp(cmd, "jxac_cvar_resp") == 0) {
 		char cvarName[64];

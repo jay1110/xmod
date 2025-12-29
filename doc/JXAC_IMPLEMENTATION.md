@@ -125,25 +125,25 @@ The following features have framework/placeholder code but require full implemen
 
 **What's completed**:
 - ✅ stb_image_write.h single-header library integrated
-- ✅ JPEG compression with configurable quality (1-100)
+- ✅ JPEG compression with configurable quality (1-100) using in-memory callback
 - ✅ Client-side screenshot capture module
 - ✅ Framebuffer capture framework (placeholder gradient pattern)
-- ✅ Automatic chunking for network transmission (8KB chunks)
-- ✅ Memory management (malloc/free)
-- ✅ Temporary file handling
+- ✅ Hex-encoded data transmission in 2KB chunks
+- ✅ Memory management (malloc/free with proper callback context)
+- ✅ Server-side hex decoding and data assembly
+- ✅ Bot filtering (bots are skipped for screenshot requests)
 
 **What's needed for full functionality**:
 - Platform-specific framebuffer capture:
   - Replace placeholder pattern with actual OpenGL framebuffer read
   - Windows: Use trap_R_ReadPixels or equivalent
   - Linux: Use trap_R_ReadPixels or equivalent
-- Network message transmission (requires engine hooks)
 
 **Current behavior**: 
 - Generates test pattern screenshot (gradient for verification)
-- Compresses to JPEG at specified quality
-- Chunks data for transmission
-- Server receives and saves to disk
+- Compresses to JPEG at specified quality using callback-based approach
+- Sends hex-encoded data in 2KB chunks to server
+- Server receives, decodes, assembles and saves to disk
 
 ### 2. Network Protocol Integration
 **Status**: ✅ **IMPLEMENTED** - Full client-server communication integrated
@@ -154,37 +154,50 @@ The following features have framework/placeholder code but require full implemen
   - `jxac_cvar_req <cvarname>` - CVAR check request
 - ✅ Client-to-server commands integrated:
   - `jxac_heartbeat <version>` - Heartbeat with version
+  - `jxac_ss_data <chunkNum> <size> <hexData>` - Screenshot data chunk (hex-encoded)
   - `jxac_ss_complete` - Screenshot upload complete
   - `jxac_cvar_resp <cvarname> <value>` - CVAR response
 - ✅ Server command handlers added to `ClientCommand()` in g_cmds.cpp
 - ✅ Client command handlers added to `CG_ServerCommand()` in cg_servercmds.cpp
 - ✅ JXAC initialization integrated into both game and cgame init
 - ✅ JXAC frame updates integrated into both game and cgame frame loops
+- ✅ Bot filtering in heartbeat and timeout checks
 
 **Network flow**:
 1. Server sends `jxac_ss_req` → Client receives in CG_ServerCommand → handleScreenshotRequest
-2. Client captures & compresses → sends `jxac_ss_complete` → Server receives in ClientCommand
+2. Client captures & compresses → sends `jxac_ss_data` chunks → sends `jxac_ss_complete` → Server receives and saves
 3. Server sends `jxac_cvar_req` → Client receives → sends `jxac_cvar_resp` → Server validates
 
 **Current behavior**:
 - All network messages transmit successfully
 - Screenshot requests trigger real JPEG capture on client
+- Screenshot data transmitted via hex-encoded chunks
 - CVAR requests get actual values and send to server
 - Heartbeat system keeps connection alive
+- Bots are properly ignored
 
 ### 3. CVAR Scanning
-**Status**: Request/response handlers exist, validation logic not implemented
+**Status**: ✅ **IMPLEMENTED** - Full CVAR checking with batches
 
-**What's needed**:
-- Define list of protected CVARs
-- Implement CVAR value validation
-- Add expected value comparison logic
-- Trigger violations on mismatch
+**What's completed**:
+- ✅ Defined 4 batches of protected CVARs (28+ CVARs total):
+  - Batch 1: Renderer CVARs (wallhack related)
+  - Batch 2: Renderer CVARs (visibility related)
+  - Batch 3: Client CVARs (misc cheats)
+  - Batch 4: Model/texture cheats
+- ✅ CVAR validation with expected values
+- ✅ Exact match and tolerance-based validation
+- ✅ Automatic periodic checking (every 60 seconds)
+- ✅ Rotating batch system per client
+- ✅ Bot filtering for CVAR checks
 
 **Current behavior**:
-- Can request CVAR values from client
-- Client can send CVAR values
-- No actual validation performed
+- Server automatically requests CVAR values from clients every 60 seconds
+- Each check sends one batch of CVARs
+- Batches rotate to cover all CVARs over time
+- Client sends actual CVAR values
+- Server validates against expected values
+- Violations are logged and trigger auto-kick/ban if configured
 
 ### 4. Cheat Detection Heuristics
 
@@ -273,52 +286,55 @@ All CVARs are archived (saved to config) and can be modified via server.cfg or c
 
 3. ~~**Screenshot Capture**~~ ✅ **COMPLETED**
    - ✅ Integrate JPEG library (stb_image_write.h)
-   - ✅ Implement screenshot compression module
+   - ✅ Implement screenshot compression module (callback-based)
+   - ✅ Implement hex-encoded data transmission
    - ⏳ Replace placeholder with actual framebuffer capture
    - ⏳ Test screenshot quality settings in-game
 
 ### Medium Priority (Enhanced Features)
 
-4. **CVAR Scanning**
-   - Define protected CVAR list
-   - Implement validation logic
-   - Add configuration for custom CVARs
+4. ~~**CVAR Scanning**~~ ✅ **COMPLETED**
+   - ✅ Define protected CVAR list (28+ CVARs in 4 batches)
+   - ✅ Implement validation logic
+   - ✅ Automatic periodic checking
+   - ⏳ Add configuration for custom CVARs
 
 5. **Violation Actions**
-   - Implement auto-kick/auto-ban logic
-   - Add admin notification system
-   - Create violation history tracking
+   - ✅ Auto-kick/auto-ban logic implemented
+   - ⏳ Add admin notification system
+   - ⏳ Create violation history tracking
 
 6. **Logging System**
-   - Enhance violation logging
-   - Add rotation for log files
-   - Implement log analysis tools
+   - ✅ Violation logging implemented
+   - ⏳ Add rotation for log files
+   - ⏳ Implement log analysis tools
 
 ### Low Priority (Advanced Features)
 
 7. **Cheat Detection Heuristics**
-   - Implement wallhack detection
-   - Add aimbot detection
-   - Implement speedhack detection
+   - ⏳ Implement wallhack detection
+   - ⏳ Add aimbot detection
+   - ⏳ Implement speedhack detection
 
 8. **Checksum Validation**
-   - Calculate and validate pk3 checksums
-   - Verify client binary integrity
+   - ⏳ Calculate and validate pk3 checksums
+   - ⏳ Verify client binary integrity
 
 9. **Client Anti-Tamper**
-   - Detect JXAC module tampering
-   - Report tampering attempts
+   - ⏳ Detect JXAC module tampering
+   - ⏳ Report tampering attempts
 
 ---
 
 ## 📊 Current Limitations
 
-1. **No actual screenshot capture**: Uses dummy data
-2. **No network transmission**: Messages not sent over network
-3. **No CVAR registration**: Config values are hardcoded
-4. **No cheat detection**: Heuristics not implemented
-5. **Limited platform support**: Only tested on Linux x86_64
-6. **No testing**: Commands and features untested in-game
+1. **Placeholder screenshot capture**: Uses test pattern instead of actual framebuffer
+2. ~~**No network transmission**: Messages not sent over network~~ ✅ FIXED - Hex-encoded data transmission implemented
+3. ~~**No CVAR registration**: Config values are hardcoded~~ ✅ FIXED - CVARs registered with engine
+4. ~~**No CVAR validation**: Just placeholder~~ ✅ FIXED - Full validation with batches
+5. **No cheat detection heuristics**: Advanced detection not implemented
+6. **Limited platform support**: Only tested on Linux x86_64
+7. **No in-game testing**: Commands and features untested in-game
 
 ---
 
