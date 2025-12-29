@@ -198,25 +198,32 @@ The following features have framework/placeholder code but require full implemen
 - Trigger violations on mismatch
 
 ### 6. Server CVARs
-**Status**: Hardcoded variables exist, not registered as CVARs
+**Status**: ✅ **IMPLEMENTED** - CVARs registered and functional
 
-**What's needed**:
-- Register CVARs with engine
-- Add CVAR callbacks
-- Implement CVAR value change handlers
-
-**Current placeholders**:
+**Registered CVARs**:
 ```cpp
-static int g_jxacEnable = 1;
-static int g_jxacScreenshotQuality = JXAC_SS_QUALITY_DEFAULT;
-static char g_jxacScreenshotPath[MAX_QPATH] = "jxac/screenshots/";
-static int g_jxacCheckCvars = 1;
-static int g_jxacCheckWallhack = 1;
-static int g_jxacCheckSpeedhack = 1;
-static int g_jxacAutoBan = 0;
-static int g_jxacAutoKick = 1;
-static char g_jxacLogFile[MAX_QPATH] = "jxac.log";
+jxac_enable             (default: 1)              - Enable/disable JXAC
+jxac_screenshotQuality  (default: 85)             - Screenshot JPG quality (1-100)
+jxac_screenshotPath     (default: "jxac/screenshots/") - Screenshot storage path
+jxac_checkCvars         (default: 1)              - Enable CVAR checking
+jxac_checkWallhack      (default: 1)              - Enable wallhack detection
+jxac_checkSpeedhack     (default: 1)              - Enable speedhack detection
+jxac_autoBan            (default: 0)              - Auto-ban on detection
+jxac_autoKick           (default: 1)              - Auto-kick on detection
+jxac_logFile            (default: "jxac.log")     - Violation log file path
 ```
+
+All CVARs are archived (saved to config) and can be modified via server.cfg or console.
+
+**What's completed**:
+- ✅ All CVARs registered with engine
+- ✅ Default values set
+- ✅ CVAR_ARCHIVE flag for persistence
+- ✅ Server code uses CVARs instead of hardcoded values
+
+**Future enhancements**:
+- Add CVAR callbacks for validation
+- Add runtime change handlers
 
 ### 7. Client Anti-Tamper
 **Status**: Not implemented
@@ -237,10 +244,10 @@ static char g_jxacLogFile[MAX_QPATH] = "jxac.log";
    - Implement message parsing on both sides
    - Test client-server communication
 
-2. **CVAR System Integration**
-   - Register server CVARs with engine
-   - Implement CVAR callbacks
-   - Add persistence support
+2. ~~**CVAR System Integration**~~ ✅ **COMPLETED**
+   - ✅ Register server CVARs with engine
+   - ✅ Implement CVAR persistence (ARCHIVE flag)
+   - ⏳ Add CVAR validation callbacks (future enhancement)
 
 3. **Screenshot Capture**
    - Integrate JPEG library (recommend stb_image_write.h)

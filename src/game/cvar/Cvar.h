@@ -19,6 +19,16 @@ namespace objects {
     extern Cvar g_hitmodeReference;
     extern Cvar g_hitmodeZone;
 
+    extern Cvar g_jxacEnable;
+    extern Cvar g_jxacScreenshotQuality;
+    extern Cvar g_jxacScreenshotPath;
+    extern Cvar g_jxacCheckCvars;
+    extern Cvar g_jxacCheckWallhack;
+    extern Cvar g_jxacCheckSpeedhack;
+    extern Cvar g_jxacAutoBan;
+    extern Cvar g_jxacAutoKick;
+    extern Cvar g_jxacLogFile;
+
     extern Cvar g_kickMessage;
     extern Cvar g_kickTime;
     extern Cvar g_protestMessage;

@@ -95,6 +95,16 @@ namespace objects {
     Cvar g_hitmodeReference    ( "g_hitmodeReference",     "1", 0, NULL );
     Cvar g_hitmodeZone         ( "g_hitmodeZone",          "1", 0, AbstractHitModel::cvarZone );
 
+    Cvar g_jxacEnable             ( "jxac_enable",             "1",              CVAR_ARCHIVE );
+    Cvar g_jxacScreenshotQuality  ( "jxac_screenshotQuality",  "85",             CVAR_ARCHIVE );
+    Cvar g_jxacScreenshotPath     ( "jxac_screenshotPath",     "jxac/screenshots/", CVAR_ARCHIVE );
+    Cvar g_jxacCheckCvars         ( "jxac_checkCvars",         "1",              CVAR_ARCHIVE );
+    Cvar g_jxacCheckWallhack      ( "jxac_checkWallhack",      "1",              CVAR_ARCHIVE );
+    Cvar g_jxacCheckSpeedhack     ( "jxac_checkSpeedhack",     "1",              CVAR_ARCHIVE );
+    Cvar g_jxacAutoBan            ( "jxac_autoBan",            "0",              CVAR_ARCHIVE );
+    Cvar g_jxacAutoKick           ( "jxac_autoKick",           "1",              CVAR_ARCHIVE );
+    Cvar g_jxacLogFile            ( "jxac_logFile",            "jxac.log",       CVAR_ARCHIVE );
+
     Cvar g_maxLandmines ( "team_maxLandmines", "10" );
     Cvar g_maxTripmines ( "team_maxTripmines", "3" );
     Cvar g_shutdownExit ( "g_shutdownExit",    "0" );

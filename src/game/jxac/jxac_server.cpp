@@ -10,17 +10,6 @@ namespace jxac {
 static jxacPlayerData_t playerData[MAX_CLIENTS];
 static qboolean initialized = qfalse;
 
-// Configuration (will be controlled by CVARs)
-static int g_jxacEnable = 1;
-static int g_jxacScreenshotQuality = JXAC_SS_QUALITY_DEFAULT;
-static char g_jxacScreenshotPath[MAX_QPATH] = "jxac/screenshots/";
-static int g_jxacCheckCvars = 1;
-static int g_jxacCheckWallhack = 1;
-static int g_jxacCheckSpeedhack = 1;
-static int g_jxacAutoBan = 0;
-static int g_jxacAutoKick = 1;
-static char g_jxacLogFile[MAX_QPATH] = "jxac.log";
-
 ///////////////////////////////////////////////////////////////////////////////
 
 void Server::init() {
@@ -61,7 +50,7 @@ void Server::shutdown() {
 ///////////////////////////////////////////////////////////////////////////////
 
 void Server::frame() {
-    if ( !initialized || !g_jxacEnable ) {
+    if ( !initialized || !cvar::objects::g_jxacEnable.ivalue ) {
         return;
     }
     
@@ -75,7 +64,7 @@ void Server::frame() {
 ///////////////////////////////////////////////////////////////////////////////
 
 void Server::clientConnect( int clientNum ) {
-    if ( !initialized || !g_jxacEnable ) {
+    if ( !initialized || !cvar::objects::g_jxacEnable.ivalue ) {
         return;
     }
     
@@ -98,7 +87,7 @@ void Server::clientConnect( int clientNum ) {
 ///////////////////////////////////////////////////////////////////////////////
 
 void Server::clientDisconnect( int clientNum ) {
-    if ( !initialized || !g_jxacEnable ) {
+    if ( !initialized || !cvar::objects::g_jxacEnable.ivalue ) {
         return;
     }
     
@@ -121,7 +110,7 @@ void Server::clientDisconnect( int clientNum ) {
 ///////////////////////////////////////////////////////////////////////////////
 
 void Server::clientBegin( int clientNum ) {
-    if ( !initialized || !g_jxacEnable ) {
+    if ( !initialized || !cvar::objects::g_jxacEnable.ivalue ) {
         return;
     }
     
@@ -138,7 +127,7 @@ void Server::clientBegin( int clientNum ) {
 ///////////////////////////////////////////////////////////////////////////////
 
 void Server::requestScreenshot( int clientNum, int quality ) {
-    if ( !initialized || !g_jxacEnable ) {
+    if ( !initialized || !cvar::objects::g_jxacEnable.ivalue ) {
         return;
     }
     
@@ -177,7 +166,7 @@ void Server::requestScreenshot( int clientNum, int quality ) {
 ///////////////////////////////////////////////////////////////////////////////
 
 void Server::requestScreenshotAll( int quality ) {
-    if ( !initialized || !g_jxacEnable ) {
+    if ( !initialized || !cvar::objects::g_jxacEnable.ivalue ) {
         return;
     }
     
@@ -196,7 +185,7 @@ void Server::requestScreenshotAll( int quality ) {
 ///////////////////////////////////////////////////////////////////////////////
 
 void Server::handleScreenshotData( int clientNum, const void* data, int size ) {
-    if ( !initialized || !g_jxacEnable ) {
+    if ( !initialized || !cvar::objects::g_jxacEnable.ivalue ) {
         return;
     }
     
@@ -239,7 +228,7 @@ void Server::handleScreenshotData( int clientNum, const void* data, int size ) {
 ///////////////////////////////////////////////////////////////////////////////
 
 void Server::handleScreenshotComplete( int clientNum ) {
-    if ( !initialized || !g_jxacEnable ) {
+    if ( !initialized || !cvar::objects::g_jxacEnable.ivalue ) {
         return;
     }
     
@@ -268,7 +257,7 @@ void Server::handleScreenshotComplete( int clientNum ) {
 ///////////////////////////////////////////////////////////////////////////////
 
 void Server::handleHeartbeat( int clientNum ) {
-    if ( !initialized || !g_jxacEnable ) {
+    if ( !initialized || !cvar::objects::g_jxacEnable.ivalue ) {
         return;
     }
     
@@ -284,7 +273,7 @@ void Server::handleHeartbeat( int clientNum ) {
 ///////////////////////////////////////////////////////////////////////////////
 
 void Server::requestCvarCheck( int clientNum ) {
-    if ( !initialized || !g_jxacEnable || !g_jxacCheckCvars ) {
+    if ( !initialized || !cvar::objects::g_jxacEnable.ivalue || !cvar::objects::g_jxacCheckCvars.ivalue ) {
         return;
     }
     
@@ -295,7 +284,7 @@ void Server::requestCvarCheck( int clientNum ) {
 ///////////////////////////////////////////////////////////////////////////////
 
 void Server::handleCvarResponse( int clientNum, const char* cvarName, const char* value ) {
-    if ( !initialized || !g_jxacEnable ) {
+    if ( !initialized || !cvar::objects::g_jxacEnable.ivalue ) {
         return;
     }
     
@@ -306,7 +295,7 @@ void Server::handleCvarResponse( int clientNum, const char* cvarName, const char
 ///////////////////////////////////////////////////////////////////////////////
 
 void Server::reportViolation( int clientNum, jxacViolationType_t type, const char* details ) {
-    if ( !initialized || !g_jxacEnable ) {
+    if ( !initialized || !cvar::objects::g_jxacEnable.ivalue ) {
         return;
     }
     
@@ -351,9 +340,9 @@ void Server::handleViolation( int clientNum, jxacViolationType_t type, const cha
                 clientNum, ent->client->pers.netname, type, details ? details : "N/A" );
     
     // Auto-actions
-    if ( g_jxacAutoBan ) {
+    if ( cvar::objects::g_jxacAutoBan.ivalue ) {
         banPlayer( clientNum, va( "JXAC Violation: %s", details ? details : "Cheating detected" ) );
-    } else if ( g_jxacAutoKick ) {
+    } else if ( cvar::objects::g_jxacAutoKick.ivalue ) {
         kickPlayer( clientNum, va( "JXAC Violation: %s", details ? details : "Cheating detected" ) );
     }
 }
@@ -371,7 +360,7 @@ jxacPlayerData_t* Server::getPlayerData( int clientNum ) {
 ///////////////////////////////////////////////////////////////////////////////
 
 const char* Server::getStatusString( int clientNum ) {
-    if ( !initialized || !g_jxacEnable ) {
+    if ( !initialized || !cvar::objects::g_jxacEnable.ivalue ) {
         return "^3DISABLED";
     }
     
@@ -444,7 +433,7 @@ void Server::printStatusAll() {
     }
     
     Com_Printf( "JXAC Status (v%s) - Enabled: %s\n", 
-                JXAC_VERSION_STRING, g_jxacEnable ? "YES" : "NO" );
+                JXAC_VERSION_STRING, cvar::objects::g_jxacEnable.ivalue ? "YES" : "NO" );
     Com_Printf( "%-4s %-32s %-12s %-10s\n", "Slot", "Name", "Status", "Violations" );
     Com_Printf( "------------------------------------------------------------\n" );
     
@@ -534,7 +523,7 @@ void Server::saveScreenshot( int clientNum, const unsigned char* data, int size 
     
     // Build full path
     Com_sprintf( filename, sizeof( filename ), "%s%s_%s.jpg", 
-                 g_jxacScreenshotPath, cleanname, timestamp );
+                 cvar::objects::g_jxacScreenshotPath.svalue, cleanname, timestamp );
     
     // Write file
     fileHandle_t f;
@@ -554,7 +543,7 @@ void Server::saveScreenshot( int clientNum, const unsigned char* data, int size 
 ///////////////////////////////////////////////////////////////////////////////
 
 void Server::logViolation( const jxacViolation_t* violation ) {
-    if ( !violation || g_jxacLogFile[0] == '\0' ) {
+    if ( !violation || cvar::objects::g_jxacLogFile.svalue[0] == '\0' ) {
         return;
     }
     
@@ -569,10 +558,10 @@ void Server::logViolation( const jxacViolation_t* violation ) {
     
     // Open log file for append
     fileHandle_t f;
-    trap_FS_FOpenFile( g_jxacLogFile, &f, FS_APPEND );
+    trap_FS_FOpenFile( cvar::objects::g_jxacLogFile.svalue, &f, FS_APPEND );
     
     if ( !f ) {
-        Com_Printf( "JXAC: Failed to open log file: %s\n", g_jxacLogFile );
+        Com_Printf( "JXAC: Failed to open log file: %s\n", cvar::objects::g_jxacLogFile.svalue );
         return;
     }
     
