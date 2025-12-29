@@ -133,8 +133,10 @@ void Client::sendScreenshotData( const void* data, int size ) {
     
     // Send screenshot data to server in chunks using hex encoding
     // ET engine command system is text-based, so we convert binary to hex
+    // MAX_STRING_CHARS is 1024, so we need small chunks: 450 bytes binary = 900 hex chars
+    // Command format: "jxac_ss_data <num> <size> <hex>" leaves room for overhead
     const unsigned char* bytes = (const unsigned char*)data;
-    const int CHUNK_SIZE = 2048;  // 2KB binary = 4KB hex string (fits in command limits)
+    const int CHUNK_SIZE = 450;  // 450 bytes binary = 900 hex chars (fits in 1024 limit)
     
     int chunkNum = 0;
     int offset = 0;

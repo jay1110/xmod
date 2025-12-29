@@ -3539,16 +3539,16 @@ void ClientCommand( int clientNum ) {
 	if (Q_stricmp(cmd, "jxac_ss_data") == 0) {
 		char chunkNumStr[16];
 		char sizeStr[16];
-		char hexData[8192];  // 4KB hex = 2KB binary
+		char hexData[1024];  // Max ~900 hex chars (450 bytes binary)
 		
 		trap_Argv( 1, chunkNumStr, sizeof(chunkNumStr) );
 		trap_Argv( 2, sizeStr, sizeof(sizeStr) );
 		trap_Argv( 3, hexData, sizeof(hexData) );
 		
 		int chunkSize = atoi( sizeStr );
-		if ( chunkSize > 0 && chunkSize <= 2048 ) {
+		if ( chunkSize > 0 && chunkSize <= 450 ) {
 			// Convert hex string back to binary
-			unsigned char binaryData[2048];
+			unsigned char binaryData[450];
 			int hexLen = strlen( hexData );
 			int binaryLen = hexLen / 2;
 			
