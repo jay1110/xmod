@@ -330,6 +330,8 @@ g_script_stack_action_t *G_Script_ActionForString( char *string ) {
 		}
 	}
 
+	G_Printf( "G_Script_ActionForString warning: unknown action: '%s' - returning NULL\n", string );
+
 	return NULL;
 }
 
@@ -482,6 +484,7 @@ void G_Script_ScriptParse( gentity_t *ent )
 	char		*pScript;
 	char		*token;
 	qboolean	wantName;
+	qboolean	wantScript;
 	qboolean	inScript;
 	int			eventNum;
 	g_script_event_t	events[G_MAX_SCRIPT_STACK_ITEMS];
@@ -505,6 +508,7 @@ void G_Script_ScriptParse( gentity_t *ent )
 
 	pScript = level.scriptEntity;
 	wantName = qtrue;
+	wantScript = qfalse;
 	inScript = qfalse;
 	COM_BeginParseSession("G_Script_ScriptParse");
 	bracketLevel = 0;
@@ -544,17 +548,10 @@ void G_Script_ScriptParse( gentity_t *ent )
 			{
 				G_Error( "G_Script_ScriptParse(), Error (line %d): '{' found, NAME expected.\n", COM_GetCurrentParseLine() );
 			}
+			wantScript = qfalse;
 		}
 		else if ( wantName )
 		{
-			if ( !Q_stricmp( token, "bot" ) ) {
-				// a bot, skip this whole entry
-				SkipRestOfLine ( &pScript );
-				// skip this section
-				SkipBracedSection( &pScript );
-				//
-				continue;
-			}
 			if( !Q_stricmp( token, "entity" ) ) {
 				// this is an entity, so go back to look for a name
 				continue;
@@ -565,6 +562,7 @@ void G_Script_ScriptParse( gentity_t *ent )
 				numEventItems = 0;
 			}
 			wantName = qfalse;
+			wantScript = qtrue;
 		} else if ( inScript ) {
 			Q_strlwr( token );
 			eventNum = G_Script_EventForString( token );
@@ -694,7 +692,14 @@ void G_Script_ScriptParse( gentity_t *ent )
 
 			numEventItems++;
 		} else { // skip this character completely
-      // TTimo gcc: suggest parentheses around assignment used as truth value
+			if (wantScript)
+			{
+				// note: There are maps available which don't start anymore
+				//       Fix the mapscripts!
+				G_Error( "G_Script_ScriptParse(), Error (line %d): '{' expected, but found '%s'.\n", COM_GetCurrentParseLine(), token );
+			}
+
+			// TTimo gcc: suggest parentheses around assignment used as truth value
 			while ( ( token = COM_Parse( &pScript ) ) != NULL )
 			{
 				if (!token[0]) {
