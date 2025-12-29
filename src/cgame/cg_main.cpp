@@ -5,7 +5,8 @@
  *
 */
 
-#include <bgame/impl.h> 
+#include <bgame/impl.h>
+#include <cgame/jxac/jxac_client.h>
 
 displayContextDef_t cgDC;
 
@@ -2885,6 +2886,7 @@ void CG_Init( int serverMessageNum, int serverCommandSequence, int clientNum, qb
     consoleFont.registerShader();
     consoleFontShadowed.registerShader();
     console.init();
+    jxac::Client::init();  // Initialize JXAC client module
 
 	// load a few needed things before we do any screen updates
 	cgs.media.charsetShader		= trap_R_RegisterShader( "gfx/2d/hudchars" ); //trap_R_RegisterShader( "gfx/2d/bigchars" );

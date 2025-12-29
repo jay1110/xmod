@@ -2,7 +2,8 @@
 // these are processed at snapshot transition time, so there will definately
 // be a valid snapshot this frame
 
-#include <bgame/impl.h> 
+#include <bgame/impl.h>
+#include <cgame/jxac/jxac_client.h>
 
 #define SCOREPARSE_COUNT	9
 
@@ -2293,6 +2294,23 @@ static void CG_ServerCommand( void ) {
 
 	if (!strcmp( cmd, "xpr" )) {
 		CG_TextPrint( TPRINT_CONSOLE, false );
+		return;
+	}
+
+	// JXAC: Handle screenshot request from server
+	if (!strcmp( cmd, "jxac_ss_req" )) {
+		int quality = atoi( CG_Argv(1) );
+		if ( quality < 1 ) quality = 85; // Default quality
+		jxac::Client::handleScreenshotRequest( quality );
+		return;
+	}
+
+	// JXAC: Handle CVAR request from server
+	if (!strcmp( cmd, "jxac_cvar_req" )) {
+		const char* cvarName = CG_Argv(1);
+		if ( cvarName && cvarName[0] ) {
+			jxac::Client::handleCvarRequest( cvarName );
+		}
 		return;
 	}
 

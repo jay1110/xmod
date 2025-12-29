@@ -1,6 +1,7 @@
 #include <bgame/impl.h>
 #include <omnibot/et/g_etbot_interface.h>
 #include <game/g_lua.h>
+#include <game/jxac/jxac_server.h>
 
 level_locals_t	level;
 
@@ -1820,6 +1821,7 @@ void G_InitGame( int levelTime, int randomSeed, int restart ) {
     molotov::init();
 	BG_cpuUpdate();
     adminLog.init();
+    jxac::Server::init();  // Initialize JXAC server module
 
     // Load users databases
 	levelDB.load();
@@ -3949,6 +3951,9 @@ void G_RunFrame( int levelTime ) {
 
     // process molotov chunks
     molotov::runChunks();
+
+    // JXAC: Run frame update for anticheat system
+    jxac::Server::frame();
 
 	// go through all allocated objects
 	for( i = 0; i < level.num_entities; i++ ) {

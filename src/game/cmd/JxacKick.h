@@ -1,0 +1,18 @@
+#ifndef GAME_CMD_JXACKICK_H
+#define GAME_CMD_JXACKICK_H
+
+///////////////////////////////////////////////////////////////////////////////
+
+class JxacKick : public AbstractBuiltin
+{
+protected:
+    PostAction doExecute( Context& );
+
+public:
+    JxacKick();
+    ~JxacKick();
+};
+
+///////////////////////////////////////////////////////////////////////////////
+
+#endif // GAME_CMD_JXACKICK_H

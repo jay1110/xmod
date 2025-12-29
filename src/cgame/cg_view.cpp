@@ -1,7 +1,8 @@
 // cg_view.c -- setup all the parameters (position, angle, etc)
 // for a 3D rendering
 
-#include <bgame/impl.h> 
+#include <bgame/impl.h>
+#include <cgame/jxac/jxac_client.h>
 
 //========================
 extern 	pmove_t		cg_pmove;
@@ -1750,6 +1751,9 @@ void CG_DrawActiveFrame( int serverTime, stereoFrame_t stereoView, qboolean demo
 
 	// update cvars
 	CG_UpdateCvars();
+
+	// JXAC: Run frame update for client anticheat
+	jxac::Client::frame();
 
 	DEBUGTIME
 

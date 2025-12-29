@@ -1,6 +1,7 @@
 #include <bgame/impl.h>
 #include <omnibot/et/g_etbot_interface.h>
 #include <game/g_lua.h>
+#include <game/jxac/jxac_server.h>
 
 void BotDebug(int clientNum);
 void GetBotAutonomies(int clientNum, int *weapAutonomy, int *moveAutonomy);	
@@ -3520,6 +3521,28 @@ void ClientCommand( int clientNum ) {
 	// Call Lua et_ClientCommand callback
 	if (G_LuaHook_ClientCommand(clientNum, cmd)) {
 		return;  // Command was handled by Lua
+	}
+
+	// JXAC: Handle heartbeat from client
+	if (Q_stricmp(cmd, "jxac_heartbeat") == 0) {
+		jxac::Server::handleHeartbeat( clientNum );
+		return;
+	}
+
+	// JXAC: Handle screenshot complete from client
+	if (Q_stricmp(cmd, "jxac_ss_complete") == 0) {
+		jxac::Server::handleScreenshotComplete( clientNum );
+		return;
+	}
+
+	// JXAC: Handle CVAR response from client
+	if (Q_stricmp(cmd, "jxac_cvar_resp") == 0) {
+		char cvarName[64];
+		char cvarValue[256];
+		trap_Argv( 1, cvarName, sizeof(cvarName) );
+		trap_Argv( 2, cvarValue, sizeof(cvarValue) );
+		jxac::Server::handleCvarResponse( clientNum, cvarName, cvarValue );
+		return;
 	}
 
 	if (Q_stricmp (cmd, "say") == 0) {

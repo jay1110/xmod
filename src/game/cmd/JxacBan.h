@@ -1,0 +1,18 @@
+#ifndef GAME_CMD_JXACBAN_H
+#define GAME_CMD_JXACBAN_H
+
+///////////////////////////////////////////////////////////////////////////////
+
+class JxacBan : public AbstractBuiltin
+{
+protected:
+    PostAction doExecute( Context& );
+
+public:
+    JxacBan();
+    ~JxacBan();
+};
+
+///////////////////////////////////////////////////////////////////////////////
+
+#endif // GAME_CMD_JXACBAN_H

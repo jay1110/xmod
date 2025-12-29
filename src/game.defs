@@ -2,6 +2,7 @@ MODULE.GAME.srcs.pch = $(sort \
     $(wildcard $(PROJECT/)src/game/*.cpp) \
     $(wildcard $(PROJECT/)src/game/cmd/*.cpp) \
     $(wildcard $(PROJECT/)src/game/cvar/*.cpp) \
+    $(wildcard $(PROJECT/)src/game/jxac/*.cpp) \
     $(wildcard $(PROJECT/)src/game/str/*.cpp) \
     $(wildcard $(PROJECT/)src/game/$(PROJECT.platspecific)/*.cpp) \
 	\
