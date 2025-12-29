@@ -330,7 +330,7 @@ g_script_stack_action_t *G_Script_ActionForString( char *string ) {
 		}
 	}
 
-	G_Printf( "G_Script_ActionForString warning: unknown action: '%s' - returning NULL\n", string );
+	G_Printf( "G_Script_ActionForString: mapscript parsing warning - unknown action: '%s'\n", string );
 
 	return NULL;
 }
@@ -694,9 +694,10 @@ void G_Script_ScriptParse( gentity_t *ent )
 		} else { // skip this character completely
 			if (wantScript)
 			{
-				// note: There are maps available which don't start anymore
-				//       Fix the mapscripts!
-				G_Error( "G_Script_ScriptParse(), Error (line %d): '{' expected, but found '%s'.\n", COM_GetCurrentParseLine(), token );
+				// A script name was found but the next token is not '{'.
+				// This indicates malformed mapscript syntax - the entity name should be followed by '{'.
+				// Custom mapscripts may have syntax errors that need to be corrected.
+				G_Error( "G_Script_ScriptParse(), Error (line %d): '{' expected after script name, but found '%s'.\n", COM_GetCurrentParseLine(), token );
 			}
 
 			// TTimo gcc: suggest parentheses around assignment used as truth value
