@@ -2837,6 +2837,10 @@ void ClientDisconnect( int clientNum ) {
 	}
 
 	//////////////////////////////////////////////////////////////////////////
+	// Notify omnibot that the entity is being deleted to properly invalidate
+	// entity handles. This must be done before Bot_Event_ClientDisConnected
+	// to prevent crashes when the bot library tries to access stale entity data.
+	Bot_Event_EntityDeleted(ent);
 	Bot_Event_ClientDisConnected(clientNum);
 	//////////////////////////////////////////////////////////////////////////
 
