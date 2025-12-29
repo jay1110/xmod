@@ -13,6 +13,30 @@ namespace jxac {
 
 ///////////////////////////////////////////////////////////////////////////////
 
+// Callback context for in-memory JPEG writing
+typedef struct {
+    unsigned char* buffer;
+    int size;
+    int capacity;
+} JpegWriteContext;
+
+// Callback function for stbi_write_jpg_to_func
+static void jpegWriteCallback( void* context, void* data, int size ) {
+    JpegWriteContext* ctx = (JpegWriteContext*)context;
+    
+    // Expand buffer if needed
+    while ( ctx->size + size > ctx->capacity ) {
+        ctx->capacity = ctx->capacity * 2;
+        ctx->buffer = (unsigned char*)realloc( ctx->buffer, ctx->capacity );
+    }
+    
+    // Copy data to buffer
+    memcpy( ctx->buffer + ctx->size, data, size );
+    ctx->size += size;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+
 unsigned char* Screenshot::captureFramebuffer( int* width, int* height, int* channels ) {
     // Get current screen dimensions
     *width = cgs.glconfig.vidWidth;
@@ -71,50 +95,36 @@ unsigned char* Screenshot::captureAndCompress( int* outSize, int quality ) {
     Com_Printf( "JXAC Screenshot: Captured framebuffer %dx%d (%d channels)\n", 
                 width, height, channels );
     
-    // Compress to JPEG using stb_image_write
-    // stbi_write_jpg_to_func requires a callback, so we'll use a buffer approach
+    // Compress to JPEG using stb_image_write with callback (in-memory)
+    // This avoids file system issues
+    JpegWriteContext ctx;
+    ctx.capacity = width * height * channels;  // Start with raw size estimate
+    ctx.buffer = (unsigned char*)malloc( ctx.capacity );
+    ctx.size = 0;
     
-    // Allocate temporary file for JPEG (we'll read it back)
-    char tempFile[MAX_QPATH];
-    Com_sprintf( tempFile, sizeof(tempFile), "temp_jxac_screenshot_%d.jpg", rand() );
-    
-    // Write JPEG to temporary file
-    if ( !stbi_write_jpg( tempFile, width, height, channels, framebuffer, quality ) ) {
-        Com_Printf( "JXAC Screenshot: Failed to compress to JPEG\n" );
+    if ( !ctx.buffer ) {
+        Com_Printf( "JXAC Screenshot: Failed to allocate JPEG buffer\n" );
         free( framebuffer );
         return NULL;
     }
     
+    // Use callback-based JPEG writing (in-memory)
+    int success = stbi_write_jpg_to_func( jpegWriteCallback, &ctx, width, height, channels, framebuffer, quality );
+    
     free( framebuffer );
     
-    // Read the JPEG file back into memory
-    fileHandle_t f;
-    int fileSize = trap_FS_FOpenFile( tempFile, &f, FS_READ );
-    
-    if ( !f || fileSize <= 0 ) {
-        Com_Printf( "JXAC Screenshot: Failed to read compressed JPEG\n" );
+    if ( !success || ctx.size <= 0 ) {
+        Com_Printf( "JXAC Screenshot: Failed to compress to JPEG\n" );
+        free( ctx.buffer );
         return NULL;
     }
     
-    unsigned char* jpegData = (unsigned char*)malloc( fileSize );
-    if ( !jpegData ) {
-        Com_Printf( "JXAC Screenshot: Failed to allocate JPEG buffer\n" );
-        trap_FS_FCloseFile( f );
-        return NULL;
-    }
-    
-    trap_FS_Read( jpegData, fileSize, f );
-    trap_FS_FCloseFile( f );
-    
-    // Delete temporary file
-    trap_FS_Delete( tempFile );
-    
-    *outSize = fileSize;
+    *outSize = ctx.size;
     
     Com_Printf( "JXAC Screenshot: Compressed to JPEG (%d bytes, quality %d)\n", 
-                fileSize, quality );
+                ctx.size, quality );
     
-    return jpegData;
+    return ctx.buffer;
 }
 
 ///////////////////////////////////////////////////////////////////////////////

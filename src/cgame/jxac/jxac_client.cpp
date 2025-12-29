@@ -131,10 +131,32 @@ void Client::sendScreenshotData( const void* data, int size ) {
         return;
     }
     
-    // Send screenshot data to server in chunks
-    // Note: For actual implementation, we need a binary data transmission method
-    // For now, we'll use a simplified approach - send completion message only
-    Com_Printf( "JXAC: Screenshot data ready (%d bytes), sending completion\n", size );
+    // Send screenshot data to server in chunks using hex encoding
+    // ET engine command system is text-based, so we convert binary to hex
+    const unsigned char* bytes = (const unsigned char*)data;
+    const int CHUNK_SIZE = 2048;  // 2KB binary = 4KB hex string (fits in command limits)
+    
+    int chunkNum = 0;
+    int offset = 0;
+    
+    while ( offset < size ) {
+        int bytesToSend = (size - offset > CHUNK_SIZE) ? CHUNK_SIZE : (size - offset);
+        
+        // Convert chunk to hex string (2 hex chars per byte)
+        char hexBuffer[CHUNK_SIZE * 2 + 1];
+        for ( int i = 0; i < bytesToSend; i++ ) {
+            sprintf( &hexBuffer[i * 2], "%02x", bytes[offset + i] );
+        }
+        hexBuffer[bytesToSend * 2] = '\0';
+        
+        // Send chunk to server: jxac_ss_data <chunkNum> <size> <hexData>
+        trap_SendClientCommand( va("jxac_ss_data %d %d %s", chunkNum, bytesToSend, hexBuffer) );
+        
+        offset += bytesToSend;
+        chunkNum++;
+    }
+    
+    Com_Printf( "JXAC: Sent %d bytes in %d chunks\n", size, chunkNum );
 }
 
 ///////////////////////////////////////////////////////////////////////////////
