@@ -1,6 +1,8 @@
 #include <bgame/impl.h>
 #include <bgame/jxac_common.h>
 #include <game/jxac/jxac_server.h>
+#include <vector>
+#include <cstdlib>
 
 namespace jxac {
 
@@ -103,14 +105,38 @@ static int currentCvarBatch[MAX_CLIENTS];
 #define JXAC_CVAR_CHECK_INTERVAL 60000
 static int lastCvarCheckTime = 0;
 
-// Speedhack detection constants
-#define SPEED_SPRINT_MULTIPLIER 1.5f     // Sprint multiplier (1.3x base + tolerance)
-#define SPEED_JITTER_TOLERANCE 1.1f      // 10% tolerance for network jitter
+// Structure to store forced CVARs
+struct ForcedCvar {
+    char name[64];
+    char value[128];
+    bool isRange;       // true if using IN syntax
+    float minValue;
+    float maxValue;
+};
 
-// Aimbot detection constants
-#define AIMBOT_SNAP_THRESHOLD 170.0f     // Degrees for impossible snap detection
-#define AIMBOT_SNAP_COUNT_THRESHOLD 3    // Number of snaps before reporting violation
-#define AIMBOT_DECAY_THRESHOLD 10.0f     // Degrees below which snap count decays
+static std::vector<ForcedCvar> forcedCvars;
+
+// Structure for cheat CVAR detection
+struct CheatCvar {
+    char name[64];
+    char action[16];  // "kick", "ban", "log"
+};
+
+static std::vector<CheatCvar> cheatCvars;
+
+// Structure for cheat signatures
+struct CheatSignature {
+    char type[16];      // "dll", "exe", "process"
+    char name[256];
+    char checksum[64];  // SHA1 hex (40 chars) or "*" for any
+    char action[16];    // "kick", "ban", "log", "none"
+};
+
+static std::vector<CheatSignature> cheatSignatures;
+
+// Time tracking for periodic cheat CVAR scanning (every 120 seconds)
+#define JXAC_CHEAT_CVAR_SCAN_INTERVAL 120000
+static int lastCheatCvarScanTime = 0;
 
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -154,6 +180,15 @@ void Server::init() {
     
     // Load CVAR config file (if exists)
     loadCvarConfig( cvar::objects::g_jxacCvarFile.svalue );
+    
+    // Load forced CVAR config
+    loadForceCvarConfig( cvar::objects::g_jxacForceCvarFile.svalue );
+    
+    // Load cheat CVAR scanner config
+    loadCheatCvarConfig( cvar::objects::g_jxacCheatCvarFile.svalue );
+    
+    // Load cheat signature database
+    loadCheatDatabase( cvar::objects::g_jxacCheatDbFile.svalue );
     
     initialized = qtrue;
     
@@ -214,27 +249,6 @@ void Server::frame() {
     // Check for pending screenshot timeouts
     checkTimeouts();
     
-    // Speedhack and aimbot detection (every 100ms)
-    static int lastAntiCheatCheck = 0;
-    if ( level.time - lastAntiCheatCheck > 100 ) {
-        lastAntiCheatCheck = level.time;
-        
-        for ( int i = 0; i < level.maxclients; i++ ) {
-            gentity_t* ent = &g_entities[i];
-            if ( !ent->client || ent->client->pers.connected != CON_CONNECTED ) {
-                continue;
-            }
-            
-            // Skip bots
-            if ( ent->r.svFlags & SVF_BOT ) {
-                continue;
-            }
-            
-            checkSpeedhack( i );
-            checkAimbot( i );
-        }
-    }
-    
     // Periodic CVAR checks (one batch per interval)
     if ( cvar::objects::g_jxacCheckCvars.ivalue && level.time - lastCvarCheckTime > JXAC_CVAR_CHECK_INTERVAL ) {
         lastCvarCheckTime = level.time;
@@ -248,6 +262,23 @@ void Server::frame() {
                     continue;
                 }
                 requestCvarCheck( i );
+            }
+        }
+    }
+    
+    // Periodic cheat CVAR scanning (every 120 seconds)
+    if ( level.time - lastCheatCvarScanTime > JXAC_CHEAT_CVAR_SCAN_INTERVAL ) {
+        lastCheatCvarScanTime = level.time;
+        
+        // Request cheat CVAR scan from all connected players
+        for ( int i = 0; i < level.maxclients; i++ ) {
+            gentity_t* ent = &g_entities[i];
+            if ( ent->client && ent->client->pers.connected == CON_CONNECTED ) {
+                // Skip bots
+                if ( ent->r.svFlags & SVF_BOT ) {
+                    continue;
+                }
+                requestCheatCvarScan( i );
             }
         }
     }
@@ -523,6 +554,9 @@ void Server::handleCvarResponse( int clientNum, const char* cvarName, const char
     if ( clientNum < 0 || clientNum >= MAX_CLIENTS || !cvarName || !value ) {
         return;
     }
+    
+    // First, check against forced CVAR list
+    checkForcedCvar( clientNum, cvarName, value );
     
     // Check against protected CVARs list
     for ( int i = 0; protectedCvars[i].name[0] != '\0'; i++ ) {
@@ -942,131 +976,303 @@ void Server::reloadConfig() {
     // Reload CVAR config
     loadCvarConfig( cvar::objects::g_jxacCvarFile.svalue );
     
-    // TODO: Reload cheat signature database
-    // loadCheatDatabase( cvar::objects::g_jxacCheatFile.svalue );
+    // Reload forced CVAR config
+    loadForceCvarConfig( cvar::objects::g_jxacForceCvarFile.svalue );
+    
+    // Reload cheat CVAR scanner config
+    loadCheatCvarConfig( cvar::objects::g_jxacCheatCvarFile.svalue );
+    
+    // Reload cheat signature database
+    loadCheatDatabase( cvar::objects::g_jxacCheatDbFile.svalue );
     
     Com_Printf( "JXAC: Configuration reload complete\n" );
 }
 
 ///////////////////////////////////////////////////////////////////////////////
 
-void Server::checkSpeedhack( int clientNum ) {
-    if ( clientNum < 0 || clientNum >= MAX_CLIENTS ) {
+void Server::loadForceCvarConfig( const char* filename ) {
+    if ( !filename || filename[0] == '\0' ) {
+        Com_Printf( "JXAC: No forced CVAR config file specified\n" );
         return;
     }
     
-    // Get player entity and previous position
-    gentity_t* ent = &g_entities[clientNum];
-    if ( !ent->client ) {
+    fileHandle_t f;
+    int len = trap_FS_FOpenFile( filename, &f, FS_READ );
+    
+    if ( !f || len <= 0 ) {
+        Com_Printf( "JXAC: Failed to load forced CVAR config: %s\n", filename );
         return;
     }
     
-    gclient_t* client = ent->client;
-    jxacPlayerData_t* pd = &playerData[clientNum];
+    forcedCvars.clear();
     
-    // Initialize on first check
-    if ( pd->lastCheckTime == 0 ) {
-        VectorCopy( client->ps.origin, pd->lastOrigin );
-        pd->lastCheckTime = level.time;
-        return;
+    char* buffer = (char*)malloc( len + 1 );
+    trap_FS_Read( buffer, len, f );
+    buffer[len] = '\0';
+    trap_FS_FCloseFile( f );
+    
+    // Parse line by line
+    char* line = strtok( buffer, "\n" );
+    while ( line ) {
+        // Skip comments and empty lines
+        while ( *line == ' ' || *line == '\t' ) line++;
+        if ( *line == '/' || *line == '\0' ) {
+            line = strtok( NULL, "\n" );
+            continue;
+        }
+        
+        ForcedCvar fcvar;
+        memset( &fcvar, 0, sizeof( fcvar ) );
+        
+        // Parse "forcecvar <cvar> <value>"
+        if ( sscanf( line, "forcecvar %63s %127s", fcvar.name, fcvar.value ) == 2 ) {
+            fcvar.isRange = false;
+            forcedCvars.push_back( fcvar );
+        }
+        // Parse "sv_cvar <cvar> IN <min> <max>"
+        else if ( sscanf( line, "sv_cvar %63s IN %f %f", fcvar.name, &fcvar.minValue, &fcvar.maxValue ) == 3 ) {
+            fcvar.isRange = true;
+            forcedCvars.push_back( fcvar );
+        }
+        // Parse "sv_cvar <cvar> EQ <value>"
+        else if ( sscanf( line, "sv_cvar %63s EQ %127s", fcvar.name, fcvar.value ) == 2 ) {
+            fcvar.isRange = false;
+            forcedCvars.push_back( fcvar );
+        }
+        
+        line = strtok( NULL, "\n" );
     }
     
-    // Calculate position delta
-    vec3_t delta;
-    VectorSubtract( client->ps.origin, pd->lastOrigin, delta );
-    float distance = VectorLength( delta );
-    
-    // Calculate time delta (ms)
-    int timeDelta = level.time - pd->lastCheckTime;
-    if ( timeDelta <= 0 ) {
-        return;
-    }
-    
-    // Calculate speed (units per second)
-    float speed = (distance / (float)timeDelta) * 1000.0f;
-    
-    // Get maximum allowed speed (base + sprint + modifiers)
-    // Base player speed is typically 320 units/sec, use ps.speed if available
-    // Sprint adds ~1.3x multiplier, use 1.5x for sprint + some tolerance
-    float baseSpeed = client->ps.speed > 0 ? client->ps.speed : 320.0f;
-    float maxSpeed = baseSpeed * SPEED_SPRINT_MULTIPLIER;
-    
-    // Check for speedhack (allow tolerance for network jitter)
-    if ( speed > maxSpeed * SPEED_JITTER_TOLERANCE ) {
-        char details[256];
-        Com_sprintf( details, sizeof(details), 
-                    "Speedhack detected: %.1f units/s (max: %.1f)", 
-                    speed, maxSpeed );
-        reportViolation( clientNum, JXAC_VIOLATION_SPEEDHACK, details );
-    }
-    
-    // Update tracking data
-    VectorCopy( client->ps.origin, pd->lastOrigin );
-    pd->lastCheckTime = level.time;
+    free( buffer );
+    Com_Printf( "JXAC: Loaded %d forced CVARs from %s\n", (int)forcedCvars.size(), filename );
 }
 
 ///////////////////////////////////////////////////////////////////////////////
 
-void Server::checkAimbot( int clientNum ) {
+void Server::checkForcedCvar( int clientNum, const char* cvarName, const char* value ) {
+    for ( const auto& fcvar : forcedCvars ) {
+        if ( Q_stricmp( fcvar.name, cvarName ) == 0 ) {
+            if ( fcvar.isRange ) {
+                float fval = atof( value );
+                if ( fval < fcvar.minValue || fval > fcvar.maxValue ) {
+                    char details[256];
+                    Com_sprintf( details, sizeof( details ), 
+                               "Forced CVAR '%s' out of range: %.2f (must be %.2f-%.2f)",
+                               cvarName, fval, fcvar.minValue, fcvar.maxValue );
+                    reportViolation( clientNum, JXAC_VIOLATION_CVAR, details );
+                }
+            } else {
+                if ( Q_stricmp( value, fcvar.value ) != 0 ) {
+                    char details[256];
+                    Com_sprintf( details, sizeof( details ), 
+                               "Forced CVAR '%s' mismatch: '%s' (must be '%s')",
+                               cvarName, value, fcvar.value );
+                    reportViolation( clientNum, JXAC_VIOLATION_CVAR, details );
+                }
+            }
+            return;
+        }
+    }
+}
+
+///////////////////////////////////////////////////////////////////////////////
+
+void Server::loadCheatCvarConfig( const char* filename ) {
+    if ( !filename || filename[0] == '\0' ) {
+        Com_Printf( "JXAC: No cheat CVAR config file specified\n" );
+        return;
+    }
+    
+    fileHandle_t f;
+    int len = trap_FS_FOpenFile( filename, &f, FS_READ );
+    
+    if ( !f || len <= 0 ) {
+        Com_Printf( "JXAC: Failed to load cheat CVAR config: %s\n", filename );
+        return;
+    }
+    
+    cheatCvars.clear();
+    
+    char* buffer = (char*)malloc( len + 1 );
+    trap_FS_Read( buffer, len, f );
+    buffer[len] = '\0';
+    trap_FS_FCloseFile( f );
+    
+    // Parse line by line (format: cvar_name,action)
+    char* line = strtok( buffer, "\n" );
+    while ( line ) {
+        while ( *line == ' ' || *line == '\t' ) line++;
+        if ( *line == '/' || *line == '\0' ) {
+            line = strtok( NULL, "\n" );
+            continue;
+        }
+        
+        CheatCvar ccvar;
+        memset( &ccvar, 0, sizeof( ccvar ) );
+        
+        if ( sscanf( line, "%63[^,],%15s", ccvar.name, ccvar.action ) == 2 ) {
+            cheatCvars.push_back( ccvar );
+        }
+        
+        line = strtok( NULL, "\n" );
+    }
+    
+    free( buffer );
+    Com_Printf( "JXAC: Loaded %d cheat CVARs from %s\n", (int)cheatCvars.size(), filename );
+}
+
+///////////////////////////////////////////////////////////////////////////////
+
+void Server::requestCheatCvarScan( int clientNum ) {
     if ( clientNum < 0 || clientNum >= MAX_CLIENTS ) {
         return;
     }
     
     gentity_t* ent = &g_entities[clientNum];
-    if ( !ent->client ) {
+    if ( !ent->client || ent->client->pers.connected != CON_CONNECTED ) {
         return;
     }
     
-    gclient_t* client = ent->client;
-    jxacPlayerData_t* pd = &playerData[clientNum];
-    
-    // Initialize on first check
-    if ( !pd->aimbotInitialized ) {
-        VectorCopy( client->ps.viewangles, pd->lastViewAngles );
-        pd->lastScore = client->ps.persistant[PERS_SCORE];
-        pd->aimbotInitialized = qtrue;
+    // Skip bots
+    if ( ent->r.svFlags & SVF_BOT ) {
         return;
     }
     
-    // Calculate angle delta
-    vec3_t angleDelta;
-    for ( int i = 0; i < 3; i++ ) {
-        angleDelta[i] = AngleSubtract( client->ps.viewangles[i], 
-                                       pd->lastViewAngles[i] );
+    // Send all cheat CVAR names to client for scanning
+    for ( const auto& ccvar : cheatCvars ) {
+        trap_SendServerCommand( clientNum, va( "jxac_cvar_req %s", ccvar.name ) );
+    }
+}
+
+///////////////////////////////////////////////////////////////////////////////
+
+void Server::handleCheatCvarResponse( int clientNum, const char* cvarName, const char* value ) {
+    if ( clientNum < 0 || clientNum >= MAX_CLIENTS || !cvarName || !value ) {
+        return;
     }
     
-    float angleChange = VectorLength( angleDelta );
+    // If CVAR exists and is not empty/null, it's a cheat CVAR
+    if ( !value || value[0] == '\0' ) {
+        return; // CVAR doesn't exist - OK
+    }
     
-    // Detect impossible snap (>170° in 100ms check interval)
-    // At 100ms interval, any snap > 170° is highly suspicious
-    if ( angleChange > AIMBOT_SNAP_THRESHOLD ) {
-        pd->aimbotSnapCount++;
-        
-        if ( pd->aimbotSnapCount >= AIMBOT_SNAP_COUNT_THRESHOLD ) {
+    for ( const auto& ccvar : cheatCvars ) {
+        if ( Q_stricmp( ccvar.name, cvarName ) == 0 ) {
             char details[256];
-            Com_sprintf( details, sizeof(details), 
-                        "Aimbot snap detected: %.1f degree change", 
-                        angleChange );
-            reportViolation( clientNum, JXAC_VIOLATION_AIMBOT, details );
-            pd->aimbotSnapCount = 0; // Reset after reporting
-        }
-    } else if ( angleChange < AIMBOT_DECAY_THRESHOLD ) {
-        // Decay snap count if no suspicious behavior
-        if ( pd->aimbotSnapCount > 0 ) {
-            pd->aimbotSnapCount--;
+            Com_sprintf( details, sizeof( details ), 
+                       "Cheat CVAR detected: '%s' = '%s'", cvarName, value );
+            
+            if ( Q_stricmp( ccvar.action, "ban" ) == 0 ) {
+                reportViolation( clientNum, JXAC_VIOLATION_TAMPER, details );
+                banPlayer( clientNum, "Cheat CVAR detected" );
+            } else if ( Q_stricmp( ccvar.action, "kick" ) == 0 ) {
+                reportViolation( clientNum, JXAC_VIOLATION_TAMPER, details );
+                kickPlayer( clientNum, "Cheat CVAR detected" );
+            } else {
+                reportViolation( clientNum, JXAC_VIOLATION_TAMPER, details );
+            }
+            return;
         }
     }
-    
-    // Track headshot ratio (check on kills)
-    if ( client->ps.persistant[PERS_SCORE] != pd->lastScore ) {
-        pd->totalKills++;
-        // Headshot detection would need hit zone tracking
-        // This is a placeholder for future enhancement
+}
+
+///////////////////////////////////////////////////////////////////////////////
+
+void Server::loadCheatDatabase( const char* filename ) {
+    if ( !filename || filename[0] == '\0' ) {
+        Com_Printf( "JXAC: No cheat database file specified\n" );
+        return;
     }
     
-    // Update tracking
-    VectorCopy( client->ps.viewangles, pd->lastViewAngles );
-    pd->lastScore = client->ps.persistant[PERS_SCORE];
+    fileHandle_t f;
+    int len = trap_FS_FOpenFile( filename, &f, FS_READ );
+    
+    if ( !f || len <= 0 ) {
+        Com_Printf( "JXAC: Failed to load cheat database: %s\n", filename );
+        return;
+    }
+    
+    cheatSignatures.clear();
+    
+    char* buffer = (char*)malloc( len + 1 );
+    trap_FS_Read( buffer, len, f );
+    buffer[len] = '\0';
+    trap_FS_FCloseFile( f );
+    
+    // Parse line by line (format: type,name,checksum,action)
+    char* line = strtok( buffer, "\n" );
+    while ( line ) {
+        while ( *line == ' ' || *line == '\t' ) line++;
+        if ( *line == '/' || *line == '\0' ) {
+            line = strtok( NULL, "\n" );
+            continue;
+        }
+        
+        CheatSignature sig;
+        memset( &sig, 0, sizeof( sig ) );
+        
+        if ( sscanf( line, "%15[^,],%255[^,],%63[^,],%15s", 
+                   sig.type, sig.name, sig.checksum, sig.action ) == 4 ) {
+            cheatSignatures.push_back( sig );
+        }
+        
+        line = strtok( NULL, "\n" );
+    }
+    
+    free( buffer );
+    Com_Printf( "JXAC: Loaded %d cheat signatures from %s\n", 
+               (int)cheatSignatures.size(), filename );
+}
+
+///////////////////////////////////////////////////////////////////////////////
+
+void Server::checkModuleSignature( int clientNum, const char* moduleName, const char* checksum ) {
+    if ( clientNum < 0 || clientNum >= MAX_CLIENTS || !moduleName || !checksum ) {
+        return;
+    }
+    
+    for ( const auto& sig : cheatSignatures ) {
+        // Check if type matches (dll/exe)
+        bool typeMatch = false;
+        if ( Q_stricmp( sig.type, "dll" ) == 0 && 
+            ( Q_stristr( moduleName, ".dll" ) || Q_stristr( moduleName, ".so" ) ) ) {
+            typeMatch = true;
+        } else if ( Q_stricmp( sig.type, "exe" ) == 0 && 
+                   Q_stristr( moduleName, ".exe" ) ) {
+            typeMatch = true;
+        } else if ( Q_stricmp( sig.type, "process" ) == 0 ) {
+            typeMatch = true;
+        }
+        
+        if ( !typeMatch ) continue;
+        
+        // Check name match (case-insensitive, partial match)
+        if ( Q_stristr( moduleName, sig.name ) == NULL ) continue;
+        
+        // Check checksum (if not wildcard)
+        if ( sig.checksum[0] == '*' ) {
+            // Wildcard - any DLL with this name is banned
+        } else if ( Q_stricmp( checksum, sig.checksum ) != 0 ) {
+            continue; // Checksum mismatch
+        }
+        
+        // Found match - take action
+        char details[512];
+        Com_sprintf( details, sizeof( details ), 
+                   "Cheat module detected: %s (SHA1: %s)", moduleName, checksum );
+        
+        if ( Q_stricmp( sig.action, "ban" ) == 0 ) {
+            reportViolation( clientNum, JXAC_VIOLATION_CHECKSUM, details );
+            banPlayer( clientNum, "Cheat module detected" );
+        } else if ( Q_stricmp( sig.action, "kick" ) == 0 ) {
+            reportViolation( clientNum, JXAC_VIOLATION_CHECKSUM, details );
+            kickPlayer( clientNum, "Cheat module detected" );
+        } else if ( Q_stricmp( sig.action, "none" ) != 0 ) {
+            reportViolation( clientNum, JXAC_VIOLATION_CHECKSUM, details );
+        }
+        
+        return;
+    }
 }
 
 ///////////////////////////////////////////////////////////////////////////////

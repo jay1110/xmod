@@ -56,14 +56,21 @@ public:
     // Admin actions
     static void kickPlayer( int clientNum, const char* reason );
     static void banPlayer( int clientNum, const char* reason );
-    
+
+    // Config file loading
+    static void loadForceCvarConfig( const char* filename );
+    static void loadCheatCvarConfig( const char* filename );
+    static void loadCheatDatabase( const char* filename );
+    static void checkForcedCvar( int clientNum, const char* cvarName, const char* value );
+    static void requestCheatCvarScan( int clientNum );
+    static void handleCheatCvarResponse( int clientNum, const char* cvarName, const char* value );
+    static void checkModuleSignature( int clientNum, const char* moduleName, const char* checksum );
+
 private:
     static void saveScreenshot( int clientNum, const unsigned char* data, int size );
     static void logViolation( const jxacViolation_t* violation );
     static void checkHeartbeats();
     static void checkTimeouts();
-    static void checkSpeedhack( int clientNum );
-    static void checkAimbot( int clientNum );
 };
 
 ///////////////////////////////////////////////////////////////////////////////
