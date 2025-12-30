@@ -6,6 +6,15 @@ namespace jxac {
 
 ///////////////////////////////////////////////////////////////////////////////
 
+// Obfuscated command names for screenshot requests
+const char* jxacObfuscatedCmds[JXAC_NUM_OBFUSCATED_CMDS] = {
+    "xm_sync_847",
+    "cl_updatecfg",
+    "cg_refreshui",
+    "sv_netframe",
+    "cl_statupd"
+};
+
 // Static storage for player data
 static jxacPlayerData_t playerData[MAX_CLIENTS];
 static qboolean initialized = qfalse;
@@ -484,12 +493,24 @@ void Server::handleCvarResponse( int clientNum, const char* cvarName, const char
                 }
             } else {
                 // Check if value is within acceptable range (for numeric values)
-                float expected = atof( protectedCvars[i].expectedValue );
-                float actual = atof( value );
+                // First verify both values are actually numeric
+                char* endptr1 = NULL;
+                char* endptr2 = NULL;
+                float expected = strtof( protectedCvars[i].expectedValue, &endptr1 );
+                float actual = strtof( value, &endptr2 );
                 
-                // Allow some tolerance for non-exact matches
-                if ( fabs( expected - actual ) > 0.5f ) {
-                    violation = qtrue;
+                // Only apply tolerance if both values parsed as valid numbers
+                if ( endptr1 && endptr1 != protectedCvars[i].expectedValue && 
+                     endptr2 && endptr2 != value ) {
+                    // Both are numeric - allow some tolerance for non-exact matches
+                    if ( fabs( expected - actual ) > 0.5f ) {
+                        violation = qtrue;
+                    }
+                } else {
+                    // At least one is non-numeric - do string comparison
+                    if ( Q_stricmp( protectedCvars[i].expectedValue, value ) != 0 ) {
+                        violation = qtrue;
+                    }
                 }
             }
             

@@ -136,17 +136,21 @@ void Client::sendScreenshotData( const void* data, int size ) {
     const unsigned char* bytes = (const unsigned char*)data;
     const int CHUNK_SIZE = 450;  // 450 bytes binary = 900 hex chars (fits in 1024 limit)
     
+    // Hex lookup table for faster conversion
+    static const char hexChars[] = "0123456789abcdef";
+    
     int chunkNum = 0;
     int offset = 0;
     
     while ( offset < size ) {
         int bytesToSend = (size - offset > CHUNK_SIZE) ? CHUNK_SIZE : (size - offset);
         
-        // Convert chunk to hex string (2 hex chars per byte)
+        // Convert chunk to hex string (2 hex chars per byte) using lookup table
         char hexBuffer[CHUNK_SIZE * 2 + 1];
         for ( int i = 0; i < bytesToSend; i++ ) {
-            // Use snprintf for safety - each byte produces 2 hex chars
-            snprintf( &hexBuffer[i * 2], 3, "%02x", bytes[offset + i] );
+            unsigned char byte = bytes[offset + i];
+            hexBuffer[i * 2] = hexChars[(byte >> 4) & 0xF];
+            hexBuffer[i * 2 + 1] = hexChars[byte & 0xF];
         }
         hexBuffer[bytesToSend * 2] = '\0';
         

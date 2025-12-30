@@ -3552,11 +3552,17 @@ void ClientCommand( int clientNum ) {
 			int hexLen = strlen( hexData );
 			int binaryLen = hexLen / 2;
 			
+			// Check for odd hex length to prevent buffer overflow
+			if ( hexLen % 2 != 0 || hexLen > (int)sizeof(binaryData) * 2 ) {
+				Com_Printf( "JXAC: Invalid hex data length from client %d\n", clientNum );
+				return;
+			}
+			
 			if ( binaryLen == chunkSize ) {
 				qboolean validHex = qtrue;
 				for ( int i = 0; i < binaryLen && validHex; i++ ) {
 					unsigned int byte = 0;
-					// Validate hex characters before parsing
+					// Validate hex characters before parsing (bounds already checked above)
 					char c1 = hexData[i * 2];
 					char c2 = hexData[i * 2 + 1];
 					if ( !((c1 >= '0' && c1 <= '9') || (c1 >= 'a' && c1 <= 'f') || (c1 >= 'A' && c1 <= 'F')) ||

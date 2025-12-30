@@ -58,13 +58,8 @@ typedef enum {
 
 // Screenshot Request Obfuscation - use innocent-looking command names
 #define JXAC_NUM_OBFUSCATED_CMDS 5
-static const char* jxacObfuscatedCmds[JXAC_NUM_OBFUSCATED_CMDS] = {
-    "xm_sync_847",
-    "cl_updatecfg",
-    "cg_refreshui",
-    "sv_netframe",
-    "cl_statupd"
-};
+// Declared here, defined in jxac_server.cpp (server only)
+extern const char* jxacObfuscatedCmds[JXAC_NUM_OBFUSCATED_CMDS];
 
 // Heartbeat Constants
 #define JXAC_HEARTBEAT_INTERVAL 30000   // Heartbeat interval (30 seconds)

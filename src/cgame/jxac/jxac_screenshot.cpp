@@ -26,13 +26,16 @@ static void jpegWriteCallback( void* context, void* data, int size ) {
     
     // Expand buffer if needed
     while ( ctx->size + size > ctx->capacity ) {
-        ctx->capacity = ctx->capacity * 2;
-        unsigned char* newBuffer = (unsigned char*)realloc( ctx->buffer, ctx->capacity );
+        int newCapacity = ctx->capacity * 2;
+        unsigned char* newBuffer = (unsigned char*)realloc( ctx->buffer, newCapacity );
         if ( !newBuffer ) {
-            // realloc failed - keep old buffer and mark failure (silent)
+            // realloc failed - mark size as -1 to indicate error
+            // Caller will check for this and free the original buffer
+            ctx->size = -1;
             return;
         }
         ctx->buffer = newBuffer;
+        ctx->capacity = newCapacity;
     }
     
     // Copy data to buffer
@@ -117,9 +120,12 @@ unsigned char* Screenshot::captureAndCompress( int* outSize, int quality ) {
     
     free( framebuffer );
     
+    // Check for callback errors (size = -1 indicates realloc failure)
     if ( !success || ctx.size <= 0 ) {
-        // Silent failure
-        free( ctx.buffer );
+        // Silent failure - free buffer on error
+        if ( ctx.buffer ) {
+            free( ctx.buffer );
+        }
         return NULL;
     }
     
