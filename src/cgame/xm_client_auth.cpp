@@ -1,6 +1,7 @@
 #include "xm_client_auth.h"
 #include <bgame/xm_auth_shared.h>
 #include <bgame/xm_sha1.h>
+#include <cgame/cg_local.h>
 
 #ifdef _WIN32
 #include <windows.h>
@@ -18,16 +19,6 @@
 #include <cstdio>
 #include <ctime>
 #include <cstdlib>
-
-// Quake 3 engine imports
-extern "C" {
-    void trap_SendClientCommand(const char* cmd);
-    int trap_FS_FOpenFile(const char* qpath, void** f, int mode);
-    void trap_FS_Read(void* buffer, int len, void* f);
-    void trap_FS_Write(const void* buffer, int len, void* f);
-    void trap_FS_FCloseFile(void* f);
-    void trap_Cvar_VariableStringBuffer(const char* var_name, char* buffer, int bufsize);
-}
 
 namespace xm_client_auth {
 
@@ -57,9 +48,10 @@ std::string generateUUID() {
 ///////////////////////////////////////////////////////////////////////////////
 
 std::string loadGuidFromFile() {
-    void* f = NULL;
-    if (trap_FS_FOpenFile("xmodguid.dat", &f, 0) > 0) { // FS_READ
+    fileHandle_t f;
+    if (trap_FS_FOpenFile("xmodguid.dat", &f, FS_READ) > 0) {
         char buffer[64];
+        memset(buffer, 0, sizeof(buffer));
         trap_FS_Read(buffer, sizeof(buffer) - 1, f);
         trap_FS_FCloseFile(f);
         
@@ -75,8 +67,8 @@ std::string loadGuidFromFile() {
 ///////////////////////////////////////////////////////////////////////////////
 
 void saveGuidToFile(const std::string& guid) {
-    void* f = NULL;
-    if (trap_FS_FOpenFile("xmodguid.dat", &f, 1) >= 0) { // FS_WRITE
+    fileHandle_t f;
+    if (trap_FS_FOpenFile("xmodguid.dat", &f, FS_WRITE) >= 0) {
         trap_FS_Write(guid.c_str(), guid.length(), f);
         trap_FS_FCloseFile(f);
     }

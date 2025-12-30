@@ -3613,7 +3613,7 @@ void ClientCommand( int clientNum ) {
 				if (bannedUser && !bannedUser->banReason.empty()) {
 					msg += " - " + bannedUser->banReason;
 				}
-				trap_DropClient( clientNum, msg.c_str() );
+				trap_DropClient( clientNum, msg.c_str(), 0 );
 				return;
 			}
 
