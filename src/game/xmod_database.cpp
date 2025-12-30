@@ -887,7 +887,7 @@ bool Database::searchUsersByName(const std::string& name, std::vector<UserData>&
     users.clear();
     
     const char* sql = "SELECT id, guid, level, lastSeen, name, hwid, title, commands, greeting, xp_skills, muted "
-                      "FROM users WHERE name LIKE ? ORDER BY lastSeen DESC;";
+                      "FROM users WHERE name LIKE ? ESCAPE '\\' ORDER BY lastSeen DESC;";
     sqlite3_stmt* stmt = nullptr;
     
     int rc = sqlite3_prepare_v2(db, sql, -1, &stmt, nullptr);
@@ -895,7 +895,15 @@ bool Database::searchUsersByName(const std::string& name, std::vector<UserData>&
         return false;
     }
 
-    std::string pattern = "%" + name + "%";
+    // Escape SQL LIKE wildcards in the search pattern
+    std::string escapedName;
+    for (std::string::const_iterator it = name.begin(); it != name.end(); ++it) {
+        if (*it == '%' || *it == '_') {
+            escapedName += '\\';
+        }
+        escapedName += *it;
+    }
+    std::string pattern = "%" + escapedName + "%";
     sqlite3_bind_text(stmt, 1, pattern.c_str(), -1, SQLITE_TRANSIENT);
 
     while (sqlite3_step(stmt) == SQLITE_ROW) {
