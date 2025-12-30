@@ -1,4 +1,5 @@
 #include <bgame/impl.h>
+#include <game/xmod_globals.h>
 
 namespace cmd {
 
@@ -25,27 +26,48 @@ UserDelete::doExecute( Context& txt )
     if (txt._args.size() != 2)
         return PA_USAGE;
 
-    // bail on invalid id
-    const string& id = txt._args[1];
-    User& target = lookupUSER( id, txt );
-    if (target == User::BAD)
+    if (!xmod::g_database || !xmod::g_database->isOpened()) {
+        txt._ebuf << "Database not available.";
         return PA_ERROR;
-
-    // bail if trying to remove online-user
-    for (int i = 0; i < MAX_CLIENTS; i++) {
-        if (connectedUsers[i] == &target) {
-            txt._ebuf << "Cannot remove connected user: " << xvalue( target.namex );
-            return PA_ERROR;
-        }
     }
 
-    Buffer buf;
-    buf << _name << ": User ID " << xvalue( id ) << " (" << xvalue( target.namex ) << ") removed.";
-
-    userDB.remove( target ); // CAUTION: reference now invalid
-
-    printCpm( txt._client, buf, true );
-    return PA_NONE;
+    // bail on invalid id
+    const string& id = txt._args[1];
+    
+    // Try to parse as numeric ID first
+    int userId = atoi(id.c_str());
+    
+    bool deleted = false;
+    if (userId > 0) {
+        // Get user data to display name
+        xmod::UserData userData;
+        if (xmod::g_database->getUserDataById(userId, userData)) {
+            deleted = xmod::g_database->deleteUser(userId);
+            if (deleted) {
+                Buffer buf;
+                buf << _name << ": User ID " << xvalue( id ) << " (" << xvalue( userData.name ) << ") removed.";
+                printCpm( txt._client, buf, true );
+                return PA_NONE;
+            }
+        }
+    }
+    
+    // Try as GUID
+    if (!deleted) {
+        xmod::UserData userData;
+        if (xmod::g_database->getUserData(id, userData)) {
+            deleted = xmod::g_database->deleteUserByGuid(id);
+            if (deleted) {
+                Buffer buf;
+                buf << _name << ": User " << xvalue( id ) << " (" << xvalue( userData.name ) << ") removed.";
+                printCpm( txt._client, buf, true );
+                return PA_NONE;
+            }
+        }
+    }
+    
+    txt._ebuf << "User not found.";
+    return PA_ERROR;
 }
 
 ///////////////////////////////////////////////////////////////////////////////

@@ -6,6 +6,7 @@
 #include <bgame/impl.h>
 #include <omnibot/et/g_etbot_interface.h>
 #include <game/g_lua.h>
+#include <game/xmod_globals.h>
 
 /*
 ==============================================================================
@@ -1207,7 +1208,9 @@ qboolean	ConsoleCommand( void ) {
 		}
 
 		if ( !Q_stricmp(cmd, "clearxp")) {
-            userDB.xpResetAll();
+            // Reset XP in SQLite database
+            if (xmod::g_database && xmod::g_database->isOpened())
+                xmod::g_database->resetAllXp();
 
             for (int i = 0; i < level.numConnectedClients; i++)
                 g_clientObjects[ level.sortedClients[i] ].xpReset();

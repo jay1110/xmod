@@ -1,4 +1,5 @@
 #include <bgame/impl.h>
+#include <game/xmod_globals.h>
 
 /*
 ====================
@@ -1862,7 +1863,13 @@ bool G_UnmutePlayer(gentity_t* ent)
 void G_BanPlayer(gentity_t* ent, string banner, string reason, int duration)
 {
     User* user = connectedUsers[ent-g_entities];
-
+    time_t expires = duration ? time(NULL) + duration : 0; // 0 is a permanent ban
+    
+    string guid = user->guid;
+    string name = user->name;
+    string hwid = "";  // Get HWID from authenticated session if available
+    string ip = user->ip;
+    
     // If this is a fake GUID, we need to generate a permanent fake GUID
     if (user->fakeguid) {
         stringstream guidstream;
@@ -1876,38 +1883,24 @@ void G_BanPlayer(gentity_t* ent, string banner, string reason, int duration)
             setw(4) << rand() % 0x0fff <<
             setw(4) << rand() % 0x3fff <<
             setw(4) << rand() % 0xffff;
-        string guid = guidstream.str();
+        guid = guidstream.str();
 
         // Check GUID
         if (guid.length() > 32) {
             guid.resize(32);
         }
-
-        // Grab new record and copy basic information
-        string err;
-        User& ban = userDB.fetchByKey( guid, err, true );
-        userDB.unindex( ban );
-
-        ban.mac =   user->mac;
-        ban.ip =    user->ip;
-        ban.name =  user->name;
-        ban.namex = user->namex;
-
-        user = &ban;
     }
-	else {
-    	userDB.unindex( *user );
-	}
 
-    // Set up ban record
-    user->banned = true;
-    user->banTime = time(NULL);
-    user->banExpiry = duration ? time(NULL) + duration : 0; // 0 is a permanent ban
-    user->banReason = reason;
-    user->banAuthorityx = banner;
-    user->banAuthority = SanitizeString(banner, false);
-
-    userDB.index( *user );
+    // Get HWID from xmod session if available
+    int clientNum = ent - g_entities;
+    if (xmod::g_sessions[clientNum] && xmod::g_sessions[clientNum]->isAuthenticated()) {
+        hwid = xmod::g_sessions[clientNum]->getHwid();
+    }
+    
+    // Add ban to SQLite database
+    if (xmod::g_database && xmod::g_database->isOpened()) {
+        xmod::g_database->banUser(guid, hwid, ip, name, banner, reason, expires);
+    }
 }
 
 ///////////////////////////////////////////////////////////////////////////////

@@ -1,4 +1,5 @@
 #include <bgame/impl.h>
+#include <game/xmod_globals.h>
 
 namespace cmd {
 
@@ -121,9 +122,18 @@ Status::doExecute( Context& txt )
     colB.suffixOutside = " records";
     colB.width = 4;
 
-    buf << '\n' << xheader( "-DATABASE" )
-        << '\n' << colA("user")  << colB( userDB.mapGUID.size() )
-            << "  (" << xvalue( userDB.mapBANTIME.size() ) << " bans)"
+    buf << '\n' << xheader( "-DATABASE" );
+    
+    // Get counts from SQLite database
+    int userCount = 0;
+    int banCount = 0;
+    if (xmod::g_database && xmod::g_database->isOpened()) {
+        userCount = xmod::g_database->getUserCount();
+        banCount = xmod::g_database->getBanCount();
+    }
+    
+    buf << '\n' << colA("user")  << colB( userCount )
+            << "  (" << xvalue( banCount ) << " bans)"
         << '\n' << colA("level") << colB( levelDB.mapLEVEL.size() )
         << '\n' << colA("map")   << colB( mapDB.mapNAME.size() );
 
