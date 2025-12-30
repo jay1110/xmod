@@ -36,8 +36,6 @@ private:
 #include <game/cmd/Flinga.h>
 #include <game/cmd/Glow.h>
 #include <game/cmd/Help.h>
-#include <game/cmd/JxacBan.h>
-#include <game/cmd/JxacKick.h>
 #include <game/cmd/JxacScreenshot.h>
 #include <game/cmd/JxacScreenshotAll.h>
 #include <game/cmd/JxacStatus.h>
@@ -117,8 +115,6 @@ namespace builtins {
     extern Flinga       flinga;
     extern Glow         glow;
     extern Help             help;
-    extern JxacBan          jxacBan;
-    extern JxacKick         jxacKick;
     extern JxacScreenshot   jxacScreenshot;
     extern JxacScreenshotAll jxacScreenshotAll;
     extern JxacStatus       jxacStatus;
