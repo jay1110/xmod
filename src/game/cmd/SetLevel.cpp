@@ -59,8 +59,11 @@ SetLevel::doExecute( Context& txt )
         ::xmod::g_sessions[target->slot] && ::xmod::g_sessions[target->slot]->isAuthenticated()) {
         int userId = ::xmod::g_sessions[target->slot]->getUserId();
         if (userId > 0) {
-            ::xmod::g_database->setLevel(userId, lev.level);
-            G_Printf("SetLevel: Updated user %d level to %d in SQLite\n", userId, lev.level);
+            if (::xmod::g_database->setLevel(userId, lev.level)) {
+                G_Printf("SetLevel: Updated user %d level to %d in SQLite\n", userId, lev.level);
+            } else {
+                G_Printf("^1SetLevel: Failed to update user %d level in SQLite\n", userId);
+            }
         }
     }
 

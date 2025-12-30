@@ -1845,7 +1845,9 @@ bool G_MutePlayer(gentity_t* ent, string muter, string reason)
         xmod::g_sessions[clientNum] && xmod::g_sessions[clientNum]->isAuthenticated()) {
         int userId = xmod::g_sessions[clientNum]->getUserId();
         if (userId > 0) {
-            xmod::g_database->setMuted(userId, true);
+            if (!xmod::g_database->setMuted(userId, true)) {
+                G_Printf("^1G_MutePlayer: Failed to update muted status in SQLite for user %d\n", userId);
+            }
         }
     }
 
@@ -1872,7 +1874,9 @@ bool G_UnmutePlayer(gentity_t* ent)
         xmod::g_sessions[clientNum] && xmod::g_sessions[clientNum]->isAuthenticated()) {
         int userId = xmod::g_sessions[clientNum]->getUserId();
         if (userId > 0) {
-            xmod::g_database->setMuted(userId, false);
+            if (!xmod::g_database->setMuted(userId, false)) {
+                G_Printf("^1G_UnmutePlayer: Failed to update muted status in SQLite for user %d\n", userId);
+            }
         }
     }
 
