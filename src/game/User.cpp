@@ -319,8 +319,19 @@ User::decode( map<string,string>& data )
         ss << data[ oss.str() ];
 
         string hwid = ss.str();
-        if (hwid.length() == 40) {  // Validate SHA1 hash length
-            hwids.push_back( hwid );
+        // Validate SHA1 hash length and hex characters
+        if (hwid.length() == 40) {
+            bool validHex = true;
+            for (size_t j = 0; j < hwid.length(); j++) {
+                char c = hwid[j];
+                if (!((c >= '0' && c <= '9') || (c >= 'a' && c <= 'f') || (c >= 'A' && c <= 'F'))) {
+                    validHex = false;
+                    break;
+                }
+            }
+            if (validHex) {
+                hwids.push_back( hwid );
+            }
         }
     }
 }

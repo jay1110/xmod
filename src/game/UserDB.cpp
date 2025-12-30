@@ -113,8 +113,16 @@ UserDB::checkBanByHWID( const string& hwid, User*& subject, string& detail )
     subject = NULL;
     detail.clear();
 
-    if (hwid.length() != 40)  // SHA1 hash length
+    // Validate SHA1 hash length and hex characters
+    if (hwid.length() != 40)
         return BAN_NONE;
+    
+    for (size_t i = 0; i < hwid.length(); i++) {
+        char c = hwid[i];
+        if (!((c >= '0' && c <= '9') || (c >= 'a' && c <= 'f') || (c >= 'A' && c <= 'F'))) {
+            return BAN_NONE;
+        }
+    }
 
     const time_t now = time( NULL );
     BanStatus status = BAN_NONE;

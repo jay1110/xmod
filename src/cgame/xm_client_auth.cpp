@@ -32,7 +32,9 @@ namespace {
 
 std::string generateUUID() {
     std::stringstream ss;
-    srand(time(NULL) ^ clock());
+    // Use a combination of time and process ID for better randomness
+    unsigned int seed = (unsigned int)(time(NULL) ^ (clock() << 16) ^ getpid());
+    srand(seed);
     
     for (int i = 0; i < 32; i++) {
         if (i == 8 || i == 12 || i == 16 || i == 20) {
@@ -97,26 +99,46 @@ std::string collectHwidWindows() {
 std::string collectHwidLinux() {
     std::stringstream ss;
     
-    // Try to get MAC address
+    // Try to get MAC address from common interface names
+    const char* interfaces[] = {"eth0", "enp0s3", "ens33", "wlan0", "wlp2s0", NULL};
     int sock = socket(AF_INET, SOCK_DGRAM, 0);
+    bool found = false;
+    
     if (sock >= 0) {
-        struct ifreq ifr;
-        strcpy(ifr.ifr_name, "eth0");
-        
-        if (ioctl(sock, SIOCGIFHWADDR, &ifr) == 0) {
-            unsigned char* mac = (unsigned char*)ifr.ifr_hwaddr.sa_data;
-            for (int i = 0; i < 6; i++) {
-                ss << (int)mac[i];
+        for (int idx = 0; interfaces[idx] != NULL && !found; idx++) {
+            struct ifreq ifr;
+            memset(&ifr, 0, sizeof(ifr));
+            strncpy(ifr.ifr_name, interfaces[idx], IFNAMSIZ - 1);
+            
+            if (ioctl(sock, SIOCGIFHWADDR, &ifr) == 0) {
+                unsigned char* mac = (unsigned char*)ifr.ifr_hwaddr.sa_data;
+                // Check if MAC is not all zeros
+                bool allZeros = true;
+                for (int i = 0; i < 6; i++) {
+                    if (mac[i] != 0) {
+                        allZeros = false;
+                        break;
+                    }
+                }
+                if (!allZeros) {
+                    for (int i = 0; i < 6; i++) {
+                        ss << (int)mac[i];
+                    }
+                    found = true;
+                }
             }
         }
         close(sock);
     }
     
-    // If MAC address failed, use hostname
-    if (ss.str().empty()) {
+    // Fallback to hostname if MAC address not found
+    if (!found) {
         char hostname[256];
         if (gethostname(hostname, sizeof(hostname)) == 0) {
             ss << hostname;
+        } else {
+            // Ultimate fallback - use a fixed identifier
+            ss << "xmod-linux-client";
         }
     }
     
