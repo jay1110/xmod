@@ -35,6 +35,7 @@ typedef enum {
     JXAC_VIOLATION_SS_BLOCKED       = 5,    // Screenshot blocked/faked
     JXAC_VIOLATION_TAMPER           = 6,    // JXAC client tampered/disabled
     JXAC_VIOLATION_NO_RESPONSE      = 7,    // No response from client
+    JXAC_VIOLATION_SPEEDHACK        = 8,    // Speedhack detected
     _JXAC_VIOLATION_MAX
 } jxacViolationType_t;
 
@@ -87,6 +88,14 @@ typedef struct jxacPlayerData_s {
     qboolean        scheduledScreenshot;// Scheduled screenshot pending
     int             scheduledScreenshotTime; // Time when screenshot should be requested
     int             scheduledScreenshotQuality; // Quality for scheduled screenshot
+    // Speedhack detection tracking
+    vec3_t          lastOrigin;         // Last position for speedhack detection
+    int             lastCheckTime;      // Last check time for speedhack detection
+    // Aimbot detection tracking
+    vec3_t          lastViewAngles;     // Last view angles for aimbot detection
+    int             aimbotSnapCount;    // Count of suspicious snap turns
+    int             totalKills;         // Total kills for headshot ratio
+    int             lastScore;          // Last score for kill tracking
 } jxacPlayerData_t;
 
 // JXAC Screenshot Request Structure

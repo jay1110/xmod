@@ -61,9 +61,26 @@ unsigned char* Screenshot::captureFramebuffer( int* width, int* height, int* cha
     }
     
     // Read framebuffer pixels (OpenGL style - bottom to top)
-    // This would normally use glReadPixels or equivalent
+    // NOTE: This requires engine API support which is not currently available
+    // The engine would need to expose a trap_R_ReadPixels() function
     // For now, create a placeholder pattern for testing
-    // TODO: Replace with actual framebuffer capture
+    // TODO: Once engine adds trap_R_ReadPixels, replace with:
+    // trap_R_ReadPixels( 0, 0, *width, *height, buffer );
+    // 
+    // Then flip the image vertically (OpenGL reads bottom-to-top, JPEG expects top-to-bottom):
+    // int rowSize = (*width) * (*channels);
+    // unsigned char* tempRow = (unsigned char*)malloc( rowSize );
+    // if ( tempRow ) {
+    //     for ( int y = 0; y < (*height) / 2; y++ ) {
+    //         unsigned char* row1 = buffer + (y * rowSize);
+    //         unsigned char* row2 = buffer + (((*height) - 1 - y) * rowSize);
+    //         memcpy( tempRow, row1, rowSize );
+    //         memcpy( row1, row2, rowSize );
+    //         memcpy( row2, tempRow, rowSize );
+    //     }
+    //     free( tempRow );
+    // }
+    
     for ( int i = 0; i < bufferSize; i += 3 ) {
         // Create a simple gradient pattern for testing
         int pixel = i / 3;
@@ -74,10 +91,6 @@ unsigned char* Screenshot::captureFramebuffer( int* width, int* height, int* cha
         buffer[i + 1] = (unsigned char)((y * 255) / (*height));     // G
         buffer[i + 2] = (unsigned char)(((x + y) * 128) / ((*width) + (*height))); // B
     }
-    
-    // Note: In a real implementation, you would use:
-    // trap_R_ReadPixels( 0, 0, *width, *height, buffer );
-    // or similar engine function to read the actual framebuffer
     
     return buffer;
 }

@@ -79,11 +79,15 @@ static const jxacCvarCheck_t protectedCvars[] = {
     { "r_showimages", "0", qtrue },
     { "r_shownormals", "0", qtrue },
     { "r_showtris", "0", qtrue },
+    { "r_showsky", "1", qtrue },
+    { "r_fastsky", "0", qtrue },
     // Batch 2 - Visibility related
     { "r_znear", "4", qfalse },      // Allow values close to 4
     { "r_nocull", "0", qtrue },
     { "r_drawfoliage", "1", qtrue },
     { "r_noportals", "0", qtrue },
+    { "r_mapoverbrightbits", "2", qfalse },  // Allow 2 or 3
+    { "r_intensity", "1", qfalse },          // Tolerance ±0.5
     // Batch 3 - Client misc
     { "cg_thirdPerson", "0", qtrue },
     { "cg_shadows", "1", qfalse },   // Allow 0-1
@@ -200,6 +204,27 @@ void Server::frame() {
     
     // Check for pending screenshot timeouts
     checkTimeouts();
+    
+    // Speedhack and aimbot detection (every 100ms)
+    static int lastAntiCheatCheck = 0;
+    if ( level.time - lastAntiCheatCheck > 100 ) {
+        lastAntiCheatCheck = level.time;
+        
+        for ( int i = 0; i < level.maxclients; i++ ) {
+            gentity_t* ent = &g_entities[i];
+            if ( !ent->client || ent->client->pers.connected != CON_CONNECTED ) {
+                continue;
+            }
+            
+            // Skip bots
+            if ( ent->r.svFlags & SVF_BOT ) {
+                continue;
+            }
+            
+            checkSpeedhack( i );
+            checkAimbot( i );
+        }
+    }
     
     // Periodic CVAR checks (one batch per interval)
     if ( cvar::objects::g_jxacCheckCvars.ivalue && level.time - lastCvarCheckTime > JXAC_CVAR_CHECK_INTERVAL ) {
@@ -912,6 +937,123 @@ void Server::reloadConfig() {
     // loadCheatDatabase( cvar::objects::g_jxacCheatFile.svalue );
     
     Com_Printf( "JXAC: Configuration reload complete\n" );
+}
+
+///////////////////////////////////////////////////////////////////////////////
+
+void Server::checkSpeedhack( int clientNum ) {
+    if ( clientNum < 0 || clientNum >= MAX_CLIENTS ) {
+        return;
+    }
+    
+    // Get player entity and previous position
+    gentity_t* ent = &g_entities[clientNum];
+    if ( !ent->client ) {
+        return;
+    }
+    
+    gclient_t* client = ent->client;
+    jxacPlayerData_t* pd = &playerData[clientNum];
+    
+    // Initialize on first check
+    if ( pd->lastCheckTime == 0 ) {
+        VectorCopy( client->ps.origin, pd->lastOrigin );
+        pd->lastCheckTime = level.time;
+        return;
+    }
+    
+    // Calculate position delta
+    vec3_t delta;
+    VectorSubtract( client->ps.origin, pd->lastOrigin, delta );
+    float distance = VectorLength( delta );
+    
+    // Calculate time delta (ms)
+    int timeDelta = level.time - pd->lastCheckTime;
+    if ( timeDelta <= 0 ) {
+        return;
+    }
+    
+    // Calculate speed (units per second)
+    float speed = (distance / (float)timeDelta) * 1000.0f;
+    
+    // Get maximum allowed speed (base + sprint + modifiers)
+    // Default player speed is around 320, sprint multiplier is ~1.3x
+    float maxSpeed = client->ps.speed * 1.5f; // 1.5x for sprint and tolerance
+    
+    // Check for speedhack (allow 10% tolerance for network jitter)
+    if ( speed > maxSpeed * 1.1f ) {
+        char details[256];
+        Com_sprintf( details, sizeof(details), 
+                    "Speedhack detected: %.1f units/s (max: %.1f)", 
+                    speed, maxSpeed );
+        reportViolation( clientNum, JXAC_VIOLATION_SPEEDHACK, details );
+    }
+    
+    // Update tracking data
+    VectorCopy( client->ps.origin, pd->lastOrigin );
+    pd->lastCheckTime = level.time;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+
+void Server::checkAimbot( int clientNum ) {
+    if ( clientNum < 0 || clientNum >= MAX_CLIENTS ) {
+        return;
+    }
+    
+    gentity_t* ent = &g_entities[clientNum];
+    if ( !ent->client ) {
+        return;
+    }
+    
+    gclient_t* client = ent->client;
+    jxacPlayerData_t* pd = &playerData[clientNum];
+    
+    // Initialize on first check
+    if ( pd->lastCheckTime == 0 ) {
+        VectorCopy( client->ps.viewangles, pd->lastViewAngles );
+        pd->lastScore = client->ps.persistant[PERS_SCORE];
+        return;
+    }
+    
+    // Calculate angle delta
+    vec3_t angleDelta;
+    for ( int i = 0; i < 3; i++ ) {
+        angleDelta[i] = AngleSubtract( client->ps.viewangles[i], 
+                                       pd->lastViewAngles[i] );
+    }
+    
+    float angleChange = VectorLength( angleDelta );
+    
+    // Detect impossible snap (>170° in single frame = ~17ms at 60fps, ~100ms check interval)
+    if ( angleChange > 170.0f ) {
+        pd->aimbotSnapCount++;
+        
+        if ( pd->aimbotSnapCount > 3 ) {
+            char details[256];
+            Com_sprintf( details, sizeof(details), 
+                        "Aimbot snap detected: %.1f degree change", 
+                        angleChange );
+            reportViolation( clientNum, JXAC_VIOLATION_AIMBOT, details );
+            pd->aimbotSnapCount = 0; // Reset after reporting
+        }
+    } else if ( angleChange < 10.0f ) {
+        // Decay snap count if no suspicious behavior
+        if ( pd->aimbotSnapCount > 0 ) {
+            pd->aimbotSnapCount--;
+        }
+    }
+    
+    // Track headshot ratio (check on kills)
+    if ( client->ps.persistant[PERS_SCORE] != pd->lastScore ) {
+        pd->totalKills++;
+        // Headshot detection would need hit zone tracking
+        // This is a placeholder for future enhancement
+    }
+    
+    // Update tracking
+    VectorCopy( client->ps.viewangles, pd->lastViewAngles );
+    pd->lastScore = client->ps.persistant[PERS_SCORE];
 }
 
 ///////////////////////////////////////////////////////////////////////////////

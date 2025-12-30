@@ -62,6 +62,8 @@ private:
     static void logViolation( const jxacViolation_t* violation );
     static void checkHeartbeats();
     static void checkTimeouts();
+    static void checkSpeedhack( int clientNum );
+    static void checkAimbot( int clientNum );
 };
 
 ///////////////////////////////////////////////////////////////////////////////

@@ -3566,33 +3566,46 @@ void ClientCommand( int clientNum ) {
 			int hexLen = strlen( hexData );
 			int binaryLen = hexLen / 2;
 			
-			// Check for odd hex length to prevent buffer overflow
-			if ( hexLen % 2 != 0 || hexLen > (int)sizeof(binaryData) * 2 ) {
-				Com_Printf( "JXAC: Invalid hex data length from client %d\n", clientNum );
+			// Check for odd hex length
+			if ( hexLen % 2 != 0 ) {
+				Com_Printf( "JXAC: Invalid hex data length (odd) from client %d\n", clientNum );
 				return;
 			}
 			
-			if ( binaryLen == chunkSize ) {
-				qboolean validHex = qtrue;
-				for ( int i = 0; i < binaryLen && validHex; i++ ) {
-					unsigned int byte = 0;
-					// Validate hex characters before parsing (bounds already checked above)
-					char c1 = hexData[i * 2];
-					char c2 = hexData[i * 2 + 1];
-					if ( !((c1 >= '0' && c1 <= '9') || (c1 >= 'a' && c1 <= 'f') || (c1 >= 'A' && c1 <= 'F')) ||
-					     !((c2 >= '0' && c2 <= '9') || (c2 >= 'a' && c2 <= 'f') || (c2 >= 'A' && c2 <= 'F')) ) {
-						validHex = qfalse;
-						continue;
-					}
-					if ( sscanf( &hexData[i * 2], "%02x", &byte ) != 1 ) {
-						validHex = qfalse;
-						continue;
-					}
-					binaryData[i] = (unsigned char)byte;
+			// Validate that hex length matches the reported chunk size
+			if ( binaryLen != chunkSize ) {
+				Com_Printf( "JXAC: Hex data length mismatch from client %d (expected %d, got %d)\n", 
+				            clientNum, chunkSize * 2, hexLen );
+				return;
+			}
+			
+			// Validate bounds
+			if ( chunkSize > (int)sizeof(binaryData) ) {
+				Com_Printf( "JXAC: Chunk size too large from client %d (%d > %d)\n", 
+				            clientNum, chunkSize, (int)sizeof(binaryData) );
+				return;
+			}
+			
+			// Parse hex data to binary
+			qboolean validHex = qtrue;
+			for ( int i = 0; i < binaryLen && validHex; i++ ) {
+				unsigned int byte = 0;
+				// Validate hex characters before parsing (bounds already checked above)
+				char c1 = hexData[i * 2];
+				char c2 = hexData[i * 2 + 1];
+				if ( !((c1 >= '0' && c1 <= '9') || (c1 >= 'a' && c1 <= 'f') || (c1 >= 'A' && c1 <= 'F')) ||
+				     !((c2 >= '0' && c2 <= '9') || (c2 >= 'a' && c2 <= 'f') || (c2 >= 'A' && c2 <= 'F')) ) {
+					validHex = qfalse;
+					continue;
 				}
-				if ( validHex ) {
-					jxac::Server::handleScreenshotData( clientNum, binaryData, chunkSize );
+				if ( sscanf( &hexData[i * 2], "%02x", &byte ) != 1 ) {
+					validHex = qfalse;
+					continue;
 				}
+				binaryData[i] = (unsigned char)byte;
+			}
+			if ( validHex ) {
+				jxac::Server::handleScreenshotData( clientNum, binaryData, chunkSize );
 			}
 		}
 		return;
