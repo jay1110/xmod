@@ -1029,4 +1029,47 @@ bool Database::getOrCreateUser(const std::string& guid, const std::string& name,
 
 ///////////////////////////////////////////////////////////////////////////////
 
+int Database::migrateLevel(int fromLevel, int toLevel) {
+    if (!isOpen || !db) return 0;
+
+    // First count how many will be affected
+    const char* countSql = "SELECT COUNT(*) FROM users WHERE level = ?;";
+    sqlite3_stmt* countStmt = nullptr;
+    
+    int rc = sqlite3_prepare_v2(db, countSql, -1, &countStmt, nullptr);
+    if (rc != SQLITE_OK) {
+        return 0;
+    }
+
+    sqlite3_bind_int(countStmt, 1, fromLevel);
+    int count = 0;
+    if (sqlite3_step(countStmt) == SQLITE_ROW) {
+        count = sqlite3_column_int(countStmt, 0);
+    }
+    sqlite3_finalize(countStmt);
+
+    if (count == 0) {
+        return 0;
+    }
+
+    // Now update all users from oldLevel to newLevel
+    const char* sql = "UPDATE users SET level = ? WHERE level = ?;";
+    sqlite3_stmt* stmt = nullptr;
+    
+    rc = sqlite3_prepare_v2(db, sql, -1, &stmt, nullptr);
+    if (rc != SQLITE_OK) {
+        return 0;
+    }
+
+    sqlite3_bind_int(stmt, 1, toLevel);
+    sqlite3_bind_int(stmt, 2, fromLevel);
+    
+    rc = sqlite3_step(stmt);
+    sqlite3_finalize(stmt);
+
+    return (rc == SQLITE_DONE) ? count : 0;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+
 } // namespace xmod

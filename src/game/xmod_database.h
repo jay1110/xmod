@@ -102,6 +102,9 @@ public:
     
     // User/GUID fetch/create (like fetchByKey)
     bool getOrCreateUser(const std::string& guid, const std::string& name, UserData& data);
+    
+    // Level migration
+    int migrateLevel(int fromLevel, int toLevel);
 };
 
 } // namespace xmod
