@@ -134,16 +134,20 @@ The following features have framework/placeholder code but require full implemen
 - ✅ Bot filtering (bots are skipped for screenshot requests)
 
 **What's needed for full functionality**:
-- Platform-specific framebuffer capture:
-  - Replace placeholder pattern with actual OpenGL framebuffer read
-  - Windows: Use trap_R_ReadPixels or equivalent
-  - Linux: Use trap_R_ReadPixels or equivalent
+- Engine API integration for framebuffer capture:
+  - Add trap_R_ReadPixels() function to cgame syscalls
+  - Expose OpenGL framebuffer reading to client module
+  - Note: Placeholder gradient pattern used until engine API available
+- Vertical flip implementation (OpenGL reads bottom-to-top, JPEG expects top-to-bottom)
 
 **Current behavior**: 
 - Generates test pattern screenshot (gradient for verification)
 - Compresses to JPEG at specified quality using callback-based approach
-- Sends hex-encoded data in 2KB chunks to server
+- Sends hex-encoded data to server successfully
 - Server receives, decodes, assembles and saves to disk
+- **Fixed**: Hex validation bug that caused all chunks to be rejected
+  - Improved error messages for different validation failure types
+  - Proper chunk size bounds checking
 
 ### 2. Network Protocol Integration
 **Status**: ✅ **IMPLEMENTED** - Full client-server communication integrated
@@ -202,27 +206,53 @@ The following features have framework/placeholder code but require full implemen
 ### 4. Cheat Detection Heuristics
 
 #### Wallhack Detection
-**Status**: Not implemented
-**What's needed**:
-- Check for illegal shader/texture modifications
-- Validate renderer settings
-- Monitor visibility calculations
+**Status**: ✅ **IMPLEMENTED** - CVAR-based detection active
+**What's completed**:
+- ✅ Extended protected CVAR list with wallhack-specific variables:
+  - `r_showsky`, `r_fastsky` - Sky rendering detection
+  - `r_mapoverbrightbits`, `r_intensity` - Brightness manipulation detection
+- ✅ Automatic periodic scanning (every 60 seconds)
+- ✅ Violation reporting on illegal values
+- ✅ Bot filtering
+
+**Current behavior**:
+- Monitors renderer CVARs for wallhack-related modifications
+- Detects illegal values like `r_fullbright 1`, `r_showtris 1`, etc.
+- Reports violations with JXAC_VIOLATION_WALLHACK (via CVAR violations)
 
 #### Aimbot Detection
-**Status**: Not implemented
-**What's needed**:
-- Track aim snap angles
-- Measure reaction times
-- Detect impossible mouse movements
-- Statistical analysis of headshot ratios
+**Status**: ✅ **IMPLEMENTED** - Angle snap heuristics active
+**What's completed**:
+- ✅ Viewangle tracking per frame
+- ✅ Impossible snap detection (>170° in single frame)
+- ✅ Snap count accumulation with decay
+- ✅ Violation reporting after 3+ snaps
+- ✅ Kill tracking framework for future headshot ratio analysis
+- ✅ Bot filtering
+
+**Current behavior**:
+- Checks every 100ms for all connected players
+- Detects rapid angle changes indicative of aimbot
+- Accumulates snap count, decays on normal behavior
+- Reports violation with JXAC_VIOLATION_AIMBOT after threshold
+- Foundation for headshot ratio tracking (requires hit zone data)
 
 #### Speedhack Detection
-**Status**: Not implemented
-**What's needed**:
-- Server-side movement validation
-- Velocity checking
-- Position delta verification
-- Time synchronization checks
+**Status**: ✅ **IMPLEMENTED** - Server-side movement validation active
+**What's completed**:
+- ✅ Position delta tracking between frames
+- ✅ Speed calculation (units per second)
+- ✅ Maximum speed validation with tolerance
+- ✅ Violation reporting on impossible speeds
+- ✅ Bot filtering
+- ✅ Network jitter tolerance (10% allowance)
+
+**Current behavior**:
+- Checks every 100ms for all connected players
+- Calculates actual movement speed from position deltas
+- Compares against maximum allowed speed (base * 1.5 for sprint + 10% tolerance)
+- Reports violation with JXAC_VIOLATION_SPEEDHACK
+- Accounts for legitimate speed modifiers
 
 ### 5. Checksum Validation
 **Status**: Not implemented
