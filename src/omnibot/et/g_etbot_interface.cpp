@@ -1659,8 +1659,17 @@ public:
 
 	obResult ChangeTeam(int _client, int _newteam, const MessageHelper *_data)
 	{
-		char* teamName;
+		// Validate client index and entity before accessing
+		if(_client < 0 || _client >= MAX_CLIENTS)
+			return InvalidEntity;
+
 		gentity_t* bot = &g_entities[_client];
+
+		// Check if the entity is valid and connected before processing
+		if(!bot->inuse || !bot->client || bot->client->pers.connected != CON_CONNECTED)
+			return InvalidEntity;
+
+		char* teamName;
 
 		// find a team if we didn't get one and we need one ;-)
 		if (_newteam != ET_TEAM_ALLIES && _newteam != ET_TEAM_AXIS)
@@ -1737,7 +1746,15 @@ public:
 
 	obResult ChangeClass(int _client, int _newclass, const MessageHelper *_data)
 	{
+		// Validate client index and entity before accessing
+		if(_client < 0 || _client >= MAX_CLIENTS)
+			return InvalidEntity;
+
 		gentity_t* bot = &g_entities[_client];
+
+		// Check if the entity is valid and connected before processing
+		if(!bot->inuse || !bot->client || bot->client->pers.connected != CON_CONNECTED)
+			return InvalidEntity;
 
 		// find playerclass if we didn't got one
 		if (_newclass <= ET_CLASS_NULL || _newclass >= ET_CLASS_MAX)
@@ -1880,8 +1897,17 @@ public:
 
 	void UpdateBotInput(int _client, const ClientInput &_input)
 	{
-		static usercmd_t cmd;
+		// Validate client index and entity before accessing
+		if(_client < 0 || _client >= MAX_CLIENTS)
+			return;
+
 		gentity_t *bot = &g_entities[_client];
+
+		// Check if the entity is valid and connected before processing input
+		if(!bot->inuse || !bot->client || bot->client->pers.connected != CON_CONNECTED)
+			return;
+
+		static usercmd_t cmd;
 
 		// only causes problems
 		bot->client->ps.pm_flags &= ~PMF_RESPAWNED;
@@ -2080,6 +2106,14 @@ public:
 
 	void BotCommand(int _client, const char *_cmd)
 	{
+		// Validate client index and entity before sending command
+		if(_client < 0 || _client >= MAX_CLIENTS)
+			return;
+
+		gentity_t *bot = &g_entities[_client];
+		if(!bot->inuse || !bot->client || bot->client->pers.connected != CON_CONNECTED)
+			return;
+
 		trap_EA_Command(_client, (char *)_cmd);
 	}
 
@@ -5550,7 +5584,15 @@ void Bot_Event_Spectated(int _client, int _who)
 {
 	if(IsOmnibotLoaded())
 	{
-		if ( IsBot(&g_entities[_client]) )
+		// Validate client index before accessing
+		if(_client < 0 || _client >= MAX_CLIENTS)
+			return;
+
+		gentity_t *ent = &g_entities[_client];
+		if(!ent->inuse || !ent->client)
+			return;
+
+		if ( IsBot(ent) )
 		{
 			Event_Spectated d = { _who };
 			g_BotFunctions.pfnSendEvent(_client, MessageHelper(MESSAGE_SPECTATED, &d, sizeof(d)));
