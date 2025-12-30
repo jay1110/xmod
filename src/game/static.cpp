@@ -103,6 +103,18 @@ namespace objects {
     Cvar g_jxacAutoBan            ( "jxac_autoBan",            "0",              CVAR_ARCHIVE );
     Cvar g_jxacAutoKick           ( "jxac_autoKick",           "1",              CVAR_ARCHIVE );
     Cvar g_jxacLogFile            ( "jxac_logFile",            "jxac.log",       CVAR_ARCHIVE );
+    
+    // JXAC CVAR Scanner CVARs
+    Cvar g_jxacCvarScan           ( "jxac_cvarScan",           "0",              CVAR_ARCHIVE );
+    Cvar g_jxacCvarScanWait       ( "jxac_cvarScanWait",       "10000",          CVAR_ARCHIVE );
+    Cvar g_jxacCvarScanDelay      ( "jxac_cvarScanDelay",      "750",            CVAR_ARCHIVE );
+    Cvar g_jxacCvarScanInterval   ( "jxac_cvarScanInterval",   "300000",         CVAR_ARCHIVE );
+    Cvar g_jxacCvarScanMaxWarnings( "jxac_cvarScanMaxWarnings","1",              CVAR_ARCHIVE );
+    
+    // JXAC Config Files
+    Cvar g_jxacForceCvarFile      ( "jxac_forceCvarFile",      "jxac/jxac_forcecvar.cfg", CVAR_ARCHIVE );
+    Cvar g_jxacCheatCvarFile      ( "jxac_cheatCvarFile",      "jxac/jxac_cvarscan.cfg",  CVAR_ARCHIVE );
+    Cvar g_jxacCheatDbFile        ( "jxac_cheatDbFile",        "jxac/jxac_cheats.cfg",    CVAR_ARCHIVE );
 
     Cvar g_maxLandmines ( "team_maxLandmines", "10" );
     Cvar g_maxTripmines ( "team_maxTripmines", "3" );

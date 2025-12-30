@@ -27,6 +27,16 @@ namespace objects {
     extern Cvar g_jxacAutoBan;
     extern Cvar g_jxacAutoKick;
     extern Cvar g_jxacLogFile;
+    
+    extern Cvar g_jxacCvarScan;
+    extern Cvar g_jxacCvarScanWait;
+    extern Cvar g_jxacCvarScanDelay;
+    extern Cvar g_jxacCvarScanInterval;
+    extern Cvar g_jxacCvarScanMaxWarnings;
+    
+    extern Cvar g_jxacForceCvarFile;
+    extern Cvar g_jxacCheatCvarFile;
+    extern Cvar g_jxacCheatDbFile;
 
     extern Cvar g_kickMessage;
     extern Cvar g_kickTime;
