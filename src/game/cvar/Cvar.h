@@ -29,6 +29,8 @@ namespace objects {
     extern Cvar g_jxacAutoKick;
     extern Cvar g_jxacLogFile;
     extern Cvar g_jxacHeartbeatTimeout;
+    extern Cvar g_jxacCvarFile;
+    extern Cvar g_jxacCheatFile;
 
     extern Cvar g_kickMessage;
     extern Cvar g_kickTime;

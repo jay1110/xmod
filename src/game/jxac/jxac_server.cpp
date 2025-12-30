@@ -105,6 +105,9 @@ void Server::init() {
     // Initialize CVAR batch indexes
     memset( currentCvarBatch, 0, sizeof( currentCvarBatch ) );
     
+    // Load CVAR config file (if exists)
+    loadCvarConfig( cvar::objects::g_jxacCvarFile.svalue );
+    
     initialized = qtrue;
     
     Com_Printf( "JXAC: Server initialized successfully\n" );
@@ -810,6 +813,38 @@ void Server::checkTimeouts() {
             }
         }
     }
+}
+
+///////////////////////////////////////////////////////////////////////////////
+
+void Server::loadCvarConfig( const char* filename ) {
+    if ( !filename || filename[0] == '\0' ) {
+        Com_Printf( "JXAC: No CVAR config file specified\n" );
+        return;
+    }
+    
+    Com_Printf( "JXAC: Loading CVAR config from %s\n", filename );
+    
+    // TODO: Implement config file parsing
+    // File format: cvar_name,expected_value,tolerance
+    // Example: r_fullbright,0,0
+    // For now, using hardcoded CVARs in protectedCvars array
+    
+    Com_Printf( "JXAC: CVAR config loading not yet implemented - using defaults\n" );
+}
+
+///////////////////////////////////////////////////////////////////////////////
+
+void Server::reloadConfig() {
+    Com_Printf( "JXAC: Reloading configuration files\n" );
+    
+    // Reload CVAR config
+    loadCvarConfig( cvar::objects::g_jxacCvarFile.svalue );
+    
+    // TODO: Reload cheat signature database
+    // loadCheatDatabase( cvar::objects::g_jxacCheatFile.svalue );
+    
+    Com_Printf( "JXAC: Configuration reload complete\n" );
 }
 
 ///////////////////////////////////////////////////////////////////////////////

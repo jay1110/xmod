@@ -105,6 +105,8 @@ namespace objects {
     Cvar g_jxacAutoKick           ( "jxac_autoKick",           "1",              CVAR_ARCHIVE );
     Cvar g_jxacLogFile            ( "jxac_logFile",            "jxac.log",       CVAR_ARCHIVE );
     Cvar g_jxacHeartbeatTimeout   ( "jxac_heartbeatTimeout",   "60000",          CVAR_ARCHIVE );
+    Cvar g_jxacCvarFile           ( "jxac_cvarFile",           "jxac/jxac_cvars.cfg", CVAR_ARCHIVE );
+    Cvar g_jxacCheatFile          ( "jxac_cheatFile",          "jxac/jxac_cheats.cfg", CVAR_ARCHIVE );
 
     Cvar g_maxLandmines ( "team_maxLandmines", "10" );
     Cvar g_maxTripmines ( "team_maxTripmines", "3" );

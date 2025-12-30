@@ -40,6 +40,8 @@ public:
     // CVAR checking
     static void requestCvarCheck( int clientNum );
     static void handleCvarResponse( int clientNum, const char* cvarName, const char* value );
+    static void loadCvarConfig( const char* filename );
+    static void reloadConfig();
     
     // Violation handling
     static void reportViolation( int clientNum, jxacViolationType_t type, const char* details );
