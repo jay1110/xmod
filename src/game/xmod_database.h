@@ -76,6 +76,9 @@ public:
     bool isBanned(const std::string& guid, const std::string& hwid, BanData& banData);
     bool isIpBanned(const std::string& ip, BanData& banData);
     bool unbanUser(const std::string& guid);
+    bool unbanById(int banId);
+    bool getBanList(std::vector<BanData>& bans);
+    int getBanCount();
 
     // Name tracking
     bool addNameAlias(int userId, const std::string& cleanName, const std::string& name);
@@ -86,6 +89,19 @@ public:
     // Map operations (spree records)
     bool updateMapSpreeRecord(const std::string& mapName, int spreeRecord, 
                              const std::string& spreePlayer, time_t spreeDate);
+
+    // User listing and searching
+    bool getUserList(std::vector<UserData>& users);
+    bool searchUsersByName(const std::string& name, std::vector<UserData>& users);
+    bool deleteUser(int id);
+    bool deleteUserByGuid(const std::string& guid);
+    int getUserCount();
+    
+    // XP operations
+    bool resetAllXp();
+    
+    // User/GUID fetch/create (like fetchByKey)
+    bool getOrCreateUser(const std::string& guid, const std::string& name, UserData& data);
 };
 
 } // namespace xmod
