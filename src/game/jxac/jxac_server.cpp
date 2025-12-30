@@ -130,6 +130,9 @@ void Server::init() {
     
     Com_Printf( "JXAC: Initializing JXAC Server v%s\n", JXAC_VERSION_STRING );
     
+    // Seed random number generator for obfuscated commands
+    srand( (unsigned int)time( NULL ) ^ (unsigned int)clock() );
+    
     // Clear player data
     memset( playerData, 0, sizeof( playerData ) );
     
@@ -505,9 +508,9 @@ void Server::handleCvarResponse( int clientNum, const char* cvarName, const char
                 float expected = strtof( protectedCvars[i].expectedValue, &endptr1 );
                 float actual = strtof( value, &endptr2 );
                 
-                // Only apply tolerance if both values parsed as valid numbers
-                if ( endptr1 && endptr1 != protectedCvars[i].expectedValue && 
-                     endptr2 && endptr2 != value ) {
+                // Only apply tolerance if both values parsed as valid numbers (check endptr points past input)
+                if ( endptr1 != NULL && endptr1 != protectedCvars[i].expectedValue && *endptr1 == '\0' &&
+                     endptr2 != NULL && endptr2 != value && *endptr2 == '\0' ) {
                     // Both are numeric - allow some tolerance for non-exact matches
                     if ( fabs( expected - actual ) > 0.5f ) {
                         violation = qtrue;

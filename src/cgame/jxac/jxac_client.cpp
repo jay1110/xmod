@@ -193,6 +193,11 @@ void Client::sendScreenshotData( const void* data, int size ) {
         
         // Check queue capacity
         if ( chunkQueueCount >= MAX_CHUNK_QUEUE ) {
+            // Queue overflow - screenshot too large, abort transfer
+            chunkQueueHead = 0;
+            chunkQueueTail = 0;
+            chunkQueueCount = 0;
+            screenshotTransferActive = qfalse;
             return;
         }
         

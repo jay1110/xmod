@@ -10,6 +10,7 @@ qboolean G_IsOnFireteam(int entityNum, fireteamData_t** teamNum);
 
 // Helper function to validate hexadecimal strings
 static bool isValidHexString(const char* str, size_t expectedLen) {
+	if (str == NULL) return false;
 	if (strlen(str) != expectedLen) return false;
 	for (size_t i = 0; i < expectedLen; i++) {
 		char c = str[i];

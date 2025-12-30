@@ -53,16 +53,19 @@ std::string generateUUID() {
 
 std::string loadGuidFromFile() {
     fileHandle_t f;
-    if (trap_FS_FOpenFile("xmodguid.dat", &f, FS_READ) > 0 && f) {
+    int len = trap_FS_FOpenFile("xmodguid.dat", &f, FS_READ);
+    if (len > 0 && f) {
         char buffer[64];
         memset(buffer, 0, sizeof(buffer));
-        trap_FS_Read(buffer, sizeof(buffer) - 1, f);
+        int bytesRead = trap_FS_Read(buffer, sizeof(buffer) - 1, f);
         trap_FS_FCloseFile(f);
         
-        // Validate GUID format (UUID with dashes or 32 hex chars)
-        std::string guid(buffer);
-        if (guid.length() >= 32) {
-            return guid.substr(0, 36); // UUID format with dashes
+        // Validate read was successful and GUID format (UUID with dashes or 32 hex chars)
+        if (bytesRead > 0) {
+            std::string guid(buffer);
+            if (guid.length() >= 32) {
+                return guid.substr(0, 36); // UUID format with dashes
+            }
         }
     }
     return "";

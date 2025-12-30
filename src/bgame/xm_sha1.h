@@ -26,8 +26,9 @@ private:
     }
 
     inline uint32_t blk(uint32_t* block, uint32_t i) {
-        block[i] = rol(block[(i+13)&15] ^ block[(i+8)&15] ^ block[(i+2)&15] ^ block[i], 1);
-        return block[i];
+        uint32_t val = rol(block[(i+13)&15] ^ block[(i+8)&15] ^ block[(i+2)&15] ^ block[i], 1);
+        block[i] = val;
+        return val;
     }
 
     inline void R0(uint32_t* block, uint32_t v, uint32_t& w, uint32_t x, uint32_t y, uint32_t& z, uint32_t i) {
