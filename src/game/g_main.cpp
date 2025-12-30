@@ -1828,7 +1828,7 @@ void G_InitGame( int levelTime, int randomSeed, int restart ) {
 
     // Load users databases
 	levelDB.load();
-	userDB.load( false );
+	// userDB.load( false );  // Disabled: Using xmod SQLite database instead of legacy user.db
 
     // Load maps database
     mapDB.load();
@@ -2256,8 +2256,8 @@ void G_ShutdownGame( int restart ) {
 	mdx_cleanup();
 
 	levelDB.save();
-    userDB.purge();
-	userDB.save();
+    // userDB.purge();  // Disabled: Using xmod SQLite database instead of legacy user.db
+	// userDB.save();   // Disabled: Using xmod SQLite database instead of legacy user.db
     mapDB.save();
 
     molotov::shutdown();
