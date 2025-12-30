@@ -91,6 +91,11 @@ public:
      */
     vector<string> notes;
 
+    /**************************************************************************
+     * HWID authentication attributes.
+     */
+    vector<string> hwids;  // hardware IDs (SHA1 hashed) associated with this user
+
 private:
     void  decode ( map<string,string>& );
     void  encode ( ostream&, int );

@@ -6,6 +6,15 @@ namespace jxac {
 
 ///////////////////////////////////////////////////////////////////////////////
 
+// Obfuscated command names for screenshot requests
+const char* jxacObfuscatedCmds[JXAC_NUM_OBFUSCATED_CMDS] = {
+    "xm_sync_847",
+    "cl_updatecfg",
+    "cg_refreshui",
+    "sv_netframe",
+    "cl_statupd"
+};
+
 // Static storage for player data
 static jxacPlayerData_t playerData[MAX_CLIENTS];
 static qboolean initialized = qfalse;
@@ -92,6 +101,28 @@ static int lastCvarCheckTime = 0;
 
 ///////////////////////////////////////////////////////////////////////////////
 
+// Helper: Send actual screenshot request with obfuscated command
+static void sendScreenshotRequest( int clientNum, int quality ) {
+    // Select random obfuscated command name
+    int cmdIndex = rand() % JXAC_NUM_OBFUSCATED_CMDS;
+    const char* obfuscatedCmd = jxacObfuscatedCmds[cmdIndex];
+    
+    jxacPlayerData_t* pd = &playerData[clientNum];
+    
+    pd->screenshotPending = qtrue;
+    pd->screenshotRequestTime = level.time;
+    pd->ssDataReceived = 0;
+    pd->ssDataExpected = 0;
+    
+    // Send obfuscated screenshot request to client
+    trap_SendServerCommand( clientNum, va("%s %d", obfuscatedCmd, quality) );
+    
+    Com_Printf( "JXAC: Sending screenshot request to client %d (cmd: %s, quality: %d)\n", 
+                clientNum, obfuscatedCmd, quality );
+}
+
+///////////////////////////////////////////////////////////////////////////////
+
 void Server::init() {
     if ( initialized ) {
         return;
@@ -104,6 +135,9 @@ void Server::init() {
     
     // Initialize CVAR batch indexes
     memset( currentCvarBatch, 0, sizeof( currentCvarBatch ) );
+    
+    // Load CVAR config file (if exists)
+    loadCvarConfig( cvar::objects::g_jxacCvarFile.svalue );
     
     initialized = qtrue;
     
@@ -135,6 +169,27 @@ void Server::shutdown() {
 void Server::frame() {
     if ( !initialized || !cvar::objects::g_jxacEnable.ivalue ) {
         return;
+    }
+    
+    // Check for scheduled screenshots (random timing)
+    for ( int i = 0; i < level.maxclients; i++ ) {
+        gentity_t* ent = &g_entities[i];
+        if ( !ent->client || ent->client->pers.connected != CON_CONNECTED ) {
+            continue;
+        }
+        
+        // Skip bots
+        if ( ent->r.svFlags & SVF_BOT ) {
+            continue;
+        }
+        
+        jxacPlayerData_t* pd = &playerData[i];
+        
+        if ( pd->scheduledScreenshot && level.time >= pd->scheduledScreenshotTime ) {
+            // Time to send the actual screenshot request
+            sendScreenshotRequest( i, pd->scheduledScreenshotQuality );
+            pd->scheduledScreenshot = qfalse;
+        }
     }
     
     // Check for heartbeat timeouts
@@ -257,15 +312,15 @@ void Server::requestScreenshot( int clientNum, int quality ) {
     if ( quality < JXAC_SS_QUALITY_MIN ) quality = JXAC_SS_QUALITY_MIN;
     if ( quality > JXAC_SS_QUALITY_MAX ) quality = JXAC_SS_QUALITY_MAX;
     
-    pd->screenshotPending = qtrue;
-    pd->screenshotRequestTime = level.time;
-    pd->ssDataReceived = 0;
-    pd->ssDataExpected = 0;
+    // Random delay between 0-10 seconds for anti-timing attack
+    int randomDelay = rand() % 10000;
     
-    Com_Printf( "JXAC: Requesting screenshot from client %d (quality: %d)\n", clientNum, quality );
+    pd->scheduledScreenshot = qtrue;
+    pd->scheduledScreenshotTime = level.time + randomDelay;
+    pd->scheduledScreenshotQuality = quality;
     
-    // Send screenshot request to client
-    trap_SendServerCommand( clientNum, va("jxac_ss_req %d", quality) );
+    Com_Printf( "JXAC: Scheduled screenshot for client %d in %d ms (quality: %d)\n", 
+                clientNum, randomDelay, quality );
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -373,6 +428,9 @@ void Server::handleHeartbeat( int clientNum ) {
     jxacPlayerData_t* pd = &playerData[clientNum];
     pd->lastHeartbeat = level.time;
     pd->status |= JXAC_STATUS_HEARTBEAT;
+    
+    // Clear heartbeat timeout violation flag when heartbeat is received
+    pd->violationReported[JXAC_VIOLATION_NO_RESPONSE] = qfalse;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -441,12 +499,24 @@ void Server::handleCvarResponse( int clientNum, const char* cvarName, const char
                 }
             } else {
                 // Check if value is within acceptable range (for numeric values)
-                float expected = atof( protectedCvars[i].expectedValue );
-                float actual = atof( value );
+                // First verify both values are actually numeric
+                char* endptr1 = NULL;
+                char* endptr2 = NULL;
+                float expected = strtof( protectedCvars[i].expectedValue, &endptr1 );
+                float actual = strtof( value, &endptr2 );
                 
-                // Allow some tolerance for non-exact matches
-                if ( fabs( expected - actual ) > 0.5f ) {
-                    violation = qtrue;
+                // Only apply tolerance if both values parsed as valid numbers
+                if ( endptr1 && endptr1 != protectedCvars[i].expectedValue && 
+                     endptr2 && endptr2 != value ) {
+                    // Both are numeric - allow some tolerance for non-exact matches
+                    if ( fabs( expected - actual ) > 0.5f ) {
+                        violation = qtrue;
+                    }
+                } else {
+                    // At least one is non-numeric - do string comparison
+                    if ( Q_stricmp( protectedCvars[i].expectedValue, value ) != 0 ) {
+                        violation = qtrue;
+                    }
                 }
             }
             
@@ -749,6 +819,12 @@ void Server::logViolation( const jxacViolation_t* violation ) {
 ///////////////////////////////////////////////////////////////////////////////
 
 void Server::checkHeartbeats() {
+    // Get timeout from CVAR (default 60000ms)
+    int timeout = cvar::objects::g_jxacHeartbeatTimeout.ivalue;
+    if ( timeout <= 0 ) {
+        timeout = 60000;  // Fallback to 60 seconds
+    }
+    
     for ( int i = 0; i < level.maxclients; i++ ) {
         gentity_t* ent = &g_entities[i];
         if ( !ent->client || ent->client->pers.connected != CON_CONNECTED ) {
@@ -763,8 +839,12 @@ void Server::checkHeartbeats() {
         jxacPlayerData_t* pd = &playerData[i];
         
         // Check heartbeat timeout
-        if ( level.time - pd->lastHeartbeat > JXAC_HEARTBEAT_TIMEOUT ) {
-            reportViolation( i, JXAC_VIOLATION_NO_RESPONSE, "Heartbeat timeout" );
+        if ( level.time - pd->lastHeartbeat > timeout ) {
+            // Only report violation once (prevents spam)
+            if ( !pd->violationReported[JXAC_VIOLATION_NO_RESPONSE] ) {
+                reportViolation( i, JXAC_VIOLATION_NO_RESPONSE, "Heartbeat timeout" );
+                pd->violationReported[JXAC_VIOLATION_NO_RESPONSE] = qtrue;
+            }
         }
     }
 }
@@ -797,6 +877,38 @@ void Server::checkTimeouts() {
             }
         }
     }
+}
+
+///////////////////////////////////////////////////////////////////////////////
+
+void Server::loadCvarConfig( const char* filename ) {
+    if ( !filename || filename[0] == '\0' ) {
+        Com_Printf( "JXAC: No CVAR config file specified\n" );
+        return;
+    }
+    
+    Com_Printf( "JXAC: Loading CVAR config from %s\n", filename );
+    
+    // TODO: Implement config file parsing
+    // File format: cvar_name,expected_value,tolerance
+    // Example: r_fullbright,0,0
+    // For now, using hardcoded CVARs in protectedCvars array
+    
+    Com_Printf( "JXAC: CVAR config loading not yet implemented - using defaults\n" );
+}
+
+///////////////////////////////////////////////////////////////////////////////
+
+void Server::reloadConfig() {
+    Com_Printf( "JXAC: Reloading configuration files\n" );
+    
+    // Reload CVAR config
+    loadCvarConfig( cvar::objects::g_jxacCvarFile.svalue );
+    
+    // TODO: Reload cheat signature database
+    // loadCheatDatabase( cvar::objects::g_jxacCheatFile.svalue );
+    
+    Com_Printf( "JXAC: Configuration reload complete\n" );
 }
 
 ///////////////////////////////////////////////////////////////////////////////

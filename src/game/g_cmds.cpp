@@ -2,10 +2,23 @@
 #include <omnibot/et/g_etbot_interface.h>
 #include <game/g_lua.h>
 #include <game/jxac/jxac_server.h>
+#include <bgame/xm_auth_shared.h>
 
 void BotDebug(int clientNum);
 void GetBotAutonomies(int clientNum, int *weapAutonomy, int *moveAutonomy);	
 qboolean G_IsOnFireteam(int entityNum, fireteamData_t** teamNum);
+
+// Helper function to validate hexadecimal strings
+static bool isValidHexString(const char* str, size_t expectedLen) {
+	if (strlen(str) != expectedLen) return false;
+	for (size_t i = 0; i < expectedLen; i++) {
+		char c = str[i];
+		if (!((c >= '0' && c <= '9') || (c >= 'a' && c <= 'f') || (c >= 'A' && c <= 'F'))) {
+			return false;
+		}
+	}
+	return true;
+}
 
 /*
 ==================
@@ -3552,11 +3565,17 @@ void ClientCommand( int clientNum ) {
 			int hexLen = strlen( hexData );
 			int binaryLen = hexLen / 2;
 			
+			// Check for odd hex length to prevent buffer overflow
+			if ( hexLen % 2 != 0 || hexLen > (int)sizeof(binaryData) * 2 ) {
+				Com_Printf( "JXAC: Invalid hex data length from client %d\n", clientNum );
+				return;
+			}
+			
 			if ( binaryLen == chunkSize ) {
 				qboolean validHex = qtrue;
 				for ( int i = 0; i < binaryLen && validHex; i++ ) {
 					unsigned int byte = 0;
-					// Validate hex characters before parsing
+					// Validate hex characters before parsing (bounds already checked above)
 					char c1 = hexData[i * 2];
 					char c2 = hexData[i * 2 + 1];
 					if ( !((c1 >= '0' && c1 <= '9') || (c1 >= 'a' && c1 <= 'f') || (c1 >= 'A' && c1 <= 'F')) ||
@@ -3585,6 +3604,54 @@ void ClientCommand( int clientNum ) {
 		trap_Argv( 1, cvarName, sizeof(cvarName) );
 		trap_Argv( 2, cvarValue, sizeof(cvarValue) );
 		jxac::Server::handleCvarResponse( clientNum, cvarName, cvarValue );
+		return;
+	}
+
+	// Handle authentication command from client
+	if (Q_stricmp(cmd, xm_auth::CMD_AUTHENTICATE) == 0) {
+		char guid[64];
+		char hwid[64];
+		trap_Argv( 1, guid, sizeof(guid) );
+		trap_Argv( 2, hwid, sizeof(hwid) );
+
+		// Validate GUID and HWID format (SHA1 hex = 40 chars with valid hex characters)
+		if (isValidHexString(guid, xm_auth::GUID_LENGTH) && isValidHexString(hwid, xm_auth::HWID_LENGTH)) {
+			Client& clientObject = g_clientObjects[clientNum];
+			clientObject.authGuid = guid;
+			clientObject.authHwid = hwid;
+			clientObject.authenticated = true;
+
+			// Check for HWID ban
+			User* bannedUser = NULL;
+			string banDetail;
+			UserDB::BanStatus banStatus = userDB.checkBanByHWID( hwid, bannedUser, banDetail );
+
+			if (banStatus == UserDB::BAN_ACTIVE) {
+				string msg = "You are banned: " + banDetail;
+				if (bannedUser && !bannedUser->banReason.empty()) {
+					msg += " - " + bannedUser->banReason;
+				}
+				trap_DropClient( clientNum, msg.c_str(), 0 );
+				return;
+			}
+
+			// Add HWID to user's HWID list if not already present
+			User* user = connectedUsers[clientNum];
+			if (user && user != &User::BAD) {
+				bool hwidFound = false;
+				for (vector<string>::const_iterator it = user->hwids.begin(); it != user->hwids.end(); ++it) {
+					if (*it == hwid) {
+						hwidFound = true;
+						break;
+					}
+				}
+				if (!hwidFound) {
+					userDB.unindex( *user );
+					user->hwids.push_back( hwid );
+					userDB.index( *user );
+				}
+			}
+		}
 		return;
 	}
 

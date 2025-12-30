@@ -74,6 +74,15 @@ seta jxac_autoKick "1"
 
 // Log file path
 seta jxac_logFile "jxac.log"
+
+// Heartbeat timeout in milliseconds (default: 60000 = 60 seconds)
+seta jxac_heartbeatTimeout "60000"
+
+// CVAR configuration file path
+seta jxac_cvarFile "jxac/jxac_cvars.cfg"
+
+// Cheat signature database file path
+seta jxac_cheatFile "jxac/jxac_cheats.cfg"
 ```
 
 ---
@@ -87,8 +96,8 @@ All JXAC commands require admin privileges. Use the `!` prefix in-game chat.
 | `!jxac_screenshot` | Request screenshot from specific player | `!jxac_screenshot <player> [quality]` |
 | `!jxac_screenshotall` | Request screenshot from all players | `!jxac_screenshotall [quality]` |
 | `!jxac_status` | Show JXAC status for all or specific player | `!jxac_status [player]` |
-| `!jxac_kick` | Kick player detected by JXAC | `!jxac_kick <player> [reason]` |
-| `!jxac_ban` | Ban player detected by JXAC | `!jxac_ban <player> [reason]` |
+
+**Note:** The `!jxac_kick` and `!jxac_ban` commands have been removed. Use the standard xmod `!kick` and `!ban` commands instead.
 
 ### Examples
 
@@ -105,11 +114,9 @@ All JXAC commands require admin privileges. Use the `!` prefix in-game chat.
 // Show JXAC status for specific player
 !jxac_status john
 
-// Kick player with custom reason
-!jxac_kick john Suspected wallhack
-
-// Ban player
-!jxac_ban john Confirmed aimbot
+// Use standard xmod commands for kicking/banning:
+!kick john Suspected wallhack
+!ban john Confirmed aimbot
 ```
 
 ---
@@ -122,12 +129,14 @@ JXAC uses the following message types for client-server communication:
 |--------------|-----------|-------------|
 | `JXAC_MSG_HEARTBEAT` | Client → Server | Regular status update (every 30 seconds) |
 | `JXAC_MSG_SS_REQUEST` | Server → Client | Request screenshot |
-| `JXAC_MSG_SS_DATA` | Client → Server | Screenshot data (8KB chunks) |
+| `JXAC_MSG_SS_DATA` | Client → Server | Screenshot data (450 byte chunks, hex-encoded) |
 | `JXAC_MSG_SS_COMPLETE` | Client → Server | Screenshot transfer complete |
 | `JXAC_MSG_VIOLATION` | Client → Server | Self-reported violation |
 | `JXAC_MSG_STATUS` | Server → Client | JXAC status/version check |
 | `JXAC_MSG_CVAR_REQUEST` | Server → Client | Request CVAR values |
 | `JXAC_MSG_CVAR_RESPONSE` | Client → Server | CVAR values response |
+
+**Note:** Screenshot data is sent in 450-byte chunks (900 hex characters) with 2 chunks per frame to prevent command buffer overflow.
 
 ---
 
@@ -140,11 +149,30 @@ JXAC can detect and log the following violation types:
 | `JXAC_VIOLATION_CVAR` | Illegal CVAR detected |
 | `JXAC_VIOLATION_WALLHACK` | Wallhack detected |
 | `JXAC_VIOLATION_AIMBOT` | Aimbot detected |
-| `JXAC_VIOLATION_SPEEDHACK` | Speedhack detected |
 | `JXAC_VIOLATION_CHECKSUM` | File checksum mismatch |
 | `JXAC_VIOLATION_SS_BLOCKED` | Screenshot blocked/faked |
 | `JXAC_VIOLATION_TAMPER` | JXAC client tampered/disabled |
 | `JXAC_VIOLATION_NO_RESPONSE` | No response from client |
+
+---
+
+## Recent Updates (v1.0.0)
+
+### Critical Bug Fixes
+
+1. **Fixed Client Command Overflow** - Screenshots larger than ~100KB were causing "Client command overflow" errors. Fixed by implementing a chunk queue system that sends screenshot data at 2 chunks per frame instead of all at once.
+
+2. **Fixed Heartbeat Timeout Spam** - Real players were getting spammed with heartbeat timeout violations every frame. Fixed by adding violation tracking flags that only report each violation type once until cleared.
+
+3. **Removed Duplicate Commands** - Removed redundant `!jxac_kick` and `!jxac_ban` commands since xmod already provides `!kick` and `!ban` commands.
+
+### New Infrastructure
+
+- Added `jxac/jxac_cvars.cfg` template for configurable CVAR checking
+- Added `jxac/jxac_cheats.cfg` template for cheat signature database  
+- Added `g_jxacHeartbeatTimeout` CVAR (default: 60000ms)
+- Added `g_jxacCvarFile` and `g_jxacCheatFile` CVARs
+- Added config loading infrastructure (stub methods for future implementation)
 
 ---
 
@@ -166,24 +194,30 @@ Both client-side and server-side modules are cross-platform compatible.
 - [x] JXAC common header with shared definitions
 - [x] Server-side module with player tracking
 - [x] Client-side module with heartbeat
-- [x] Screenshot system framework
+- [x] Screenshot system framework with JPEG compression
+- [x] **Screenshot chunk throttling (2 chunks per frame to prevent command overflow)**
+- [x] **Heartbeat timeout detection with configurable timeout CVAR**
+- [x] **Violation spam prevention (only report once per violation type)**
 - [x] Violation logging system
-- [x] Admin commands (!jxac_screenshot, !jxac_screenshotall, !jxac_status, !jxac_kick, !jxac_ban)
+- [x] Admin commands (!jxac_screenshot, !jxac_screenshotall, !jxac_status)
 - [x] Server CVARs configuration
 - [x] Player status tracking
-- [x] Heartbeat timeout detection
+- [x] **CVAR and cheat configuration file templates**
 
 ### 🚧 Placeholder/Partial Implementation
 
-- [ ] Actual screenshot capture (platform-specific)
-- [ ] JPEG compression (requires libjpeg or stb_image_write)
+- [ ] Actual screenshot capture (using placeholder gradient pattern)
 - [ ] Network protocol integration (requires engine hooks)
+- [ ] **CVAR config file parsing (stub methods in place)**
+- [ ] **Cheat signature database loading (template file created)**
 - [ ] CVAR scanning implementation
 - [ ] Wallhack detection heuristics
 - [ ] Aimbot detection heuristics
-- [ ] Speedhack detection
 - [ ] Checksum validation
 - [ ] Client anti-tamper
+- [ ] **Module/DLL scanning (Windows & Linux)**
+- [ ] **MD5 checksum calculation**
+- [ ] **Memory pattern scanning**
 
 ---
 

@@ -7,6 +7,7 @@
 
 #include <bgame/impl.h>
 #include <cgame/jxac/jxac_client.h>
+#include <cgame/xm_client_auth.h>
 
 displayContextDef_t cgDC;
 
@@ -2887,6 +2888,7 @@ void CG_Init( int serverMessageNum, int serverCommandSequence, int clientNum, qb
     consoleFontShadowed.registerShader();
     console.init();
     jxac::Client::init();  // Initialize JXAC client module
+    xm_client_auth::init(); // Initialize authentication module
 
 	// load a few needed things before we do any screen updates
 	cgs.media.charsetShader		= trap_R_RegisterShader( "gfx/2d/hudchars" ); //trap_R_RegisterShader( "gfx/2d/bigchars" );
@@ -3114,6 +3116,7 @@ void CG_Shutdown( void ) {
 
     molotov::shutdown();
 	process.shutdown();
+	xm_client_auth::shutdown(); // Shutdown authentication module
 
     // Restore rate
     if (cg_savedRate.integer) {

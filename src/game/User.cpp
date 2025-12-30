@@ -301,6 +301,39 @@ User::decode( map<string,string>& data )
 
         notes.push_back( ss.str() );
     }
+
+    // Decode HWIDs
+    vss = 0;
+    ss.str("");
+    ss.clear();
+    ss << data["hwids"];
+    ss >> vss;
+
+    hwids.clear();
+    for (vector<string>::size_type i = 0; i < vss; i++) {
+        ostringstream oss;
+        oss << "hwid." << (int)(i+1);
+
+        ss.str("");
+        ss.clear();
+        ss << data[ oss.str() ];
+
+        string hwid = ss.str();
+        // Validate SHA1 hash length and hex characters
+        if (hwid.length() == 40) {
+            bool validHex = true;
+            for (size_t j = 0; j < hwid.length(); j++) {
+                char c = hwid[j];
+                if (!((c >= '0' && c <= '9') || (c >= 'a' && c <= 'f') || (c >= 'A' && c <= 'F'))) {
+                    validHex = false;
+                    break;
+                }
+            }
+            if (validHex) {
+                hwids.push_back( hwid );
+            }
+        }
+    }
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -414,6 +447,14 @@ User::encode( ostream& out, int recnum )
 
         for (vector<string>::size_type i = 0; i < max; i++)
             out << '\n' << "note." << (i+1) << " = " << notes[i];
+    }
+
+    if (!hwids.empty()) {
+        const vector<string>::size_type max = hwids.size();
+        out << '\n' << "hwids = " << max;
+
+        for (vector<string>::size_type i = 0; i < max; i++)
+            out << '\n' << "hwid." << (i+1) << " = " << hwids[i];
     }
 }
 

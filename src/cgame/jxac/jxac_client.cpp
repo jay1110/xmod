@@ -7,6 +7,20 @@ namespace jxac {
 
 ///////////////////////////////////////////////////////////////////////////////
 
+// Screenshot chunk queue structure
+struct ScreenshotChunk {
+    int chunkNum;
+    int bytesToSend;
+    char hexData[901];  // 450 bytes * 2 + null terminator
+};
+
+#define MAX_CHUNK_QUEUE 300  // Max chunks in queue (for ~135KB screenshot)
+static ScreenshotChunk chunkQueue[MAX_CHUNK_QUEUE];
+static int chunkQueueHead = 0;  // Next chunk to send
+static int chunkQueueTail = 0;  // Next free slot
+static int chunkQueueCount = 0;
+static qboolean screenshotTransferActive = qfalse;
+
 // Static state
 static qboolean initialized = qfalse;
 static qboolean enabled = qtrue;
@@ -26,6 +40,10 @@ void Client::init() {
     enabled = qtrue;
     lastHeartbeat = 0;
     screenshotPending = qfalse;
+    chunkQueueHead = 0;
+    chunkQueueTail = 0;
+    chunkQueueCount = 0;
+    screenshotTransferActive = qfalse;
     
     Com_Printf( "JXAC: Client initialized successfully\n" );
 }
@@ -55,6 +73,30 @@ void Client::frame() {
         sendHeartbeat();
         lastHeartbeat = cg.time;
     }
+    
+    // Process screenshot chunk queue (send 1-2 chunks per frame to avoid overflow)
+    if ( screenshotTransferActive && chunkQueueCount > 0 ) {
+        // Send up to 2 chunks per frame to balance transfer speed and stability
+        int chunksToSend = (chunkQueueCount > 2) ? 2 : chunkQueueCount;
+        
+        for ( int i = 0; i < chunksToSend; i++ ) {
+            ScreenshotChunk* chunk = &chunkQueue[chunkQueueHead];
+            
+            // Send chunk to server
+            trap_SendClientCommand( va("jxac_ss_data %d %d %s", 
+                chunk->chunkNum, chunk->bytesToSend, chunk->hexData) );
+            
+            // Move to next chunk
+            chunkQueueHead = (chunkQueueHead + 1) % MAX_CHUNK_QUEUE;
+            chunkQueueCount--;
+        }
+        
+        // Check if transfer is complete
+        if ( chunkQueueCount == 0 ) {
+            screenshotTransferActive = qfalse;
+            sendScreenshotComplete();
+        }
+    }
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -76,15 +118,13 @@ void Client::handleScreenshotRequest( int quality ) {
     }
     
     if ( screenshotPending ) {
-        Com_Printf( "JXAC: Screenshot request ignored - already pending\n" );
+        // Silent - already pending, ignore
         return;
     }
     
     screenshotPending = qtrue;
     
-    Com_Printf( "JXAC: Screenshot requested (quality: %d)\n", quality );
-    
-    // Capture screenshot
+    // Silent screenshot capture - no console output
     captureScreenshot( quality );
 }
 
@@ -99,29 +139,28 @@ void Client::captureScreenshot( int quality ) {
     if ( quality < JXAC_SS_QUALITY_MIN ) quality = JXAC_SS_QUALITY_MIN;
     if ( quality > JXAC_SS_QUALITY_MAX ) quality = JXAC_SS_QUALITY_MAX;
     
-    Com_Printf( "JXAC: Capturing screenshot (quality: %d)...\n", quality );
+    // Silent capture - no console output
     
     // Use the Screenshot module to capture and compress
     int jpegSize = 0;
     unsigned char* jpegData = Screenshot::captureAndCompress( &jpegSize, quality );
     
     if ( !jpegData || jpegSize <= 0 ) {
-        Com_Printf( "JXAC: Failed to capture/compress screenshot\n" );
+        // Silent failure
         screenshotPending = qfalse;
         return;
     }
     
-    Com_Printf( "JXAC: Screenshot compressed to %d bytes\n", jpegSize );
+    // Silent transmission - no console output
     
-    // Send screenshot data to server in chunks
+    // Queue screenshot data for frame-based sending
     sendScreenshotData( jpegData, jpegSize );
-    sendScreenshotComplete();
     
     // Clean up
     free( jpegData );
     screenshotPending = qfalse;
     
-    Com_Printf( "JXAC: Screenshot sent successfully\n" );
+    // Silent completion - no console output
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -131,12 +170,20 @@ void Client::sendScreenshotData( const void* data, int size ) {
         return;
     }
     
-    // Send screenshot data to server in chunks using hex encoding
-    // ET engine command system is text-based, so we convert binary to hex
+    // Queue screenshot data in chunks for frame-based sending
+    // This prevents command buffer overflow by spreading chunks across frames
     // MAX_STRING_CHARS is 1024, so we need small chunks: 450 bytes binary = 900 hex chars
     // Command format: "jxac_ss_data <num> <size> <hex>" leaves room for overhead
     const unsigned char* bytes = (const unsigned char*)data;
     const int CHUNK_SIZE = 450;  // 450 bytes binary = 900 hex chars (fits in 1024 limit)
+    
+    // Hex lookup table for faster conversion
+    static const char hexChars[] = "0123456789abcdef";
+    
+    // Clear queue before starting new transfer
+    chunkQueueHead = 0;
+    chunkQueueTail = 0;
+    chunkQueueCount = 0;
     
     int chunkNum = 0;
     int offset = 0;
@@ -144,22 +191,36 @@ void Client::sendScreenshotData( const void* data, int size ) {
     while ( offset < size ) {
         int bytesToSend = (size - offset > CHUNK_SIZE) ? CHUNK_SIZE : (size - offset);
         
-        // Convert chunk to hex string (2 hex chars per byte)
-        char hexBuffer[CHUNK_SIZE * 2 + 1];
-        for ( int i = 0; i < bytesToSend; i++ ) {
-            // Use snprintf for safety - each byte produces 2 hex chars
-            snprintf( &hexBuffer[i * 2], 3, "%02x", bytes[offset + i] );
+        // Check queue capacity
+        if ( chunkQueueCount >= MAX_CHUNK_QUEUE ) {
+            return;
         }
-        hexBuffer[bytesToSend * 2] = '\0';
         
-        // Send chunk to server: jxac_ss_data <chunkNum> <size> <hexData>
-        trap_SendClientCommand( va("jxac_ss_data %d %d %s", chunkNum, bytesToSend, hexBuffer) );
+        // Get next free slot in queue
+        ScreenshotChunk* chunk = &chunkQueue[chunkQueueTail];
+        chunk->chunkNum = chunkNum;
+        chunk->bytesToSend = bytesToSend;
+        
+        // Convert chunk to hex string (2 hex chars per byte) using lookup table
+        for ( int i = 0; i < bytesToSend; i++ ) {
+            unsigned char byte = bytes[offset + i];
+            chunk->hexData[i * 2] = hexChars[(byte >> 4) & 0xF];
+            chunk->hexData[i * 2 + 1] = hexChars[byte & 0xF];
+        }
+        chunk->hexData[bytesToSend * 2] = '\0';
+        
+        // Add to queue
+        chunkQueueTail = (chunkQueueTail + 1) % MAX_CHUNK_QUEUE;
+        chunkQueueCount++;
         
         offset += bytesToSend;
         chunkNum++;
     }
     
-    Com_Printf( "JXAC: Sent %d bytes in %d chunks\n", size, chunkNum );
+    // Mark transfer as active
+    screenshotTransferActive = qtrue;
+    
+    // Silent - no console output
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -169,9 +230,9 @@ void Client::sendScreenshotComplete() {
         return;
     }
     
-    // Send screenshot complete message to server
+    // Send screenshot complete message to server (silent)
     trap_SendClientCommand( "jxac_ss_complete" );
-    Com_Printf( "JXAC: Screenshot complete message sent to server\n" );
+    // Silent - no console output
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -196,9 +257,9 @@ void Client::sendCvarResponse( const char* cvarName, const char* value ) {
         return;
     }
     
-    // Send CVAR value to server
+    // Send CVAR value to server (silent)
     trap_SendClientCommand( va("jxac_cvar_resp %s %s", cvarName, value) );
-    Com_Printf( "JXAC: Sent CVAR %s=%s to server\n", cvarName, value );
+    // Silent - no console output
 }
 
 ///////////////////////////////////////////////////////////////////////////////
