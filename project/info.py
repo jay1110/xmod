@@ -121,12 +121,21 @@ class Project:
             this.__dict__[k] = initDB[k]
 
         this.platformNamef = platform.system().lower()
-        if (re.compile('^cygwin.*').match(this.platformNamef)):
-            this.platformNamef = 'windows'
-        elif (re.compile('^darwin*').match(this.platformNamef)):
-            this.platformNamef = 'osx'
-        elif ('PLATFORM' in os.environ):
+        machine = platform.machine()
+        
+        # Allow PLATFORM environment variable to override automatic detection
+        if ('PLATFORM' in os.environ):
             this.platformNamef = os.environ['PLATFORM']
+        elif (re.compile('^cygwin.*').match(this.platformNamef)):
+            this.platformNamef = 'windows64' if machine == 'x86_64' else 'windows'
+        elif (this.platformNamef == 'windows'):
+            this.platformNamef = 'windows64' if machine == 'AMD64' else 'windows'
+        elif (re.compile('^darwin*').match(this.platformNamef)):
+            this.platformNamef = 'osx64' if machine == 'x86_64' else 'osx'
+        elif (this.platformNamef == 'linux'):
+            # On 64-bit systems, use linux64; otherwise keep linux (32-bit)
+            if machine == 'x86_64':
+                this.platformNamef = 'linux64'
 
         this.variant = this.platformNamef
         if ('VARIANT' in os.environ and len(os.environ['VARIANT']) > 0):

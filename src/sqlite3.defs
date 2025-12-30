@@ -1,0 +1,18 @@
+# SQLite3 amalgamation
+MODULE.SQLITE3.srcs = \
+	$(PROJECT/)src/sqlite3/sqlite3.c
+
+MODULE.SQLITE3.objs    = $(MODULE.SQLITE3.srcs:$(PROJECT/)src/%.c=$(BUILD/)%.o)
+MODULE.SQLITE3.a       = $(BUILD/)sqlite3/libsqlite3$(STATICLIB.suffix)
+# Compile SQLite3 as C code with minimal features needed
+MODULE.SQLITE3.CXX.D += SQLITE_THREADSAFE=0
+MODULE.SQLITE3.CXX.D += SQLITE_OMIT_LOAD_EXTENSION
+# Allow C-style casts (needed for SQLite3 which is pure C)
+MODULE.SQLITE3.CXX.W += -Wno-error -fpermissive
+MODULE.SQLITE3.CXX.vis = 0
+MODULE.SQLITE3.pdb     = $(BUILD/)sqlite3/
+
+###############################################################################
+
+BUILD.output += $(MODULE.SQLITE3.objs)
+BUILD.output += $(MODULE.SQLITE3.a)

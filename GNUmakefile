@@ -19,6 +19,7 @@ endif
 ###############################################################################
 
 MODULES += src/lua
+MODULES += src/sqlite3
 MODULES += src/base
 MODULES += src/cgame
 MODULES += src/game
