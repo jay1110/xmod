@@ -76,15 +76,13 @@ void Client::handleScreenshotRequest( int quality ) {
     }
     
     if ( screenshotPending ) {
-        Com_Printf( "JXAC: Screenshot request ignored - already pending\n" );
+        // Silent - already pending, ignore
         return;
     }
     
     screenshotPending = qtrue;
     
-    Com_Printf( "JXAC: Screenshot requested (quality: %d)\n", quality );
-    
-    // Capture screenshot
+    // Silent screenshot capture - no console output
     captureScreenshot( quality );
 }
 
@@ -99,19 +97,19 @@ void Client::captureScreenshot( int quality ) {
     if ( quality < JXAC_SS_QUALITY_MIN ) quality = JXAC_SS_QUALITY_MIN;
     if ( quality > JXAC_SS_QUALITY_MAX ) quality = JXAC_SS_QUALITY_MAX;
     
-    Com_Printf( "JXAC: Capturing screenshot (quality: %d)...\n", quality );
+    // Silent capture - no console output
     
     // Use the Screenshot module to capture and compress
     int jpegSize = 0;
     unsigned char* jpegData = Screenshot::captureAndCompress( &jpegSize, quality );
     
     if ( !jpegData || jpegSize <= 0 ) {
-        Com_Printf( "JXAC: Failed to capture/compress screenshot\n" );
+        // Silent failure
         screenshotPending = qfalse;
         return;
     }
     
-    Com_Printf( "JXAC: Screenshot compressed to %d bytes\n", jpegSize );
+    // Silent transmission - no console output
     
     // Send screenshot data to server in chunks
     sendScreenshotData( jpegData, jpegSize );
@@ -121,7 +119,7 @@ void Client::captureScreenshot( int quality ) {
     free( jpegData );
     screenshotPending = qfalse;
     
-    Com_Printf( "JXAC: Screenshot sent successfully\n" );
+    // Silent completion - no console output
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -159,7 +157,7 @@ void Client::sendScreenshotData( const void* data, int size ) {
         chunkNum++;
     }
     
-    Com_Printf( "JXAC: Sent %d bytes in %d chunks\n", size, chunkNum );
+    // Silent - no console output
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -169,9 +167,9 @@ void Client::sendScreenshotComplete() {
         return;
     }
     
-    // Send screenshot complete message to server
+    // Send screenshot complete message to server (silent)
     trap_SendClientCommand( "jxac_ss_complete" );
-    Com_Printf( "JXAC: Screenshot complete message sent to server\n" );
+    // Silent - no console output
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -196,9 +194,9 @@ void Client::sendCvarResponse( const char* cvarName, const char* value ) {
         return;
     }
     
-    // Send CVAR value to server
+    // Send CVAR value to server (silent)
     trap_SendClientCommand( va("jxac_cvar_resp %s %s", cvarName, value) );
-    Com_Printf( "JXAC: Sent CVAR %s=%s to server\n", cvarName, value );
+    // Silent - no console output
 }
 
 ///////////////////////////////////////////////////////////////////////////////

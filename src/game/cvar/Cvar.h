@@ -24,7 +24,6 @@ namespace objects {
     extern Cvar g_jxacScreenshotPath;
     extern Cvar g_jxacCheckCvars;
     extern Cvar g_jxacCheckWallhack;
-    extern Cvar g_jxacCheckSpeedhack;
     extern Cvar g_jxacAutoBan;
     extern Cvar g_jxacAutoKick;
     extern Cvar g_jxacLogFile;

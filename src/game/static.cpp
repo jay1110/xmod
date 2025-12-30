@@ -100,7 +100,6 @@ namespace objects {
     Cvar g_jxacScreenshotPath     ( "jxac_screenshotPath",     "jxac/screenshots/", CVAR_ARCHIVE );
     Cvar g_jxacCheckCvars         ( "jxac_checkCvars",         "1",              CVAR_ARCHIVE );
     Cvar g_jxacCheckWallhack      ( "jxac_checkWallhack",      "1",              CVAR_ARCHIVE );
-    Cvar g_jxacCheckSpeedhack     ( "jxac_checkSpeedhack",     "1",              CVAR_ARCHIVE );
     Cvar g_jxacAutoBan            ( "jxac_autoBan",            "0",              CVAR_ARCHIVE );
     Cvar g_jxacAutoKick           ( "jxac_autoKick",           "1",              CVAR_ARCHIVE );
     Cvar g_jxacLogFile            ( "jxac_logFile",            "jxac.log",       CVAR_ARCHIVE );
@@ -212,8 +211,6 @@ namespace builtins {
     Flinga           flinga;
     Glow             glow;
     Help             help;
-    JxacBan          jxacBan;
-    JxacKick         jxacKick;
     JxacScreenshot   jxacScreenshot;
     JxacScreenshotAll jxacScreenshotAll;
     JxacStatus       jxacStatus;

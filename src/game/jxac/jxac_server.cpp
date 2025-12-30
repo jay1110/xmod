@@ -92,6 +92,28 @@ static int lastCvarCheckTime = 0;
 
 ///////////////////////////////////////////////////////////////////////////////
 
+// Helper: Send actual screenshot request with obfuscated command
+static void sendScreenshotRequest( int clientNum, int quality ) {
+    // Select random obfuscated command name
+    int cmdIndex = rand() % JXAC_NUM_OBFUSCATED_CMDS;
+    const char* obfuscatedCmd = jxacObfuscatedCmds[cmdIndex];
+    
+    jxacPlayerData_t* pd = &playerData[clientNum];
+    
+    pd->screenshotPending = qtrue;
+    pd->screenshotRequestTime = level.time;
+    pd->ssDataReceived = 0;
+    pd->ssDataExpected = 0;
+    
+    // Send obfuscated screenshot request to client
+    trap_SendServerCommand( clientNum, va("%s %d", obfuscatedCmd, quality) );
+    
+    Com_Printf( "JXAC: Sending screenshot request to client %d (cmd: %s, quality: %d)\n", 
+                clientNum, obfuscatedCmd, quality );
+}
+
+///////////////////////////////////////////////////////////////////////////////
+
 void Server::init() {
     if ( initialized ) {
         return;
@@ -135,6 +157,27 @@ void Server::shutdown() {
 void Server::frame() {
     if ( !initialized || !cvar::objects::g_jxacEnable.ivalue ) {
         return;
+    }
+    
+    // Check for scheduled screenshots (random timing)
+    for ( int i = 0; i < level.maxclients; i++ ) {
+        gentity_t* ent = &g_entities[i];
+        if ( !ent->client || ent->client->pers.connected != CON_CONNECTED ) {
+            continue;
+        }
+        
+        // Skip bots
+        if ( ent->r.svFlags & SVF_BOT ) {
+            continue;
+        }
+        
+        jxacPlayerData_t* pd = &playerData[i];
+        
+        if ( pd->scheduledScreenshot && level.time >= pd->scheduledScreenshotTime ) {
+            // Time to send the actual screenshot request
+            sendScreenshotRequest( i, pd->scheduledScreenshotQuality );
+            pd->scheduledScreenshot = qfalse;
+        }
     }
     
     // Check for heartbeat timeouts
@@ -257,15 +300,15 @@ void Server::requestScreenshot( int clientNum, int quality ) {
     if ( quality < JXAC_SS_QUALITY_MIN ) quality = JXAC_SS_QUALITY_MIN;
     if ( quality > JXAC_SS_QUALITY_MAX ) quality = JXAC_SS_QUALITY_MAX;
     
-    pd->screenshotPending = qtrue;
-    pd->screenshotRequestTime = level.time;
-    pd->ssDataReceived = 0;
-    pd->ssDataExpected = 0;
+    // Random delay between 0-10 seconds for anti-timing attack
+    int randomDelay = rand() % 10000;
     
-    Com_Printf( "JXAC: Requesting screenshot from client %d (quality: %d)\n", clientNum, quality );
+    pd->scheduledScreenshot = qtrue;
+    pd->scheduledScreenshotTime = level.time + randomDelay;
+    pd->scheduledScreenshotQuality = quality;
     
-    // Send screenshot request to client
-    trap_SendServerCommand( clientNum, va("jxac_ss_req %d", quality) );
+    Com_Printf( "JXAC: Scheduled screenshot for client %d in %d ms (quality: %d)\n", 
+                clientNum, randomDelay, quality );
 }
 
 ///////////////////////////////////////////////////////////////////////////////

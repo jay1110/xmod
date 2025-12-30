@@ -29,8 +29,7 @@ static void jpegWriteCallback( void* context, void* data, int size ) {
         ctx->capacity = ctx->capacity * 2;
         unsigned char* newBuffer = (unsigned char*)realloc( ctx->buffer, ctx->capacity );
         if ( !newBuffer ) {
-            // realloc failed - keep old buffer and mark failure
-            Com_Printf( "JXAC Screenshot: realloc failed in callback\n" );
+            // realloc failed - keep old buffer and mark failure (silent)
             return;
         }
         ctx->buffer = newBuffer;
@@ -54,7 +53,7 @@ unsigned char* Screenshot::captureFramebuffer( int* width, int* height, int* cha
     unsigned char* buffer = (unsigned char*)malloc( bufferSize );
     
     if ( !buffer ) {
-        Com_Printf( "JXAC Screenshot: Failed to allocate framebuffer buffer\n" );
+        // Silent failure
         return NULL;
     }
     
@@ -84,7 +83,7 @@ unsigned char* Screenshot::captureFramebuffer( int* width, int* height, int* cha
 
 unsigned char* Screenshot::captureAndCompress( int* outSize, int quality ) {
     if ( !outSize ) {
-        Com_Printf( "JXAC Screenshot: Invalid output size pointer\n" );
+        // Silent failure
         return NULL;
     }
     
@@ -98,8 +97,7 @@ unsigned char* Screenshot::captureAndCompress( int* outSize, int quality ) {
         return NULL;
     }
     
-    Com_Printf( "JXAC Screenshot: Captured framebuffer %dx%d (%d channels)\n", 
-                width, height, channels );
+    // Silent operation - no console output
     
     // Compress to JPEG using stb_image_write with callback (in-memory)
     // This avoids file system issues
@@ -109,7 +107,7 @@ unsigned char* Screenshot::captureAndCompress( int* outSize, int quality ) {
     ctx.size = 0;
     
     if ( !ctx.buffer ) {
-        Com_Printf( "JXAC Screenshot: Failed to allocate JPEG buffer\n" );
+        // Silent failure
         free( framebuffer );
         return NULL;
     }
@@ -120,15 +118,14 @@ unsigned char* Screenshot::captureAndCompress( int* outSize, int quality ) {
     free( framebuffer );
     
     if ( !success || ctx.size <= 0 ) {
-        Com_Printf( "JXAC Screenshot: Failed to compress to JPEG\n" );
+        // Silent failure
         free( ctx.buffer );
         return NULL;
     }
     
     *outSize = ctx.size;
     
-    Com_Printf( "JXAC Screenshot: Compressed to JPEG (%d bytes, quality %d)\n", 
-                ctx.size, quality );
+    // Silent success - no console output
     
     return ctx.buffer;
 }
