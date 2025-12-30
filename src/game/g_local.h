@@ -1971,6 +1971,9 @@ extern vmCvar_t	bot_debug_movementAutonomy;	// movement autonomy of the bot bein
 extern vmCvar_t	bot_debug_cover_spot;		// What cover spot are we going to?
 extern vmCvar_t	bot_debug_anim;				// what animation is the bot playing?
 
+// xmod SQLite database
+extern vmCvar_t	g_userConfig;
+
 void	trap_Print  ( const string& );
 void	trap_Printf ( const char *fmt );
 void	trap_Error  ( const char *fmt );

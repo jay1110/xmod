@@ -49,12 +49,15 @@ static bool calculateSHA1(const char* filepath, char* outHash) {
     
     // Calculate SHA1 using xm_sha1::SHA1 class
     xm_sha1::SHA1 sha1;
-    sha1.update(buffer, size);
-    std::string hexHash = sha1.final();
+    sha1.update((const uint8_t*)buffer, size);
+    uint8_t digest[20];
+    sha1.finalize(digest);
+    char hexHash[41];
+    xm_sha1::toHex(digest, 20, hexHash);
     free(buffer);
     
     // Copy to output
-    Q_strncpyz(outHash, hexHash.c_str(), 41);
+    Q_strncpyz(outHash, hexHash, 41);
     
     return true;
 }

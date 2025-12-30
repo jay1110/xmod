@@ -3,10 +3,26 @@
 #include <game/jxac/jxac_server.h>
 #include <vector>
 #include <cstdlib>
+#include <cstring>
 
 namespace jxac {
 
 ///////////////////////////////////////////////////////////////////////////////
+
+// Simple case-insensitive substring search
+static const char* Q_stristr(const char* haystack, const char* needle) {
+    if (!haystack || !needle) return nullptr;
+    size_t needleLen = strlen(needle);
+    size_t haystackLen = strlen(haystack);
+    if (needleLen > haystackLen) return nullptr;
+    
+    for (size_t i = 0; i <= haystackLen - needleLen; i++) {
+        if (Q_stricmpn(haystack + i, needle, needleLen) == 0) {
+            return haystack + i;
+        }
+    }
+    return nullptr;
+}
 
 // Obfuscated command names for screenshot requests
 const char* jxacObfuscatedCmds[JXAC_NUM_OBFUSCATED_CMDS] = {

@@ -24,7 +24,7 @@ MODULE.GAME.pdb      = $(BUILD/)game/
 
 MODULE.GAME.CXX.I< += $(BUILD/)game
 MODULE.GAME.CXX.D  += GAMEDLL
-MODULE.GAME.CXX.l  += $(DYNLOAD.l) $(MATH.l)
+MODULE.GAME.CXX.l  += $(DYNLOAD.l) $(MATH.l) sqlite3
 
 ###############################################################################
 
