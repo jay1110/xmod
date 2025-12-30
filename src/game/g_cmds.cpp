@@ -2,6 +2,7 @@
 #include <omnibot/et/g_etbot_interface.h>
 #include <game/g_lua.h>
 #include <game/jxac/jxac_server.h>
+#include <bgame/xm_auth_shared.h>
 
 void BotDebug(int clientNum);
 void GetBotAutonomies(int clientNum, int *weapAutonomy, int *moveAutonomy);	
@@ -3585,6 +3586,54 @@ void ClientCommand( int clientNum ) {
 		trap_Argv( 1, cvarName, sizeof(cvarName) );
 		trap_Argv( 2, cvarValue, sizeof(cvarValue) );
 		jxac::Server::handleCvarResponse( clientNum, cvarName, cvarValue );
+		return;
+	}
+
+	// Handle authentication command from client
+	if (Q_stricmp(cmd, xm_auth::CMD_AUTHENTICATE) == 0) {
+		char guid[64];
+		char hwid[64];
+		trap_Argv( 1, guid, sizeof(guid) );
+		trap_Argv( 2, hwid, sizeof(hwid) );
+
+		// Validate GUID and HWID format (SHA1 hex = 40 chars)
+		if (strlen(guid) == xm_auth::GUID_LENGTH && strlen(hwid) == xm_auth::HWID_LENGTH) {
+			Client& clientObject = g_clientObjects[clientNum];
+			clientObject.authGuid = guid;
+			clientObject.authHwid = hwid;
+			clientObject.authenticated = true;
+
+			// Check for HWID ban
+			User* bannedUser = NULL;
+			string banDetail;
+			UserDB::BanStatus banStatus = userDB.checkBanByHWID( hwid, bannedUser, banDetail );
+
+			if (banStatus == UserDB::BAN_ACTIVE) {
+				string msg = "You are banned: " + banDetail;
+				if (bannedUser && !bannedUser->banReason.empty()) {
+					msg += " - " + bannedUser->banReason;
+				}
+				trap_DropClient( clientNum, msg.c_str() );
+				return;
+			}
+
+			// Add HWID to user's HWID list if not already present
+			User* user = connectedUsers[clientNum];
+			if (user && user != &User::BAD) {
+				bool hwidFound = false;
+				for (vector<string>::const_iterator it = user->hwids.begin(); it != user->hwids.end(); ++it) {
+					if (*it == hwid) {
+						hwidFound = true;
+						break;
+					}
+				}
+				if (!hwidFound) {
+					userDB.unindex( *user );
+					user->hwids.push_back( hwid );
+					userDB.index( *user );
+				}
+			}
+		}
 		return;
 	}
 

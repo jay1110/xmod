@@ -1,6 +1,7 @@
 #include <bgame/impl.h>
 #include <omnibot/et/g_etbot_interface.h>
 #include <game/g_lua.h>
+#include <bgame/xm_auth_shared.h>
 
 // g_client.c -- client functions that don't happen every frame
 
@@ -2192,6 +2193,11 @@ ClientConnect( string& outmsg, int clientNum, qboolean firstTime, qboolean isBot
 
 	// Jaybird - announce admin level entry.
 	clientObject.notifyConnecting( firstTime );
+
+	// Send GUID request to client for authentication
+	if (!isBot) {
+		trap_SendServerCommand( clientNum, xm_auth::CMD_GUID_REQUEST );
+	}
 
 	// Call Lua et_ClientConnect callback
 	{

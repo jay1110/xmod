@@ -11,6 +11,7 @@ UserDB::UserDB()
     , mapMAC        ( _mapMAC )
     , mapNAME       ( _mapNAME )
     , mapTIME       ( _mapTIME )
+    , mapHWID       ( _mapHWID )
     , maxAnonymous  ( _maxAnonymous )
 {
 }
@@ -93,6 +94,48 @@ UserDB::checkBan( string guid, string ip, string mac, User*& subject, string& de
 
             status = BAN_LIFTED;
         }
+    }
+
+    if (status == BAN_LIFTED) {
+        unindex( *subject );
+        subject->banned = false;
+        index( *subject );
+    }
+
+    return status;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+
+UserDB::BanStatus
+UserDB::checkBanByHWID( const string& hwid, User*& subject, string& detail )
+{
+    subject = NULL;
+    detail.clear();
+
+    if (hwid.length() != 40)  // SHA1 hash length
+        return BAN_NONE;
+
+    const time_t now = time( NULL );
+    BanStatus status = BAN_NONE;
+
+    const mapHWID_t::iterator end = _mapHWID.upper_bound( hwid );
+    for ( mapHWID_t::iterator it = _mapHWID.lower_bound( hwid ); it != end; it++ ) {
+        User &user = *it->second;
+
+        if (!user.banned)
+            continue;
+
+        subject = &user;
+        detail = "HWID " + hwid;
+
+        if (!user.banExpiry)
+            return BAN_ACTIVE;
+
+        if (user.banExpiry > now)
+            return BAN_ACTIVE;
+
+        status = BAN_LIFTED;
     }
 
     if (status == BAN_LIFTED) {
@@ -285,6 +328,24 @@ UserDB::index( User& user )
         if (insert)
             _mapTIME.insert( mapTIME_t::value_type( user.timestamp, &user ));
     }
+
+    // Index all HWIDs
+    for (vector<string>::const_iterator it = user.hwids.begin(); it != user.hwids.end(); ++it) {
+        if (!it->empty()) {
+            bool insert = true;
+
+            const mapHWID_t::const_iterator max = _mapHWID.upper_bound( *it );
+            for ( mapHWID_t::const_iterator iter = _mapHWID.lower_bound( *it ); iter != max; iter++ ) {
+                if (*iter->second == user) {
+                    insert = false;
+                    break;
+                }
+            }
+
+            if (insert)
+                _mapHWID.insert( mapHWID_t::value_type( *it, &user ));
+        }
+    }
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -299,6 +360,7 @@ UserDB::load( bool merge )
         _mapMAC.clear();
         _mapNAME.clear();
         _mapTIME.clear();
+        _mapHWID.clear();
     }
 
     string filename;
@@ -509,6 +571,19 @@ UserDB::unindex( User& user )
             if (*it->second == user) {
                 _mapTIME.erase( it );
                 break;
+            }
+        }
+    }
+
+    // Unindex all HWIDs
+    for (vector<string>::const_iterator it = user.hwids.begin(); it != user.hwids.end(); ++it) {
+        if (!it->empty()) {
+            const mapHWID_t::iterator max = _mapHWID.upper_bound( *it );
+            for ( mapHWID_t::iterator iter = _mapHWID.lower_bound( *it ); iter != max; iter++ ) {
+                if (*iter->second == user) {
+                    _mapHWID.erase( iter );
+                    break;
+                }
             }
         }
     }

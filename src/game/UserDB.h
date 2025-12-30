@@ -27,6 +27,7 @@ public:
     typedef multimap<const string,User*> mapIP_t; 
     typedef multimap<const string,User*> mapNAME_t;
     typedef multimap<time_t,User*>       mapTIME_t;
+    typedef multimap<const string,User*> mapHWID_t;
 
     enum BanStatus {
         BAN_NONE,
@@ -41,6 +42,7 @@ private:
     mapMAC_t     _mapMAC;      // mac->user index
     mapNAME_t    _mapNAME;     // name->user index
     mapTIME_t    _mapTIME;     // timestamp->user index
+    mapHWID_t    _mapHWID;     // hwid->user index
 
     unsigned int _maxAnonymous;  // max number of users w/ level == 0
 
@@ -70,6 +72,7 @@ public:
     bool      fetchByName ( const string&, list<User*>&, string& err );
     void      remove      ( User& );
     BanStatus checkBan    ( string, string, string, User*&, string& );
+    BanStatus checkBanByHWID ( const string&, User*&, string& );
 
     void  index   ( User& );  // add to internal indexes
     void  unindex ( User& );  // remove from internal indexes
@@ -85,6 +88,7 @@ public:
     const mapMAC_t&     mapMAC;      // mac       -> user index
     const mapNAME_t&    mapNAME;     // name      -> user index
     const mapTIME_t&    mapTIME;     // timestamp -> user index
+    const mapHWID_t&    mapHWID;     // hwid      -> user index
 
     const unsigned int& maxAnonymous;  // max number of users w/ level == 0
 };

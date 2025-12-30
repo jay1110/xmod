@@ -57,6 +57,11 @@ public:
     int              cmdCount;
     float            cmdDelta;
     int              cmdLastRealTime;
+
+    // Authentication
+    bool   authenticated;
+    string authGuid;
+    string authHwid;
 };
 
 ///////////////////////////////////////////////////////////////////////////////

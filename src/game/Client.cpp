@@ -95,6 +95,7 @@ Client::Client()
     , cmdCount        ( 0 )
     , cmdDelta        ( 0 )
     , cmdLastRealTime ( 0 )
+    , authenticated   ( false )
 {
 }
 
@@ -193,6 +194,11 @@ Client::init()
     cmdCount = 0;
     cmdDelta = 0;
     cmdLastRealTime = 0;
+
+    // Reset authentication state
+    authenticated = false;
+    authGuid.clear();
+    authHwid.clear();
 }
 
 ///////////////////////////////////////////////////////////////////////////////

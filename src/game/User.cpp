@@ -301,6 +301,28 @@ User::decode( map<string,string>& data )
 
         notes.push_back( ss.str() );
     }
+
+    // Decode HWIDs
+    vss = 0;
+    ss.str("");
+    ss.clear();
+    ss << data["hwids"];
+    ss >> vss;
+
+    hwids.clear();
+    for (vector<string>::size_type i = 0; i < vss; i++) {
+        ostringstream oss;
+        oss << "hwid." << (int)(i+1);
+
+        ss.str("");
+        ss.clear();
+        ss << data[ oss.str() ];
+
+        string hwid = ss.str();
+        if (hwid.length() == 40) {  // Validate SHA1 hash length
+            hwids.push_back( hwid );
+        }
+    }
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -414,6 +436,14 @@ User::encode( ostream& out, int recnum )
 
         for (vector<string>::size_type i = 0; i < max; i++)
             out << '\n' << "note." << (i+1) << " = " << notes[i];
+    }
+
+    if (!hwids.empty()) {
+        const vector<string>::size_type max = hwids.size();
+        out << '\n' << "hwids = " << max;
+
+        for (vector<string>::size_type i = 0; i < max; i++)
+            out << '\n' << "hwid." << (i+1) << " = " << hwids[i];
     }
 }
 
