@@ -4,6 +4,21 @@
 #include <cstring>
 #include <cstdlib>
 
+// Simple case-insensitive substring search (local helper)
+static const char* Q_stristr(const char* haystack, const char* needle) {
+    if (!haystack || !needle) return nullptr;
+    size_t needleLen = strlen(needle);
+    size_t haystackLen = strlen(haystack);
+    if (needleLen > haystackLen) return nullptr;
+    
+    for (size_t i = 0; i <= haystackLen - needleLen; i++) {
+        if (Q_stricmpn(haystack + i, needle, needleLen) == 0) {
+            return haystack + i;
+        }
+    }
+    return nullptr;
+}
+
 #ifdef _WIN32
 #include <windows.h>
 #include <tlhelp32.h>

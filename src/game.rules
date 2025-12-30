@@ -15,7 +15,7 @@ $(MODULE.GAME.objs.nch): $(BUILD/)game/%.o: $(PROJECT/)src/%.cpp
 	$(call CXX.fnCompile,$<,$@)
 
 $(MODULE.GAME.so): $(CXX.libstdcxx.DEPS)
-$(MODULE.GAME.so): $(MODULE.GAME.objs.pch) $(MODULE.GAME.objs.nch) $(MODULE.LUA.a) $(MODULE.BASE.a)
+$(MODULE.GAME.so): $(MODULE.GAME.objs.pch) $(MODULE.GAME.objs.nch) $(MODULE.LUA.a) $(MODULE.BASE.a) $(MODULE.SQLITE3.a)
 	$(call CXX.fnLinkSo,$@,$^)
 	$(call CXX.fnStrip,$@)
 	$(OSX.bundle)

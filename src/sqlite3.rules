@@ -1,0 +1,19 @@
+all:: MODULE.SQLITE3.build
+
+MODULE.SQLITE3.build: CXX.inherit=MODULE.SQLITE3
+MODULE.SQLITE3.build: $(MODULE.SQLITE3.a)
+
+# Compile sqlite3.c as C code (not C++) using -x c flag
+$(MODULE.SQLITE3.objs): $(BUILD/)%.o: $(PROJECT/)src/%.c
+	$(call print.COMMAND.normal,$(CXX),$(2),$(strip \
+	$(CXX) \
+	$(foreach i,pipe BIT PIC O,$(foreach j,$(CXX.$(i)),$(CXX.opt.$(i)))) \
+	$(foreach name,$(MODULE.SQLITE3.CXX.D),-D$(name)) \
+	-x c \
+	-c $< -o $@ \
+	))
+
+$(MODULE.SQLITE3.a): $(MODULE.SQLITE3.objs)
+	$(call CXX.fnCompileStatic,$@,$^)
+	$(call CXX.fnRanlib,$@)
+
