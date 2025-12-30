@@ -103,6 +103,15 @@ static int currentCvarBatch[MAX_CLIENTS];
 #define JXAC_CVAR_CHECK_INTERVAL 60000
 static int lastCvarCheckTime = 0;
 
+// Speedhack detection constants
+#define SPEED_SPRINT_MULTIPLIER 1.5f     // Sprint multiplier (1.3x base + tolerance)
+#define SPEED_JITTER_TOLERANCE 1.1f      // 10% tolerance for network jitter
+
+// Aimbot detection constants
+#define AIMBOT_SNAP_THRESHOLD 170.0f     // Degrees for impossible snap detection
+#define AIMBOT_SNAP_COUNT_THRESHOLD 3    // Number of snaps before reporting violation
+#define AIMBOT_DECAY_THRESHOLD 10.0f     // Degrees below which snap count decays
+
 ///////////////////////////////////////////////////////////////////////////////
 
 // Helper: Send actual screenshot request with obfuscated command
@@ -978,10 +987,10 @@ void Server::checkSpeedhack( int clientNum ) {
     
     // Get maximum allowed speed (base + sprint + modifiers)
     // Default player speed is around 320, sprint multiplier is ~1.3x
-    float maxSpeed = client->ps.speed * 1.5f; // 1.5x for sprint and tolerance
+    float maxSpeed = client->ps.speed * SPEED_SPRINT_MULTIPLIER;
     
-    // Check for speedhack (allow 10% tolerance for network jitter)
-    if ( speed > maxSpeed * 1.1f ) {
+    // Check for speedhack (allow tolerance for network jitter)
+    if ( speed > maxSpeed * SPEED_JITTER_TOLERANCE ) {
         char details[256];
         Com_sprintf( details, sizeof(details), 
                     "Speedhack detected: %.1f units/s (max: %.1f)", 
@@ -1010,9 +1019,10 @@ void Server::checkAimbot( int clientNum ) {
     jxacPlayerData_t* pd = &playerData[clientNum];
     
     // Initialize on first check
-    if ( pd->lastCheckTime == 0 ) {
+    if ( !pd->aimbotInitialized ) {
         VectorCopy( client->ps.viewangles, pd->lastViewAngles );
         pd->lastScore = client->ps.persistant[PERS_SCORE];
+        pd->aimbotInitialized = qtrue;
         return;
     }
     
@@ -1026,10 +1036,10 @@ void Server::checkAimbot( int clientNum ) {
     float angleChange = VectorLength( angleDelta );
     
     // Detect impossible snap (>170° in single frame = ~17ms at 60fps, ~100ms check interval)
-    if ( angleChange > 170.0f ) {
+    if ( angleChange > AIMBOT_SNAP_THRESHOLD ) {
         pd->aimbotSnapCount++;
         
-        if ( pd->aimbotSnapCount > 3 ) {
+        if ( pd->aimbotSnapCount > AIMBOT_SNAP_COUNT_THRESHOLD ) {
             char details[256];
             Com_sprintf( details, sizeof(details), 
                         "Aimbot snap detected: %.1f degree change", 
@@ -1037,7 +1047,7 @@ void Server::checkAimbot( int clientNum ) {
             reportViolation( clientNum, JXAC_VIOLATION_AIMBOT, details );
             pd->aimbotSnapCount = 0; // Reset after reporting
         }
-    } else if ( angleChange < 10.0f ) {
+    } else if ( angleChange < AIMBOT_DECAY_THRESHOLD ) {
         // Decay snap count if no suspicious behavior
         if ( pd->aimbotSnapCount > 0 ) {
             pd->aimbotSnapCount--;

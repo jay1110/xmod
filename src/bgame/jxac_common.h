@@ -96,6 +96,7 @@ typedef struct jxacPlayerData_s {
     int             aimbotSnapCount;    // Count of suspicious snap turns
     int             totalKills;         // Total kills for headshot ratio
     int             lastScore;          // Last score for kill tracking
+    qboolean        aimbotInitialized;  // Aimbot detection initialized flag
 } jxacPlayerData_t;
 
 // JXAC Screenshot Request Structure
