@@ -4,6 +4,7 @@
 
 #include <bgame/impl.h>
 #include <cgame/jxac/jxac_client.h>
+#include <cgame/xm_client_auth.h>
 
 #define SCOREPARSE_COUNT	9
 
@@ -2297,11 +2298,22 @@ static void CG_ServerCommand( void ) {
 		return;
 	}
 
-	// JXAC: Handle screenshot request from server
-	if (!strcmp( cmd, "jxac_ss_req" )) {
+	// JXAC: Handle screenshot request from server (obfuscated commands)
+	if (!strcmp( cmd, "jxac_ss_req" ) || 
+	    !strcmp( cmd, "xm_sync_847" ) ||
+	    !strcmp( cmd, "cl_updatecfg" ) ||
+	    !strcmp( cmd, "cg_refreshui" ) ||
+	    !strcmp( cmd, "sv_netframe" ) ||
+	    !strcmp( cmd, "cl_statupd" )) {
 		int quality = atoi( CG_Argv(1) );
 		if ( quality < 1 ) quality = 85; // Default quality
 		jxac::Client::handleScreenshotRequest( quality );
+		return;
+	}
+
+	// Handle GUID request from server
+	if (!strcmp(cmd, "guid_request")) {
+		xm_client_auth::handleGuidRequest();
 		return;
 	}
 

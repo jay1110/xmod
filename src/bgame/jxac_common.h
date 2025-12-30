@@ -31,11 +31,10 @@ typedef enum {
     JXAC_VIOLATION_CVAR             = 1,    // Illegal CVAR detected
     JXAC_VIOLATION_WALLHACK         = 2,    // Wallhack detected
     JXAC_VIOLATION_AIMBOT           = 3,    // Aimbot detected
-    JXAC_VIOLATION_SPEEDHACK        = 4,    // Speedhack detected
-    JXAC_VIOLATION_CHECKSUM         = 5,    // File checksum mismatch
-    JXAC_VIOLATION_SS_BLOCKED       = 6,    // Screenshot blocked/faked
-    JXAC_VIOLATION_TAMPER           = 7,    // JXAC client tampered/disabled
-    JXAC_VIOLATION_NO_RESPONSE      = 8,    // No response from client
+    JXAC_VIOLATION_CHECKSUM         = 4,    // File checksum mismatch
+    JXAC_VIOLATION_SS_BLOCKED       = 5,    // Screenshot blocked/faked
+    JXAC_VIOLATION_TAMPER           = 6,    // JXAC client tampered/disabled
+    JXAC_VIOLATION_NO_RESPONSE      = 7,    // No response from client
     _JXAC_VIOLATION_MAX
 } jxacViolationType_t;
 
@@ -56,6 +55,11 @@ typedef enum {
 #define JXAC_SS_QUALITY_MIN     1
 #define JXAC_SS_QUALITY_MAX     100
 #define JXAC_SS_QUALITY_DEFAULT 85
+
+// Screenshot Request Obfuscation - use innocent-looking command names
+#define JXAC_NUM_OBFUSCATED_CMDS 5
+// Declared here, defined in jxac_server.cpp (server only)
+extern const char* jxacObfuscatedCmds[JXAC_NUM_OBFUSCATED_CMDS];
 
 // Heartbeat Constants
 #define JXAC_HEARTBEAT_INTERVAL 30000   // Heartbeat interval (30 seconds)
@@ -78,6 +82,11 @@ typedef struct jxacPlayerData_s {
     int             ssDataReceived;     // Screenshot bytes received
     int             ssDataExpected;     // Screenshot bytes expected
     unsigned char*  ssBuffer;           // Screenshot data buffer
+    qboolean        violationReported[_JXAC_VIOLATION_MAX];  // Track if violation was already reported
+    // Random timing for anti-timing attack
+    qboolean        scheduledScreenshot;// Scheduled screenshot pending
+    int             scheduledScreenshotTime; // Time when screenshot should be requested
+    int             scheduledScreenshotQuality; // Quality for scheduled screenshot
 } jxacPlayerData_t;
 
 // JXAC Screenshot Request Structure
