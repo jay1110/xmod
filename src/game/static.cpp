@@ -104,6 +104,7 @@ namespace objects {
     Cvar g_jxacAutoBan            ( "jxac_autoBan",            "0",              CVAR_ARCHIVE );
     Cvar g_jxacAutoKick           ( "jxac_autoKick",           "1",              CVAR_ARCHIVE );
     Cvar g_jxacLogFile            ( "jxac_logFile",            "jxac.log",       CVAR_ARCHIVE );
+    Cvar g_jxacHeartbeatTimeout   ( "jxac_heartbeatTimeout",   "60000",          CVAR_ARCHIVE );
 
     Cvar g_maxLandmines ( "team_maxLandmines", "10" );
     Cvar g_maxTripmines ( "team_maxTripmines", "3" );
@@ -212,8 +213,6 @@ namespace builtins {
     Flinga           flinga;
     Glow             glow;
     Help             help;
-    JxacBan          jxacBan;
-    JxacKick         jxacKick;
     JxacScreenshot   jxacScreenshot;
     JxacScreenshotAll jxacScreenshotAll;
     JxacStatus       jxacStatus;

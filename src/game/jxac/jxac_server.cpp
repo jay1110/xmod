@@ -373,6 +373,9 @@ void Server::handleHeartbeat( int clientNum ) {
     jxacPlayerData_t* pd = &playerData[clientNum];
     pd->lastHeartbeat = level.time;
     pd->status |= JXAC_STATUS_HEARTBEAT;
+    
+    // Clear heartbeat timeout violation flag when heartbeat is received
+    pd->violationReported[JXAC_VIOLATION_NO_RESPONSE] = qfalse;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -749,6 +752,12 @@ void Server::logViolation( const jxacViolation_t* violation ) {
 ///////////////////////////////////////////////////////////////////////////////
 
 void Server::checkHeartbeats() {
+    // Get timeout from CVAR (default 60000ms)
+    int timeout = cvar::objects::g_jxacHeartbeatTimeout.ivalue;
+    if ( timeout <= 0 ) {
+        timeout = 60000;  // Fallback to 60 seconds
+    }
+    
     for ( int i = 0; i < level.maxclients; i++ ) {
         gentity_t* ent = &g_entities[i];
         if ( !ent->client || ent->client->pers.connected != CON_CONNECTED ) {
@@ -763,8 +772,12 @@ void Server::checkHeartbeats() {
         jxacPlayerData_t* pd = &playerData[i];
         
         // Check heartbeat timeout
-        if ( level.time - pd->lastHeartbeat > JXAC_HEARTBEAT_TIMEOUT ) {
-            reportViolation( i, JXAC_VIOLATION_NO_RESPONSE, "Heartbeat timeout" );
+        if ( level.time - pd->lastHeartbeat > timeout ) {
+            // Only report violation once (prevents spam)
+            if ( !pd->violationReported[JXAC_VIOLATION_NO_RESPONSE] ) {
+                reportViolation( i, JXAC_VIOLATION_NO_RESPONSE, "Heartbeat timeout" );
+                pd->violationReported[JXAC_VIOLATION_NO_RESPONSE] = qtrue;
+            }
         }
     }
 }

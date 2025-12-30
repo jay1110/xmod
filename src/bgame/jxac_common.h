@@ -78,6 +78,7 @@ typedef struct jxacPlayerData_s {
     int             ssDataReceived;     // Screenshot bytes received
     int             ssDataExpected;     // Screenshot bytes expected
     unsigned char*  ssBuffer;           // Screenshot data buffer
+    qboolean        violationReported[_JXAC_VIOLATION_MAX];  // Track if violation was already reported
 } jxacPlayerData_t;
 
 // JXAC Screenshot Request Structure
