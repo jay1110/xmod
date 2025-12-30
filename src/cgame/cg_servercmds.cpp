@@ -4,6 +4,7 @@
 
 #include <bgame/impl.h>
 #include <cgame/jxac/jxac_client.h>
+#include <cgame/xm_client_auth.h>
 
 #define SCOREPARSE_COUNT	9
 
@@ -2244,6 +2245,12 @@ static void CG_ServerCommand( void ) {
 
 	if ( !cmd[0] ) {
 		// server claimed the command
+		return;
+	}
+
+	// Handle GUID request from server
+	if (!strcmp(cmd, "guid_request")) {
+		xm_client_auth::handleGuidRequest();
 		return;
 	}
 
