@@ -986,8 +986,10 @@ void Server::checkSpeedhack( int clientNum ) {
     float speed = (distance / (float)timeDelta) * 1000.0f;
     
     // Get maximum allowed speed (base + sprint + modifiers)
-    // Default player speed is around 320, sprint multiplier is ~1.3x
-    float maxSpeed = client->ps.speed * SPEED_SPRINT_MULTIPLIER;
+    // Base player speed is typically 320 units/sec, use ps.speed if available
+    // Sprint adds ~1.3x multiplier, use 1.5x for sprint + some tolerance
+    float baseSpeed = client->ps.speed > 0 ? client->ps.speed : 320.0f;
+    float maxSpeed = baseSpeed * SPEED_SPRINT_MULTIPLIER;
     
     // Check for speedhack (allow tolerance for network jitter)
     if ( speed > maxSpeed * SPEED_JITTER_TOLERANCE ) {
@@ -1035,11 +1037,12 @@ void Server::checkAimbot( int clientNum ) {
     
     float angleChange = VectorLength( angleDelta );
     
-    // Detect impossible snap (>170° in single frame = ~17ms at 60fps, ~100ms check interval)
+    // Detect impossible snap (>170° in 100ms check interval)
+    // At 100ms interval, any snap > 170° is highly suspicious
     if ( angleChange > AIMBOT_SNAP_THRESHOLD ) {
         pd->aimbotSnapCount++;
         
-        if ( pd->aimbotSnapCount > AIMBOT_SNAP_COUNT_THRESHOLD ) {
+        if ( pd->aimbotSnapCount >= AIMBOT_SNAP_COUNT_THRESHOLD ) {
             char details[256];
             Com_sprintf( details, sizeof(details), 
                         "Aimbot snap detected: %.1f degree change", 
