@@ -20,11 +20,11 @@ JXAC (Jays XMod AntiCheat) is a comprehensive anticheat system for xmod (Wolfens
 - Detection of blocked or fake screenshots
 
 ### Cheat Detection
-- **CVAR scanning**: Detect modified/illegal CVARs
-- **Wallhack detection**: Check for illegal shader/texture modifications (placeholder)
-- **Aimbot detection**: Heuristics for impossible snap angles (placeholder)
-- **Speedhack detection**: Server-side movement validation (placeholder)
-- **Checksum validation**: Validate pk3 files and client binaries (placeholder)
+- **CVAR scanning**: Detect modified/illegal CVARs (✅ ACTIVE)
+- **Wallhack detection**: Monitor renderer CVARs for illegal modifications (✅ ACTIVE)
+- **Aimbot detection**: Heuristics for impossible snap angles and rapid movements (✅ ACTIVE)
+- **Speedhack detection**: Server-side movement validation and velocity checking (✅ ACTIVE)
+- **Checksum validation**: Validate pk3 files and client binaries (planned)
 
 ### Server-Side Features
 - Player tracking with JXAC status monitoring
@@ -147,8 +147,9 @@ JXAC can detect and log the following violation types:
 | Violation Type | Description |
 |----------------|-------------|
 | `JXAC_VIOLATION_CVAR` | Illegal CVAR detected |
-| `JXAC_VIOLATION_WALLHACK` | Wallhack detected |
-| `JXAC_VIOLATION_AIMBOT` | Aimbot detected |
+| `JXAC_VIOLATION_WALLHACK` | Wallhack detected (via CVAR monitoring) |
+| `JXAC_VIOLATION_AIMBOT` | Aimbot detected (angle snap heuristics) |
+| `JXAC_VIOLATION_SPEEDHACK` | Speedhack detected (movement validation) |
 | `JXAC_VIOLATION_CHECKSUM` | File checksum mismatch |
 | `JXAC_VIOLATION_SS_BLOCKED` | Screenshot blocked/faked |
 | `JXAC_VIOLATION_TAMPER` | JXAC client tampered/disabled |
@@ -160,14 +161,41 @@ JXAC can detect and log the following violation types:
 
 ### Critical Bug Fixes
 
-1. **Fixed Client Command Overflow** - Screenshots larger than ~100KB were causing "Client command overflow" errors. Fixed by implementing a chunk queue system that sends screenshot data at 2 chunks per frame instead of all at once.
+1. **Fixed Screenshot Hex Data Validation** - Screenshot transfers were failing with "Invalid hex data length" errors. The validation logic has been improved with:
+   - Separate checks for odd hex length, chunk size mismatch, and bounds
+   - Better error messages showing expected vs. actual values
+   - Proper validation of hex length matching reported chunk size
 
-2. **Fixed Heartbeat Timeout Spam** - Real players were getting spammed with heartbeat timeout violations every frame. Fixed by adding violation tracking flags that only report each violation type once until cleared.
+2. **Fixed Client Command Overflow** - Screenshots larger than ~100KB were causing "Client command overflow" errors. Fixed by implementing a chunk queue system that sends screenshot data at 2 chunks per frame instead of all at once.
 
-3. **Removed Duplicate Commands** - Removed redundant `!jxac_kick` and `!jxac_ban` commands since xmod already provides `!kick` and `!ban` commands.
+3. **Fixed Heartbeat Timeout Spam** - Real players were getting spammed with heartbeat timeout violations every frame. Fixed by adding violation tracking flags that only report each violation type once until cleared.
+
+4. **Removed Duplicate Commands** - Removed redundant `!jxac_kick` and `!jxac_ban` commands since xmod already provides `!kick` and `!ban` commands.
+
+### New Anticheat Features
+
+1. **Speedhack Detection (Active)** - Server-side movement validation now detects impossible player speeds:
+   - Position delta tracking between frames
+   - Speed calculation and validation against max allowed speed
+   - 10% tolerance for network jitter
+   - Automatic violation reporting
+
+2. **Aimbot Detection (Active)** - Angle snap heuristics detect impossible mouse movements:
+   - Viewangle tracking per frame
+   - Detection of >170° snaps in single frame
+   - Accumulation with decay on normal behavior
+   - Violation reporting after 3+ suspicious snaps
+
+3. **Enhanced Wallhack Detection** - Extended CVAR monitoring with additional renderer variables:
+   - `r_showsky`, `r_fastsky` - Sky rendering detection
+   - `r_mapoverbrightbits`, `r_intensity` - Brightness manipulation detection
+   - All checked automatically every 60 seconds
 
 ### New Infrastructure
 
+- Added speedhack and aimbot tracking fields to player data structure
+- Added `JXAC_VIOLATION_SPEEDHACK` violation type
+- Integrated anticheat checks into server frame update (every 100ms)
 - Added `jxac/jxac_cvars.cfg` template for configurable CVAR checking
 - Added `jxac/jxac_cheats.cfg` template for cheat signature database  
 - Added `g_jxacHeartbeatTimeout` CVAR (default: 60000ms)
@@ -195,7 +223,11 @@ Both client-side and server-side modules are cross-platform compatible.
 - [x] Server-side module with player tracking
 - [x] Client-side module with heartbeat
 - [x] Screenshot system framework with JPEG compression
+- [x] **Screenshot hex validation fix (proper chunk size checking)**
 - [x] **Screenshot chunk throttling (2 chunks per frame to prevent command overflow)**
+- [x] **Speedhack detection (server-side movement validation)**
+- [x] **Aimbot detection (angle snap heuristics)**
+- [x] **Enhanced wallhack detection (extended CVAR monitoring)**
 - [x] **Heartbeat timeout detection with configurable timeout CVAR**
 - [x] **Violation spam prevention (only report once per violation type)**
 - [x] Violation logging system
@@ -206,13 +238,10 @@ Both client-side and server-side modules are cross-platform compatible.
 
 ### 🚧 Placeholder/Partial Implementation
 
-- [ ] Actual screenshot capture (using placeholder gradient pattern)
-- [ ] Network protocol integration (requires engine hooks)
+- [ ] Actual screenshot capture (requires engine API: trap_R_ReadPixels)
+- [ ] Network protocol integration (✅ framework complete, requires engine hooks)
 - [ ] **CVAR config file parsing (stub methods in place)**
 - [ ] **Cheat signature database loading (template file created)**
-- [ ] CVAR scanning implementation
-- [ ] Wallhack detection heuristics
-- [ ] Aimbot detection heuristics
 - [ ] Checksum validation
 - [ ] Client anti-tamper
 - [ ] **Module/DLL scanning (Windows & Linux)**
@@ -225,24 +254,30 @@ Both client-side and server-side modules are cross-platform compatible.
 
 ### Screenshot Implementation
 
-The current implementation provides the framework for screenshot capture, but actual framebuffer capture and JPEG compression are placeholders that require:
+The current implementation provides the framework for screenshot capture with JPEG compression using stb_image_write.h:
 
-1. **Platform-specific framebuffer capture**:
-   - Windows: DirectX/OpenGL framebuffer read
-   - Linux: X11/OpenGL framebuffer read
+**Current Status**:
+- ✅ JPEG compression integrated (stb_image_write.h single-header library)
+- ✅ Hex-encoded transmission in 450-byte chunks
+- ✅ Fixed hex validation bug (proper chunk size matching)
+- ⏳ Awaiting engine API for framebuffer capture
 
-2. **JPEG compression library**:
-   - Option 1: libjpeg (external dependency)
-   - Option 2: stb_image_write.h (single-header library, recommended)
+**What's needed**:
+1. **Engine API addition**: Add `trap_R_ReadPixels()` to cgame syscalls to expose OpenGL framebuffer reading
+2. **Implementation code ready**: Code prepared in comments for vertical flip and actual framebuffer read once API is available
+
+**Current behavior**: Uses gradient test pattern until framebuffer API is available
 
 ### Network Integration
 
-The current implementation includes placeholder comments for network message sending. Full integration requires:
+The network protocol has been fully integrated:
 
-1. Hooking into the game's network message system
-2. Registering JXAC-specific server commands
-3. Implementing client command handlers
-4. Adding JXAC message parsing on both client and server
+1. ✅ Server commands registered and working
+2. ✅ Client command handlers implemented
+3. ✅ JXAC message parsing on both client and server
+4. ✅ Screenshot data transmission with hex encoding
+5. ✅ CVAR request/response system active
+6. ✅ Heartbeat system operational
 
 ---
 
