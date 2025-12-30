@@ -57,11 +57,11 @@ std::string loadGuidFromFile() {
     if (len > 0 && f != 0) {
         char buffer[64];
         memset(buffer, 0, sizeof(buffer));
-        int bytesRead = trap_FS_Read(buffer, sizeof(buffer) - 1, f);
+        trap_FS_Read(buffer, sizeof(buffer) - 1, f);
         trap_FS_FCloseFile(f);
         
-        // Validate read was successful (non-negative) and GUID format (UUID with dashes or 32 hex chars)
-        if (bytesRead >= 32) {
+        // Validate file size and GUID format (UUID with dashes or 32 hex chars)
+        if (len >= 32) {
             std::string guid(buffer);
             if (guid.length() >= 32) {
                 return guid.substr(0, 36); // UUID format with dashes
