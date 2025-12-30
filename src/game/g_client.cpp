@@ -2,6 +2,7 @@
 #include <omnibot/et/g_etbot_interface.h>
 #include <game/g_lua.h>
 #include <bgame/xm_auth_shared.h>
+#include <game/xmod_globals.h>
 
 // g_client.c -- client functions that don't happen every frame
 
@@ -2197,6 +2198,12 @@ ClientConnect( string& outmsg, int clientNum, qboolean firstTime, qboolean isBot
 	// Send GUID request to client for authentication
 	if (!isBot) {
 		trap_SendServerCommand( clientNum, xm_auth::CMD_GUID_REQUEST );
+		
+		// Initialize xmod session if available
+		if (xmod::g_database && xmod::g_sessions[clientNum]) {
+			string ip = Info_ValueForKey( userinfo, "ip" );
+			xmod::g_sessions[clientNum]->init(clientNum, ip);
+		}
 	}
 
 	// Call Lua et_ClientConnect callback
