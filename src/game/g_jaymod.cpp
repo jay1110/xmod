@@ -1,4 +1,5 @@
 #include <bgame/impl.h>
+#include <game/xmod_database.h>
 #include <game/xmod_globals.h>
 
 /*
@@ -1821,7 +1822,8 @@ void G_UpdateUptime() {
 
 bool G_MutePlayer(gentity_t* ent, string muter, string reason)
 {
-    User& user = *connectedUsers[ent-g_entities];
+    int clientNum = ent - g_entities;
+    User& user = *connectedUsers[clientNum];
 
     if (user.muted) {
         return false;
@@ -1838,6 +1840,15 @@ bool G_MutePlayer(gentity_t* ent, string muter, string reason)
         user.muteExpiry = 0;
     }
 
+    // Sync to SQLite database
+    if (xmod::g_database && xmod::g_database->isOpened() && 
+        xmod::g_sessions[clientNum] && xmod::g_sessions[clientNum]->isAuthenticated()) {
+        int userId = xmod::g_sessions[clientNum]->getUserId();
+        if (userId > 0) {
+            xmod::g_database->setMuted(userId, true);
+        }
+    }
+
     ClientUserinfoChanged(ent->s.number);
 
     return true;
@@ -1845,7 +1856,8 @@ bool G_MutePlayer(gentity_t* ent, string muter, string reason)
 
 bool G_UnmutePlayer(gentity_t* ent)
 {
-    User& user = *connectedUsers[ent-g_entities];
+    int clientNum = ent - g_entities;
+    User& user = *connectedUsers[clientNum];
 
     if (!user.muted) {
         return false;
@@ -1854,6 +1866,15 @@ bool G_UnmutePlayer(gentity_t* ent)
     user.muted = false;
     user.muteTime = 0;
     user.muteAuthorityx = user.muteAuthority = "";
+
+    // Sync to SQLite database
+    if (xmod::g_database && xmod::g_database->isOpened() && 
+        xmod::g_sessions[clientNum] && xmod::g_sessions[clientNum]->isAuthenticated()) {
+        int userId = xmod::g_sessions[clientNum]->getUserId();
+        if (userId > 0) {
+            xmod::g_database->setMuted(userId, false);
+        }
+    }
 
     ClientUserinfoChanged(ent->s.number);
 

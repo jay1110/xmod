@@ -152,6 +152,16 @@ bool Session::guidReceived(const std::string& hashedGuid, const std::string& has
         }
     }
 
+    // Sync user data from SQLite to runtime User object
+    if (authenticated && clientNum >= 0 && clientNum < MAX_CLIENTS) {
+        if (connectedUsers[clientNum] && connectedUsers[clientNum] != &User::BAD) {
+            connectedUsers[clientNum]->authLevel = userLevel;
+            connectedUsers[clientNum]->muted = userData.muted;
+            G_Printf("Synced authLevel %d, muted=%d for client %d from SQLite\n", 
+                     userLevel, userData.muted ? 1 : 0, clientNum);
+        }
+    }
+
     return authenticated;
 }
 
