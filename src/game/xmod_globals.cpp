@@ -17,9 +17,15 @@ Session* g_sessions[MAX_CLIENTS] = { nullptr };
 ///////////////////////////////////////////////////////////////////////////////
 
 void initXmod() {
+    // Check if already initialized
+    if (g_database && g_database->isOpened()) {
+        G_Printf("xmod already initialized, skipping re-initialization\n");
+        return;
+    }
+    
     G_Printf("Initializing xmod SQLite database...\n");
     
-    // Create database instance
+    // Create database instance if needed
     if (!g_database) {
         g_database = new Database();
     }

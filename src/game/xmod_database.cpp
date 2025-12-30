@@ -405,8 +405,38 @@ bool Database::addHwid(int id, const std::string& hwid) {
         return false;
     }
 
-    // If HWID is empty or same, just update
-    if (data.hwid.empty() || data.hwid == hwid) {
+    // Check if HWID already exists (exact match or in space-separated list)
+    if (!data.hwid.empty()) {
+        // Split existing HWIDs by space and check each one
+        std::stringstream ss(data.hwid);
+        std::string existingHwid;
+        while (ss >> existingHwid) {
+            if (existingHwid == hwid) {
+                // Already exists, no need to add
+                return true;
+            }
+        }
+        
+        // Not found, append with space separator
+        std::string newHwid = data.hwid + " " + hwid;
+        
+        const char* sql = "UPDATE users SET hwid = ? WHERE id = ?;";
+        sqlite3_stmt* stmt = nullptr;
+        
+        int rc = sqlite3_prepare_v2(db, sql, -1, &stmt, nullptr);
+        if (rc != SQLITE_OK) {
+            return false;
+        }
+
+        sqlite3_bind_text(stmt, 1, newHwid.c_str(), -1, SQLITE_TRANSIENT);
+        sqlite3_bind_int(stmt, 2, id);
+        
+        rc = sqlite3_step(stmt);
+        sqlite3_finalize(stmt);
+
+        return rc == SQLITE_DONE;
+    } else {
+        // No existing HWID, just set it
         const char* sql = "UPDATE users SET hwid = ? WHERE id = ?;";
         sqlite3_stmt* stmt = nullptr;
         
@@ -423,25 +453,6 @@ bool Database::addHwid(int id, const std::string& hwid) {
 
         return rc == SQLITE_DONE;
     }
-
-    // Otherwise append (space-separated)
-    std::string newHwid = data.hwid + " " + hwid;
-    
-    const char* sql = "UPDATE users SET hwid = ? WHERE id = ?;";
-    sqlite3_stmt* stmt = nullptr;
-    
-    int rc = sqlite3_prepare_v2(db, sql, -1, &stmt, nullptr);
-    if (rc != SQLITE_OK) {
-        return false;
-    }
-
-    sqlite3_bind_text(stmt, 1, newHwid.c_str(), -1, SQLITE_TRANSIENT);
-    sqlite3_bind_int(stmt, 2, id);
-    
-    rc = sqlite3_step(stmt);
-    sqlite3_finalize(stmt);
-
-    return rc == SQLITE_DONE;
 }
 
 ///////////////////////////////////////////////////////////////////////////////

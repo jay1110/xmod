@@ -7,6 +7,24 @@ namespace xmod {
 
 ///////////////////////////////////////////////////////////////////////////////
 
+static bool validateSha1Hash(const std::string& hash) {
+    // SHA1 hash must be exactly 40 hexadecimal characters
+    if (hash.length() != 40) {
+        return false;
+    }
+
+    for (size_t i = 0; i < hash.length(); i++) {
+        char c = hash[i];
+        if (!((c >= '0' && c <= '9') || (c >= 'a' && c <= 'f') || (c >= 'A' && c <= 'F'))) {
+            return false;
+        }
+    }
+
+    return true;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+
 Session::Session(Database* database) 
     : clientNum(-1), userId(-1), userLevel(0), sessionStartTime(0),
       initialized(false), authenticated(false), db(database) {
@@ -47,37 +65,13 @@ void Session::reset() {
 ///////////////////////////////////////////////////////////////////////////////
 
 bool Session::validateGuid(const std::string& guidStr) {
-    // GUID must be exactly 40 hexadecimal characters (SHA1 hash)
-    if (guidStr.length() != 40) {
-        return false;
-    }
-
-    for (size_t i = 0; i < guidStr.length(); i++) {
-        char c = guidStr[i];
-        if (!((c >= '0' && c <= '9') || (c >= 'a' && c <= 'f') || (c >= 'A' && c <= 'F'))) {
-            return false;
-        }
-    }
-
-    return true;
+    return validateSha1Hash(guidStr);
 }
 
 ///////////////////////////////////////////////////////////////////////////////
 
 bool Session::validateHwid(const std::string& hwidStr) {
-    // HWID must be exactly 40 hexadecimal characters (SHA1 hash)
-    if (hwidStr.length() != 40) {
-        return false;
-    }
-
-    for (size_t i = 0; i < hwidStr.length(); i++) {
-        char c = hwidStr[i];
-        if (!((c >= '0' && c <= '9') || (c >= 'a' && c <= 'f') || (c >= 'A' && c <= 'F'))) {
-            return false;
-        }
-    }
-
-    return true;
+    return validateSha1Hash(hwidStr);
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -126,8 +120,8 @@ bool Session::guidReceived(const std::string& hashedGuid, const std::string& has
         // Update last seen
         db->updateLastSeen(userId, time(nullptr));
 
-        // Add new HWID if not already present
-        if (!userData.hwid.empty() && userData.hwid.find(hwid) == std::string::npos) {
+        // Add new HWID if not already present (addHwid handles duplicate checking)
+        if (!hwid.empty()) {
             db->addHwid(userId, hwid);
         }
 
