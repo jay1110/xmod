@@ -1007,6 +1007,12 @@ void Server::loadForceCvarConfig( const char* filename ) {
     forcedCvars.clear();
     
     char* buffer = (char*)malloc( len + 1 );
+    if ( !buffer ) {
+        Com_Printf( "JXAC: Failed to allocate memory for forced CVAR config\n" );
+        trap_FS_FCloseFile( f );
+        return;
+    }
+    
     trap_FS_Read( buffer, len, f );
     buffer[len] = '\0';
     trap_FS_FCloseFile( f );
@@ -1094,6 +1100,12 @@ void Server::loadCheatCvarConfig( const char* filename ) {
     cheatCvars.clear();
     
     char* buffer = (char*)malloc( len + 1 );
+    if ( !buffer ) {
+        Com_Printf( "JXAC: Failed to allocate memory for cheat CVAR config\n" );
+        trap_FS_FCloseFile( f );
+        return;
+    }
+    
     trap_FS_Read( buffer, len, f );
     buffer[len] = '\0';
     trap_FS_FCloseFile( f );
@@ -1195,6 +1207,12 @@ void Server::loadCheatDatabase( const char* filename ) {
     cheatSignatures.clear();
     
     char* buffer = (char*)malloc( len + 1 );
+    if ( !buffer ) {
+        Com_Printf( "JXAC: Failed to allocate memory for cheat database\n" );
+        trap_FS_FCloseFile( f );
+        return;
+    }
+    
     trap_FS_Read( buffer, len, f );
     buffer[len] = '\0';
     trap_FS_FCloseFile( f );

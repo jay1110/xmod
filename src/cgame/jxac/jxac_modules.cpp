@@ -13,6 +13,10 @@
 
 namespace jxac {
 
+// Module scanning constants
+#define JXAC_MAX_MODULE_FILE_SIZE (50 * 1024 * 1024)  // Max 50MB
+#define JXAC_MAX_MODULES_WINDOWS 1024  // Max modules to scan on Windows
+
 struct ModuleInfo {
     char name[256];
     char path[512];
@@ -29,7 +33,7 @@ static bool calculateSHA1(const char* filepath, char* outHash) {
     long size = ftell(f);
     fseek(f, 0, SEEK_SET);
     
-    if (size <= 0 || size > 50 * 1024 * 1024) { // Max 50MB
+    if (size <= 0 || size > JXAC_MAX_MODULE_FILE_SIZE) {
         fclose(f);
         return false;
     }
@@ -58,14 +62,14 @@ static bool calculateSHA1(const char* filepath, char* outHash) {
 #ifdef _WIN32
 // Scan loaded modules (Windows)
 static void scanLoadedModulesWindows(std::vector<ModuleInfo>& modules) {
-    HMODULE hMods[1024];
+    HMODULE hMods[JXAC_MAX_MODULES_WINDOWS];
     HANDLE hProcess = GetCurrentProcess();
     DWORD cbNeeded;
     
     if (EnumProcessModules(hProcess, hMods, sizeof(hMods), &cbNeeded)) {
         int count = cbNeeded / sizeof(HMODULE);
         
-        for (int i = 0; i < count && i < 1024; i++) {
+        for (int i = 0; i < count && i < JXAC_MAX_MODULES_WINDOWS; i++) {
             ModuleInfo info;
             memset(&info, 0, sizeof(info));
             

@@ -3559,7 +3559,6 @@ void ClientCommand( int clientNum ) {
 		trap_Argv( 2, sizeStr, sizeof(sizeStr) );
 		trap_Argv( 3, hexData, sizeof(hexData) );
 		
-		int chunkNum = atoi( chunkNumStr );
 		int chunkSize = atoi( sizeStr );
 		
 		// Validate chunk size
