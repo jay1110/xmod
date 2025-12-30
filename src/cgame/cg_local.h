@@ -3264,6 +3264,8 @@ void	trap_R_RenderToTexture( int textureid, int x, int y, int w, int h );
 int	trap_R_GetTextureId( const char *name );
 //bani - flush rendering buffer
 void	trap_R_Finish( void );
+//JXAC - screenshot capture
+void	trap_R_ReadPixels( int x, int y, int width, int height, unsigned char *buffer );
 
 // Duffy, camera stuff
 #define CAM_PRIMARY 0	// the main camera for cutscenes, etc.

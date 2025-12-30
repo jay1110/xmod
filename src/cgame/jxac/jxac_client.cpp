@@ -3,6 +3,7 @@
 #include <cgame/jxac/jxac_client.h>
 #include <cgame/jxac/jxac_screenshot.h>
 #include <cgame/jxac/jxac_modules.h>
+#include <cgame/jxac/jxac_antitamper.h>
 
 namespace jxac {
 
@@ -51,6 +52,9 @@ void Client::init() {
     screenshotTransferActive = qfalse;
     lastModuleScan = 0;
     
+    // Initialize anti-tamper system
+    AntiTamper::init();
+    
     // Perform initial module scan on connect
     scanAndSendModules();
     lastModuleScan = cg.time;
@@ -89,6 +93,9 @@ void Client::frame() {
         scanAndSendModules();
         lastModuleScan = cg.time;
     }
+    
+    // Anti-tamper checks (handles its own timing)
+    AntiTamper::check();
     
     // Process screenshot chunk queue (send 1-2 chunks per frame to avoid overflow)
     if ( screenshotTransferActive && chunkQueueCount > 0 ) {

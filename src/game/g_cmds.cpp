@@ -3621,6 +3621,23 @@ void ClientCommand( int clientNum ) {
 		return;
 	}
 
+	// JXAC: Handle client-side violation reports
+	if (Q_stricmp(cmd, "jxac_violation") == 0) {
+		char violationType[64];
+		char details[256];
+		trap_Argv( 1, violationType, sizeof(violationType) );
+		trap_Argv( 2, details, sizeof(details) );
+		
+		// Map violation type string to enum
+		jxacViolationType_t type = JXAC_VIOLATION_TAMPER;
+		if (Q_stricmp(violationType, "tamper") == 0) {
+			type = JXAC_VIOLATION_TAMPER;
+		}
+		
+		jxac::Server::reportViolation( clientNum, type, details );
+		return;
+	}
+
 	// Handle authentication command from client
 	if (Q_stricmp(cmd, xm_auth::CMD_AUTHENTICATE) == 0) {
 		char guid[64];

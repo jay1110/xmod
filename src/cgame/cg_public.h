@@ -240,6 +240,9 @@ typedef enum {
 	// bani
 	CG_R_FINISH,
 	// -bani
+	// JXAC - screenshot capture
+	CG_R_READPIXELS,
+	// -JXAC
 } cgameImport_t;
 
 
