@@ -1,6 +1,8 @@
 #include <bgame/impl.h>
 #include <bgame/jxac_common.h>
 #include <cgame/jxac/jxac_antitamper.h>
+#include <cstring>
+#include <cstdlib>
 
 #ifdef _WIN32
 #include <windows.h>
