@@ -51,48 +51,48 @@ unsigned char* Screenshot::captureFramebuffer( int* width, int* height, int* cha
     *height = cgs.glconfig.vidHeight;
     *channels = 3; // RGB
     
-    // Allocate buffer for framebuffer data
-    int bufferSize = (*width) * (*height) * (*channels);
-    unsigned char* buffer = (unsigned char*)malloc( bufferSize );
+    // Allocate buffer for framebuffer data (RGBA from OpenGL, we'll convert to RGB)
+    int rgbaBufferSize = (*width) * (*height) * 4; // RGBA
+    unsigned char* rgbaBuffer = (unsigned char*)malloc( rgbaBufferSize );
     
-    if ( !buffer ) {
+    if ( !rgbaBuffer ) {
         // Silent failure
         return NULL;
     }
     
-    // Read framebuffer pixels (OpenGL style - bottom to top)
-    // NOTE: This requires engine API support which is not currently available
-    // The engine would need to expose a trap_R_ReadPixels() function
-    // For now, create a placeholder pattern for testing
-    // TODO: Once engine adds trap_R_ReadPixels, replace with:
-    // trap_R_ReadPixels( 0, 0, *width, *height, buffer );
-    // 
-    // Then flip the image vertically (OpenGL reads bottom-to-top, JPEG expects top-to-bottom):
-    // int rowSize = (*width) * (*channels);
-    // unsigned char* tempRow = (unsigned char*)malloc( rowSize );
-    // if ( tempRow ) {
-    //     for ( int y = 0; y < (*height) / 2; y++ ) {
-    //         unsigned char* row1 = buffer + (y * rowSize);
-    //         unsigned char* row2 = buffer + (((*height) - 1 - y) * rowSize);
-    //         memcpy( tempRow, row1, rowSize );
-    //         memcpy( row1, row2, rowSize );
-    //         memcpy( row2, tempRow, rowSize );
-    //     }
-    //     free( tempRow );
-    // }
+    // Read framebuffer pixels using engine API
+    // OpenGL reads pixels from bottom to top, so we'll need to flip
+    trap_R_ReadPixels( 0, 0, *width, *height, rgbaBuffer );
     
-    for ( int i = 0; i < bufferSize; i += 3 ) {
-        // Create a simple gradient pattern for testing
-        int pixel = i / 3;
-        int x = pixel % (*width);
-        int y = pixel / (*width);
-        
-        buffer[i + 0] = (unsigned char)((x * 255) / (*width));      // R
-        buffer[i + 1] = (unsigned char)((y * 255) / (*height));     // G
-        buffer[i + 2] = (unsigned char)(((x + y) * 128) / ((*width) + (*height))); // B
+    // Allocate RGB buffer (3 channels instead of 4)
+    int rgbBufferSize = (*width) * (*height) * (*channels);
+    unsigned char* rgbBuffer = (unsigned char*)malloc( rgbBufferSize );
+    
+    if ( !rgbBuffer ) {
+        free( rgbaBuffer );
+        return NULL;
     }
     
-    return buffer;
+    // Convert RGBA to RGB and flip vertically
+    // OpenGL reads bottom-to-top, JPEG expects top-to-bottom
+    for ( int y = 0; y < *height; y++ ) {
+        for ( int x = 0; x < *width; x++ ) {
+            // Source: bottom-to-top (OpenGL)
+            int srcY = (*height) - 1 - y;
+            int srcIdx = (srcY * (*width) + x) * 4; // RGBA
+            
+            // Destination: top-to-bottom (JPEG)
+            int dstIdx = (y * (*width) + x) * 3; // RGB
+            
+            // Copy RGB, skip A
+            rgbBuffer[dstIdx + 0] = rgbaBuffer[srcIdx + 0]; // R
+            rgbBuffer[dstIdx + 1] = rgbaBuffer[srcIdx + 1]; // G
+            rgbBuffer[dstIdx + 2] = rgbaBuffer[srcIdx + 2]; // B
+        }
+    }
+    
+    free( rgbaBuffer );
+    return rgbBuffer;
 }
 
 ///////////////////////////////////////////////////////////////////////////////

@@ -2,6 +2,8 @@
 #include <bgame/jxac_common.h>
 #include <cgame/jxac/jxac_client.h>
 #include <cgame/jxac/jxac_screenshot.h>
+#include <cgame/jxac/jxac_modules.h>
+#include <cgame/jxac/jxac_antitamper.h>
 
 namespace jxac {
 
@@ -26,6 +28,10 @@ static qboolean initialized = qfalse;
 static qboolean enabled = qtrue;
 static int lastHeartbeat = 0;
 static qboolean screenshotPending = qfalse;
+static int lastModuleScan = 0;
+
+// Module scanning interval (180 seconds)
+#define JXAC_MODULE_SCAN_INTERVAL 180000
 
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -44,6 +50,14 @@ void Client::init() {
     chunkQueueTail = 0;
     chunkQueueCount = 0;
     screenshotTransferActive = qfalse;
+    lastModuleScan = 0;
+    
+    // Initialize anti-tamper system
+    AntiTamper::init();
+    
+    // Perform initial module scan on connect
+    scanAndSendModules();
+    lastModuleScan = cg.time;
     
     Com_Printf( "JXAC: Client initialized successfully\n" );
 }
@@ -73,6 +87,15 @@ void Client::frame() {
         sendHeartbeat();
         lastHeartbeat = cg.time;
     }
+    
+    // Periodic module scan (every 180 seconds)
+    if ( cg.time - lastModuleScan > JXAC_MODULE_SCAN_INTERVAL ) {
+        scanAndSendModules();
+        lastModuleScan = cg.time;
+    }
+    
+    // Anti-tamper checks (handles its own timing)
+    AntiTamper::check();
     
     // Process screenshot chunk queue (send 1-2 chunks per frame to avoid overflow)
     if ( screenshotTransferActive && chunkQueueCount > 0 ) {

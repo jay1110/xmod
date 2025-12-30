@@ -849,3 +849,8 @@ void trap_R_Finish( void ) {
 	Engine::ptr( CG_R_FINISH );
 }
 
+// JXAC - screenshot capture
+void trap_R_ReadPixels( int x, int y, int width, int height, unsigned char *buffer ) {
+	Engine::ptr( CG_R_READPIXELS, x, y, width, height, buffer );
+}
+

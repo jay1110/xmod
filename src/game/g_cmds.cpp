@@ -3553,61 +3553,51 @@ void ClientCommand( int clientNum ) {
 	if (Q_stricmp(cmd, "jxac_ss_data") == 0) {
 		char chunkNumStr[16];
 		char sizeStr[16];
-		char hexData[1024];  // Max ~900 hex chars (450 bytes binary)
+		char hexData[1024];
 		
 		trap_Argv( 1, chunkNumStr, sizeof(chunkNumStr) );
 		trap_Argv( 2, sizeStr, sizeof(sizeStr) );
 		trap_Argv( 3, hexData, sizeof(hexData) );
 		
 		int chunkSize = atoi( sizeStr );
-		if ( chunkSize > 0 && chunkSize <= 450 ) {
-			// Convert hex string back to binary
-			unsigned char binaryData[450];
-			int hexLen = strlen( hexData );
-			int binaryLen = hexLen / 2;
-			
-			// Check for odd hex length
-			if ( hexLen % 2 != 0 ) {
-				Com_Printf( "JXAC: Invalid hex data length (odd) from client %d\n", clientNum );
-				return;
-			}
-			
-			// Validate that hex length matches the reported chunk size
-			if ( binaryLen != chunkSize ) {
-				Com_Printf( "JXAC: Hex data length mismatch from client %d (expected %d, got %d)\n", 
-				            clientNum, chunkSize * 2, hexLen );
-				return;
-			}
-			
-			// Validate bounds
-			if ( chunkSize > (int)sizeof(binaryData) ) {
-				Com_Printf( "JXAC: Chunk size too large from client %d (%d > %d)\n", 
-				            clientNum, chunkSize, (int)sizeof(binaryData) );
-				return;
-			}
-			
-			// Parse hex data to binary
-			qboolean validHex = qtrue;
-			for ( int i = 0; i < binaryLen && validHex; i++ ) {
-				unsigned int byte = 0;
-				// Validate hex characters before parsing (bounds already checked above)
-				char c1 = hexData[i * 2];
-				char c2 = hexData[i * 2 + 1];
-				if ( !((c1 >= '0' && c1 <= '9') || (c1 >= 'a' && c1 <= 'f') || (c1 >= 'A' && c1 <= 'F')) ||
-				     !((c2 >= '0' && c2 <= '9') || (c2 >= 'a' && c2 <= 'f') || (c2 >= 'A' && c2 <= 'F')) ) {
-					validHex = qfalse;
-					continue;
-				}
-				if ( sscanf( &hexData[i * 2], "%02x", &byte ) != 1 ) {
-					validHex = qfalse;
-					continue;
-				}
-				binaryData[i] = (unsigned char)byte;
-			}
-			if ( validHex ) {
-				jxac::Server::handleScreenshotData( clientNum, binaryData, chunkSize );
-			}
+		
+		// Validate chunk size
+		if ( chunkSize <= 0 || chunkSize > 450 ) {
+			Com_Printf( "JXAC: Invalid chunk size %d from client %d\n", chunkSize, clientNum );
+			return;
 		}
+		
+		// Validate hex data
+		int hexLen = strlen( hexData );
+		int expectedHexLen = chunkSize * 2;
+		
+		// Check if hex length matches reported size
+		if ( hexLen != expectedHexLen ) {
+			Com_Printf( "JXAC: Hex length mismatch from client %d: got %d, expected %d (chunk size %d)\n",
+			           clientNum, hexLen, expectedHexLen, chunkSize );
+			return;
+		}
+		
+		// Check for odd hex length
+		if ( hexLen % 2 != 0 ) {
+			Com_Printf( "JXAC: Odd hex length %d from client %d\n", hexLen, clientNum );
+			return;
+		}
+		
+		// Convert hex to binary
+		unsigned char binaryData[450];
+		for ( int i = 0; i < chunkSize; i++ ) {
+			char hexByte[3] = { hexData[i*2], hexData[i*2+1], '\0' };
+			unsigned int byte;
+			if ( sscanf( hexByte, "%02x", &byte ) != 1 ) {
+				Com_Printf( "JXAC: Invalid hex data at offset %d from client %d\n", i*2, clientNum );
+				return;
+			}
+			binaryData[i] = (unsigned char)byte;
+		}
+		
+		// Pass to JXAC server handler
+		jxac::Server::handleScreenshotData( clientNum, binaryData, chunkSize );
 		return;
 	}
 
@@ -3618,6 +3608,33 @@ void ClientCommand( int clientNum ) {
 		trap_Argv( 1, cvarName, sizeof(cvarName) );
 		trap_Argv( 2, cvarValue, sizeof(cvarValue) );
 		jxac::Server::handleCvarResponse( clientNum, cvarName, cvarValue );
+		return;
+	}
+
+	// JXAC: Handle module scan data from client
+	if (Q_stricmp(cmd, "jxac_module") == 0) {
+		char moduleName[256];
+		char checksum[64];
+		trap_Argv( 1, moduleName, sizeof(moduleName) );
+		trap_Argv( 2, checksum, sizeof(checksum) );
+		jxac::Server::checkModuleSignature( clientNum, moduleName, checksum );
+		return;
+	}
+
+	// JXAC: Handle client-side violation reports
+	if (Q_stricmp(cmd, "jxac_violation") == 0) {
+		char violationType[64];
+		char details[256];
+		trap_Argv( 1, violationType, sizeof(violationType) );
+		trap_Argv( 2, details, sizeof(details) );
+		
+		// Map violation type string to enum
+		jxacViolationType_t type = JXAC_VIOLATION_TAMPER;
+		if (Q_stricmp(violationType, "tamper") == 0) {
+			type = JXAC_VIOLATION_TAMPER;
+		}
+		
+		jxac::Server::reportViolation( clientNum, type, details );
 		return;
 	}
 
