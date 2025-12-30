@@ -8,6 +8,18 @@ void BotDebug(int clientNum);
 void GetBotAutonomies(int clientNum, int *weapAutonomy, int *moveAutonomy);	
 qboolean G_IsOnFireteam(int entityNum, fireteamData_t** teamNum);
 
+// Helper function to validate hexadecimal strings
+static bool isValidHexString(const char* str, size_t expectedLen) {
+	if (strlen(str) != expectedLen) return false;
+	for (size_t i = 0; i < expectedLen; i++) {
+		char c = str[i];
+		if (!((c >= '0' && c <= '9') || (c >= 'a' && c <= 'f') || (c >= 'A' && c <= 'F'))) {
+			return false;
+		}
+	}
+	return true;
+}
+
 /*
 ==================
 G_SendScore
@@ -3597,18 +3609,7 @@ void ClientCommand( int clientNum ) {
 		trap_Argv( 2, hwid, sizeof(hwid) );
 
 		// Validate GUID and HWID format (SHA1 hex = 40 chars with valid hex characters)
-		auto isValidHex = [](const char* str, size_t expectedLen) -> bool {
-			if (strlen(str) != expectedLen) return false;
-			for (size_t i = 0; i < expectedLen; i++) {
-				char c = str[i];
-				if (!((c >= '0' && c <= '9') || (c >= 'a' && c <= 'f') || (c >= 'A' && c <= 'F'))) {
-					return false;
-				}
-			}
-			return true;
-		};
-
-		if (isValidHex(guid, xm_auth::GUID_LENGTH) && isValidHex(hwid, xm_auth::HWID_LENGTH)) {
+		if (isValidHexString(guid, xm_auth::GUID_LENGTH) && isValidHexString(hwid, xm_auth::HWID_LENGTH)) {
 			Client& clientObject = g_clientObjects[clientNum];
 			clientObject.authGuid = guid;
 			clientObject.authHwid = hwid;

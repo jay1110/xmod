@@ -3,13 +3,15 @@
 #include <bgame/xm_sha1.h>
 #include <cgame/cg_local.h>
 
+#include <unistd.h>  // For getpid() on all platforms
+
 #ifdef _WIN32
 #include <windows.h>
 #include <intrin.h>
 #else
+#include <sys/socket.h>
 #include <sys/ioctl.h>
 #include <net/if.h>
-#include <unistd.h>
 #include <netinet/in.h>
 #include <string.h>
 #endif
@@ -51,7 +53,7 @@ std::string generateUUID() {
 
 std::string loadGuidFromFile() {
     fileHandle_t f;
-    if (trap_FS_FOpenFile("xmodguid.dat", &f, FS_READ) > 0) {
+    if (trap_FS_FOpenFile("xmodguid.dat", &f, FS_READ) > 0 && f) {
         char buffer[64];
         memset(buffer, 0, sizeof(buffer));
         trap_FS_Read(buffer, sizeof(buffer) - 1, f);
