@@ -1001,7 +1001,20 @@ static qboolean hit_load(hit_t *hitModel, const animModelInfo_t *animModelInfo, 
 		return qfalse;
 	}
 
-	ptr = pScript = malloc(len + 1);
+	// Validate file size - prevent excessively large files from causing issues
+	// Max hit file size: 1MB (reasonable for hit definition files)
+	if (len > 1024 * 1024) {
+		trap_FS_FCloseFile(fh);
+		G_Printf(S_COLOR_YELLOW GAME_VERSION " MDX WARNING: Hit file %s is too large (%d bytes)\n", filename, len);
+		return qfalse;
+	}
+
+	ptr = pScript = (char*)malloc(len + 1);
+	if (!pScript) {
+		trap_FS_FCloseFile(fh);
+		G_Printf(S_COLOR_YELLOW GAME_VERSION " MDX WARNING: Memory allocation failed for %s (%d bytes)\n", filename, len + 1);
+		return qfalse;
+	}
 	trap_FS_Read(pScript, len, fh);
 	pScript[len] = '\0';
 	trap_FS_FCloseFile(fh);
@@ -1067,7 +1080,17 @@ qhandle_t trap_R_RegisterModel(const char *filename)
 	len = trap_FS_FOpenFile(filename, &fh, FS_READ);
 	if (len <= 0)
 		G_Error(GAME_VERSION " MDX: File not found: %s\n", filename);
+	// Validate file size - prevent excessively large files from causing issues
+	// Max model file size: 16MB (reasonable for MDX/MDM models)
+	if (len > 16 * 1024 * 1024) {
+		trap_FS_FCloseFile(fh);
+		G_Error(GAME_VERSION " MDX: File too large: %s (%d bytes)\n", filename, len);
+	}
 	mem = (char*)malloc(len);
+	if (!mem) {
+		trap_FS_FCloseFile(fh);
+		G_Error(GAME_VERSION " MDX: Memory allocation failed for: %s (%d bytes)\n", filename, len);
+	}
 	trap_FS_Read(mem, len, fh);
 	trap_FS_FCloseFile(fh);
 
