@@ -1926,9 +1926,10 @@ ClientConnect( string& outmsg, int clientNum, qboolean firstTime, qboolean isBot
 			outmsg = "You have an invalid GUID.  This might be a temporary problem, and you should try reconnecting.";
  			return true;
 		} else {
-			// Generate a fake local GUID
+			// Generate a fake local GUID (must be exactly 32 characters)
 			stringstream newguid;
-			newguid << "CLIENT" << setw(2) << setfill('0') << clientNum << right << setw(24) << "";
+			newguid << "CLIENT" << setw(2) << setfill('0') << clientNum 
+			        << setw(24) << setfill('0') << 0;
 			guid = newguid.str().c_str();
             fakeguid = true;
 		}
