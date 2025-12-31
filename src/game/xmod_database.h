@@ -105,6 +105,9 @@ public:
     
     // Level migration
     int migrateLevel(int fromLevel, int toLevel);
+    
+    // Migration from old userDB
+    int importFromLegacyUserDB();
 };
 
 } // namespace xmod
