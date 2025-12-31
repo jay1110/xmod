@@ -346,7 +346,7 @@ void G_Script_ScriptLoad( void ) {
 	char			filename[MAX_QPATH];
 	vmCvar_t		mapname;
 	fileHandle_t	f = 0;
-	int				len = 0;
+	int				len;
 	qboolean		found = qfalse;
 
 	trap_Cvar_Register( &g_scriptDebug, "g_scriptDebug", "0", 0 );
