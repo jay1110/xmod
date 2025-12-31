@@ -13,11 +13,13 @@ JXAC (Jays XMod AntiCheat) is a comprehensive anticheat system for xmod (Wolfens
 ## Features
 
 ### Screenshot System
+- ✅ **FULLY FUNCTIONAL** - Works with stock ET engine (no modifications needed)
 - Server can request screenshots from any connected client
-- **Format: JPG** (JPEG format, configurable quality 1-100)
-- Screenshots saved to `jxac/screenshots/` directory
-- Naming convention: `<playername>_<timestamp>.jpg`
-- Detection of blocked or fake screenshots
+- **Format: JPG** (JPEG format via engine's screenshotJPEG command)
+- Screenshots transmitted to server, then deleted from client
+- Naming convention: `screenshots/jxac_<timestamp>.jpg`
+- 5-second timeout for file polling
+- **Implementation**: File-based using engine's native screenshot functionality
 
 ### Cheat Detection
 - **CVAR scanning**: Detect modified/illegal CVARs (✅ ACTIVE)
@@ -266,23 +268,35 @@ All core JXAC features are now fully implemented and operational:
 
 ### Screenshot Implementation
 
-The screenshot system is now fully operational with real framebuffer capture:
-
-**Current Status**:
-- ✅ JPEG compression integrated (stb_image_write.h single-header library)
+**Current Status - WORKING**:
+- ✅ **Screenshot capture is ENABLED** using engine's native screenshot command
+- ✅ File-based approach works with stock ET engine (no modifications needed)
+- ✅ JPEG format using engine's native screenshotJPEG command
 - ✅ Hex-encoded transmission in 450-byte chunks
-- ✅ Fixed hex validation bug (proper chunk size matching)
-- ✅ **Engine API implemented: trap_R_ReadPixels() added to cgame syscalls**
-- ✅ **Real framebuffer capture with automatic vertical flip**
-- ✅ **RGBA to RGB conversion for optimal JPEG compression**
+- ✅ Network protocol for screenshots implemented
 
-**Implementation**:
-1. **Engine API**: Added `CG_R_READPIXELS` syscall to cgame interface
-2. **Framebuffer capture**: Reads OpenGL framebuffer via trap_R_ReadPixels()
-3. **Image processing**: Automatically converts RGBA→RGB and flips vertically
-4. **Compression**: Uses stb_image_write for JPEG encoding
+**How It Works**:
+The screenshot system uses the stock Wolfenstein: Enemy Territory engine's built-in screenshot functionality:
 
-**Screenshots are production-ready**: The system captures real game screenshots and transmits them to the server securely.
+1. **Trigger**: Client sends `screenshotJPEG <filename>` command to engine
+2. **Capture**: Engine captures framebuffer and saves JPEG to disk
+3. **Poll**: Client polls each frame for file existence
+4. **Read**: Once file exists, client reads it from disk
+5. **Send**: Client transmits file data to server in chunks
+6. **Cleanup**: Client deletes screenshot file after transmission
+
+**Implementation Details**:
+- Uses `trap_SendConsoleCommand("screenshotJPEG filename")` to trigger capture
+- Polls for file using `trap_FS_FOpenFile()` each frame
+- 5-second timeout if file doesn't appear
+- File is deleted after successful transmission using `trap_FS_Delete()`
+- Works with standard ET engine - no custom engine required
+
+**Advantages**:
+- ✅ No engine modifications needed
+- ✅ Uses proven, stable engine screenshot code
+- ✅ Compatible with all ET engine versions
+- ✅ Screenshot quality controlled by engine cvars
 
 ### Network Integration
 

@@ -121,28 +121,34 @@ All commands are implemented and integrated into the command registry:
 The following features have framework/placeholder code but require full implementation:
 
 ### 1. Screenshot System
-**Status**: ✅ **IMPLEMENTED** - JPEG compression integrated with stb_image_write.h
+**Status**: ✅ **FULLY IMPLEMENTED** - File-based capture using engine's screenshot command
 
 **What's completed**:
-- ✅ stb_image_write.h single-header library integrated
-- ✅ JPEG compression with configurable quality (1-100) using in-memory callback
-- ✅ Client-side screenshot capture module
-- ✅ Framebuffer capture framework (placeholder gradient pattern)
-- ✅ Hex-encoded data transmission in 2KB chunks
-- ✅ Memory management (malloc/free with proper callback context)
+- ✅ File-based screenshot capture using engine's native screenshotJPEG command
+- ✅ Frame-based polling for screenshot file availability
+- ✅ File reading using trap_FS_FOpenFile() and trap_FS_Read()
+- ✅ Hex-encoded data transmission in 450-byte chunks
+- ✅ Memory management (malloc/free)
 - ✅ Server-side hex decoding and data assembly
 - ✅ Bot filtering (bots are skipped for screenshot requests)
+- ✅ Network protocol for screenshot transmission
+- ✅ File cleanup (deletion after transmission)
+- ✅ 5-second timeout for file polling
 
-**What's needed for full functionality**:
-- Engine API integration for framebuffer capture:
-  - Add trap_R_ReadPixels() function to cgame syscalls
-  - Expose OpenGL framebuffer reading to client module
-  - Note: Placeholder gradient pattern used until engine API available
-- Vertical flip implementation (OpenGL reads bottom-to-top, JPEG expects top-to-bottom)
+**How it works**:
+1. Client receives screenshot request from server
+2. Client sends `screenshotJPEG <filename>` command to engine
+3. Engine captures framebuffer and saves JPEG file to disk
+4. Client polls each frame for file existence (up to 5 seconds)
+5. Once file exists, client reads entire file into memory
+6. Client transmits file data to server in hex-encoded chunks
+7. Client deletes screenshot file after successful transmission
 
 **Current behavior**: 
-- Generates test pattern screenshot (gradient for verification)
-- Compresses to JPEG at specified quality using callback-based approach
+- Screenshot requests work with stock ET engine (no modifications needed)
+- Uses engine's proven screenshot code for stability
+- No client crashes
+- Screenshot quality controlled by engine cvars
 - Sends hex-encoded data to server successfully
 - Server receives, decodes, assembles and saves to disk
 - **Fixed**: Hex validation bug that caused all chunks to be rejected

@@ -16,6 +16,12 @@ struct ScreenshotChunk {
     char hexData[901];  // 450 bytes * 2 + null terminator
 };
 
+// Screenshot file state tracking
+static char screenshotFilename[256] = {0};
+static int screenshotRequestTime = 0;
+static int screenshotQuality = 85;
+static int screenshotCounter = 0;  // Counter for unique filenames
+
 #define MAX_CHUNK_QUEUE 300  // Max chunks in queue (for ~135KB screenshot)
 static ScreenshotChunk chunkQueue[MAX_CHUNK_QUEUE];
 static int chunkQueueHead = 0;  // Next chunk to send
@@ -32,6 +38,7 @@ static int lastModuleScan = 0;
 
 // Module scanning interval (180 seconds)
 #define JXAC_MODULE_SCAN_INTERVAL 180000
+#define JXAC_SCREENSHOT_TIMEOUT 5000  // 5 seconds to wait for screenshot file
 
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -51,6 +58,9 @@ void Client::init() {
     chunkQueueCount = 0;
     screenshotTransferActive = qfalse;
     lastModuleScan = 0;
+    screenshotFilename[0] = '\0';
+    screenshotRequestTime = 0;
+    screenshotQuality = 85;
     
     // Initialize anti-tamper system
     AntiTamper::init();
@@ -96,6 +106,43 @@ void Client::frame() {
     
     // Anti-tamper checks (handles its own timing)
     AntiTamper::check();
+    
+    // Check for pending screenshot file
+    if ( screenshotPending && screenshotFilename[0] != '\0' ) {
+        // Try to read the screenshot file
+        fileHandle_t f;
+        int len = trap_FS_FOpenFile( screenshotFilename, &f, FS_READ );
+        
+        if ( len > 0 ) {
+            // File exists and has content - read it
+            unsigned char* fileData = (unsigned char*)malloc( len );
+            if ( fileData ) {
+                trap_FS_Read( fileData, len, f );
+                trap_FS_FCloseFile( f );
+                
+                // Send the screenshot data
+                sendScreenshotData( fileData, len );
+                free( fileData );
+                
+                // Delete the screenshot file
+                trap_FS_Delete( screenshotFilename );
+                
+                // Clear pending state
+                screenshotPending = qfalse;
+                screenshotFilename[0] = '\0';
+            } else {
+                trap_FS_FCloseFile( f );
+            }
+        } else {
+            // File doesn't exist or is empty - check for timeout
+            if ( cg.time - screenshotRequestTime > JXAC_SCREENSHOT_TIMEOUT ) {
+                // Timeout - give up
+                screenshotPending = qfalse;
+                screenshotFilename[0] = '\0';
+            }
+            // Note: Don't close file handle when len <= 0 (file not opened)
+        }
+    }
     
     // Process screenshot chunk queue (send 1-2 chunks per frame to avoid overflow)
     if ( screenshotTransferActive && chunkQueueCount > 0 ) {
@@ -162,28 +209,24 @@ void Client::captureScreenshot( int quality ) {
     if ( quality < JXAC_SS_QUALITY_MIN ) quality = JXAC_SS_QUALITY_MIN;
     if ( quality > JXAC_SS_QUALITY_MAX ) quality = JXAC_SS_QUALITY_MAX;
     
-    // Silent capture - no console output
+    // Store quality for potential retry
+    screenshotQuality = quality;
     
-    // Use the Screenshot module to capture and compress
-    int jpegSize = 0;
-    unsigned char* jpegData = Screenshot::captureAndCompress( &jpegSize, quality );
+    // Generate unique filename using timestamp and counter
+    // Format: screenshots/jxac_TIMESTAMP_COUNTER.jpg
+    Com_sprintf( screenshotFilename, sizeof(screenshotFilename), 
+                 "screenshots/jxac_%d_%d.jpg", cg.time, screenshotCounter++ );
     
-    if ( !jpegData || jpegSize <= 0 ) {
-        // Silent failure
-        screenshotPending = qfalse;
-        return;
-    }
+    // Record request time for timeout checking
+    screenshotRequestTime = cg.time;
     
-    // Silent transmission - no console output
+    // Trigger screenshot using engine's native command
+    // This works with stock ET engine without any modifications
+    // Note: Quality is controlled by engine cvars, not command parameters
+    trap_SendConsoleCommand( va("screenshotJPEG %s\n", screenshotFilename) );
     
-    // Queue screenshot data for frame-based sending
-    sendScreenshotData( jpegData, jpegSize );
-    
-    // Clean up
-    free( jpegData );
-    screenshotPending = qfalse;
-    
-    // Silent completion - no console output
+    // The frame() function will poll for the file and send it when ready
+    // screenshotPending flag is already set by handleScreenshotRequest()
 }
 
 ///////////////////////////////////////////////////////////////////////////////
