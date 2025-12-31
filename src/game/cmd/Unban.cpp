@@ -1,4 +1,5 @@
 #include <bgame/impl.h>
+#include <game/xmod_globals.h>
 
 namespace cmd {
 
@@ -27,19 +28,29 @@ Unban::doExecute( Context& txt )
 
     // bail on invalid id
     const string& id = txt._args[1];
-    User& user = lookupUSER( id, txt );
-    if (user == User::BAD)
-        return PA_ERROR;
-
-    userDB.unindex( user );
-    user.banned = false;
-    userDB.index( user );
-
-    Buffer buf;
-    buf << _name << ": User ID " << xvalue( id ) << " (" << xvalue( user.namex ) << ") unbanned.";
-
-    printCpm( txt._client, buf, true );
-    return PA_NONE;
+    
+    // Try to parse as GUID or ban ID
+    if (xmod::g_database && xmod::g_database->isOpened()) {
+        // First try to unban by GUID
+        if (xmod::g_database->unbanUser(id)) {
+            Buffer buf;
+            buf << _name << ": User " << xvalue( id ) << " unbanned.";
+            printCpm( txt._client, buf, true );
+            return PA_NONE;
+        }
+        
+        // Try as numeric ban ID
+        int banId = atoi(id.c_str());
+        if (banId > 0 && xmod::g_database->unbanById(banId)) {
+            Buffer buf;
+            buf << _name << ": Ban ID " << xvalue( id ) << " removed.";
+            printCpm( txt._client, buf, true );
+            return PA_NONE;
+        }
+    }
+    
+    txt._ebuf << "User not found or unable to unban.";
+    return PA_ERROR;
 }
 
 ///////////////////////////////////////////////////////////////////////////////

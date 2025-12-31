@@ -1672,46 +1672,34 @@ void ClientUserinfoChanged( int clientNum ) {
         user.mac = mac;
 
         // Since new information has arrived, check MAC (and GUID just in case it did happen to change).
-        User* subject;
-        string detail;
-        switch (userDB.checkBan( user.guid, "", user.mac, subject, detail )) {
-            default:
-            case UserDB::BAN_NONE:
-                break;
-
-            case UserDB::BAN_LIFTED:
-                G_LogPrintf( "BAN lifted: %s (client %d)\n", detail.c_str(), clientNum );
+        // Check ban using SQLite database
+        if (xmod::g_database && xmod::g_database->isOpened()) {
+            xmod::BanData banData;
+            if (xmod::g_database->isBanned(user.guid, user.mac, banData)) {
+                G_LogPrintf( "BAN enforced: %s (client %d)\n", banData.reason.c_str(), clientNum );
                 if (g_logOptions.integer & LOGOPTS_BAN)
-                    AP( va( "cpm \"BAN lifted: %s (client %d)\"", detail.c_str(), clientNum ));
-                break;
+                    AP( va( "cpm \"BAN enforced: %s (client %d)\"", banData.name.c_str(), clientNum ));
 
-            case UserDB::BAN_ACTIVE:
-                {
-                    G_LogPrintf( "BAN enforced: %s (client %d)\n", detail.c_str(), clientNum );
-                    if (g_logOptions.integer & LOGOPTS_BAN)
-                        AP( va( "cpm \"BAN enforced: %s (client %d)\"", detail.c_str(), clientNum ));
+                const string remain = banData.expires
+                   ? str::toStringSecondsRemaining( banData.expires )
+                   : "PERMANENT";
 
-                    const string remain = subject->banExpiry
-                       ? str::toStringSecondsRemaining( subject->banExpiry )
-                       : "PERMANENT";
+                using namespace text;
+                Buffer msg;
 
-                    using namespace text;
-                    Buffer msg;
+                msg << '\n' << "player: " << xvalue( banData.name )
+                    << '\n'
+                    << '\n' << "remaining:"
+                    << '\n' << xvalue( remain );
 
-                    msg << '\n' << "player: " << xvalue( subject->namex )
-                        << '\n'
-                        << '\n' << "remaining:"
-                        << '\n' << xvalue( remain );
-
-                    if (!subject->banReason.empty()) {
-                        msg << '\n'
-                            << '\n' << "reason:"
-                            << '\n' << xvalue( subject->banReason );
-                    }
-
-                    SEngine::dropClient( clientNum, msg, "You are banned from this server." );
+                if (!banData.reason.empty()) {
+                    msg << '\n'
+                        << '\n' << "reason:"
+                        << '\n' << xvalue( banData.reason );
                 }
-                break;
+
+                SEngine::dropClient( clientNum, msg, "You are banned from this server." );
+            }
         }
     }
 
@@ -1984,7 +1972,7 @@ ClientConnect( string& outmsg, int clientNum, qboolean firstTime, qboolean isBot
             return true;
         }
 
-        // Enforce user.db bans.
+        // Enforce SQLite bans.
         {
             string mac = Info_ValueForKey( userinfo, "cl_mac" );
             str::toLower( mac );
@@ -1992,47 +1980,35 @@ ClientConnect( string& outmsg, int clientNum, qboolean firstTime, qboolean isBot
             string ip = Info_ValueForKey( userinfo, "ip" );
             G_StripIPPort( ip );
 
-            User* subject;
-            string detail;
-            switch (userDB.checkBan( guid, ip, mac, subject, detail )) {
-                default:
-                case UserDB::BAN_NONE:
-                    break;
+            // Check ban using SQLite database
+            if (xmod::g_database && xmod::g_database->isOpened()) {
+                xmod::BanData banData;
+                if (xmod::g_database->isBanned(guid, mac, banData)) {
+                    G_LogPrintf( "BAN enforced: %s (client %d)\n", banData.reason.c_str(), clientNum );
+                    if (g_logOptions.integer & LOGOPTS_BAN)
+                        AP( va( "cpm \"BAN enforced: %s (client %d)\"", banData.name.c_str(), clientNum ));
 
-                case UserDB::BAN_LIFTED:
-                    G_LogPrintf( "BAN lifted: %s (client %d)\n", detail.c_str(), clientNum );
-		            if (g_logOptions.integer & LOGOPTS_BAN)
-                        AP( va( "cpm \"BAN lifted: %s (client %d)\"", detail.c_str(), clientNum ));
-                    break;
+                    const string remain = banData.expires
+                       ? str::toStringSecondsRemaining( banData.expires )
+                       : "PERMANENT";
 
-                case UserDB::BAN_ACTIVE:
-                    {
-                        G_LogPrintf( "BAN enforced: %s (client %d)\n", detail.c_str(), clientNum );
-                        if (g_logOptions.integer & LOGOPTS_BAN)
-                            AP( va( "cpm \"BAN enforced: %s (client %d)\"", detail.c_str(), clientNum ));
+                    using namespace text;
+                    Buffer msg;
 
-                        const string remain = subject->banExpiry
-                           ? str::toStringSecondsRemaining( subject->banExpiry )
-                           : "PERMANENT";
+                    msg << '\n' << "player: " << xvalue( banData.name )
+                        << '\n'
+                        << '\n' << "remaining:"
+                        << '\n' << xvalue( remain );
 
-                        using namespace text;
-                        Buffer msg;
-
-                        msg << '\n' << "player: " << xvalue( subject->namex )
-                            << '\n'
-                            << '\n' << "remaining:"
-                            << '\n' << xvalue( remain );
-
-                        if (!subject->banReason.empty()) {
-                            msg << '\n'
-                                << '\n' << "reason:"
-                                << '\n' << xvalue( subject->banReason );
-                        }
-
-                        str::toDropMessage( outmsg, true, msg, "You are banned from this server." );
-                        return true;
+                    if (!banData.reason.empty()) {
+                        msg << '\n'
+                            << '\n' << "reason:"
+                            << '\n' << xvalue( banData.reason );
                     }
-                    break;
+
+                    str::toDropMessage( outmsg, true, msg, "You are banned from this server." );
+                    return true;
+                }
             }
         }
 

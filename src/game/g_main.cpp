@@ -1828,7 +1828,7 @@ void G_InitGame( int levelTime, int randomSeed, int restart ) {
 
     // Load users databases
 	levelDB.load();
-	userDB.load( false );
+	// userDB.load( false );  // Disabled: Using xmod SQLite database instead of legacy user.db
 
     // Load maps database
     mapDB.load();
@@ -2091,10 +2091,11 @@ void G_InitGame( int levelTime, int randomSeed, int restart ) {
 
     // Jaybird
     // If this is campaign mode and it's a new campaign with the reset xp flag set,
-    // have the userDB wipe out all xp records if the client is connected or not.
+    // reset all XP in the SQLite database.
     if (g_gametype.integer == GT_WOLF_CAMPAIGN && level.newCampaign)
         if (g_xpSave.integer & XPSAVE_RESETCAMPAIGN)
-            userDB.xpResetAll();
+            if (xmod::g_database && xmod::g_database->isOpened())
+                xmod::g_database->resetAllXp();
 
 	numSplinePaths = 0 ;
 	numPathCorners = 0;
@@ -2256,8 +2257,8 @@ void G_ShutdownGame( int restart ) {
 	mdx_cleanup();
 
 	levelDB.save();
-    userDB.purge();
-	userDB.save();
+    // userDB.purge();  // Disabled: Using xmod SQLite database instead of legacy user.db
+	// userDB.save();   // Disabled: Using xmod SQLite database instead of legacy user.db
     mapDB.save();
 
     molotov::shutdown();

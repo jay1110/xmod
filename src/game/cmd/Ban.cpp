@@ -1,4 +1,5 @@
 #include <bgame/impl.h>
+#include <game/xmod_globals.h>
 
 namespace cmd {
 
@@ -30,17 +31,17 @@ Ban::doBan( User& user, User& authority, int duration, const string& reason, Buf
         << (duration ? str::toStringSecondsRemaining( duration, true ) : "permanently")
         << '.';
 
-    userDB.unindex( user );
-
-    // Set up ban record
-    user.banned = true;
-    user.banTime = time( NULL );
-    user.banExpiry = duration ? user.banTime + duration : 0; // 0 is a permanent ban
-    user.banReason = reason;
-    user.banAuthority = authority.name;
-    user.banAuthorityx = authority.namex;
-
-    userDB.index( user );
+    // Get HWID from xmod session if available
+    string hwid = "";
+    if (client && xmod::g_sessions[client->slot] && xmod::g_sessions[client->slot]->isAuthenticated()) {
+        hwid = xmod::g_sessions[client->slot]->getHwid();
+    }
+    
+    // Add ban to SQLite database
+    time_t expires = duration ? time(NULL) + duration : 0;
+    if (xmod::g_database && xmod::g_database->isOpened()) {
+        xmod::g_database->banUser(user.guid, hwid, user.ip, user.name, authority.name, reason, expires);
+    }
 
     if (!client)
         return;

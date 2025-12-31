@@ -1,4 +1,5 @@
 #include <bgame/impl.h>
+#include <game/xmod_globals.h>
 
 namespace cmd {
 
@@ -25,14 +26,12 @@ Seen::doExecute( Context& txt )
     if (txt._args.size() != 2)
         return PA_USAGE;
 
+    if (!xmod::g_database || !xmod::g_database->isOpened()) {
+        txt._ebuf << "Database not available.";
+        return PA_ERROR;
+    }
+
     const time_t now = time( NULL );
-
-    // create a temporary set for online checks
-    typedef set<const User*> Online;
-    Online online;
-
-    for (int i = 0; i < level.numConnectedClients; i++)
-        online.insert( connectedUsers[level.sortedClients[i]] );
 
     // now look for name matches
     const string name = SanitizeString( txt._args[1], false );
@@ -42,19 +41,19 @@ Seen::doExecute( Context& txt )
         return PA_ERROR;
     }
 
-    string err;
-    list<User*> users;
-    if (userDB.fetchByName( name, users, err )) {
-        txt._ebuf << xvalue( "NAME" ) << ' ' << err << ": " << xvalue( name ) << " .";
-        return PA_ERROR;
+    std::vector<xmod::UserData> users;
+    if (!xmod::g_database->searchUsersByName(name, users) || users.empty()) {
+        Buffer buf;
+        buf << _name << ": No match found.";
+        printChat( txt._client, buf );
+        return PA_NONE;
     }
 
     Buffer buf;
     static const int maxOutput = 4;
     int outputCount = 0;
 
-    const list<User*>::const_iterator max = users.end();
-    for ( list<User*>::const_iterator it = users.begin(); it != max; it++ ) {
+    for (std::vector<xmod::UserData>::const_iterator it = users.begin(); it != users.end(); ++it) {
         if (++outputCount > maxOutput)
             break;
 
@@ -62,15 +61,28 @@ Seen::doExecute( Context& txt )
             buf << '\n';
         buf << _name << ": ";
 
-        User& user = **it;
-        if (online.find( &user ) != online.end()) {
-            buf << xvalue( user.namex ) << " is currently online.";
+        const xmod::UserData& user = *it;
+        
+        // Check if user is currently online by matching GUID
+        bool isOnline = false;
+        for (int i = 0; i < level.numConnectedClients; i++) {
+            int slot = level.sortedClients[i];
+            if (xmod::g_sessions[slot] && xmod::g_sessions[slot]->isAuthenticated()) {
+                if (xmod::g_sessions[slot]->getGuid() == user.guid) {
+                    isOnline = true;
+                    break;
+                }
+            }
+        }
+        
+        if (isOnline) {
+            buf << xvalue( user.name ) << " is currently online.";
             continue;
         }
 
-        const time_t delta = now - user.timestamp;
+        const time_t delta = now - user.lastSeen;
         const string stime = str::toStringSecondsRemaining( delta, true );
-        buf << xvalue( user.namex ) << ' ' << xvalue( stime ) << " ago.";
+        buf << xvalue( user.name ) << ' ' << xvalue( stime ) << " ago.";
     }
 
     if (outputCount == 0)

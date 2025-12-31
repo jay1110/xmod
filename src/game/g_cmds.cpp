@@ -3654,41 +3654,9 @@ void ClientCommand( int clientNum ) {
 			clientObject.authHwid = hwid;
 			clientObject.authenticated = true;
 
-			// Use new xmod session system if available
+			// Use xmod session system for authentication
 			if (xmod::g_database && xmod::g_sessions[clientNum]) {
 				xmod::g_sessions[clientNum]->onGuidReceived(guid, hwid);
-			} else {
-				// Fallback to legacy UserDB system
-				// Check for HWID ban
-				User* bannedUser = NULL;
-				string banDetail;
-				UserDB::BanStatus banStatus = userDB.checkBanByHWID( hwid, bannedUser, banDetail );
-
-				if (banStatus == UserDB::BAN_ACTIVE) {
-					string msg = "You are banned: " + banDetail;
-					if (bannedUser && !bannedUser->banReason.empty()) {
-						msg += " - " + bannedUser->banReason;
-					}
-					trap_DropClient( clientNum, msg.c_str(), 0 );
-					return;
-				}
-
-				// Add HWID to user's HWID list if not already present
-				User* user = connectedUsers[clientNum];
-				if (user && user != &User::BAD) {
-					bool hwidFound = false;
-					for (vector<string>::const_iterator it = user->hwids.begin(); it != user->hwids.end(); ++it) {
-						if (*it == hwid) {
-							hwidFound = true;
-							break;
-						}
-					}
-					if (!hwidFound) {
-						userDB.unindex( *user );
-						user->hwids.push_back( hwid );
-						userDB.index( *user );
-					}
-				}
 			}
 		}
 		return;

@@ -1,4 +1,5 @@
 #include <bgame/impl.h>
+#include <game/xmod_globals.h>
 
 namespace cmd {
 
@@ -8,11 +9,7 @@ BanList::BanList()
     : AbstractBuiltin( "banlist" )
 {
     __usage << xvalue( "!" + _name )
-            << ' ' << _ovalue( "-ip IP" )
-            << ' ' << _ovalue( "-level LEVEL" )
-            << ' ' << _ovalue( "-name NAME" )
-            << ' ' << _ovalue( "-since SECONDS" )
-            << ' ' << _ovalue( "-auth AUTHORITY" );
+            << ' ' << _ovalue( "-name NAME" );
 
     __descr << "List banned users.";
 }
@@ -28,21 +25,18 @@ BanList::~BanList()
 AbstractCommand::PostAction
 BanList::doExecute( Context& txt )
 {
-    // bail if nothing to display
-    if (userDB.mapBANTIME.empty()) {
+    if (!xmod::g_database || !xmod::g_database->isOpened()) {
+        txt._ebuf << "Database not available.";
+        return PA_ERROR;
+    }
+
+    std::vector<xmod::BanData> bans;
+    if (!xmod::g_database->getBanList(bans) || bans.empty()) {
         txt._ebuf << "There are no banned users.";
         return PA_ERROR;
     }
 
-    struct Filter {
-        string auth;  
-        string ip;
-        int    level;
-        string name;  
-        int    since; 
-    };
-    Filter filter = { "", "", -1, "", 0 };
-
+    string nameFilter;
     // parse filter options    
     {
         const vector<string>::size_type max = txt._args.size();
@@ -54,27 +48,9 @@ BanList::doExecute( Context& txt )
             string s = txt._args[i];
             str::toLower( s );
 
-            if (s == "-auth" ) {
-                filter.auth = txt._args[++i];
-                str::toLower( filter.auth );
-            }
-            else if (s == "-ip" ) {
-                filter.ip = txt._args[++i];
-            }
-            else if (s == "-level") {
-                const string& s = txt._args[++i];
-                string err;
-                Level& lev = lookupLEVEL( s, txt );
-                if (lev == Level::BAD)
-                    return PA_ERROR;
-                filter.level = lev.level;
-            }
-            else if (s == "-name") {
-                filter.name = txt._args[++i];
-                str::toLower( filter.name );
-            }
-            else if (s == "-since") {
-                filter.since = str::toSeconds( txt._args[++i] );
+            if (s == "-name") {
+                nameFilter = txt._args[++i];
+                str::toLower( nameFilter );
             }
             else {
                 return PA_USAGE;
@@ -120,60 +96,44 @@ BanList::doExecute( Context& txt )
 
     uint32 numExpired = 0;
     uint32 num = 0;
-    const UserDB::mapBANTIME_t::const_reverse_iterator max = userDB.mapBANTIME.rend();
-    for ( UserDB::mapBANTIME_t::const_reverse_iterator it = userDB.mapBANTIME.rbegin(); it != max; it++ ) {
-        const User& user = *it->second;
-        const string id = (user.guid.length() == 32) ? user.guid.substr( 24 ) : "";
+    
+    for (std::vector<xmod::BanData>::const_iterator it = bans.begin(); it != bans.end(); ++it) {
+        const xmod::BanData& ban = *it;
+        
+        // Generate ID from ban ID or GUID
+        ostringstream idStream;
+        idStream << ban.id;
+        string id = idStream.str();
 
-        const time_t deltaTime = user.banExpiry - now;
+        const time_t deltaTime = ban.expires - now;
 
-        // skip if ban has expired
-        if (user.banExpiry && deltaTime < 0) {
+        // skip if ban has expired (non-permanent bans)
+        if (ban.expires != 0 && deltaTime < 0) {
             numExpired++;
             continue;
         }
 
-        if (!filter.auth.empty()) {
-            tmp = user.banAuthority;
+        if (!nameFilter.empty()) {
+            tmp = ban.name;
             str::toLower( tmp );
-            if (tmp.find( filter.auth ) == string::npos)
+            if (tmp.find( nameFilter ) == string::npos)
                 continue;
         }
-
-        if (!filter.ip.empty() && (user.ip.find( filter.ip ) == string::npos))
-            continue;
-
-        if (filter.level != -1 && user.authLevel != filter.level)
-            continue;
-
-        if (!filter.name.empty()) {
-            tmp = user.name;
-            str::toLower( tmp );
-            if (tmp.find( filter.name ) == string::npos)
-                continue;
-        }
-
-        if (filter.since > 0 && ((now - user.timestamp) > filter.since))
-            continue;
 
         if (++num > (Page::maxLines * Page::maxPages))
             break;
 
-        // format ban time
-        char ftime[32];
-        strftime( ftime, sizeof(ftime), "%c", localtime( &user.banTime ));
-
         buf << '\n'
             << cID      ( id )
-            << cWhen    ( ftime )
-            << cSubject ( str::etAlignLeft( user.namex, cSubject.width, tmp ));
+            << cWhen    ( ban.ban_date )
+            << cSubject ( ban.name );
 
         ostringstream remain;
-        if (!user.banExpiry) {
+        if (ban.expires == 0) {
             remain << "permanent";
         }
         else {
-            int secs = (user.banExpiry - now);
+            int secs = (ban.expires - now);
 
             int days = secs / (60*60*24);
             secs -= (days * (60*60*24));
@@ -195,7 +155,7 @@ BanList::doExecute( Context& txt )
         }
 
         buf << cRemain ( remain.str() )
-            << cAuth   ( user.banAuthorityx );
+            << cAuth   ( ban.banned_by );
     }
 
     Page::report( txt._client, buf );

@@ -735,4 +735,349 @@ bool Database::updateMapSpreeRecord(const std::string& mapName, int spreeRecord,
 
 ///////////////////////////////////////////////////////////////////////////////
 
+bool Database::unbanById(int banId) {
+    if (!isOpen || !db) return false;
+
+    const char* sql = "DELETE FROM bans WHERE id = ?;";
+    sqlite3_stmt* stmt = nullptr;
+    
+    int rc = sqlite3_prepare_v2(db, sql, -1, &stmt, nullptr);
+    if (rc != SQLITE_OK) {
+        return false;
+    }
+
+    sqlite3_bind_int(stmt, 1, banId);
+    
+    rc = sqlite3_step(stmt);
+    sqlite3_finalize(stmt);
+
+    return rc == SQLITE_DONE;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+
+bool Database::getBanList(std::vector<BanData>& bans) {
+    if (!isOpen || !db) return false;
+
+    bans.clear();
+    
+    const char* sql = "SELECT id, name, guid, hwid, ip, banned_by, ban_date, expires, reason "
+                      "FROM bans ORDER BY id DESC;";
+    sqlite3_stmt* stmt = nullptr;
+    
+    int rc = sqlite3_prepare_v2(db, sql, -1, &stmt, nullptr);
+    if (rc != SQLITE_OK) {
+        return false;
+    }
+
+    while (sqlite3_step(stmt) == SQLITE_ROW) {
+        BanData banData;
+        banData.id = sqlite3_column_int(stmt, 0);
+        
+        const char* name = (const char*)sqlite3_column_text(stmt, 1);
+        banData.name = name ? name : "";
+        
+        const char* guid = (const char*)sqlite3_column_text(stmt, 2);
+        banData.guid = guid ? guid : "";
+        
+        const char* hwid = (const char*)sqlite3_column_text(stmt, 3);
+        banData.hwid = hwid ? hwid : "";
+        
+        const char* ip = (const char*)sqlite3_column_text(stmt, 4);
+        banData.ip = ip ? ip : "";
+        
+        const char* banned_by = (const char*)sqlite3_column_text(stmt, 5);
+        banData.banned_by = banned_by ? banned_by : "";
+        
+        const char* ban_date = (const char*)sqlite3_column_text(stmt, 6);
+        banData.ban_date = ban_date ? ban_date : "";
+        
+        banData.expires = (time_t)sqlite3_column_int64(stmt, 7);
+        
+        const char* reason = (const char*)sqlite3_column_text(stmt, 8);
+        banData.reason = reason ? reason : "";
+        
+        bans.push_back(banData);
+    }
+
+    sqlite3_finalize(stmt);
+    return true;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+
+int Database::getBanCount() {
+    if (!isOpen || !db) return 0;
+
+    const char* sql = "SELECT COUNT(*) FROM bans;";
+    sqlite3_stmt* stmt = nullptr;
+    
+    int rc = sqlite3_prepare_v2(db, sql, -1, &stmt, nullptr);
+    if (rc != SQLITE_OK) {
+        return 0;
+    }
+
+    int count = 0;
+    if (sqlite3_step(stmt) == SQLITE_ROW) {
+        count = sqlite3_column_int(stmt, 0);
+    }
+
+    sqlite3_finalize(stmt);
+    return count;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+
+bool Database::getUserList(std::vector<UserData>& users) {
+    if (!isOpen || !db) return false;
+
+    users.clear();
+    
+    const char* sql = "SELECT id, guid, level, lastSeen, name, hwid, title, commands, greeting, xp_skills, muted "
+                      "FROM users ORDER BY lastSeen DESC;";
+    sqlite3_stmt* stmt = nullptr;
+    
+    int rc = sqlite3_prepare_v2(db, sql, -1, &stmt, nullptr);
+    if (rc != SQLITE_OK) {
+        return false;
+    }
+
+    while (sqlite3_step(stmt) == SQLITE_ROW) {
+        UserData data;
+        data.id = sqlite3_column_int(stmt, 0);
+        
+        const char* guid = (const char*)sqlite3_column_text(stmt, 1);
+        data.guid = guid ? guid : "";
+        
+        data.level = sqlite3_column_int(stmt, 2);
+        data.lastSeen = (time_t)sqlite3_column_int64(stmt, 3);
+        
+        const char* name = (const char*)sqlite3_column_text(stmt, 4);
+        data.name = name ? name : "";
+        
+        const char* hwid = (const char*)sqlite3_column_text(stmt, 5);
+        data.hwid = hwid ? hwid : "";
+        
+        const char* title = (const char*)sqlite3_column_text(stmt, 6);
+        data.title = title ? title : "";
+        
+        const char* commands = (const char*)sqlite3_column_text(stmt, 7);
+        data.commands = commands ? commands : "";
+        
+        const char* greeting = (const char*)sqlite3_column_text(stmt, 8);
+        data.greeting = greeting ? greeting : "";
+        
+        const char* xp_skills = (const char*)sqlite3_column_text(stmt, 9);
+        data.xp_skills = xp_skills ? xp_skills : "";
+        
+        data.muted = sqlite3_column_int(stmt, 10) != 0;
+        
+        users.push_back(data);
+    }
+
+    sqlite3_finalize(stmt);
+    return true;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+
+bool Database::searchUsersByName(const std::string& name, std::vector<UserData>& users) {
+    if (!isOpen || !db) return false;
+
+    users.clear();
+    
+    const char* sql = "SELECT id, guid, level, lastSeen, name, hwid, title, commands, greeting, xp_skills, muted "
+                      "FROM users WHERE name LIKE ? ESCAPE '\\' ORDER BY lastSeen DESC;";
+    sqlite3_stmt* stmt = nullptr;
+    
+    int rc = sqlite3_prepare_v2(db, sql, -1, &stmt, nullptr);
+    if (rc != SQLITE_OK) {
+        return false;
+    }
+
+    // Escape SQL LIKE wildcards in the search pattern
+    std::string escapedName;
+    for (std::string::const_iterator it = name.begin(); it != name.end(); ++it) {
+        if (*it == '%' || *it == '_') {
+            escapedName += '\\';
+        }
+        escapedName += *it;
+    }
+    std::string pattern = "%" + escapedName + "%";
+    sqlite3_bind_text(stmt, 1, pattern.c_str(), -1, SQLITE_TRANSIENT);
+
+    while (sqlite3_step(stmt) == SQLITE_ROW) {
+        UserData data;
+        data.id = sqlite3_column_int(stmt, 0);
+        
+        const char* guid = (const char*)sqlite3_column_text(stmt, 1);
+        data.guid = guid ? guid : "";
+        
+        data.level = sqlite3_column_int(stmt, 2);
+        data.lastSeen = (time_t)sqlite3_column_int64(stmt, 3);
+        
+        const char* name_col = (const char*)sqlite3_column_text(stmt, 4);
+        data.name = name_col ? name_col : "";
+        
+        const char* hwid = (const char*)sqlite3_column_text(stmt, 5);
+        data.hwid = hwid ? hwid : "";
+        
+        const char* title = (const char*)sqlite3_column_text(stmt, 6);
+        data.title = title ? title : "";
+        
+        const char* commands = (const char*)sqlite3_column_text(stmt, 7);
+        data.commands = commands ? commands : "";
+        
+        const char* greeting = (const char*)sqlite3_column_text(stmt, 8);
+        data.greeting = greeting ? greeting : "";
+        
+        const char* xp_skills = (const char*)sqlite3_column_text(stmt, 9);
+        data.xp_skills = xp_skills ? xp_skills : "";
+        
+        data.muted = sqlite3_column_int(stmt, 10) != 0;
+        
+        users.push_back(data);
+    }
+
+    sqlite3_finalize(stmt);
+    return true;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+
+bool Database::deleteUser(int id) {
+    if (!isOpen || !db) return false;
+
+    const char* sql = "DELETE FROM users WHERE id = ?;";
+    sqlite3_stmt* stmt = nullptr;
+    
+    int rc = sqlite3_prepare_v2(db, sql, -1, &stmt, nullptr);
+    if (rc != SQLITE_OK) {
+        return false;
+    }
+
+    sqlite3_bind_int(stmt, 1, id);
+    
+    rc = sqlite3_step(stmt);
+    sqlite3_finalize(stmt);
+
+    return rc == SQLITE_DONE;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+
+bool Database::deleteUserByGuid(const std::string& guid) {
+    if (!isOpen || !db) return false;
+
+    const char* sql = "DELETE FROM users WHERE guid = ?;";
+    sqlite3_stmt* stmt = nullptr;
+    
+    int rc = sqlite3_prepare_v2(db, sql, -1, &stmt, nullptr);
+    if (rc != SQLITE_OK) {
+        return false;
+    }
+
+    sqlite3_bind_text(stmt, 1, guid.c_str(), -1, SQLITE_TRANSIENT);
+    
+    rc = sqlite3_step(stmt);
+    sqlite3_finalize(stmt);
+
+    return rc == SQLITE_DONE;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+
+int Database::getUserCount() {
+    if (!isOpen || !db) return 0;
+
+    const char* sql = "SELECT COUNT(*) FROM users;";
+    sqlite3_stmt* stmt = nullptr;
+    
+    int rc = sqlite3_prepare_v2(db, sql, -1, &stmt, nullptr);
+    if (rc != SQLITE_OK) {
+        return 0;
+    }
+
+    int count = 0;
+    if (sqlite3_step(stmt) == SQLITE_ROW) {
+        count = sqlite3_column_int(stmt, 0);
+    }
+
+    sqlite3_finalize(stmt);
+    return count;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+
+bool Database::resetAllXp() {
+    if (!isOpen || !db) return false;
+
+    const char* sql = "UPDATE users SET xp_skills = NULL;";
+    return executeSQL(sql);
+}
+
+///////////////////////////////////////////////////////////////////////////////
+
+bool Database::getOrCreateUser(const std::string& guid, const std::string& name, UserData& data) {
+    if (!isOpen || !db) return false;
+
+    // First try to get existing user
+    if (getUserData(guid, data)) {
+        return true;
+    }
+
+    // User doesn't exist, create new one
+    if (!addUser(guid, "", name)) {
+        return false;
+    }
+
+    // Now fetch the newly created user
+    return getUserData(guid, data);
+}
+
+///////////////////////////////////////////////////////////////////////////////
+
+int Database::migrateLevel(int fromLevel, int toLevel) {
+    if (!isOpen || !db) return 0;
+
+    // First count how many will be affected
+    const char* countSql = "SELECT COUNT(*) FROM users WHERE level = ?;";
+    sqlite3_stmt* countStmt = nullptr;
+    
+    int rc = sqlite3_prepare_v2(db, countSql, -1, &countStmt, nullptr);
+    if (rc != SQLITE_OK) {
+        return 0;
+    }
+
+    sqlite3_bind_int(countStmt, 1, fromLevel);
+    int count = 0;
+    if (sqlite3_step(countStmt) == SQLITE_ROW) {
+        count = sqlite3_column_int(countStmt, 0);
+    }
+    sqlite3_finalize(countStmt);
+
+    if (count == 0) {
+        return 0;
+    }
+
+    // Now update all users from oldLevel to newLevel
+    const char* sql = "UPDATE users SET level = ? WHERE level = ?;";
+    sqlite3_stmt* stmt = nullptr;
+    
+    rc = sqlite3_prepare_v2(db, sql, -1, &stmt, nullptr);
+    if (rc != SQLITE_OK) {
+        return 0;
+    }
+
+    sqlite3_bind_int(stmt, 1, toLevel);
+    sqlite3_bind_int(stmt, 2, fromLevel);
+    
+    rc = sqlite3_step(stmt);
+    sqlite3_finalize(stmt);
+
+    return (rc == SQLITE_DONE) ? count : 0;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+
 } // namespace xmod
