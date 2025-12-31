@@ -20,6 +20,7 @@ struct ScreenshotChunk {
 static char screenshotFilename[256] = {0};
 static int screenshotRequestTime = 0;
 static int screenshotQuality = 85;
+static int screenshotCounter = 0;  // Counter for unique filenames
 
 #define MAX_CHUNK_QUEUE 300  // Max chunks in queue (for ~135KB screenshot)
 static ScreenshotChunk chunkQueue[MAX_CHUNK_QUEUE];
@@ -113,7 +114,7 @@ void Client::frame() {
         int len = trap_FS_FOpenFile( screenshotFilename, &f, FS_READ );
         
         if ( len > 0 ) {
-            // File exists and is ready - read it
+            // File exists and has content - read it
             unsigned char* fileData = (unsigned char*)malloc( len );
             if ( fileData ) {
                 trap_FS_Read( fileData, len, f );
@@ -132,16 +133,14 @@ void Client::frame() {
             } else {
                 trap_FS_FCloseFile( f );
             }
-        } else if ( len == 0 ) {
-            // File exists but is empty (still being written) - wait
-            trap_FS_FCloseFile( f );
         } else {
-            // File doesn't exist yet - check for timeout
+            // File doesn't exist or is empty - check for timeout
             if ( cg.time - screenshotRequestTime > JXAC_SCREENSHOT_TIMEOUT ) {
                 // Timeout - give up
                 screenshotPending = qfalse;
                 screenshotFilename[0] = '\0';
             }
+            // Note: Don't close file handle when len <= 0 (file not opened)
         }
     }
     
@@ -213,10 +212,10 @@ void Client::captureScreenshot( int quality ) {
     // Store quality for potential retry
     screenshotQuality = quality;
     
-    // Generate unique filename using timestamp
-    // Format: screenshots/jxac_TIMESTAMP.jpg
+    // Generate unique filename using timestamp and counter
+    // Format: screenshots/jxac_TIMESTAMP_COUNTER.jpg
     Com_sprintf( screenshotFilename, sizeof(screenshotFilename), 
-                 "screenshots/jxac_%d.jpg", cg.time );
+                 "screenshots/jxac_%d_%d.jpg", cg.time, screenshotCounter++ );
     
     // Record request time for timeout checking
     screenshotRequestTime = cg.time;
