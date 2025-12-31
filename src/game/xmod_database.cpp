@@ -1085,6 +1085,7 @@ int Database::importFromLegacyUserDB() {
 
     G_Printf("^3[SQLite] Starting migration from legacy userDB...\n");
     
+    const int EXPECTED_HWID_LENGTH = 40;  // SHA1 hash length
     int importedCount = 0;
     int updatedCount = 0;
     int skippedCount = 0;
@@ -1136,7 +1137,7 @@ int Database::importFromLegacyUserDB() {
             // Import HWIDs
             for (size_t i = 0; i < legacyUser.hwids.size(); i++) {
                 const std::string& hwid = legacyUser.hwids[i];
-                if (!hwid.empty() && hwid.length() == 40) {
+                if (!hwid.empty() && hwid.length() == EXPECTED_HWID_LENGTH) {
                     addHwid(existingData.id, hwid);
                     needsUpdate = true;
                 }
@@ -1152,7 +1153,7 @@ int Database::importFromLegacyUserDB() {
         } else {
             // User doesn't exist, create new entry
             std::string hwid;
-            if (!legacyUser.hwids.empty() && legacyUser.hwids[0].length() == 40) {
+            if (!legacyUser.hwids.empty() && legacyUser.hwids[0].length() == EXPECTED_HWID_LENGTH) {
                 hwid = legacyUser.hwids[0];
             }
             
@@ -1173,7 +1174,7 @@ int Database::importFromLegacyUserDB() {
                     // Add additional HWIDs (skip first one, already added)
                     for (size_t i = 1; i < legacyUser.hwids.size(); i++) {
                         const std::string& additionalHwid = legacyUser.hwids[i];
-                        if (!additionalHwid.empty() && additionalHwid.length() == 40) {
+                        if (!additionalHwid.empty() && additionalHwid.length() == EXPECTED_HWID_LENGTH) {
                             addHwid(newData.id, additionalHwid);
                         }
                     }
