@@ -68,10 +68,11 @@ void initXmod() {
         G_Printf("^1ERROR: Failed to open xmod database: %s\n", dbPath.c_str());
         delete g_database;
         g_database = nullptr;
-        return;
+        // Don't return here - still need to initialize sessions even without database
     }
     
-    // Initialize session slots
+    // Initialize session slots (even if database failed to open)
+    // Sessions can operate without database, they just won't persist data
     for (int i = 0; i < MAX_CLIENTS; i++) {
         if (!g_sessions[i]) {
             g_sessions[i] = new Session(g_database);
@@ -80,26 +81,30 @@ void initXmod() {
     
     // Check if we should migrate from legacy userDB
     // Only migrate if legacy userDB has users and SQLite is empty or has few users
-    int sqliteUserCount = g_database->getUserCount();
-    int legacyUserCount = (int)userDB.mapGUID.size();
-    
-    if (legacyUserCount > 0) {
-        G_Printf("^3[SQLite] Found %d users in legacy userDB\n", legacyUserCount);
+    if (g_database && g_database->isOpened()) {
+        int sqliteUserCount = g_database->getUserCount();
+        int legacyUserCount = (int)userDB.mapGUID.size();
         
-        if (sqliteUserCount == 0) {
-            G_Printf("^3[SQLite] SQLite database is empty, performing migration...\n");
-            g_database->importFromLegacyUserDB();
-        } else if (sqliteUserCount < legacyUserCount) {
-            G_Printf("^3[SQLite] SQLite has %d users, legacy has %d. Consider running !dbmigrate to sync.\n", 
-                     sqliteUserCount, legacyUserCount);
+        if (legacyUserCount > 0) {
+            G_Printf("^3[SQLite] Found %d users in legacy userDB\n", legacyUserCount);
+            
+            if (sqliteUserCount == 0) {
+                G_Printf("^3[SQLite] SQLite database is empty, performing migration...\n");
+                g_database->importFromLegacyUserDB();
+            } else if (sqliteUserCount < legacyUserCount) {
+                G_Printf("^3[SQLite] SQLite has %d users, legacy has %d. Consider running !dbmigrate to sync.\n", 
+                         sqliteUserCount, legacyUserCount);
+            } else {
+                G_Printf("^2[SQLite] Database already populated with %d users\n", sqliteUserCount);
+            }
         } else {
-            G_Printf("^2[SQLite] Database already populated with %d users\n", sqliteUserCount);
+            G_Printf("^2[SQLite] No legacy users to migrate\n");
         }
+        
+        G_Printf("xmod SQLite database initialized successfully\n");
     } else {
-        G_Printf("^2[SQLite] No legacy users to migrate\n");
+        G_Printf("^3[SQLite] Database unavailable, sessions will operate without persistence\n");
     }
-    
-    G_Printf("xmod SQLite database initialized successfully\n");
 }
 
 ///////////////////////////////////////////////////////////////////////////////
