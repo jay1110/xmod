@@ -46,6 +46,7 @@ static void jpegWriteCallback( void* context, void* data, int size ) {
 ///////////////////////////////////////////////////////////////////////////////
 
 unsigned char* Screenshot::captureFramebuffer( int* width, int* height, int* channels ) {
+    // TODO: Implement screenshot capture that works with stock ET engine
     // FIXME: The trap_R_ReadPixels() function calls the CG_R_READPIXELS syscall,
     // which does not exist in the stock Wolfenstein: Enemy Territory engine.
     // Calling this function causes a client crash.
