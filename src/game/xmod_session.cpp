@@ -45,7 +45,7 @@ void Session::init(int client, const std::string& clientIp) {
     initialized = true;
     authenticated = false;
     
-    G_Printf("Session initialized for client %d (IP: %s)\n", clientNum, ip.c_str());
+    G_Printf("^2[SQLite] Session initialized for client %d (IP: %s)\n", clientNum, ip.c_str());
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -78,34 +78,36 @@ bool Session::validateHwid(const std::string& hwidStr) {
 
 bool Session::guidReceived(const std::string& hashedGuid, const std::string& hashedHwid) {
     if (!initialized) {
-        G_Printf("Session::guidReceived - session not initialized\n");
+        G_Printf("^1[SQLite] ERROR: Session::guidReceived - session not initialized\n");
         return false;
     }
 
     // Validate format
     if (!validateGuid(hashedGuid)) {
-        G_Printf("Session::guidReceived - invalid GUID format (client %d)\n", clientNum);
+        G_Printf("^1[SQLite] ERROR: Invalid GUID format for client %d (length=%d)\n", clientNum, (int)hashedGuid.length());
         return false;
     }
 
     if (!validateHwid(hashedHwid)) {
-        G_Printf("Session::guidReceived - invalid HWID format (client %d)\n", clientNum);
+        G_Printf("^1[SQLite] ERROR: Invalid HWID format for client %d (length=%d)\n", clientNum, (int)hashedHwid.length());
         return false;
     }
 
     guid = hashedGuid;
     hwid = hashedHwid;
 
+    G_Printf("^2[SQLite] Client %d - GUID: %s, HWID: %s\n", clientNum, guid.c_str(), hwid.substr(0, 8).c_str());
+
     // Check database
     if (!db || !db->isOpened()) {
-        G_Printf("Session::guidReceived - database not available\n");
+        G_Printf("^1[SQLite] ERROR: Database not available\n");
         return false;
     }
 
     // Check for ban
     BanData banData;
     if (db->isBanned(guid, hwid, banData)) {
-        G_Printf("Client %d is banned: %s\n", clientNum, banData.reason.c_str());
+        G_Printf("^1[SQLite] Client %d is BANNED: %s\n", clientNum, banData.reason.c_str());
         return false;
     }
 
@@ -125,7 +127,8 @@ bool Session::guidReceived(const std::string& hashedGuid, const std::string& has
             db->addHwid(userId, hwid);
         }
 
-        G_Printf("Client %d authenticated as user %d (level %d)\n", clientNum, userId, userLevel);
+        G_Printf("^2[SQLite] Client %d authenticated as EXISTING user (ID=%d, level=%d, name=%s)\n", 
+                 clientNum, userId, userLevel, userData.name.c_str());
     } else {
         // New user - create entry
         std::string clientName = "UnknownPlayer";
@@ -138,16 +141,22 @@ bool Session::guidReceived(const std::string& hashedGuid, const std::string& has
             }
         }
 
+        G_Printf("^2[SQLite] Creating NEW user for client %d (name=%s, GUID=%s)\n", 
+                 clientNum, clientName.c_str(), guid.substr(0, 8).c_str());
+
         if (db->addUser(guid, hwid, clientName)) {
             // Get the newly created user
             if (db->getUserData(guid, userData)) {
                 userId = userData.id;
                 userLevel = userData.level;
                 authenticated = true;
-                G_Printf("New user created for client %d (user ID: %d)\n", clientNum, userId);
+                G_Printf("^2[SQLite] SUCCESS: New user created (ID=%d, level=%d)\n", userId, userLevel);
+            } else {
+                G_Printf("^1[SQLite] ERROR: Failed to retrieve newly created user\n");
+                return false;
             }
         } else {
-            G_Printf("Failed to create user for client %d\n", clientNum);
+            G_Printf("^1[SQLite] ERROR: Failed to create user in database\n");
             return false;
         }
     }
@@ -157,8 +166,10 @@ bool Session::guidReceived(const std::string& hashedGuid, const std::string& has
         if (connectedUsers[clientNum] && connectedUsers[clientNum] != &User::BAD) {
             connectedUsers[clientNum]->authLevel = userLevel;
             connectedUsers[clientNum]->muted = userData.muted;
-            G_Printf("Synced authLevel %d, muted=%d for client %d from SQLite\n", 
-                     userLevel, userData.muted ? 1 : 0, clientNum);
+            G_Printf("^2[SQLite] Synced user %d: authLevel=%d, muted=%d for client %d\n", 
+                     userId, userLevel, userData.muted ? 1 : 0, clientNum);
+        } else {
+            G_Printf("^3[SQLite] WARNING: connectedUsers[%d] is NULL or BAD, cannot sync authLevel\n", clientNum);
         }
     }
 
