@@ -37,7 +37,17 @@ void initXmod() {
         dbFilename = "xmod.db";
     }
     
-    // Construct full path using fs_homepath and fs_game (same as legacy Database class)
+    // Ensure filename is just a filename, not a path (security: prevent directory traversal)
+    // Strip any path separators to ensure database stays in mod folder
+    std::string safeFilename = dbFilename;
+    size_t lastSlash = safeFilename.find_last_of("/\\");
+    if (lastSlash != std::string::npos) {
+        safeFilename = safeFilename.substr(lastSlash + 1);
+        G_Printf("^3[SQLite] Stripped path from filename, using: %s\n", safeFilename.c_str());
+    }
+    
+    // Construct full path: fs_homepath/fs_game/xmod.db
+    // This places database in the mod directory (e.g., ~/.etwolf/xmod/xmod.db)
     // This ensures 32-bit and 64-bit use the same database file
     char buffer[MAX_CVAR_VALUE_STRING];
     std::string dbPath;
@@ -49,9 +59,9 @@ void initXmod() {
     trap_Cvar_VariableStringBuffer("fs_game", buffer, sizeof(buffer));
     dbPath += buffer;
     dbPath += "/";
-    dbPath += dbFilename;
+    dbPath += safeFilename;
     
-    G_Printf("Opening SQLite database at: %s\n", dbPath.c_str());
+    G_Printf("^2[SQLite] Database will be created in mod folder: %s\n", dbPath.c_str());
     
     // Open database with full path
     if (!g_database->open(dbPath)) {
