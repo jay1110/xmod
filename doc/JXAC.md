@@ -13,11 +13,13 @@ JXAC (Jays XMod AntiCheat) is a comprehensive anticheat system for xmod (Wolfens
 ## Features
 
 ### Screenshot System
-- Server can request screenshots from any connected client
+- ⚠️ **CURRENTLY DISABLED** - Screenshots require custom ET engine (causes crash on stock ET)
+- Server can request screenshots from any connected client (network protocol implemented)
 - **Format: JPG** (JPEG format, configurable quality 1-100)
-- Screenshots saved to `jxac/screenshots/` directory
+- Screenshots would be saved to `jxac/screenshots/` directory
 - Naming convention: `<playername>_<timestamp>.jpg`
 - Detection of blocked or fake screenshots
+- **Note**: Framebuffer capture is disabled to prevent client crashes. See Technical Notes for details.
 
 ### Cheat Detection
 - **CVAR scanning**: Detect modified/illegal CVARs (✅ ACTIVE)
@@ -266,23 +268,29 @@ All core JXAC features are now fully implemented and operational:
 
 ### Screenshot Implementation
 
-The screenshot system is now fully operational with real framebuffer capture:
-
-**Current Status**:
+**Current Status - NOT WORKING**:
+- ❌ **Screenshot capture is DISABLED** to prevent client crashes
 - ✅ JPEG compression integrated (stb_image_write.h single-header library)
-- ✅ Hex-encoded transmission in 450-byte chunks
-- ✅ Fixed hex validation bug (proper chunk size matching)
-- ✅ **Engine API implemented: trap_R_ReadPixels() added to cgame syscalls**
-- ✅ **Real framebuffer capture with automatic vertical flip**
-- ✅ **RGBA to RGB conversion for optimal JPEG compression**
+- ✅ Hex-encoded transmission in 450-byte chunks ready
+- ✅ Network protocol for screenshots implemented
 
-**Implementation**:
-1. **Engine API**: Added `CG_R_READPIXELS` syscall to cgame interface
-2. **Framebuffer capture**: Reads OpenGL framebuffer via trap_R_ReadPixels()
-3. **Image processing**: Automatically converts RGBA→RGB and flips vertically
-4. **Compression**: Uses stb_image_write for JPEG encoding
+**Why Screenshots Don't Work**:
+The screenshot system was designed to use `trap_R_ReadPixels()` which calls the `CG_R_READPIXELS` syscall. However, this syscall **does not exist in the stock Wolfenstein: Enemy Territory engine**. When the anticheat tries to request a screenshot, calling this function causes the client to crash.
 
-**Screenshots are production-ready**: The system captures real game screenshots and transmits them to the server securely.
+**Disabled to Prevent Crashes**:
+To fix the crash issue, the framebuffer capture code has been disabled. Screenshot requests now fail gracefully instead of crashing the client.
+
+**Possible Solutions**:
+1. **Custom Engine**: Implement `CG_R_READPIXELS` in a custom ET engine build
+2. **File-based Capture**: Use engine's `screenshot` command and read from disk (complex, async)
+3. **Alternative Methods**: Investigate other screenshot capture approaches
+
+**What's Implemented (But Disabled)**:
+1. ~~**Engine API**: `CG_R_READPIXELS` syscall defined in cgame interface~~
+2. ~~**Framebuffer capture**: Code to read OpenGL framebuffer via trap_R_ReadPixels()~~
+3. **Image processing**: RGBA→RGB conversion and vertical flip (ready but disabled)
+4. **Compression**: stb_image_write for JPEG encoding (working)
+5. **Network protocol**: Complete screenshot transmission system (working)
 
 ### Network Integration
 

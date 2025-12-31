@@ -121,28 +121,32 @@ All commands are implemented and integrated into the command registry:
 The following features have framework/placeholder code but require full implementation:
 
 ### 1. Screenshot System
-**Status**: ✅ **IMPLEMENTED** - JPEG compression integrated with stb_image_write.h
+**Status**: ❌ **DISABLED** - Causes crash on stock ET engine
 
 **What's completed**:
 - ✅ stb_image_write.h single-header library integrated
 - ✅ JPEG compression with configurable quality (1-100) using in-memory callback
 - ✅ Client-side screenshot capture module
-- ✅ Framebuffer capture framework (placeholder gradient pattern)
-- ✅ Hex-encoded data transmission in 2KB chunks
+- ✅ Hex-encoded data transmission in 450-byte chunks
 - ✅ Memory management (malloc/free with proper callback context)
 - ✅ Server-side hex decoding and data assembly
 - ✅ Bot filtering (bots are skipped for screenshot requests)
+- ✅ Network protocol for screenshot transmission
+
+**Why it's disabled**:
+- ❌ `trap_R_ReadPixels()` calls `CG_R_READPIXELS` syscall which **doesn't exist in stock ET engine**
+- ❌ Calling this syscall causes **client crash** when screenshot is requested
+- ❌ Framebuffer capture code has been **disabled to prevent crashes**
 
 **What's needed for full functionality**:
-- Engine API integration for framebuffer capture:
-  - Add trap_R_ReadPixels() function to cgame syscalls
-  - Expose OpenGL framebuffer reading to client module
-  - Note: Placeholder gradient pattern used until engine API available
-- Vertical flip implementation (OpenGL reads bottom-to-top, JPEG expects top-to-bottom)
+- Custom ET engine build that implements `CG_R_READPIXELS` syscall, OR
+- Alternative screenshot capture method (file-based using engine's screenshot command), OR
+- Server-side only anticheat without screenshot capability
 
 **Current behavior**: 
-- Generates test pattern screenshot (gradient for verification)
-- Compresses to JPEG at specified quality using callback-based approach
+- Screenshot requests fail gracefully (return NULL)
+- No client crash when screenshot is requested
+- Server receives failure notification instead of screenshot data
 - Sends hex-encoded data to server successfully
 - Server receives, decodes, assembles and saves to disk
 - **Fixed**: Hex validation bug that caused all chunks to be rejected

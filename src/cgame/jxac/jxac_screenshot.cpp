@@ -46,6 +46,22 @@ static void jpegWriteCallback( void* context, void* data, int size ) {
 ///////////////////////////////////////////////////////////////////////////////
 
 unsigned char* Screenshot::captureFramebuffer( int* width, int* height, int* channels ) {
+    // FIXME: The trap_R_ReadPixels() function calls the CG_R_READPIXELS syscall,
+    // which does not exist in the stock Wolfenstein: Enemy Territory engine.
+    // Calling this function causes a client crash.
+    //
+    // Possible solutions:
+    // 1. Require a custom ET engine build that implements CG_R_READPIXELS
+    // 2. Use engine's screenshot command and read from disk (async, complex)
+    // 3. Disable screenshot functionality until engine support is available
+    //
+    // For now, we return NULL to prevent crashes. Screenshot requests will
+    // fail gracefully instead of crashing the client.
+    
+    // Silent failure - screenshot capture not available without engine support
+    return NULL;
+    
+    /* DISABLED - Causes crash on stock ET engine
     // Get current screen dimensions
     *width = cgs.glconfig.vidWidth;
     *height = cgs.glconfig.vidHeight;
@@ -93,6 +109,7 @@ unsigned char* Screenshot::captureFramebuffer( int* width, int* height, int* cha
     
     free( rgbaBuffer );
     return rgbBuffer;
+    */
 }
 
 ///////////////////////////////////////////////////////////////////////////////
