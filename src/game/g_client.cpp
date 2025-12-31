@@ -1929,7 +1929,7 @@ ClientConnect( string& outmsg, int clientNum, qboolean firstTime, qboolean isBot
 			// Generate a fake local GUID (must be exactly 32 characters)
 			stringstream newguid;
 			newguid << "CLIENT" << setw(2) << setfill('0') << clientNum 
-			        << setw(24) << setfill('0') << 0;
+			        << setw(24) << 0;  // setfill already set above
 			guid = newguid.str().c_str();
             fakeguid = true;
 		}
