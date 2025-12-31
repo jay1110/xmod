@@ -345,8 +345,8 @@ G_Script_ScriptLoad
 void G_Script_ScriptLoad( void ) {
 	char			filename[MAX_QPATH];
 	vmCvar_t		mapname;
-	fileHandle_t	f;
-	int				len;
+	fileHandle_t	f = 0;
+	int				len = 0;
 	qboolean		found = qfalse;
 
 	trap_Cvar_Register( &g_scriptDebug, "g_scriptDebug", "0", 0 );
@@ -373,8 +373,13 @@ void G_Script_ScriptLoad( void ) {
 		}
 		Q_strcat( filename, sizeof(filename), ".script" );
 		len = trap_FS_FOpenFile( filename, &f, FS_READ );
-		if(len > 0)
-			found = qtrue; 
+		if(len > 0) {
+			found = qtrue;
+		} else if (f) {
+			// Close any file handle opened with zero/negative length
+			trap_FS_FCloseFile( f );
+			f = 0;
+		}
 	}
 
 	// If it wasn't found, run the standard script
@@ -398,10 +403,15 @@ void G_Script_ScriptLoad( void ) {
 		return;
 	}
 
-	// END Mad Doc - TDF
+	// Validate file size - prevent excessively large files from causing issues
+	// Max script file size: 2MB (reasonable for mapscripts)
+	if( len > 2 * 1024 * 1024 ) {
+		G_Printf( "G_Script_ScriptLoad: script file %s is too large (%d bytes)\n", filename, len );
+		trap_FS_FCloseFile( f );
+		return;
+	}
+
 	// Arnout: make sure we terminate the script with a '\0' to prevent parser from choking
-	//level.scriptEntity = G_Alloc( len );
-	//trap_FS_Read( level.scriptEntity, len, f );
 	level.scriptEntity = (char*)G_Alloc( len + 1 );
 	trap_FS_Read( level.scriptEntity, len, f );
 	*(level.scriptEntity + len) = '\0';
