@@ -315,20 +315,23 @@ void G_DbLoad()
     // reload levels
     levelDB.load();
 
-    // reload (merge) users
-    userDB.load( true );
+    // reload (merge) users - DISABLED: Using xmod SQLite database instead
+    // userDB.load( true );
 
-    // repopulate
-    for (int i = 0; i < MAX_CLIENTS; i++) {
-        const Record& r = data[i];
-        if (!r.active) {
-            connectedUsers[i] = NULL;
-            continue;
-        }
+    // repopulate - DISABLED: Using xmod SQLite database instead
+    // for (int i = 0; i < MAX_CLIENTS; i++) {
+    //     const Record& r = data[i];
+    //     if (!r.active) {
+    //         connectedUsers[i] = NULL;
+    //         continue;
+    //     }
+    // 
+    //     string err;
+    //     connectedUsers[i] = &userDB.fetchByKey( r.guid, err, true );
+    // }
 
-        string err;
-        connectedUsers[i] = &userDB.fetchByKey( r.guid, err, true );
-    }
+    // Keep connected users intact when using SQLite
+    // The xmod session system will handle authentication and user data
 
     mapDB.load();
     censorDB.load();
