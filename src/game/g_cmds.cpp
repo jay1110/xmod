@@ -3654,8 +3654,8 @@ void ClientCommand( int clientNum ) {
 			clientObject.authHwid = hwid;
 			clientObject.authenticated = true;
 
-			// Use xmod session system for authentication
-			if (xmod::g_database && xmod::g_sessions[clientNum]) {
+			// Use xmod session system for authentication (works with or without database)
+			if (xmod::g_sessions[clientNum]) {
 				xmod::g_sessions[clientNum]->onGuidReceived(guid, hwid);
 			}
 		}

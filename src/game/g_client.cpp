@@ -2176,8 +2176,8 @@ ClientConnect( string& outmsg, int clientNum, qboolean firstTime, qboolean isBot
 	if (!isBot) {
 		trap_SendServerCommand( clientNum, xm_auth::CMD_GUID_REQUEST );
 		
-		// Initialize xmod session if available
-		if (xmod::g_database && xmod::g_sessions[clientNum]) {
+		// Initialize xmod session if available (works with or without database)
+		if (xmod::g_sessions[clientNum]) {
 			string ip = Info_ValueForKey( userinfo, "ip" );
 			xmod::g_sessions[clientNum]->init(clientNum, ip);
 		}

@@ -98,10 +98,12 @@ bool Session::guidReceived(const std::string& hashedGuid, const std::string& has
 
     G_Printf("^2[SQLite] Client %d - GUID: %s, HWID: %s\n", clientNum, guid.c_str(), hwid.substr(0, 8).c_str());
 
-    // Check database
+    // Check database availability
     if (!db || !db->isOpened()) {
-        G_Printf("^1[SQLite] ERROR: Database not available\n");
-        return false;
+        G_Printf("^3[SQLite] WARNING: Database not available, using legacy authentication for client %d\n", clientNum);
+        // Mark as authenticated without database - legacy system will handle authentication
+        authenticated = true;
+        return true;
     }
 
     // Check for ban
