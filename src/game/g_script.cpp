@@ -423,12 +423,6 @@ void G_Script_ScriptLoad( void ) {
 
 	// Arnout: make sure we terminate the script with a '\0' to prevent parser from choking
 	level.scriptEntity = (char*)G_Alloc( len + 1 );
-	if ( !level.scriptEntity ) {
-		G_Printf( "G_Script_ScriptLoad: failed to allocate memory for script file %s (%d bytes)\n", filename, len + 1 );
-		trap_FS_FCloseFile( f );
-		return;
-	}
-	
 	trap_FS_Read( level.scriptEntity, len, f );
 	*(level.scriptEntity + len) = '\0';
 
