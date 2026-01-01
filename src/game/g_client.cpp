@@ -2135,6 +2135,9 @@ ClientConnect( string& outmsg, int clientNum, qboolean firstTime, qboolean isBot
 
 		ent->r.svFlags |= SVF_BOT;
 		ent->inuse = qtrue;
+		
+		// Log bot connection with more detail
+		G_Printf("^2[OMNIBOT] Bot connected: client %d (firstTime=%d)\n", clientNum, firstTime);
 	} else if( firstTime ) {
 		// force into spectator
 		client->sess.sessionTeam = TEAM_SPECTATOR;
@@ -2181,6 +2184,9 @@ ClientConnect( string& outmsg, int clientNum, qboolean firstTime, qboolean isBot
 			string ip = Info_ValueForKey( userinfo, "ip" );
 			xmod::g_sessions[clientNum]->init(clientNum, ip);
 		}
+	} else {
+		// Bots don't need authentication - they're server-side entities
+		G_Printf("^2[OMNIBOT] Bot client %d bypassing authentication (server-side entity)\n", clientNum);
 	}
 
 	// Call Lua et_ClientConnect callback
