@@ -2601,6 +2601,12 @@ void MoveClientToIntermission( gentity_t *ent ) {
 	// clean up powerup info
 	// memset( ent->client->ps.powerups, 0, sizeof(ent->client->ps.powerups) );
 
+	// Clear limbo and follow flags to prevent camera issues during intermission
+	// Players who died before intermission have both PMF_LIMBO and PMF_FOLLOW set
+	// These must be cleared to ensure proper camera positioning at end of map
+	ent->client->ps.pm_flags &= ~PMF_LIMBO;
+	ent->client->ps.pm_flags &= ~PMF_FOLLOW;
+
 	ent->client->ps.eFlags = 0;
 	ent->s.eFlags = 0;
 	ent->s.eType = ET_GENERAL;
@@ -2609,6 +2615,11 @@ void MoveClientToIntermission( gentity_t *ent ) {
 	ent->s.event = 0;
 	ent->s.events[0] = ent->s.events[1] = ent->s.events[2] = ent->s.events[3] = 0;		// DHM - Nerve
 	ent->r.contents = 0;
+	
+	// Clear limbo camera portal positioning flags and origin2
+	// Without this, players in limbo remain stuck viewing limbo camera during intermission
+	ent->r.svFlags &= ~(SVF_SELF_PORTAL | SVF_SELF_PORTAL_EXCLUSIVE);
+	VectorClear( ent->s.origin2 );
 }
 
 /*
