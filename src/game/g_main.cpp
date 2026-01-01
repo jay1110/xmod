@@ -2615,6 +2615,12 @@ void MoveClientToIntermission( gentity_t *ent ) {
 	ent->s.event = 0;
 	ent->s.events[0] = ent->s.events[1] = ent->s.events[2] = ent->s.events[3] = 0;		// DHM - Nerve
 	ent->r.contents = 0;
+	
+	// Clear limbo camera portal positioning flags and origin2
+	// Without this, players in limbo remain stuck viewing limbo camera during intermission
+	ent->r.svFlags &= ~SVF_SELF_PORTAL;
+	ent->r.svFlags &= ~SVF_SELF_PORTAL_EXCLUSIVE;
+	VectorClear( ent->s.origin2 );
 }
 
 /*
