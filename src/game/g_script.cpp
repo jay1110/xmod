@@ -394,6 +394,11 @@ void G_Script_ScriptLoad( void ) {
 		Q_strcat( filename, sizeof(filename), ".script" );
 
 		len = trap_FS_FOpenFile( filename, &f, FS_READ );
+		if(len < 0 && f) {
+			// Close any file handle that may have been opened on error
+			trap_FS_FCloseFile( f );
+			f = 0;
+		}
 	}
 
 	// make sure we clear out the temporary scriptname
