@@ -2935,13 +2935,13 @@ void SP_info_limbo_camera( gentity_t* self ) {
 	level.numLimboCameraSpawns++;
 
 	VectorCopy( self->s.origin, camSpawn->origin );
-	
+
 	if( self->target && *self->target ) {
 		Q_strncpyz( camSpawn->target, self->target, sizeof(camSpawn->target) );
 	} else {
 		camSpawn->target[0] = '\0';
 	}
-	
+
 	G_SpawnInt( "objective", "-1", &camSpawn->count );
 	camSpawn->spawnflags = self->spawnflags;
 

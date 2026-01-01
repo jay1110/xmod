@@ -885,6 +885,8 @@ typedef struct debrisChunk_s {
 #define MAX_DEBRISCHUNKS		256
 
 // Gordon: limbo camera linking
+#define MAX_LIMBO_CAMS 32
+
 typedef struct limboCameraSpawn_s {
 	vec3_t	origin;
 	char	target[64];
@@ -892,7 +894,7 @@ typedef struct limboCameraSpawn_s {
 	int		spawnflags;
 } limboCameraSpawn_t;
 
-#define MAX_LIMBO_CAMERA_SPAWNS		32
+#define MAX_LIMBO_CAMERA_SPAWNS		MAX_LIMBO_CAMS
 // ===================
 
 // this structure is cleared on each ClientSpawn(),
@@ -1042,8 +1044,6 @@ typedef struct limbo_cam_s {
 	qboolean	spawn;
 	int			info;
 } limbo_cam_t;
-
-#define MAX_LIMBO_CAMS 32
 
 
 // this structure is cleared as each map is entered
