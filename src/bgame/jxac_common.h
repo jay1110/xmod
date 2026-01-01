@@ -51,6 +51,7 @@ typedef enum {
 // Screenshot Constants
 #define JXAC_SS_CHUNK_SIZE      8192    // Screenshot data chunk size (8KB)
 #define JXAC_SS_MAX_SIZE        (1024 * 1024 * 2) // Max screenshot size (2MB)
+#define JXAC_SS_MAX_FILENAME    200     // Max screenshot filename length
 #define JXAC_SS_QUALITY_MIN     1
 #define JXAC_SS_QUALITY_MAX     100
 #define JXAC_SS_QUALITY_DEFAULT 85

@@ -115,8 +115,8 @@ void Client::frame() {
         
         if ( len > 0 ) {
             // File exists and has content - validate size
-            // Limit screenshot size to prevent memory issues (max ~1MB)
-            if ( len > 1048576 ) {
+            // Limit screenshot size to prevent memory issues
+            if ( len > JXAC_SS_MAX_SIZE ) {
                 // Screenshot too large - abort
                 trap_FS_FCloseFile( f );
                 trap_FS_Delete( screenshotFilename );
@@ -207,12 +207,6 @@ void Client::handleScreenshotRequest( int quality ) {
         return;
     }
     
-    // Validate quality parameter
-    if ( quality < JXAC_SS_QUALITY_MIN || quality > JXAC_SS_QUALITY_MAX ) {
-        // Invalid quality - use default and continue
-        quality = JXAC_SS_QUALITY_DEFAULT;
-    }
-    
     screenshotPending = qtrue;
     
     // Silent screenshot capture - no console output
@@ -226,9 +220,10 @@ void Client::captureScreenshot( int quality ) {
         return;
     }
     
-    // Clamp quality
-    if ( quality < JXAC_SS_QUALITY_MIN ) quality = JXAC_SS_QUALITY_MIN;
-    if ( quality > JXAC_SS_QUALITY_MAX ) quality = JXAC_SS_QUALITY_MAX;
+    // Validate and clamp quality
+    if ( quality < JXAC_SS_QUALITY_MIN || quality > JXAC_SS_QUALITY_MAX ) {
+        quality = JXAC_SS_QUALITY_DEFAULT;
+    }
     
     // Store quality for potential retry
     screenshotQuality = quality;
@@ -238,10 +233,9 @@ void Client::captureScreenshot( int quality ) {
     Com_sprintf( screenshotFilename, sizeof(screenshotFilename), 
                  "screenshots/jxac_%d_%d.jpg", cg.time, screenshotCounter++ );
     
-    // Validate filename length to prevent buffer overflow in va()
+    // Validate filename length to prevent buffer overflow in command string
     // Command format: "screenshotJPEG filename\n" needs to fit in buffer
-    // Max safe length for filename is approximately 200 characters
-    if ( strlen(screenshotFilename) > 200 ) {
+    if ( strlen(screenshotFilename) > JXAC_SS_MAX_FILENAME ) {
         // Filename too long - abort screenshot request
         screenshotPending = qfalse;
         screenshotFilename[0] = '\0';
