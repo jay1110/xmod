@@ -5237,7 +5237,7 @@ void G_LinkDamageParents( void ) {
 		}
 
 		if( !(g_entities[ i ].dmgparent = G_FindByTargetname( NULL, g_entities[ i ].damageparent )) ) {
-			G_Error( "Error: Failed to find damageparent: %s\n", g_entities[ i ].damageparent );
+			G_Printf( "^3WARNING: Failed to find damageparent: %s\n", g_entities[ i ].damageparent );
 		}
 	}
 }
