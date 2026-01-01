@@ -1121,6 +1121,10 @@ typedef struct {
 	int			numSpawnVarChars;
 	char		spawnVarChars[MAX_SPAWN_VARS_CHARS];
 
+	// deferred spawn scripts - entities that need "spawn" script event run after all entities are created
+	int			numPendingSpawnScripts;
+	gentity_t	*pendingSpawnScripts[MAX_GENTITIES];
+
 	// intermission state
 	int			intermissionQueued;		// intermission was qualified, but
 										// wait INTERMISSION_DELAY_TIME before
