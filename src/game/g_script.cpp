@@ -394,12 +394,22 @@ void G_Script_ScriptLoad( void ) {
 		Q_strcat( filename, sizeof(filename), ".script" );
 
 		len = trap_FS_FOpenFile( filename, &f, FS_READ );
+		if(len > 0) {
+			found = qtrue;
+		} else if (f) {
+			// Close any file handle opened with zero/negative length
+			trap_FS_FCloseFile( f );
+			f = 0;
+		}
 	}
 
 	// make sure we clear out the temporary scriptname
 	trap_Cvar_Set( "g_scriptName", "" );
 
-	if( len < 0 ) {
+	if( len <= 0 ) {
+		if ( g_scriptDebug.integer ) {
+			G_Printf( "G_Script_ScriptLoad: script file not found or empty: %s\n", filename );
+		}
 		return;
 	}
 
@@ -413,6 +423,12 @@ void G_Script_ScriptLoad( void ) {
 
 	// Arnout: make sure we terminate the script with a '\0' to prevent parser from choking
 	level.scriptEntity = (char*)G_Alloc( len + 1 );
+	if ( !level.scriptEntity ) {
+		G_Printf( "G_Script_ScriptLoad: failed to allocate memory for script file %s (%d bytes)\n", filename, len + 1 );
+		trap_FS_FCloseFile( f );
+		return;
+	}
+	
 	trap_FS_Read( level.scriptEntity, len, f );
 	*(level.scriptEntity + len) = '\0';
 
