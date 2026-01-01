@@ -672,6 +672,22 @@ spawn_t	spawns[] = {
 
 /*
 ===============
+G_QueueOrExecuteSpawnScript
+
+Helper function to either queue a spawn script for deferred execution
+or execute it immediately if we're not in the initial spawning phase.
+===============
+*/
+static void G_QueueOrExecuteSpawnScript( gentity_t *ent ) {
+	if ( level.spawning && level.numPendingSpawnScripts < MAX_GENTITIES ) {
+		level.pendingSpawnScripts[level.numPendingSpawnScripts++] = ent;
+	} else {
+		G_Script_ScriptEvent( ent, "spawn", "" );
+	}
+}
+
+/*
+===============
 G_CallSpawn
 
 Finds the spawn function for the entity and calls it,
@@ -695,12 +711,7 @@ qboolean G_CallSpawn( gentity_t *ent ) {
 				G_SpawnItem( ent, item );
 
 				G_Script_ScriptParse( ent );
-				// Defer spawn script execution until all entities are spawned
-				if ( level.spawning && level.numPendingSpawnScripts < MAX_GENTITIES ) {
-					level.pendingSpawnScripts[level.numPendingSpawnScripts++] = ent;
-				} else {
-					G_Script_ScriptEvent( ent, "spawn", "" );
-				}
+				G_QueueOrExecuteSpawnScript( ent );
 			} else {
 				return qfalse;
 			}
@@ -717,12 +728,7 @@ qboolean G_CallSpawn( gentity_t *ent ) {
 			// RF, entity scripting
 			if (/*ent->s.number >= MAX_CLIENTS &&*/ ent->scriptName) {
 				G_Script_ScriptParse( ent);
-				// Defer spawn script execution until all entities are spawned
-				if ( level.spawning && level.numPendingSpawnScripts < MAX_GENTITIES ) {
-					level.pendingSpawnScripts[level.numPendingSpawnScripts++] = ent;
-				} else {
-					G_Script_ScriptEvent( ent, "spawn", "" );
-				}
+				G_QueueOrExecuteSpawnScript( ent );
 			}
 
 			return qtrue;
@@ -1065,7 +1071,7 @@ void G_SpawnEntitiesFromString( void ) {
 	// This allows spawn scripts to reference other entities that may have
 	// been spawned later in the entity list
 	for ( i = 0; i < level.numPendingSpawnScripts; i++ ) {
-		if ( level.pendingSpawnScripts[i] && level.pendingSpawnScripts[i]->inuse ) {
+		if ( level.pendingSpawnScripts[i]->inuse ) {
 			G_Script_ScriptEvent( level.pendingSpawnScripts[i], "spawn", "" );
 		}
 	}
