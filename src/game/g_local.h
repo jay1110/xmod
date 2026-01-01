@@ -883,6 +883,18 @@ typedef struct debrisChunk_s {
 } debrisChunk_t;
 
 #define MAX_DEBRISCHUNKS		256
+
+// Gordon: limbo camera linking
+#define MAX_LIMBO_CAMS 32
+
+typedef struct limboCameraSpawn_s {
+	vec3_t	origin;
+	char	target[64];
+	int		count;
+	int		spawnflags;
+} limboCameraSpawn_t;
+
+#define MAX_LIMBO_CAMERA_SPAWNS		MAX_LIMBO_CAMS
 // ===================
 
 // this structure is cleared on each ClientSpawn(),
@@ -1032,8 +1044,6 @@ typedef struct limbo_cam_s {
 	qboolean	spawn;
 	int			info;
 } limbo_cam_t;
-
-#define MAX_LIMBO_CAMS 32
 
 
 // this structure is cleared as each map is entered
@@ -1226,6 +1236,11 @@ typedef struct {
 // Gordon: debris test
 	int				numDebrisChunks;
 	debrisChunk_t	debrisChunks[MAX_DEBRISCHUNKS];
+// ===================
+
+// Gordon: limbo camera linking
+	int					numLimboCameraSpawns;
+	limboCameraSpawn_t	limboCameraSpawns[MAX_LIMBO_CAMERA_SPAWNS];
 // ===================
 
 	qboolean	disableTankExit;
@@ -2603,6 +2618,7 @@ int G_Unreferee_v(gentity_t *ent, unsigned int dwVoteIndex, char *arg, char *arg
 int G_BalancedTeams_v(gentity_t *ent, unsigned int dwVoteIndex, char *arg, char *arg2, qboolean fRefereeCmd);
 
 void G_LinkDebris( void );
+void G_LinkLimboCameras( void );
 void G_LinkDamageParents( void );
 int EntsThatRadiusCanDamage( vec3_t origin, float radius, int *damagedList );
 

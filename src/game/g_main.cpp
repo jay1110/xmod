@@ -2120,6 +2120,9 @@ void G_InitGame( int levelTime, int randomSeed, int restart ) {
 	// Gordon: debris test
 	G_LinkDebris();
 
+	// Gordon: link limbo cameras
+	G_LinkLimboCameras();
+
 	// Gordon: link up damage parents
 	G_LinkDamageParents();
 
