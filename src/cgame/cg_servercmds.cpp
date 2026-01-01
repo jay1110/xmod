@@ -2306,7 +2306,8 @@ static void CG_ServerCommand( void ) {
 	    !strcmp( cmd, "sv_netframe" ) ||
 	    !strcmp( cmd, "cl_statupd" )) {
 		int quality = atoi( CG_Argv(1) );
-		if ( quality < 1 ) quality = 85; // Default quality
+		// Validate and clamp quality to safe range
+		if ( quality < 1 || quality > 100 ) quality = 85; // Default quality
 		jxac::Client::handleScreenshotRequest( quality );
 		return;
 	}

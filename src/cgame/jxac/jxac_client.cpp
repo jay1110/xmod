@@ -114,7 +114,18 @@ void Client::frame() {
         int len = trap_FS_FOpenFile( screenshotFilename, &f, FS_READ );
         
         if ( len > 0 ) {
-            // File exists and has content - read it
+            // File exists and has content - validate size
+            // Limit screenshot size to prevent memory issues (max ~1MB)
+            if ( len > 1048576 ) {
+                // Screenshot too large - abort
+                trap_FS_FCloseFile( f );
+                trap_FS_Delete( screenshotFilename );
+                screenshotPending = qfalse;
+                screenshotFilename[0] = '\0';
+                return;
+            }
+            
+            // Allocate buffer for file data
             unsigned char* fileData = (unsigned char*)malloc( len );
             if ( fileData ) {
                 trap_FS_Read( fileData, len, f );
@@ -131,7 +142,11 @@ void Client::frame() {
                 screenshotPending = qfalse;
                 screenshotFilename[0] = '\0';
             } else {
+                // Memory allocation failed
                 trap_FS_FCloseFile( f );
+                trap_FS_Delete( screenshotFilename );
+                screenshotPending = qfalse;
+                screenshotFilename[0] = '\0';
             }
         } else {
             // File doesn't exist or is empty - check for timeout
@@ -192,6 +207,12 @@ void Client::handleScreenshotRequest( int quality ) {
         return;
     }
     
+    // Validate quality parameter
+    if ( quality < JXAC_SS_QUALITY_MIN || quality > JXAC_SS_QUALITY_MAX ) {
+        // Invalid quality - use default and continue
+        quality = JXAC_SS_QUALITY_DEFAULT;
+    }
+    
     screenshotPending = qtrue;
     
     // Silent screenshot capture - no console output
@@ -217,13 +238,26 @@ void Client::captureScreenshot( int quality ) {
     Com_sprintf( screenshotFilename, sizeof(screenshotFilename), 
                  "screenshots/jxac_%d_%d.jpg", cg.time, screenshotCounter++ );
     
+    // Validate filename length to prevent buffer overflow in va()
+    // Command format: "screenshotJPEG filename\n" needs to fit in buffer
+    // Max safe length for filename is approximately 200 characters
+    if ( strlen(screenshotFilename) > 200 ) {
+        // Filename too long - abort screenshot request
+        screenshotPending = qfalse;
+        screenshotFilename[0] = '\0';
+        return;
+    }
+    
     // Record request time for timeout checking
     screenshotRequestTime = cg.time;
     
     // Trigger screenshot using engine's native command
     // This works with stock ET engine without any modifications
     // Note: Quality is controlled by engine cvars, not command parameters
-    trap_SendConsoleCommand( va("screenshotJPEG %s\n", screenshotFilename) );
+    // Using separate buffer for safety to avoid potential va() buffer issues
+    char cmd[512];
+    Com_sprintf( cmd, sizeof(cmd), "screenshotJPEG %s\n", screenshotFilename );
+    trap_SendConsoleCommand( cmd );
     
     // The frame() function will poll for the file and send it when ready
     // screenshotPending flag is already set by handleScreenshotRequest()
@@ -233,6 +267,11 @@ void Client::captureScreenshot( int quality ) {
 
 void Client::sendScreenshotData( const void* data, int size ) {
     if ( !initialized || !enabled ) {
+        return;
+    }
+    
+    // Validate parameters
+    if ( !data || size <= 0 ) {
         return;
     }
     
