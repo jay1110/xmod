@@ -2602,6 +2602,8 @@ void MoveClientToIntermission( gentity_t *ent ) {
 	// memset( ent->client->ps.powerups, 0, sizeof(ent->client->ps.powerups) );
 
 	// Clear limbo and follow flags to prevent camera issues during intermission
+	// Players who died before intermission have both PMF_LIMBO and PMF_FOLLOW set
+	// These must be cleared to ensure proper camera positioning at end of map
 	ent->client->ps.pm_flags &= ~PMF_LIMBO;
 	ent->client->ps.pm_flags &= ~PMF_FOLLOW;
 
