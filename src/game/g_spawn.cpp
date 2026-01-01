@@ -695,7 +695,12 @@ qboolean G_CallSpawn( gentity_t *ent ) {
 				G_SpawnItem( ent, item );
 
 				G_Script_ScriptParse( ent );
-				G_Script_ScriptEvent( ent, "spawn", "" );
+				// Defer spawn script execution until all entities are spawned
+				if ( level.spawning && level.numPendingSpawnScripts < MAX_GENTITIES ) {
+					level.pendingSpawnScripts[level.numPendingSpawnScripts++] = ent;
+				} else {
+					G_Script_ScriptEvent( ent, "spawn", "" );
+				}
 			} else {
 				return qfalse;
 			}
@@ -712,7 +717,12 @@ qboolean G_CallSpawn( gentity_t *ent ) {
 			// RF, entity scripting
 			if (/*ent->s.number >= MAX_CLIENTS &&*/ ent->scriptName) {
 				G_Script_ScriptParse( ent);
-				G_Script_ScriptEvent( ent, "spawn", "" );
+				// Defer spawn script execution until all entities are spawned
+				if ( level.spawning && level.numPendingSpawnScripts < MAX_GENTITIES ) {
+					level.pendingSpawnScripts[level.numPendingSpawnScripts++] = ent;
+				} else {
+					G_Script_ScriptEvent( ent, "spawn", "" );
+				}
 			}
 
 			return qtrue;
@@ -1027,10 +1037,13 @@ Parses textual entity definitions out of an entstring and spawns gentities.
 ==============
 */
 void G_SpawnEntitiesFromString( void ) {
+	int i;
+
 	// allow calls to G_Spawn*()
 	G_Printf( "Enable spawning!\n" );
 	level.spawning = qtrue;
 	level.numSpawnVars = 0;
+	level.numPendingSpawnScripts = 0;  // Initialize pending spawn scripts counter
 
 	// the worldspawn is not an actual entity, but it still
 	// has a "spawn" function to perform any global setup
@@ -1047,6 +1060,16 @@ void G_SpawnEntitiesFromString( void ) {
 
 	G_Printf( "Disable spawning!\n" );
 	level.spawning = qfalse;			// any future calls to G_Spawn*() will be errors
+
+	// Run all pending spawn scripts now that all entities exist
+	// This allows spawn scripts to reference other entities that may have
+	// been spawned later in the entity list
+	for ( i = 0; i < level.numPendingSpawnScripts; i++ ) {
+		if ( level.pendingSpawnScripts[i] && level.pendingSpawnScripts[i]->inuse ) {
+			G_Script_ScriptEvent( level.pendingSpawnScripts[i], "spawn", "" );
+		}
+	}
+	level.numPendingSpawnScripts = 0;  // Clear the list
 }
 
 /*
