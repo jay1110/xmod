@@ -100,8 +100,10 @@ bool Session::guidReceived(const std::string& hashedGuid, const std::string& has
 
     // Check database availability
     if (!db || !db->isOpened()) {
-        G_Printf("^3[SQLite] WARNING: Database not available, using legacy authentication for client %d\n", clientNum);
-        // Mark as authenticated without database - legacy system will handle authentication
+        G_Printf("^3[SQLite] WARNING: Database not available for client %d, falling back to legacy authentication\n", clientNum);
+        // Mark as authenticated to allow legacy system to handle authentication
+        // The legacy Client object (g_clientObjects[clientNum].authenticated) is already set
+        // before this function is called, so authentication has already occurred via legacy system
         authenticated = true;
         return true;
     }

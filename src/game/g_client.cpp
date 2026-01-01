@@ -2186,7 +2186,7 @@ ClientConnect( string& outmsg, int clientNum, qboolean firstTime, qboolean isBot
 		}
 	} else {
 		// Bots don't need authentication - they're server-side entities
-		G_Printf("^2[OMNIBOT] Bot client %d bypassing authentication (server-side entity)\n", clientNum);
+		G_Printf("^2[OMNIBOT] Bot client %d connected, skipping authentication\n", clientNum);
 	}
 
 	// Call Lua et_ClientConnect callback
