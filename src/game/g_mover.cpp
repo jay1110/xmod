@@ -5241,17 +5241,19 @@ void G_LinkLimboCameras( void ) {
 			G_Error( "info_limbo_camera: MAX_LIMBO_CAMS (%i) hit", MAX_LIMBO_CAMS );
 		}
 
-		caminfo = &level.limboCams[level.numLimboCams];
-		level.numLimboCams++;
-
-		if( !camSpawn->target || !*camSpawn->target ) {
-			G_Error( "info_limbo_camera with no target" );
+		if( !*camSpawn->target ) {
+			G_Printf( "WARNING: info_limbo_camera with no target, skipping\n" );
+			continue;
 		}
 
 		target = G_FindByTargetname( NULL, camSpawn->target );
 		if( !target ) {
-			G_Error( "info_limbo_camera cannot find target" );
+			G_Printf( "WARNING: info_limbo_camera cannot find target '%s', skipping\n", camSpawn->target );
+			continue;
 		}
+
+		caminfo = &level.limboCams[level.numLimboCams];
+		level.numLimboCams++;
 
 		VectorCopy( camSpawn->origin, caminfo->origin );
 		caminfo->origin[2] -= 32;
