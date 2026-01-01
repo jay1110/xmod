@@ -5234,7 +5234,7 @@ void G_LinkLimboCameras( void ) {
 	limbo_cam_t* caminfo;
 	vec3_t vec;
 
-	for(i = 0; i < level.numLimboCameraSpawns; i++) {
+	for (i = 0; i < level.numLimboCameraSpawns; i++) {
 		limboCameraSpawn_t* camSpawn = &level.limboCameraSpawns[i];
 
 		if( level.numLimboCams >= MAX_LIMBO_CAMS ) {
