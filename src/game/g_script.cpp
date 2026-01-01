@@ -394,10 +394,8 @@ void G_Script_ScriptLoad( void ) {
 		Q_strcat( filename, sizeof(filename), ".script" );
 
 		len = trap_FS_FOpenFile( filename, &f, FS_READ );
-		if(len > 0) {
-			found = qtrue;
-		} else if (f) {
-			// Close any file handle opened with zero/negative length
+		if(len < 0 && f) {
+			// Close any file handle that may have been opened on error
 			trap_FS_FCloseFile( f );
 			f = 0;
 		}
@@ -406,10 +404,7 @@ void G_Script_ScriptLoad( void ) {
 	// make sure we clear out the temporary scriptname
 	trap_Cvar_Set( "g_scriptName", "" );
 
-	if( len <= 0 ) {
-		if ( g_scriptDebug.integer ) {
-			G_Printf( "G_Script_ScriptLoad: script file not found or empty: %s\n", filename );
-		}
+	if( len < 0 ) {
 		return;
 	}
 
