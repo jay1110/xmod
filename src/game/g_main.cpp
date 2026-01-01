@@ -2601,6 +2601,10 @@ void MoveClientToIntermission( gentity_t *ent ) {
 	// clean up powerup info
 	// memset( ent->client->ps.powerups, 0, sizeof(ent->client->ps.powerups) );
 
+	// Clear limbo and follow flags to prevent camera issues during intermission
+	ent->client->ps.pm_flags &= ~PMF_LIMBO;
+	ent->client->ps.pm_flags &= ~PMF_FOLLOW;
+
 	ent->client->ps.eFlags = 0;
 	ent->s.eFlags = 0;
 	ent->s.eType = ET_GENERAL;
