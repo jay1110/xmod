@@ -2914,20 +2914,29 @@ void info_limbo_camera_setup( gentity_t* self ) {
 	vec3_t vec;
 	
 	if( level.numLimboCams >= MAX_LIMBO_CAMS ) {
-		G_Error( "info_limbo_camera: MAX_LIMBO_CAMS (%i) hit", MAX_LIMBO_CAMS );
+		G_Printf(S_COLOR_YELLOW "WARNING: info_limbo_camera: MAX_LIMBO_CAMS (%i) exceeded, ignoring camera\n", MAX_LIMBO_CAMS);
+		G_FreeEntity( self );
+		return;  // Don't crash, just skip this camera
 	}
 
-	caminfo = &level.limboCams[level.numLimboCams];
-	level.numLimboCams++;
-
 	if( !self->target || !*self->target ) {
-		G_Error( "info_limbo_camera with no target" );
+		G_Printf(S_COLOR_YELLOW "WARNING: info_limbo_camera with no target at (%i %i %i), ignoring\n", 
+			(int)self->s.origin[0], (int)self->s.origin[1], (int)self->s.origin[2]);
+		G_FreeEntity( self );
+		return;  // Don't crash, just skip
 	}
 
 	target = G_FindByTargetname( NULL, self->target );
 	if( !target ) {
-		G_Error( "info_limbo_camera cannot find target" );
+		G_Printf(S_COLOR_YELLOW "WARNING: info_limbo_camera cannot find target '%s', ignoring camera\n", self->target);
+		G_FreeEntity( self );
+		return;  // Don't crash, just skip this camera
 	}
+
+	caminfo = &level.limboCams[level.numLimboCams];
+
+	// Only increment counter if we successfully set up the camera
+	level.numLimboCams++;
 
 	VectorCopy( self->s.origin, caminfo->origin );
 	caminfo->origin[2] -= 32;
