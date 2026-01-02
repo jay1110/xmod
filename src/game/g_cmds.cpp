@@ -2750,7 +2750,11 @@ qboolean Do_Activate_f(gentity_t *ent, gentity_t *traceEnt) {
 		} else if ( traceEnt->s.eType == ET_MOVER && G_TankIsMountable( traceEnt, ent ) ) {
 			G_Script_ScriptEvent( traceEnt, "mg42", "mount" );
 			ent->tagParent = traceEnt->nextTrain;
-			Q_strncpyz( ent->tagName, "tag_player", MAX_QPATH );
+			
+			// CRITICAL FIX: Ensure tagName is properly null-terminated and clean
+			Com_Memset(ent->tagName, 0, sizeof(ent->tagName));  // Clear first!
+			Q_strncpyz( ent->tagName, "tag_player", sizeof(ent->tagName) );  // Then set safely
+			
 			ent->backupWeaponTime = ent->client->ps.weaponTime;
 			ent->client->ps.weaponTime = traceEnt->backupWeaponTime;
 			ent->client->ps.weapHeat[WP_DUMMY_MG42] = traceEnt->mg42weapHeat;
@@ -2880,12 +2884,13 @@ void G_LeaveTank( gentity_t* ent, qboolean position ) {
 	
 	// Prevent player always mounting the last gun used, on tank maps
 	if (ent->tagParent && ent->tagName[0]) {
+		G_Printf("Removing tag: %i %i %s\n", ent->s.number, ent->tagParent->s.number, ent->tagName);
 		G_RemoveConfigstringIndex(va("%i %i %s", ent->s.number, ent->tagParent->s.number, ent->tagName), 
 		                          CS_TAGCONNECTS, MAX_TAGCONNECTS);
 	}
 	
 	ent->tagParent = NULL;
-	*ent->tagName = '\0';
+	Com_Memset(ent->tagName, 0, sizeof(ent->tagName));  // Clear it completely
 	ent->s.eFlags &= ~EF_MOUNTEDTANK;
 	ent->client->ps.eFlags &= ~EF_MOUNTEDTANK;
 	tank->s.powerups = -1;

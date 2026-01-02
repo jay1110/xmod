@@ -1795,6 +1795,9 @@ void G_InitGame( int levelTime, int randomSeed, int restart ) {
 
 	// CRITICAL: Reset shader remaps to prevent config string overflow
 	G_ResetRemappedShaders();
+	
+	// CRITICAL: Clear all tag connections from previous game/round
+	G_ClearAllTagConnections();
 
 	/*
      * Reference pak2.pk3 for pure-checks.
@@ -2710,6 +2713,9 @@ void BeginIntermission( void ) {
 
 	trap_SetConfigstring( CS_INTERMISSION_START_TIME, va( "%i", level.intermissiontime ) );
     cvars::gameState.set( GS_INTERMISSION );
+	
+	// Clear tag connections when entering intermission
+	G_ClearAllTagConnections();
 
 	FindIntermissionPoint();
 
