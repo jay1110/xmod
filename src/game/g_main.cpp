@@ -1793,11 +1793,16 @@ void G_InitGame( int levelTime, int randomSeed, int restart ) {
 
 	srand( randomSeed );
 
+	// CRITICAL: Reset all level counters to prevent overflow on map reload
+	level.numLimboCams = 0;
+	level.numspawntargets = 0;
+	level.numBrushModels = 0;
+	level.numOidTriggers = 0;
+	
+	G_Printf("Level counters reset\n");
+
 	// CRITICAL: Reset shader remaps to prevent config string overflow
 	G_ResetRemappedShaders();
-	
-	// CRITICAL: Clear all tag connections from previous game/round
-	G_ClearAllTagConnections();
 
 	/*
      * Reference pak2.pk3 for pure-checks.

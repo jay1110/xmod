@@ -1076,37 +1076,40 @@ void team_wolf_objective_use( gentity_t *self, gentity_t *other, gentity_t *acti
 	trap_SetConfigstring( self->count, cs );
 }
 
-void objective_Register(gentity_t *self) {
+void objective_Register(gentity_t *self)
+{
+	static char cs[MAX_STRING_CHARS];
+	char        numspawntargets[128];
+	int         cs_obj = CS_MULTI_SPAWNTARGETS;
 
-	char numspawntargets[128];
-	int	cs_obj = CS_MULTI_SPAWNTARGETS;
-	char cs[MAX_STRING_CHARS];
-
-	if (numobjectives == MAX_MULTI_SPAWNTARGETS)
-		G_Error("SP_team_WOLF_objective: exceeded MAX_MULTI_SPAWNTARGETS (%d)\n",MAX_MULTI_SPAWNTARGETS);
-	else {	// Set config strings
-		cs_obj += numobjectives;
-		trap_GetConfigstring( cs_obj, cs, sizeof(cs) );
-		Info_SetValueForKey( cs, "spawn_targ", self->message );
-		Info_SetValueForKey( cs, "x", va( "%i", (int)self->s.origin[0] ) );
-		Info_SetValueForKey( cs, "y", va( "%i", (int)self->s.origin[1] ) );
-		if( level.ccLayers )
-			Info_SetValueForKey( cs, "z", va( "%i", (int)self->s.origin[2] ) );
-		Info_SetValueForKey( cs, "t", va( "%i", self->count2 ) );
-		self->use = team_wolf_objective_use;
-		self->count = cs_obj;
-		trap_SetConfigstring( cs_obj, cs );
-		VectorCopy(self->s.origin, level.spawntargets[numobjectives]);
+	if (level.numspawntargets >= MAX_MULTI_SPAWNTARGETS)
+	{
+		G_Printf(S_COLOR_YELLOW "WARNING: SP_team_WOLF_objective: exceeded MAX_MULTI_SPAWNTARGETS (%d), ignoring\n", MAX_MULTI_SPAWNTARGETS);
+		G_FreeEntity(self);
+		return;  // Don't crash
 	}
 
-	numobjectives++;
+	cs_obj     += level.numspawntargets;
+	self->use   = team_wolf_objective_use;
+	self->count = cs_obj;
+
+	trap_GetConfigstring(cs_obj, cs, sizeof(cs));
+	Info_SetValueForKey(cs, "spawn_targ", self->message);
+	Info_SetValueForKey(cs, "x", va("%i", (int)self->s.origin[0]));
+	Info_SetValueForKey(cs, "y", va("%i", (int)self->s.origin[1]));
+	if (level.ccLayers)
+		Info_SetValueForKey(cs, "z", va("%i", (int)self->s.origin[2]));
+	Info_SetValueForKey(cs, "t", va("%i", self->count2));
+	trap_SetConfigstring(cs_obj, cs);
+	VectorCopy(self->s.origin, level.spawntargets[level.numspawntargets]);
+
+	level.numspawntargets++;
 
 	// set current # spawntargets
-	level.numspawntargets = numobjectives;
-	trap_GetConfigstring( CS_MULTI_INFO, cs, sizeof(cs) );
-	sprintf(numspawntargets,"%d",numobjectives);
-	Info_SetValueForKey( cs, "numspawntargets", numspawntargets );
-	trap_SetConfigstring( CS_MULTI_INFO, cs );
+	trap_GetConfigstring(CS_MULTI_INFO, cs, sizeof(cs));
+	Com_sprintf(numspawntargets, 128, "%d", level.numspawntargets);
+	Info_SetValueForKey(cs, "numspawntargets", numspawntargets);
+	trap_SetConfigstring(CS_MULTI_INFO, cs);
 }
 
 void SP_team_WOLF_objective(gentity_t *ent) {
