@@ -2506,8 +2506,7 @@ qboolean G_ScriptAction_TagConnect( gentity_t *ent, char *params )
 	if (!parent) {
 		parent = G_Find( NULL, FOFS(scriptName), token );
 		if (!parent) {
-			G_Printf( "^3WARNING: G_ScriptAction_TagConnect: unable to find entity with targetname \"%s\"\n", token );
-			return qfalse;
+			G_Error( "G_ScriptAction_TagConnect: unable to find entity with targetname \"%s\"", token );
 		}
 	}
 
