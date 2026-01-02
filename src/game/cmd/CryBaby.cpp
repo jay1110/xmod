@@ -29,7 +29,7 @@ CryBaby::doExecute( Context& txt )
     if (lookupPLAYER( txt._args[1], txt, target ))
         return PA_ERROR;
 
-    G_globalSound( "sound/jaymod/crybaby.wav" );
+    G_globalSound( "sound/xmod/crybaby.wav" );
 
     const User& user = *connectedUsers[target->slot];
     Buffer buf;

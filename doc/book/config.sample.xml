@@ -130,8 +130,8 @@ set &cvar:g_bannerLocation;  "<literal>4</literal>"
 set &cvar:g_bannerTime;      "<literal>60</literal>"
 
 set &cvar:g_banners;  "<literal>2</literal>"
-set g_banner1  "<literal>^3THIS SERVER IS RUNNING Jaymod 2.1.7</literal>"
-set g_banner2  "<literal>^3Check forums at http://jaymod.clanfu.org</literal>"
+set g_banner1  "<literal>^3THIS SERVER IS RUNNING Xmod 2.1.7</literal>"
+set g_banner2  "<literal>^3Check forums at http://xmod.clanfu.org</literal>"
 
 //////////////////////////////////////////////////////////////////////
 //

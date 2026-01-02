@@ -1,6 +1,6 @@
-# Jaymod
+# Xmod
 
-Jaymod is a popular server-side modification for **Wolfenstein: Enemy Territory** that adds extensive gameplay features, admin tools, and customization options. This repository contains version 2.0.0.
+Xmod is a popular server-side modification for **Wolfenstein: Enemy Territory** that adds extensive gameplay features, admin tools, and customization options. This repository contains version 2.0.0.
 
 ## Table of Contents
 
@@ -49,7 +49,7 @@ Jaymod is a popular server-side modification for **Wolfenstein: Enemy Territory*
 
 ### Admin System
 
-Jaymod includes a powerful admin system with multi-level permissions:
+Xmod includes a powerful admin system with multi-level permissions:
 
 - **Level-based administration** - Assign different permission levels to admins
 - **User database** - Persistent storage of admin accounts and bans
@@ -281,13 +281,13 @@ Feel free to use this codebase as you please, as long as both licenses are bundl
 
 ## Credits
 
-- **Original Jaymod** - Jaybird
+- **Original Xmod** - Jaybird
 - **Current Maintainer** - jay1110
 - **Anti-Warp Code** - Zinx (June 2007)
 - **Lua Integration** - Based on ET Legacy implementation
 
 ## Links
 
-- [GitHub Repository](https://github.com/jay1110/jaymod)
+- [GitHub Repository](https://github.com/jay1110/xmod)
 - [Wolfenstein: Enemy Territory](https://www.splashdamage.com/games/wolfenstein-enemy-territory/)
 

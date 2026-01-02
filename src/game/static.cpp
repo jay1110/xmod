@@ -32,49 +32,49 @@ namespace cvar {
 namespace objects {
     Cvar bg_cpu ( "sv_cpu", "", CVAR_ROM | CVAR_SERVERINFO_NOUPDATE );
 
-    Cvar bg_dynamiteTime    ( "g_dynamiteTime",   "30", CVAR_JAYMODINFO );
-    Cvar bg_glow            ( "g_glow",           "0",  CVAR_JAYMODINFO );
-    Cvar bg_misc            ( "g_misc",           "0",  CVAR_JAYMODINFO );
-    Cvar bg_panzerWar       ( "g_panzerWar",      "0",  CVAR_JAYMODINFO );
-    Cvar bg_poisonSyringes  ( "g_poisonSyringes", "0",  CVAR_JAYMODINFO );
-    Cvar bg_skills          ( "g_skills",         "0",  CVAR_JAYMODINFO );
-    Cvar bg_sniperWar       ( "g_sniperWar",      "0",  CVAR_JAYMODINFO );
-    Cvar bg_weapons         ( "g_weapons",        "0",  CVAR_JAYMODINFO );
-    Cvar bg_wolfrof         ( "g_wolfrof",        "0",  CVAR_JAYMODINFO );
+    Cvar bg_dynamiteTime    ( "g_dynamiteTime",   "30", CVAR_XMODINFO );
+    Cvar bg_glow            ( "g_glow",           "0",  CVAR_XMODINFO );
+    Cvar bg_misc            ( "g_misc",           "0",  CVAR_XMODINFO );
+    Cvar bg_panzerWar       ( "g_panzerWar",      "0",  CVAR_XMODINFO );
+    Cvar bg_poisonSyringes  ( "g_poisonSyringes", "0",  CVAR_XMODINFO );
+    Cvar bg_skills          ( "g_skills",         "0",  CVAR_XMODINFO );
+    Cvar bg_sniperWar       ( "g_sniperWar",      "0",  CVAR_XMODINFO );
+    Cvar bg_weapons         ( "g_weapons",        "0",  CVAR_XMODINFO );
+    Cvar bg_wolfrof         ( "g_wolfrof",        "0",  CVAR_XMODINFO );
 
-    Cvar bg_maxEngineers    ( "team_maxEngineers","-1", CVAR_JAYMODINFO );
-    Cvar bg_maxMedics       ( "team_maxMedics",   "-1", CVAR_JAYMODINFO );
-    Cvar bg_maxFieldOps     ( "team_maxFieldOps", "-1", CVAR_JAYMODINFO );
-    Cvar bg_maxCovertOps    ( "team_maxCovertOps","-1", CVAR_JAYMODINFO );
+    Cvar bg_maxEngineers    ( "team_maxEngineers","-1", CVAR_XMODINFO );
+    Cvar bg_maxMedics       ( "team_maxMedics",   "-1", CVAR_XMODINFO );
+    Cvar bg_maxFieldOps     ( "team_maxFieldOps", "-1", CVAR_XMODINFO );
+    Cvar bg_maxCovertOps    ( "team_maxCovertOps","-1", CVAR_XMODINFO );
 
-    Cvar bg_maxFlamers      ( "team_maxFlamers",  "-1", CVAR_JAYMODINFO );
-    Cvar bg_maxPanzers      ( "team_maxPanzers",  "-1", CVAR_JAYMODINFO );
-    Cvar bg_maxMG42s        ( "team_maxMG42s",    "-1", CVAR_JAYMODINFO );
-    Cvar bg_maxMortars      ( "team_maxMortars",  "-1", CVAR_JAYMODINFO );
-    Cvar bg_maxGrenLaunchers( "team_maxGrenLaunchers", "-1", CVAR_JAYMODINFO );
-    Cvar bg_maxM97s         ( "team_maxM97s",     "-1", CVAR_JAYMODINFO );
+    Cvar bg_maxFlamers      ( "team_maxFlamers",  "-1", CVAR_XMODINFO );
+    Cvar bg_maxPanzers      ( "team_maxPanzers",  "-1", CVAR_XMODINFO );
+    Cvar bg_maxMG42s        ( "team_maxMG42s",    "-1", CVAR_XMODINFO );
+    Cvar bg_maxMortars      ( "team_maxMortars",  "-1", CVAR_XMODINFO );
+    Cvar bg_maxGrenLaunchers( "team_maxGrenLaunchers", "-1", CVAR_XMODINFO );
+    Cvar bg_maxM97s         ( "team_maxM97s",     "-1", CVAR_XMODINFO );
 
-    Cvar bg_sk5_battle    ( "g_sk5_battle",    "1",    CVAR_JAYMODINFO );
-    Cvar bg_sk5_lightweap ( "g_sk5_lightweap", "1",    CVAR_JAYMODINFO );
-    Cvar bg_sk5_cvops     ( "g_sk5_cvops",     "7",    CVAR_JAYMODINFO );
-    Cvar bg_sk5_eng       ( "g_sk5_eng",       "127",  CVAR_JAYMODINFO );
-    Cvar bg_sk5_fdops     ( "g_sk5_fdops",     "3",    CVAR_JAYMODINFO );
-    Cvar bg_sk5_medic     ( "g_sk5_medic",     "243",  CVAR_JAYMODINFO );
-    Cvar bg_sk5_soldier   ( "g_sk5_soldier",   "7",    CVAR_JAYMODINFO );
+    Cvar bg_sk5_battle    ( "g_sk5_battle",    "1",    CVAR_XMODINFO );
+    Cvar bg_sk5_lightweap ( "g_sk5_lightweap", "1",    CVAR_XMODINFO );
+    Cvar bg_sk5_cvops     ( "g_sk5_cvops",     "7",    CVAR_XMODINFO );
+    Cvar bg_sk5_eng       ( "g_sk5_eng",       "127",  CVAR_XMODINFO );
+    Cvar bg_sk5_fdops     ( "g_sk5_fdops",     "3",    CVAR_XMODINFO );
+    Cvar bg_sk5_medic     ( "g_sk5_medic",     "243",  CVAR_XMODINFO );
+    Cvar bg_sk5_soldier   ( "g_sk5_soldier",   "7",    CVAR_XMODINFO );
 
-    Cvar bg_bulletmode    ( "g_bulletmode",    "0",    CVAR_JAYMODINFO );
-    Cvar bg_hitmode       ( "g_hitmode",       "0",    CVAR_JAYMODINFO );
+    Cvar bg_bulletmode    ( "g_bulletmode",    "0",    CVAR_XMODINFO );
+    Cvar bg_hitmode       ( "g_hitmode",       "0",    CVAR_XMODINFO );
 
-    Cvar bg_ammoUnlimited      ( "g_ammoUnlimited",      "0", CVAR_JAYMODINFO );
-    Cvar bg_ammoFireDelayNudge ( "g_ammoFireDelayNudge", "0", CVAR_JAYMODINFO );
-    Cvar bg_ammoNextDelayNudge ( "g_ammoNextDelayNudge", "0", CVAR_JAYMODINFO );
+    Cvar bg_ammoUnlimited      ( "g_ammoUnlimited",      "0", CVAR_XMODINFO );
+    Cvar bg_ammoFireDelayNudge ( "g_ammoFireDelayNudge", "0", CVAR_XMODINFO );
+    Cvar bg_ammoNextDelayNudge ( "g_ammoNextDelayNudge", "0", CVAR_XMODINFO );
 
-    Cvar bg_covertops          ( "g_covertops",          "0", CVAR_ARCHIVE | CVAR_JAYMODINFO );
+    Cvar bg_covertops          ( "g_covertops",          "0", CVAR_ARCHIVE | CVAR_XMODINFO );
 
-    Cvar bg_fixedphysics       ( "g_fixedphysics",        "1",   CVAR_JAYMODINFO );
-    Cvar bg_fixedphysicsfps    ( "g_fixedphysicsfps",     "125", CVAR_JAYMODINFO );
+    Cvar bg_fixedphysics       ( "g_fixedphysics",        "1",   CVAR_XMODINFO );
+    Cvar bg_fixedphysicsfps    ( "g_fixedphysicsfps",     "125", CVAR_XMODINFO );
 
-    Cvar bg_proneDelay         ( "g_proneDelay",          "0",   CVAR_JAYMODINFO );
+    Cvar bg_proneDelay         ( "g_proneDelay",          "0",   CVAR_XMODINFO );
 
     Cvar gameState( "gameState", "-1", CVAR_WOLFINFO | CVAR_ROM );
 
@@ -126,7 +126,7 @@ namespace objects {
     Cvar g_warmup       ( "g_warmup",          "60", 0, cb_g_warmup );
 
     Cvar g_kickMessage    ( "g_kickMessage",    "You have been kicked for ^G$TIME^*." );
-    Cvar g_kickTime       ( "g_kickTime",       "2m", CVAR_JAYMODCB_INIT, cb_g_kickTime );
+    Cvar g_kickTime       ( "g_kickTime",       "2m", CVAR_XMODCB_INIT, cb_g_kickTime );
     Cvar g_protestMessage ( "g_protestMessage", "Visit ^/www.myserver.com^* to file a protest" );
 
     Cvar sv_tempBanMessage( "sv_tempBanMessage", "", CVAR_ROM );

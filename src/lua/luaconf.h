@@ -12,7 +12,7 @@
 #include <stddef.h>
 
 /*
-** Jaymod: Use longjmp instead of C++ exceptions for error handling.
+** Xmod: Use longjmp instead of C++ exceptions for error handling.
 ** This is required because the build system uses -fno-exceptions.
 */
 #define LUA_USE_LONGJMP

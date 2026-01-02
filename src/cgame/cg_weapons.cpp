@@ -903,7 +903,7 @@ void CG_RailTrail3( clientInfo_t *ci, vec3_t start, vec3_t end, int type) {
 	} else if (type == 2){  // Green for etpro box
 		le->color[1] = 1.0f;
 		le->color[0] = le->color[2] = 0;
-    } else {                // Blue for jaymod box
+    } else {                // Blue for xmod box
         le->color[2] = 1.0f;
         le->color[0] = le->color[1] = 0;
     }

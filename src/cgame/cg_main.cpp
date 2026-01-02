@@ -333,11 +333,11 @@ typedef struct {
 } cvarTable_t;
 
 cvarTable_t		cvarTable[] = {
-    { NULL, "cg_jaymod_title",       JAYMOD_title,       CVAR_ROM | CVAR_USERINFO },
-    { NULL, "cg_jaymod_buildTarget", JAYMOD_buildTarget, CVAR_ROM },
-    { NULL, "cg_jaymod_repoLCDate",  JAYMOD_repoLCDate,  CVAR_ROM },
-    { NULL, "cg_jaymod_repoLCRev",   JAYMOD_repoLCRev,   CVAR_ROM },
-    { NULL, "cg_jaymod_repoUUID",    JAYMOD_repoUUID,    CVAR_ROM },
+    { NULL, "cg_xmod_title",       XMOD_title,       CVAR_ROM | CVAR_USERINFO },
+    { NULL, "cg_xmod_buildTarget", XMOD_buildTarget, CVAR_ROM },
+    { NULL, "cg_xmod_repoLCDate",  XMOD_repoLCDate,  CVAR_ROM },
+    { NULL, "cg_xmod_repoLCRev",   XMOD_repoLCRev,   CVAR_ROM },
+    { NULL, "cg_xmod_repoUUID",    XMOD_repoUUID,    CVAR_ROM },
 
     { &cg_console,         "cg_console",         "0", CVAR_ARCHIVE },
     { &cg_consoleShadowed, "cg_consoleShadowed", "1", CVAR_ARCHIVE },
@@ -596,7 +596,7 @@ void CG_SetJayFlags() {
 	int flags = 0;
 
 	// Construct the flagset.
-	// See bg_jaymod.h for flags definitions
+	// See bg_xmod.h for flags definitions
 	if (cg_pmblock.integer)
 		flags |= JAYFLAGS_PMBLOCK;
 
@@ -628,8 +628,8 @@ version checking.
 ===============
 */
 void CG_Authenticate( void ) {
-	// Format: auth "mac" "jaymod version"
-	char *str = va( "auth \"%s\"", JAYMOD_title );
+	// Format: auth "mac" "xmod version"
+	char *str = va( "auth \"%s\"", XMOD_title );
 
 	trap_SendConsoleCommand( str );
 }
@@ -1388,13 +1388,13 @@ static void CG_RegisterSounds( void ) {
 	cgs.media.multikill[5] = trap_S_RegisterSound( "sound/multikill/ludicrouskill.wav", qfalse );
 	cgs.media.multikill[6] = trap_S_RegisterSound( "sound/multikill/holyshit.wav", qfalse );
 
-	cgs.media.firstblood = trap_S_RegisterSound( "sound/jaymod/firstblood.wav", qfalse );
-	cgs.media.headshot = trap_S_RegisterSound( "sound/jaymod/headshot.wav", qfalse );
-	cgs.media.pmsound = trap_S_RegisterSound( "sound/jaymod/privatemessage.wav", qfalse );
-	cgs.media.counterTickSound = trap_S_RegisterSound( "sound/jaymod/countertick.wav", qfalse );
+	cgs.media.firstblood = trap_S_RegisterSound( "sound/xmod/firstblood.wav", qfalse );
+	cgs.media.headshot = trap_S_RegisterSound( "sound/xmod/headshot.wav", qfalse );
+	cgs.media.pmsound = trap_S_RegisterSound( "sound/xmod/privatemessage.wav", qfalse );
+	cgs.media.counterTickSound = trap_S_RegisterSound( "sound/xmod/countertick.wav", qfalse );
 
 	// Jaybird - heartbeat
-	cgs.media.heartbeat      = trap_S_RegisterSound( "sound/jaymod/heartbeat.wav", qfalse );
+	cgs.media.heartbeat      = trap_S_RegisterSound( "sound/xmod/heartbeat.wav", qfalse );
 	cgs.media.poisonGasCough = trap_S_RegisterSound( "sound/poison_gas/cough.wav", qfalse );
 	cgs.media.landmineClick  = trap_S_RegisterSound( "sound/weapons/landmine/click.wav", qfalse );
 	cgs.media.landmineLaunch = trap_S_RegisterSound( "sound/weapons/landmine/launch.wav", qfalse );
@@ -2946,10 +2946,10 @@ void CG_Init( int serverMessageNum, int serverCommandSequence, int clientNum, qb
 	}
 	trap_Cvar_Set( "cg_etVersion", GAME_VERSION_DATED );	// So server can check
 
-    // Check Jaymod version.
-    s = Info_ValueForKey( CG_ConfigString( CS_JAYMODINFO ), "jver" );
-    if ( !*s || Q_stricmp( s, JAYMOD_title )) {
-		CG_Error( JAYMOD_namex " ^3Version Mismatch\n^xClient: ^1%s\n^xServer: ^2%s\n\n^3Usually ^3shutting ^3down ^3and ^3restarting ^3your ^3game ^3will ^3fix ^3this ^3problem. ^3If ^3it ^3persists, ^3contact ^3the ^3server ^3administrator ^3regarding ^3a ^3possible ^3server ^3misconfiguration.", JAYMOD_title, *s ? s : "[MISSING INFO]" );
+    // Check Xmod version.
+    s = Info_ValueForKey( CG_ConfigString( CS_XMODINFO ), "jver" );
+    if ( !*s || Q_stricmp( s, XMOD_title )) {
+		CG_Error( XMOD_namex " ^3Version Mismatch\n^xClient: ^1%s\n^xServer: ^2%s\n\n^3Usually ^3shutting ^3down ^3and ^3restarting ^3your ^3game ^3will ^3fix ^3this ^3problem. ^3If ^3it ^3persists, ^3contact ^3the ^3server ^3administrator ^3regarding ^3a ^3possible ^3server ^3misconfiguration.", XMOD_title, *s ? s : "[MISSING INFO]" );
     }
 
 	s = CG_ConfigString( CS_LEVEL_START_TIME );
@@ -3068,7 +3068,7 @@ void CG_Init( int serverMessageNum, int serverCommandSequence, int clientNum, qb
 	// Jaybird
     CG_InitMapEntities();
 	cg.dynamiteTime = 30000;
-	CG_ParseJaymodinfo();
+	CG_ParseXmodinfo();
 	CG_ParseSkillLevels();
 	CG_SetJayFlags();
 	CG_SetMACAddress();

@@ -447,7 +447,7 @@ JXAC is part of the xmod project and is released under the Apache 2.0 License.
 ## 👥 Contributors
 
 - **jay1110** - JXAC implementation
-- **Original Jaymod** - Jaybird
+- **Original Xmod** - Jaybird
 - **Inspired by** - Nitmod anticheat, PunkBuster
 
 ---

@@ -654,8 +654,8 @@ static void CG_PrivateSend_f( void )
 		
 }
 
-static void CG_PrintJaymodInfo_f( void ) {
-	char *s = Info_ValueForKey( CG_ConfigString( CS_JAYMODINFO ), "jver" );
+static void CG_PrintXmodInfo_f( void ) {
+	char *s = Info_ValueForKey( CG_ConfigString( CS_XMODINFO ), "jver" );
     const string stitle = s ? s : "undefined";
 
     using namespace text;
@@ -670,17 +670,17 @@ static void CG_PrintJaymodInfo_f( void ) {
     colB.flags |= ios::left;
 
     Buffer buf( xcdim );
-    buf << xheader( JAYMOD_namex ) << ' ' << xheader( "Version Info" )
-        << '\n' << colA( "website " )        << colB( JAYMOD_website )
-        << '\n' << colA( "IRC channel" )     << colB( JAYMOD_irc )
-        << '\n' << colA( "client" )          << colB( JAYMOD_title )
+    buf << xheader( XMOD_namex ) << ' ' << xheader( "Version Info" )
+        << '\n' << colA( "website " )        << colB( XMOD_website )
+        << '\n' << colA( "IRC channel" )     << colB( XMOD_irc )
+        << '\n' << colA( "client" )          << colB( XMOD_title )
         << '\n' << colA( "server" )          << colB( stitle )
-        << '\n' << colA( "repo UUID" )       << colB( JAYMOD_repoUUID )
-        << '\n' << colA( "repo rev" )        << colB( JAYMOD_repoLCRev )
-        << '\n' << colA( "repo date" )       << colB( JAYMOD_repoLCDate )
-        << '\n' << colA( "build stability" ) << colB( JAYMOD_buildStability )
-        << '\n' << colA( "build target" )    << colB( JAYMOD_buildTarget )
-        << '\n' << colA( "build date" )      << colB( JAYMOD_buildDate )
+        << '\n' << colA( "repo UUID" )       << colB( XMOD_repoUUID )
+        << '\n' << colA( "repo rev" )        << colB( XMOD_repoLCRev )
+        << '\n' << colA( "repo date" )       << colB( XMOD_repoLCDate )
+        << '\n' << colA( "build stability" ) << colB( XMOD_buildStability )
+        << '\n' << colA( "build target" )    << colB( XMOD_buildTarget )
+        << '\n' << colA( "build date" )      << colB( XMOD_buildDate )
         << '\n';
 
     ETDevice dev;
@@ -694,7 +694,7 @@ static void CG_PrintJaymodInfo_f( void ) {
 }
 
 static void CG_PrintTextShortcuts_f( void ) {
-	CG_Printf( JAYMOD_namex " ^3Text Shortcuts\n" );
+	CG_Printf( XMOD_namex " ^3Text Shortcuts\n" );
 	CG_Printf( "---------------------\n" );
 	CG_Printf( "^3[a] ^7- The last person who gave you ammo\n" );
 	CG_Printf( "^3[d] ^7- The last person who killed you\n" );
@@ -1126,7 +1126,7 @@ static consoleCommand_t	commands[] =
 
 	// Jaybird
 	{ "textshortcuts", CG_PrintTextShortcuts_f },
-	{ "jaymodinfo", CG_PrintJaymodInfo_f },
+	{ "xmodinfo", CG_PrintXmodInfo_f },
 	{ "macinfo",	CG_MacInfo_f },
 	
 	{ "SetWeaponCrosshair", CG_SetWeaponCrosshair_f },
@@ -1312,12 +1312,12 @@ void CG_InitConsoleCommands( void ) {
 	trap_AddCommand ("vsay_team");
 	trap_AddCommand ("where");
 
-	// Jaybird - Jaymod commands
+	// Jaybird - Xmod commands
 	trap_AddCommand ("campaigninfo");
 	trap_AddCommand ("m");
 	trap_AddCommand ("messagemode4");
 	trap_AddCommand ("textshortcuts");
-	trap_AddCommand ("jaymodinfo");
+	trap_AddCommand ("xmodinfo");
 
 	trap_AddCommand ("sclogin");
 	trap_AddCommand ("sclogout");

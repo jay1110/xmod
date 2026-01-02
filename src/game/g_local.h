@@ -16,7 +16,7 @@
 
 // the "gameversion" client command will print this plus compile date
 #ifndef PRE_RELEASE_DEMO
-#define GAMEVERSION			JAYMOD_namef
+#define GAMEVERSION			XMOD_namef
 #else
 //#define GAMEVERSION			"You look like you need a monkey!"
 #define GAMEVERSION			"ettest"
@@ -2671,7 +2671,7 @@ qboolean G_LandmineSnapshotCallback( int entityNum, int clientNum );
 ///////////////////////////////////////////////////////////////////////////////
 
 #include <game/etpro_mdx.h>
-#include <game/g_jaymod.h>
+#include <game/g_xmod.h>
 #include <game/g_molotov.h>
 
 ///////////////////////////////////////////////////////////////////////////////

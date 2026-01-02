@@ -52,7 +52,7 @@
             and can find &perl:cmd; by itself on recent &linux:name; systems, but for our example
             we will explicitly run it from your shell path.
         </para>
-<screen>&bash.prompt.et; cd ~etserver/server1/jaymod/
+<screen>&bash.prompt.et; cd ~etserver/server1/xmod/
 &bash.prompt.et; &perl:cmd; ~etserver/&project:packageBase;/linux/convert_shrub
 </screen>
     </listitem>
@@ -64,7 +64,7 @@
             Then shutdown the server and the full (scrubbed) data will be written which is cleaner,
             and more rich than what <command>convert_shrub</command> can produce.
         </para>
-<screen>&bash.prompt.et; cd ~etserver/server1/jaymod/
+<screen>&bash.prompt.et; cd ~etserver/server1/xmod/
 &bash.prompt.et; less level.db
 &bash.prompt.et; less user.db
 </screen>
@@ -76,7 +76,7 @@
             to keep this file around if you want to compare the converted data.
             We rename it to show the file is no longer in use.
         </para>
-<screen>&bash.prompt.et; cd ~etserver/server1/jaymod/
+<screen>&bash.prompt.et; cd ~etserver/server1/xmod/
 &bash.prompt.et; mv shrubbot.cfg shrubbot.cfg.DISABLED
 </screen>
     </listitem>

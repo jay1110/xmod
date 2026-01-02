@@ -345,7 +345,7 @@ The client-side anti-tamper system is now fully operational:
 
 ## Credits
 
-- **Original Jaymod**: Jaybird
+- **Original Xmod**: Jaybird
 - **JXAC Implementation**: jay1110
 - **Inspired by**: Nitmod anticheat, PunkBuster
 

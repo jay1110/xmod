@@ -221,7 +221,7 @@ void P_DamageFeedback( gentity_t *player ) {
 		return;
 	}
 
-	// Jaymod - poison syringes
+	// Xmod - poison syringes
 	if(G_IsPoisoned(player))  {
 		client->ps.eFlags |= EF_POISON;
 		return;
@@ -897,7 +897,7 @@ void ClientTimerActions( gentity_t *ent, int msec ) {
 				BG_AnimScriptEvent( &ent->client->ps, ent->client->pers.character->animModelInfo, ANIM_ET_PAIN, qfalse, qtrue );
 
 			// Sound
-			G_ClientSound( ent, "sound/jaymod/heartbeat.wav" );
+			G_ClientSound( ent, "sound/xmod/heartbeat.wav" );
 		}
 	}
 

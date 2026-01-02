@@ -1,11 +1,11 @@
-The Jaymod Build System - Fri Jul 14 12:47:16 EDT 2006
+The Xmod Build System - Fri Jul 14 12:47:16 EDT 2006
 Author: Mr.Mxyzptlk
 --------------------------------------------------------------------------------
 GOALS
 
 The goals of this build system are as follows:
 
-1.  Produce Jaymod builds for all supported platforms. As of this writing,
+1.  Produce Xmod builds for all supported platforms. As of this writing,
     the build system is hosted in the following environments:
 
         x86 Linux (using gcc)
@@ -33,7 +33,7 @@ The goals of this build system are as follows:
 5.  Permit separation of sources into modules. A module can be subset
     of particular language files grouped simply for organizational purposes,
     or it can represent things like shared-library modules, or groups of
-    certain types of files. My preference was to impact Jaymod project as
+    certain types of files. My preference was to impact Xmod project as
     little as possible, so all C files are organized fairly similar to
     that of the STOCK ET-SDK. Modules were added for pk3 and packaging.
 

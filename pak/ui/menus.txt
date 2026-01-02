@@ -71,13 +71,13 @@
 	loadMenu { "ui/ingame_tapout.menu" }
 	loadMenu { "ui/ingame_tapoutlms.menu" }
 
-	// jaymod
-	loadMenu { "ui/jaymod_main.menu" }
-	loadMenu { "ui/jaymod_sound.menu" }
-	loadMenu { "ui/jaymod_display.menu" }
-	loadMenu { "ui/jaymod_misc.menu" }
+	// xmod
+	loadMenu { "ui/xmod_main.menu" }
+	loadMenu { "ui/xmod_sound.menu" }
+	loadMenu { "ui/xmod_display.menu" }
+	loadMenu { "ui/xmod_misc.menu" }
 	loadMenu { "ui/ingame_vote_generic.menu" }
 	loadMenu { "ui/ingame_privatemessage.menu" }
-	loadMenu { "ui/credits_jaymod.menu" }
+	loadMenu { "ui/credits_xmod.menu" }
 	
 }

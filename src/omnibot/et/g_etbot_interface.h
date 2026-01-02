@@ -9,8 +9,8 @@
 #include <game/g_local.h>
 
 #define OMNIBOT_NAME GAMEVERSION
-#define OMNIBOT_MODNAME JAYMOD_name
-#define OMNIBOT_MODVERSION JAYMOD_version
+#define OMNIBOT_MODNAME XMOD_name
+#define OMNIBOT_MODVERSION XMOD_version
 
 //////////////////////////////////////////////////////////////////////////
 // g_OmniBotFlags bits

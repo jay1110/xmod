@@ -3,7 +3,7 @@
 
 <para>
     This chapter provides a convenient organization of server CVARs as found in
-    the sample <filename>jaymod.cfg</filename> file bundled with &project:name; distribution.
+    the sample <filename>xmod.cfg</filename> file bundled with &project:name; distribution.
 </para>
 
 <programlisting>

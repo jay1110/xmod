@@ -94,7 +94,7 @@ extern vmCvar_t	ui_browserShowPunkBuster;
 extern vmCvar_t ui_browserShowAntilag;
 extern vmCvar_t ui_browserShowWeaponsRestricted;
 extern vmCvar_t ui_browserShowTeamBalanced;
-extern vmCvar_t	ui_browserShowJaymodOnly;
+extern vmCvar_t	ui_browserShowXmodOnly;
 
 extern vmCvar_t	ui_serverStatusTimeOut;
 extern vmCvar_t	ui_limboOptions;
@@ -908,7 +908,7 @@ typedef struct {
 	qhandle_t	weaponRestrictionsFilter;
 	qhandle_t	antiLagFilter;
 	qhandle_t	teamBalanceFilter;
-	qhandle_t	jaymodOnlyFilter;
+	qhandle_t	xmodOnlyFilter;
 
 	qhandle_t	campaignMap;
 } uiInfo_t;

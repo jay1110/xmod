@@ -19,7 +19,7 @@ use HTTP::Date;
 ## PACKAGE: __title (__repoLCDate)
 ## AUTHOR:  Mr.Mxyzptlk
 ##
-## Jaymod 2.0 -> Jaymod 2.1 shrubbot.cfg conversion utility.
+## Xmod 2.0 -> Xmod 2.1 shrubbot.cfg conversion utility.
 ##
 ###############################################################################
 

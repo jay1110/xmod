@@ -6,7 +6,7 @@ MODULE.UI.srcs = $(sort \
 	$(PROJECT/)src/bgame/Process.cpp \
 	$(PROJECT/)src/bgame/bg_campaign.cpp \
 	$(PROJECT/)src/bgame/bg_classes.cpp \
-	$(PROJECT/)src/bgame/bg_jaymod.cpp \
+	$(PROJECT/)src/bgame/bg_xmod.cpp \
 	$(PROJECT/)src/bgame/bg_misc.cpp \
 	$(PROJECT/)src/bgame/q_math.cpp \
 	$(PROJECT/)src/bgame/q_shared.cpp \

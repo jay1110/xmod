@@ -20,11 +20,11 @@ dnl
 ##
 ##     /home/etserver/server1/
 ##     /home/etserver/server1/etmain/
-##     /home/etserver/server1/jaymod/
-##     /home/etserver/server1/jaymod/qagame.mp.i386.so
-##     /home/etserver/server1/jaymod/__pk3
-##     /home/etserver/server1/jaymod/jaymod.cfg
-##     /home/etserver/server1/jaymod/server.cfg
+##     /home/etserver/server1/xmod/
+##     /home/etserver/server1/xmod/qagame.mp.i386.so
+##     /home/etserver/server1/xmod/__pk3
+##     /home/etserver/server1/xmod/xmod.cfg
+##     /home/etserver/server1/xmod/server.cfg
 ##     /home/etserver/server1/log/
 ##     /home/etserver/server1/serverctl
 ##
@@ -36,9 +36,9 @@ dnl
 ## arbitrary and can be anything but keep it simple and without spaces.
 ##
 ## etmain/    is an empty dir but is a good place to put custom maps.
-## jaymod/    is where all jaymod-specific stuff goes. So copy the qagame
-##            module, PK3 and jaymod.cfg (both found in Jaymod's bundle).
-##            Also create a server.cfg that at some point exec's jaymod.cfg .
+## xmod/    is where all xmod-specific stuff goes. So copy the qagame
+##            module, PK3 and xmod.cfg (both found in Xmod's bundle).
+##            Also create a server.cfg that at some point exec's xmod.cfg .
 ## log/       is an empty dir where the server's output will be captured.
 ## serverctl  is THIS script. Make sure it has execute permissions.
 ##
@@ -226,7 +226,7 @@ server_loop()
             +set com_zonemegs   "48" \
             +set dedicated      "2" \
             +set fs_basepath    "$ET_BASE" \
-            +set fs_game        "jaymod" \
+            +set fs_game        "xmod" \
             +set fs_homepath    "$ET_HOME" \
             +set net_ip         "$ET_IP" \
             +set net_port       "$ET_PORT" \

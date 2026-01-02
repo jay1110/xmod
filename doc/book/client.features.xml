@@ -35,7 +35,7 @@
 </para>
 <para>
     If &project:name; detects that you have the highest normal /rate setting of 25000 and
-    Auto Rate is set to "auto step" under the Jaymod/Misc/Network menu, /rate will be raised
+    Auto Rate is set to "auto step" under the Xmod/Misc/Network menu, /rate will be raised
     in increments of 1000 when the server detects network congestion in the server -> client direction.
 </para>
 <para>

@@ -189,7 +189,7 @@ vmCvar_t		g_nextcampaign;
 vmCvar_t		g_disableComplaints;
 
 /*********************
-* Start Jaymod Cvars *
+* Start Xmod Cvars *
 *********************/
 vmCvar_t		sv_uptime;
 vmCvar_t		sv_uptimeStamp;
@@ -283,16 +283,16 @@ vmCvar_t        g_warnMuteLevel;
 vmCvar_t        g_warnBanLevel;
 
 /*********************
-* End Jaymod Cvars   *
+* End Xmod Cvars   *
 *********************/
 
 cvarTable_t		gameCvarTable[] = {
-    // Jaymod CVARS
-    { NULL, "g_jaymod_title",       JAYMOD_title,       CVAR_ROM },
-    { NULL, "g_jaymod_buildTarget", JAYMOD_buildTarget, CVAR_ROM },
-    { NULL, "g_jaymod_repoLCDate",  JAYMOD_repoLCDate,  CVAR_ROM },
-    { NULL, "g_jaymod_repoLCRev",   JAYMOD_repoLCRev,   CVAR_ROM },
-    { NULL, "g_jaymod_repoUUID",    JAYMOD_repoUUID,    CVAR_ROM },
+    // Xmod CVARS
+    { NULL, "g_xmod_title",       XMOD_title,       CVAR_ROM },
+    { NULL, "g_xmod_buildTarget", XMOD_buildTarget, CVAR_ROM },
+    { NULL, "g_xmod_repoLCDate",  XMOD_repoLCDate,  CVAR_ROM },
+    { NULL, "g_xmod_repoLCRev",   XMOD_repoLCRev,   CVAR_ROM },
+    { NULL, "g_xmod_repoUUID",    XMOD_repoUUID,    CVAR_ROM },
 
     { &sv_uptime,      "sv_uptime",      ""  , CVAR_ROM | CVAR_SERVERINFO_NOUPDATE },
     { &sv_uptimeStamp, "sv_uptimeStamp", "-1", CVAR_ROM },
@@ -303,7 +303,7 @@ cvarTable_t		gameCvarTable[] = {
 	{ &g_dragCorpse,		"g_dragCorpse",			"0",		CVAR_ARCHIVE },
 	{ &g_shove,				"g_shove",				"0",		CVAR_ARCHIVE },
 	{ &g_classChange,		"g_classChange",		"0",		CVAR_ARCHIVE },
-	{ &team_maxArtillery,	"team_maxArtillery",	"6",		CVAR_ARCHIVE | CVAR_JAYMODINFO },
+	{ &team_maxArtillery,	"team_maxArtillery",	"6",		CVAR_ARCHIVE | CVAR_XMODINFO },
 	{ &g_xpSave,			"g_xpSave",				"0",		CVAR_ARCHIVE | CVAR_LATCH },
 	{ &g_xpSaveTimeout,		"g_xpSaveTimeout",		"1h",		CVAR_ARCHIVE },
 	{ &g_xpMax,				"g_xpMax",				"0",		CVAR_ARCHIVE },
@@ -331,7 +331,7 @@ cvarTable_t		gameCvarTable[] = {
 	{ &g_censor,			"g_censor",				"0",		0 },
 	{ &g_censorPenalty,		"g_censorPenalty",		"0",		0 },
 
-	{ &g_watermark,			"g_watermark",			"jaymod",	CVAR_ARCHIVE },
+	{ &g_watermark,			"g_watermark",			"xmod",	CVAR_ARCHIVE },
 	{ &g_watermarkFadeAfter,"g_watermarkFadeAfter",	"60",		CVAR_ARCHIVE },
 	{ &g_watermarkFadeTime,	"g_watermarkFadeTime",	"60",		CVAR_ARCHIVE },
 	{ &g_goomba,			"g_goomba",				"0",		CVAR_ARCHIVE },
@@ -384,9 +384,9 @@ cvarTable_t		gameCvarTable[] = {
     { &g_warnBanLevel,      "g_warnBanLevel",       "100",      0 },
 
     // Some useful mod-info cvars.
-    { NULL, "mod_binary",  JAYMOD_buildTarget, CVAR_SERVERINFO | CVAR_ROM },
-    { NULL, "mod_url",     JAYMOD_website,     CVAR_SERVERINFO | CVAR_ROM },
-    { NULL, "mod_version", JAYMOD_version,     CVAR_SERVERINFO | CVAR_ROM },
+    { NULL, "mod_binary",  XMOD_buildTarget, CVAR_SERVERINFO | CVAR_ROM },
+    { NULL, "mod_url",     XMOD_website,     CVAR_SERVERINFO | CVAR_ROM },
+    { NULL, "mod_version", XMOD_version,     CVAR_SERVERINFO | CVAR_ROM },
 
 	// don't override the cheat state set by the system
 	{ &g_cheats, "sv_cheats", "", 0, qfalse },
@@ -1481,7 +1481,7 @@ void G_UpdateCvars( void )
 	bool fVoteFlags        = false;
 	bool remapped          = false;
 	bool chargetimechanged = false;
-	bool jaymodChanged     = false;
+	bool xmodChanged     = false;
 
     Cvar::update();
 
@@ -1496,8 +1496,8 @@ void G_UpdateCvars( void )
 
         v.lastModificationCount = v.modificationCount;
 
-        if (v.flags & CVAR_JAYMODINFO)
-            jaymodChanged = true;
+        if (v.flags & CVAR_XMODINFO)
+            xmodChanged = true;
     }
 
 	for ( i = 0, cv = gameCvarTable ; i < gameCvarTableSize ; i++, cv++ ) {
@@ -1614,8 +1614,8 @@ void G_UpdateCvars( void )
 					}
 				}
 	
-				if (cv->cvarFlags & CVAR_JAYMODINFO)
-					jaymodChanged = qtrue;
+				if (cv->cvarFlags & CVAR_XMODINFO)
+					xmodChanged = qtrue;
 			}
 		}
 	}
@@ -1632,9 +1632,9 @@ void G_UpdateCvars( void )
 		G_RemapTeamShaders();
 	}
 
-	if( jaymodChanged ) {
+	if( xmodChanged ) {
         ammoTableNeedsUpdate = true;
-		G_UpdateJaymodCS();
+		G_UpdateXmodCS();
 	}
 
 	if( chargetimechanged ) {
@@ -1807,15 +1807,15 @@ void G_InitGame( int levelTime, int randomSeed, int restart ) {
     }
 
 	/*
-     * Reference jaymod-X.Y.Z.pk3 for pure-checks.
+     * Reference xmod-X.Y.Z.pk3 for pure-checks.
      */
-	if (trap_FS_FOpenFile( JAYMOD_packageBase ".dat", &i, FS_READ ) != -1) {
+	if (trap_FS_FOpenFile( XMOD_packageBase ".dat", &i, FS_READ ) != -1) {
         trap_FS_FCloseFile( i );
     }
     else {
         G_Printf( "-------\n");
-        G_Printf( "------- WARNING: unable to open %s .\n", JAYMOD_packageBase ".dat" );
-        G_Printf( "------- Please verify you have installed %s correctly.\n", JAYMOD_pk3 );
+        G_Printf( "------- WARNING: unable to open %s .\n", XMOD_packageBase ".dat" );
+        G_Printf( "------- Please verify you have installed %s correctly.\n", XMOD_pk3 );
         G_Printf( "-------\n");
     }
 
@@ -1917,15 +1917,15 @@ void G_InitGame( int levelTime, int randomSeed, int restart ) {
 	trap_SetConfigstring( CS_CHARGETIMES, cs );
 	trap_SetConfigstring( CS_FILTERCAMS, va( "%i", g_filtercams.integer ) );
 
-	// Jaymod - Watermarking features.
+	// Xmod - Watermarking features.
 	cs[0] = '\0';
 	Info_SetValueForKey( cs, "wmFA", va("%i", g_watermarkFadeAfter.integer));
 	Info_SetValueForKey( cs, "wmFT", va("%i", g_watermarkFadeTime.integer));
 	Info_SetValueForKey( cs, "wmFN", g_watermark.string );
 	trap_SetConfigstring( CS_WATERMARKINFO, cs );
 
-	// Construct the Jaymod Config String
-	G_UpdateJaymodCS();
+	// Construct the Xmod Config String
+	G_UpdateXmodCS();
 
 	G_SoundIndex( "sound/misc/referee.wav"	);
 	G_SoundIndex( "sound/misc/vote.wav"		);
@@ -4009,7 +4009,7 @@ void G_RunFrame( int levelTime ) {
 		level.gameManager->s.otherEntityNum2 = MAX_TEAM_LANDMINES - G_CountTeamLandmines(TEAM_ALLIES);
 	}
 
-	// Jaybird - Jaymod per-server-frame stuff.
+	// Jaybird - Xmod per-server-frame stuff.
 	G_Banners();
 	G_BinocWar(qfalse);
     cmd::CrazyGravity::run();

@@ -5840,11 +5840,11 @@ static void UI_BuildServerDisplayList(qboolean force) {
 				}
 			}*/
 
-			trap_Cvar_Update( &ui_browserShowJaymodOnly );
-			if( ui_browserShowJaymodOnly.integer ) {
-				int cmp = Q_stricmp( Info_ValueForKey( info, "game" ), "jaymod" );
-				if( ( cmp && ui_browserShowJaymodOnly.integer == 1 ) ||
-					( !cmp && ui_browserShowJaymodOnly.integer == 2 ) ) {
+			trap_Cvar_Update( &ui_browserShowXmodOnly );
+			if( ui_browserShowXmodOnly.integer ) {
+				int cmp = Q_stricmp( Info_ValueForKey( info, "game" ), "xmod" );
+				if( ( cmp && ui_browserShowXmodOnly.integer == 1 ) ||
+					( !cmp && ui_browserShowXmodOnly.integer == 2 ) ) {
 					trap_LAN_MarkServerVisible( ui_netSource.integer, i, qfalse );
 					continue;
 				}
@@ -6537,7 +6537,7 @@ const char *UI_FeederItemText( float feederID, int index, int column, qhandle_t 
 						weaponrestrictions = atoi( Info_ValueForKey( info, "weaprestrict" ) );
 						antilag = atoi( Info_ValueForKey( info, "g_antilag" ) );
 						balancedteams = atoi( Info_ValueForKey( info, "balancedteams" ) );
-						mod = (Q_stricmp(Info_ValueForKey(info, "game"), "jaymod")) ? 0 : 1;
+						mod = (Q_stricmp(Info_ValueForKey(info, "game"), "xmod")) ? 0 : 1;
 
 						if( needpass ) handles[0] = uiInfo.passwordFilter; else handles[0] = -1;
 						if( friendlyfire ) handles[1] = uiInfo.friendlyFireFilter; else handles[1] = -1;
@@ -6546,7 +6546,7 @@ const char *UI_FeederItemText( float feederID, int index, int column, qhandle_t 
 						if( weaponrestrictions < 100 ) handles[4] = uiInfo.weaponRestrictionsFilter; else handles[4] = -1;
 						if( antilag ) handles[5] = uiInfo.antiLagFilter; else handles[5] = -1;
 						if( balancedteams ) handles[6] = uiInfo.teamBalanceFilter; else handles[6] = -1;
-						if( mod ) handles[7] = uiInfo.jaymodOnlyFilter; else handles[7] = -1;
+						if( mod ) handles[7] = uiInfo.xmodOnlyFilter; else handles[7] = -1;
 						return "";
 					}
 				case SORT_FAVOURITES:
@@ -7531,7 +7531,7 @@ void _UI_Init( qboolean inGameLoad ) {
 	uiInfo.weaponRestrictionsFilter = trap_R_RegisterShaderNoMip( "ui/assets/filter_weap.tga" );
 	uiInfo.antiLagFilter = trap_R_RegisterShaderNoMip( "ui/assets/filter_antilag.tga" );
 	uiInfo.teamBalanceFilter = trap_R_RegisterShaderNoMip( "ui/assets/filter_balance.tga" );
-	uiInfo.jaymodOnlyFilter = trap_R_RegisterShaderNoMip( "ui/assets/icon_jaymod.tga" );
+	uiInfo.xmodOnlyFilter = trap_R_RegisterShaderNoMip( "ui/assets/icon_xmod.tga" );
 
 	uiInfo.campaignMap = trap_R_RegisterShaderNoMip( "gfx/loading/camp_map.tga" );
 
@@ -8254,7 +8254,7 @@ vmCvar_t	ui_browserShowPunkBuster;			// DHM - Nerve
 vmCvar_t	ui_browserShowAntilag;	// TTimo
 vmCvar_t	ui_browserShowWeaponsRestricted;
 vmCvar_t	ui_browserShowTeamBalanced;
-vmCvar_t	ui_browserShowJaymodOnly;
+vmCvar_t	ui_browserShowXmodOnly;
 
 vmCvar_t	ui_serverStatusTimeOut;
 
@@ -8409,7 +8409,7 @@ cvarTable_t		cvarTable[] = {
 	{ &ui_browserShowAntilag, "ui_browserShowAntilag", "0", CVAR_ARCHIVE },
 	{ &ui_browserShowWeaponsRestricted, "ui_browserShowWeaponsRestricted", "0", CVAR_ARCHIVE },
 	{ &ui_browserShowTeamBalanced, "ui_browserShowTeamBalanced", "0", CVAR_ARCHIVE },
-	{ &ui_browserShowJaymodOnly, "ui_browserShowJaymodOnly", "0", CVAR_ARCHIVE },
+	{ &ui_browserShowXmodOnly, "ui_browserShowXmodOnly", "0", CVAR_ARCHIVE },
 
 	{ &ui_serverStatusTimeOut, "ui_serverStatusTimeOut", "7000", CVAR_ARCHIVE},
 
@@ -8561,12 +8561,12 @@ cvarTable_t		cvarTable[] = {
 	//bani
 	{ &ui_autoredirect, "ui_autoredirect", "0", CVAR_ARCHIVE },
 
-    // Jaymod version tracking
-    { NULL, "ui_jaymod_title",       JAYMOD_title,       CVAR_ROM },
-    { NULL, "ui_jaymod_buildTarget", JAYMOD_buildTarget, CVAR_ROM },
-    { NULL, "ui_jaymod_repoLCDate",  JAYMOD_repoLCDate,  CVAR_ROM },
-    { NULL, "ui_jaymod_repoLCRev",   JAYMOD_repoLCRev,   CVAR_ROM },
-    { NULL, "ui_jaymod_repoUUID",    JAYMOD_repoUUID,    CVAR_ROM },
+    // Xmod version tracking
+    { NULL, "ui_xmod_title",       XMOD_title,       CVAR_ROM },
+    { NULL, "ui_xmod_buildTarget", XMOD_buildTarget, CVAR_ROM },
+    { NULL, "ui_xmod_repoLCDate",  XMOD_repoLCDate,  CVAR_ROM },
+    { NULL, "ui_xmod_repoLCRev",   XMOD_repoLCRev,   CVAR_ROM },
+    { NULL, "ui_xmod_repoUUID",    XMOD_repoUUID,    CVAR_ROM },
 };
 
 int		cvarTableSize = sizeof(cvarTable) / sizeof(cvarTable[0]);
