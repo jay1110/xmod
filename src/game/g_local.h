@@ -886,15 +886,6 @@ typedef struct debrisChunk_s {
 
 // Gordon: limbo camera linking
 #define MAX_LIMBO_CAMS 32
-
-typedef struct limboCameraSpawn_s {
-	vec3_t	origin;
-	char	target[64];
-	int		count;
-	int		spawnflags;
-} limboCameraSpawn_t;
-
-#define MAX_LIMBO_CAMERA_SPAWNS		MAX_LIMBO_CAMS
 // ===================
 
 // this structure is cleared on each ClientSpawn(),
@@ -1121,10 +1112,6 @@ typedef struct {
 	int			numSpawnVarChars;
 	char		spawnVarChars[MAX_SPAWN_VARS_CHARS];
 
-	// deferred spawn scripts - entities that need "spawn" script event run after all entities are created
-	int			numPendingSpawnScripts;
-	gentity_t	*pendingSpawnScripts[MAX_GENTITIES];
-
 	// intermission state
 	int			intermissionQueued;		// intermission was qualified, but
 										// wait INTERMISSION_DELAY_TIME before
@@ -1240,11 +1227,6 @@ typedef struct {
 // Gordon: debris test
 	int				numDebrisChunks;
 	debrisChunk_t	debrisChunks[MAX_DEBRISCHUNKS];
-// ===================
-
-// Gordon: limbo camera linking
-	int					numLimboCameraSpawns;
-	limboCameraSpawn_t	limboCameraSpawns[MAX_LIMBO_CAMERA_SPAWNS];
 // ===================
 
 	qboolean	disableTankExit;
@@ -2622,7 +2604,6 @@ int G_Unreferee_v(gentity_t *ent, unsigned int dwVoteIndex, char *arg, char *arg
 int G_BalancedTeams_v(gentity_t *ent, unsigned int dwVoteIndex, char *arg, char *arg2, qboolean fRefereeCmd);
 
 void G_LinkDebris( void );
-void G_LinkLimboCameras( void );
 void G_LinkDamageParents( void );
 int EntsThatRadiusCanDamage( vec3_t origin, float radius, int *damagedList );
 

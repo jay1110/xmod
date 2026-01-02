@@ -2908,9 +2908,62 @@ void SP_info_train_spline_main( gentity_t *self ) {
 /*QUAKED info_limbo_camera (.5 .0 .0) ? (-8 -8 -8) (8 8 8)
 Camera for limbo menu, target at an appropriate entity (spawn flag, script mover, position marker...)
 */
-void SP_info_limbo_camera( gentity_t* self ) {
-	limboCameraSpawn_t* camSpawn;
+void info_limbo_camera_setup( gentity_t* self ) {
+	limbo_cam_t* caminfo;
+	gentity_t* target;
+	vec3_t vec;
+	
+	if( level.numLimboCams >= MAX_LIMBO_CAMS ) {
+		G_Error( "info_limbo_camera: MAX_LIMBO_CAMS (%i) hit", MAX_LIMBO_CAMS );
+	}
 
+	caminfo = &level.limboCams[level.numLimboCams];
+	level.numLimboCams++;
+
+	if( !self->target || !*self->target ) {
+		G_Error( "info_limbo_camera with no target" );
+	}
+
+	target = G_FindByTargetname( NULL, self->target );
+	if( !target ) {
+		G_Error( "info_limbo_camera cannot find target" );
+	}
+
+	VectorCopy( self->s.origin, caminfo->origin );
+	caminfo->origin[2] -= 32;
+	caminfo->info =	self->count;
+
+	switch( target->s.eType ) {
+		case ET_MOVER:
+			caminfo->hasEnt =		qtrue;
+			caminfo->spawn =		qfalse;
+
+			caminfo->targetEnt =	target-g_entities;
+			break;
+
+		case ET_WOLF_OBJECTIVE:
+			caminfo->hasEnt =		qfalse;
+			caminfo->spawn =		qtrue;
+
+			caminfo->targetEnt =	target-g_entities;
+			break;
+
+		default:
+			caminfo->hasEnt =		qfalse;
+			caminfo->spawn =		qfalse;
+			break;
+	}
+
+	if( !caminfo->hasEnt ) {
+		VectorSubtract( target->s.origin, caminfo->origin, vec );
+		VectorNormalize( vec );
+		vectoangles( vec, caminfo->angles );
+	}
+
+	G_FreeEntity( self );
+}
+
+void SP_info_limbo_camera( gentity_t* self ) {
 	if( !(self->spawnflags & 2) ) {
 		if( g_gametype.integer == GT_WOLF_LMS ) {
 			if( !(self->spawnflags & 1) ) {
@@ -2926,27 +2979,10 @@ void SP_info_limbo_camera( gentity_t* self ) {
 		}
 	}
 
-	// Store camera data for later linking after all entities are spawned
-	if( level.numLimboCameraSpawns >= MAX_LIMBO_CAMERA_SPAWNS ) {
-		G_Error( "info_limbo_camera: MAX_LIMBO_CAMERA_SPAWNS (%i) hit", MAX_LIMBO_CAMERA_SPAWNS );
-	}
+	self->think =		info_limbo_camera_setup;
+	self->nextthink =	level.time + FRAMETIME;
 
-	camSpawn = &level.limboCameraSpawns[level.numLimboCameraSpawns];
-	level.numLimboCameraSpawns++;
-
-	VectorCopy( self->s.origin, camSpawn->origin );
-
-	if( self->target && *self->target ) {
-		Q_strncpyz( camSpawn->target, self->target, sizeof(camSpawn->target) );
-	} else {
-		camSpawn->target[0] = '\0';
-	}
-
-	G_SpawnInt( "objective", "-1", &camSpawn->count );
-	camSpawn->spawnflags = self->spawnflags;
-
-	// Free the entity now since we've stored its data
-	G_FreeEntity( self );
+	G_SpawnInt( "objective", "-1", &self->count );
 }
 
 
@@ -5225,66 +5261,6 @@ void G_LinkDebris( void ) {
 		VectorNormalize( debris->velocity );
 		VectorScale( debris->velocity, speed, debris->velocity );
 		trap_SnapVector( debris->velocity );
-	}
-}
-
-void G_LinkLimboCameras( void ) {
-	int i;
-	gentity_t* target;
-	limbo_cam_t* caminfo;
-	vec3_t vec;
-
-	for (i = 0; i < level.numLimboCameraSpawns; i++) {
-		limboCameraSpawn_t* camSpawn = &level.limboCameraSpawns[i];
-
-		if( level.numLimboCams >= MAX_LIMBO_CAMS ) {
-			G_Error( "info_limbo_camera: MAX_LIMBO_CAMS (%i) hit", MAX_LIMBO_CAMS );
-		}
-
-		if( !*camSpawn->target ) {
-			G_Printf( "WARNING: info_limbo_camera with no target, skipping\n" );
-			continue;
-		}
-
-		target = G_FindByTargetname( NULL, camSpawn->target );
-		if( !target ) {
-			G_Printf( "WARNING: info_limbo_camera cannot find target '%s', skipping\n", camSpawn->target );
-			continue;
-		}
-
-		caminfo = &level.limboCams[level.numLimboCams];
-		level.numLimboCams++;
-
-		VectorCopy( camSpawn->origin, caminfo->origin );
-		caminfo->origin[2] -= 32;
-		caminfo->info = camSpawn->count;
-
-		switch( target->s.eType ) {
-			case ET_MOVER:
-				caminfo->hasEnt =		qtrue;
-				caminfo->spawn =		qfalse;
-
-				caminfo->targetEnt =	target-g_entities;
-				break;
-
-			case ET_WOLF_OBJECTIVE:
-				caminfo->hasEnt =		qfalse;
-				caminfo->spawn =		qtrue;
-
-				caminfo->targetEnt =	target-g_entities;
-				break;
-
-			default:
-				caminfo->hasEnt =		qfalse;
-				caminfo->spawn =		qfalse;
-				break;
-		}
-
-		if( !caminfo->hasEnt ) {
-			VectorSubtract( target->s.origin, caminfo->origin, vec );
-			VectorNormalize( vec );
-			vectoangles( vec, caminfo->angles );
-		}
 	}
 }
 // ===================

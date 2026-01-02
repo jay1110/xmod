@@ -330,8 +330,6 @@ g_script_stack_action_t *G_Script_ActionForString( char *string ) {
 		}
 	}
 
-	G_Printf( "G_Script_ActionForString: mapscript parsing warning - unknown action: '%s'\n", string );
-
 	return NULL;
 }
 
@@ -345,7 +343,7 @@ G_Script_ScriptLoad
 void G_Script_ScriptLoad( void ) {
 	char			filename[MAX_QPATH];
 	vmCvar_t		mapname;
-	fileHandle_t	f = 0;
+	fileHandle_t	f;
 	int				len;
 	qboolean		found = qfalse;
 
@@ -373,13 +371,8 @@ void G_Script_ScriptLoad( void ) {
 		}
 		Q_strcat( filename, sizeof(filename), ".script" );
 		len = trap_FS_FOpenFile( filename, &f, FS_READ );
-		if(len > 0) {
-			found = qtrue;
-		} else if (f) {
-			// Close any file handle opened with zero/negative length
-			trap_FS_FCloseFile( f );
-			f = 0;
-		}
+		if(len > 0)
+			found = qtrue; 
 	}
 
 	// If it wasn't found, run the standard script
@@ -394,11 +387,6 @@ void G_Script_ScriptLoad( void ) {
 		Q_strcat( filename, sizeof(filename), ".script" );
 
 		len = trap_FS_FOpenFile( filename, &f, FS_READ );
-		if(len < 0 && f) {
-			// Close any file handle that may have been opened on error
-			trap_FS_FCloseFile( f );
-			f = 0;
-		}
 	}
 
 	// make sure we clear out the temporary scriptname
@@ -408,15 +396,10 @@ void G_Script_ScriptLoad( void ) {
 		return;
 	}
 
-	// Validate file size - prevent excessively large files from causing issues
-	// Max script file size: 2MB (reasonable for mapscripts)
-	if( len > 2 * 1024 * 1024 ) {
-		G_Printf( "G_Script_ScriptLoad: script file %s is too large (%d bytes)\n", filename, len );
-		trap_FS_FCloseFile( f );
-		return;
-	}
-
+	// END Mad Doc - TDF
 	// Arnout: make sure we terminate the script with a '\0' to prevent parser from choking
+	//level.scriptEntity = G_Alloc( len );
+	//trap_FS_Read( level.scriptEntity, len, f );
 	level.scriptEntity = (char*)G_Alloc( len + 1 );
 	trap_FS_Read( level.scriptEntity, len, f );
 	*(level.scriptEntity + len) = '\0';
