@@ -2877,6 +2877,13 @@ void G_LeaveTank( gentity_t* ent, qboolean position ) {
 	ent->client->ps.weaponTime = ent->backupWeaponTime;
 
 	G_Script_ScriptEvent( tank, "mg42", "unmount" );
+	
+	// Prevent player always mounting the last gun used, on tank maps
+	if (ent->tagParent && ent->tagName[0]) {
+		G_RemoveConfigstringIndex(va("%i %i %s", ent->s.number, ent->tagParent->s.number, ent->tagName), 
+		                          CS_TAGCONNECTS, MAX_TAGCONNECTS);
+	}
+	
 	ent->tagParent = NULL;
 	*ent->tagName = '\0';
 	ent->s.eFlags &= ~EF_MOUNTEDTANK;

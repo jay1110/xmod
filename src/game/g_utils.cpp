@@ -49,8 +49,24 @@ void AddRemap(const char *oldShader, const char *newShader, float timeOffset) {
 	}
 }
 
-void G_ResetRemappedShaders() {
+/**
+ * @brief G_ResetRemappedShaders
+ * Reset remappedShaders on map change to prevent config string overflow.
+ * This is THE critical fix for the overflow issue.
+ */
+void G_ResetRemappedShaders(void)
+{
+	int i;
+
 	remapCount = 0;
+
+	// Clean up all shader remaps to free config string slots
+	for (i = 0; i < MAX_SHADER_REMAPS; i++)
+	{
+		remappedShaders[i].newShader[0] = '\0';
+		remappedShaders[i].oldShader[0] = '\0';
+		remappedShaders[i].timeOffset   = 0;
+	}
 }
 
 const char *BuildShaderStateConfig() {
@@ -108,12 +124,58 @@ int G_FindConfigstringIndex( const char *name, int start, int max, qboolean crea
 	}
 
 	if ( i == max ) {
+		G_Printf("WARNING: G_FindConfigstringIndex overflow for '%s' (start=%i, max=%i)\n", 
+		         name, start, max);
 		G_Error( "G_FindConfigstringIndex: overflow '%s' (%i %i) max: %i\n", name, start, start + i, max );
 	}
 
 	trap_SetConfigstring( start + i, name );
 
 	return i;
+}
+
+/**
+ * @brief Prevent player always mounting the last gun used, on multiple tank maps.
+ * Ported from ETLegacy Bugfix project (#087)
+ * 
+ * Removes a config string entry and compacts the array by shifting remaining entries forward.
+ * This prevents overflow by cleaning up stale entries.
+ *
+ * @param[in] name - Config string name to remove
+ * @param[in] start - Starting config string index
+ * @param[in] max - Maximum number of config strings
+ */
+void G_RemoveConfigstringIndex(const char *name, int start, int max)
+{
+	int  i, j;
+	char s[MAX_STRING_CHARS];
+
+	if (!name || !name[0])
+	{
+		return;
+	}
+
+	for (i = 1; i < max; i++)
+	{
+		trap_GetConfigstring(start + i, s, sizeof(s));
+
+		if (!s[0])
+		{
+			break;
+		}
+
+		if (strcmp(s, name) == 0)
+		{
+			trap_SetConfigstring(start + i, "");
+			for (j = i + 1; j < max - 1; j++)
+			{
+				trap_GetConfigstring(start + j, s, sizeof(s));
+				trap_SetConfigstring(start + j, "");
+				trap_SetConfigstring(start + i, s);
+			}
+			break;
+		}
+	}
 }
 
 

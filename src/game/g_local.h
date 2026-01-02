@@ -1369,6 +1369,7 @@ void Spawn_Shard (gentity_t *ent, gentity_t *inflictor, int quantity, int type);
 //
 // Ridah
 int G_FindConfigstringIndex( const char *name, int start, int max, qboolean create );
+void G_RemoveConfigstringIndex(const char *name, int start, int max);
 // done.
 int		G_ModelIndex( char *name );
 int		G_SoundIndex( const char *name );
