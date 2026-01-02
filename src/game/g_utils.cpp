@@ -166,13 +166,14 @@ void G_RemoveConfigstringIndex(const char *name, int start, int max)
 
 		if (strcmp(s, name) == 0)
 		{
-			trap_SetConfigstring(start + i, "");
-			for (j = i + 1; j < max - 1; j++)
+			// Shift all subsequent entries down by one position
+			for (j = i; j < max - 1; j++)
 			{
-				trap_GetConfigstring(start + j, s, sizeof(s));
-				trap_SetConfigstring(start + j, "");
-				trap_SetConfigstring(start + i, s);
+				trap_GetConfigstring(start + j + 1, s, sizeof(s));
+				trap_SetConfigstring(start + j, s);
 			}
+			// Clear the last entry
+			trap_SetConfigstring(start + max - 1, "");
 			break;
 		}
 	}
