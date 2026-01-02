@@ -1416,6 +1416,7 @@ void G_SetAngle( gentity_t *ent, const vec3_t angle, bool = false );
 qboolean infront (gentity_t *self, gentity_t *other);
 
 void G_ProcessTagConnect(gentity_t *ent, qboolean clearAngles);
+void G_ClearAllTagConnections(void);
 
 void G_SetEntState( gentity_t *ent, entState_t state );
 void G_ParseCampaigns( void );

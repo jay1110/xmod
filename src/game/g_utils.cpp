@@ -919,16 +919,37 @@ qboolean infront (gentity_t *self, gentity_t *other)
 /*
 ==================
 G_ProcessTagConnect
+
+CRITICAL FIX: Remove old tag connection before creating new one to prevent overflow
 ==================
 */
 void G_ProcessTagConnect( gentity_t *ent, qboolean clearAngles ) {
-	if (!ent->tagName) {
-		G_Error("G_ProcessTagConnect: NULL ent->tagName\n");
+	char connectString[MAX_STRING_CHARS];
+	int index;
+	
+	if (!ent->tagName || ent->tagName[0] == '\0') {
+		G_Error("G_ProcessTagConnect: empty or NULL ent->tagName\n");
 	}
 	if (!ent->tagParent) {
 		G_Error("G_ProcessTagConnect: NULL ent->tagParent\n");
 	}
-	G_FindConfigstringIndex( va("%i %i %s", ent->s.number, ent->tagParent->s.number, ent->tagName), CS_TAGCONNECTS, MAX_TAGCONNECTS, qtrue );
+	
+	// Build connection string
+	Com_sprintf(connectString, sizeof(connectString), "%i %i %s", 
+	            ent->s.number, ent->tagParent->s.number, ent->tagName);
+	
+	// CRITICAL: Remove any existing entry for this entity first!
+	// This prevents duplicate entries when remounting tanks/MG42s
+	G_RemoveConfigstringIndex(connectString, CS_TAGCONNECTS, MAX_TAGCONNECTS);
+	
+	// Now add the new entry
+	index = G_FindConfigstringIndex(connectString, CS_TAGCONNECTS, MAX_TAGCONNECTS, qtrue);
+	if (index == 0) {
+		G_Error("G_ProcessTagConnect: CS_TAGCONNECTS overflow (max %i reached)\n", MAX_TAGCONNECTS);
+	}
+	
+	G_Printf("Tag connected: %s (index %i/%i)\n", connectString, index, MAX_TAGCONNECTS);
+	
 	ent->s.eFlags |= EF_TAGCONNECT;
 
 	if(ent->client) {
@@ -949,6 +970,36 @@ void G_ProcessTagConnect( gentity_t *ent, qboolean clearAngles ) {
 		ent->s.apos.trType = TR_STATIONARY;
 		VectorClear( ent->s.apos.trDelta );
 		VectorClear( ent->r.currentAngles );
+	}
+}
+
+/*
+==================
+G_ClearAllTagConnections
+
+Clears all tag connection config strings.
+MUST be called at:
+- G_InitGame (map load)
+- Warmup → Game transition
+- Game → Intermission transition
+- Map restart
+==================
+*/
+void G_ClearAllTagConnections(void) {
+	int i, count = 0;
+	char s[MAX_STRING_CHARS];
+	
+	// Count how many we're clearing for debug
+	for (i = 0; i < MAX_TAGCONNECTS; i++) {
+		trap_GetConfigstring(CS_TAGCONNECTS + i, s, sizeof(s));
+		if (s[0]) {
+			count++;
+		}
+		trap_SetConfigstring(CS_TAGCONNECTS + i, "");
+	}
+	
+	if (count > 0) {
+		G_Printf("Cleared %i tag connection(s) (CS_TAGCONNECTS)\n", count);
 	}
 }
 
