@@ -121,8 +121,7 @@ qboolean G_ScriptAction_SetAutoSpawn( gentity_t* ent, char *params ) {
 
 	tent = G_Find( NULL, FOFS(message), spawnname );
 	if(!tent) {
-		G_Printf( "^3WARNING: G_Scripting: setautospawn, couldn't find target '%s'\n", spawnname );
-		return qtrue;
+		G_Error( "G_Scripting: setautospawn, couldn't find target\n" );
 	}
 
 	if( !tent->count ) {
@@ -1424,7 +1423,7 @@ qboolean G_ScriptAction_Trigger( gentity_t *ent, char *params )
 	}
 
 //	G_Error( "G_Scripting: trigger has unknown name: %s\n", name );
-	G_Printf("^3WARNING: G_Scripting: trigger has unknown name: %s\n", name);
+	G_Printf("G_Scripting: trigger has unknown name: %s\n", name);
 	return qtrue;	// shutup the compiler
 }
 
@@ -2084,7 +2083,7 @@ qboolean G_ScriptAction_Accum( gentity_t *ent, char *params )
 			if (found) return qtrue;
 			//
 //			G_Error( "G_Scripting: trigger has unknown name: %s\n", name );
-			G_Printf("^3WARNING: G_Scripting: trigger has unknown name: %s\n", name);
+			G_Printf("G_Scripting: trigger has unknown name: %s\n", name);
 			return qtrue;
 		}
 	} else if( !Q_stricmp(lastToken, "wait_while_equal") ) {
@@ -2295,7 +2294,7 @@ qboolean G_ScriptAction_GlobalAccum( gentity_t *ent, char *params )
 			if (found) return qtrue;
 
 //			G_Error( "G_Scripting: trigger has unknown name: %s\n", name );
-			G_Printf("^3WARNING: G_Scripting: trigger has unknown name: %s\n", name);
+			G_Printf("G_Scripting: trigger has unknown name: %s\n", name);
 			return qtrue;
 		}
 	} else if (!Q_stricmp(lastToken, "wait_while_equal")) {
@@ -2507,8 +2506,7 @@ qboolean G_ScriptAction_TagConnect( gentity_t *ent, char *params )
 	if (!parent) {
 		parent = G_Find( NULL, FOFS(scriptName), token );
 		if (!parent) {
-			G_Printf( "^3WARNING: G_ScriptAction_TagConnect: unable to find entity with targetname \"%s\"\n", token );
-			return qfalse;
+			G_Error( "G_ScriptAction_TagConnect: unable to find entity with targetname \"%s\"", token );
 		}
 	}
 
@@ -4178,7 +4176,7 @@ qboolean G_ScriptAction_Cvar( gentity_t *ent, char *params )
 			if (found) return qtrue;
 			//
 //			G_Error( "G_Scripting: trigger has unknown name: %s\n", name );
-			G_Printf("^3WARNING: G_Scripting: trigger has unknown name: %s\n", name);
+			G_Printf("G_Scripting: trigger has unknown name: %s\n", name);
 			return qtrue;
 		}
 	} else if (!Q_stricmp(lastToken, "wait_while_equal")) {
