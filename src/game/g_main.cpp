@@ -1793,6 +1793,9 @@ void G_InitGame( int levelTime, int randomSeed, int restart ) {
 
 	srand( randomSeed );
 
+	// CRITICAL: Reset shader remaps to prevent config string overflow
+	G_ResetRemappedShaders();
+
 	/*
      * Reference pak2.pk3 for pure-checks.
      */
