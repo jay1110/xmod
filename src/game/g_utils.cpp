@@ -47,6 +47,11 @@ void AddRemap(const char *oldShader, const char *newShader, float timeOffset) {
 		remappedShaders[remapCount].timeOffset = timeOffset;
 		remapCount++;
 	}
+	else {
+		// Prevent silent overflow
+		G_Printf("WARNING: AddRemap: MAX_SHADER_REMAPS (%i) reached, cannot add %s -> %s\n",
+		         MAX_SHADER_REMAPS, oldShader, newShader);
+	}
 }
 
 /**
@@ -57,6 +62,7 @@ void AddRemap(const char *oldShader, const char *newShader, float timeOffset) {
 void G_ResetRemappedShaders(void)
 {
 	int i;
+	int oldCount = remapCount;
 
 	remapCount = 0;
 
@@ -67,6 +73,8 @@ void G_ResetRemappedShaders(void)
 		remappedShaders[i].oldShader[0] = '\0';
 		remappedShaders[i].timeOffset   = 0;
 	}
+
+	G_Printf("Shader remaps reset (remapCount was %i)\n", oldCount);
 }
 
 const char *BuildShaderStateConfig() {
@@ -78,8 +86,17 @@ const char *BuildShaderStateConfig() {
 	for (i = 0; i < remapCount; i++) {
 		int i1, i2;
 
-		i1 = G_ShaderIndex(remappedShaders[i].oldShader);
-		i2 = G_ShaderIndex(remappedShaders[i].newShader);
+		// CRITICAL FIX: Use create=qfalse to prevent creating new config strings!
+		// We're just building state from existing remaps, not creating new ones
+		i1 = G_FindConfigstringIndex(remappedShaders[i].oldShader, CS_SHADERS, MAX_CS_SHADERS, qfalse);
+		i2 = G_FindConfigstringIndex(remappedShaders[i].newShader, CS_SHADERS, MAX_CS_SHADERS, qfalse);
+
+		// Skip invalid shader indices
+		if (i1 == 0 || i2 == 0) {
+			G_Printf("WARNING: BuildShaderStateConfig: Invalid shader remap %s -> %s\n", 
+			         remappedShaders[i].oldShader, remappedShaders[i].newShader);
+			continue;
+		}
 
 		Com_sprintf(out, (MAX_QPATH * 2) + 5, "%i=%i:%5.2f@", i1, i2, remappedShaders[i].timeOffset);
 		Q_strcat( buff, sizeof( buff ), out);
@@ -346,7 +363,9 @@ gentity_t *G_PickTarget (char *targetname)
 
 	if (!num_choices)
 	{
-		G_Printf("G_PickTarget: target %s not found\n", targetname);
+		// More detailed error message for debugging
+		G_Printf("WARNING: G_PickTarget: target '%s' not found (no entities with this targetname exist)\n", 
+		         targetname);
 		return NULL;
 	}
 
