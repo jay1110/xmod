@@ -207,7 +207,7 @@ InlineText::InlineText( const string& v )
 
 ///////////////////////////////////////////////////////////////////////////////
 
-#if defined( JAYMOD_OSX ) || defined( JAYMOD_OSX64 ) || defined( JAYMOD_LINUX64 ) || defined( JAYMOD_WINDOWS64 ) || defined( JAYMOD_LINUX_AARCH64 ) || defined( JAYMOD_ANDROID_ARM64 ) || defined( JAYMOD_ANDROID_X86_64 )
+#if defined( XMOD_OSX ) || defined( XMOD_OSX64 ) || defined( XMOD_LINUX64 ) || defined( XMOD_WINDOWS64 ) || defined( XMOD_LINUX_AARCH64 ) || defined( XMOD_ANDROID_ARM64 ) || defined( XMOD_ANDROID_X86_64 )
 InlineText::InlineText( size_t v )
     : color     ( xcnone )
     , flags     ( ios::fixed )
@@ -419,7 +419,7 @@ InlineText::operator()( const string& v )
 
 ///////////////////////////////////////////////////////////////////////////////
 
-#if defined( JAYMOD_OSX ) || defined( JAYMOD_OSX64 ) || defined( JAYMOD_LINUX64 ) || defined( JAYMOD_WINDOWS64 ) || defined( JAYMOD_LINUX_AARCH64 ) || defined( JAYMOD_ANDROID_ARM64 ) || defined( JAYMOD_ANDROID_X86_64 )
+#if defined( XMOD_OSX ) || defined( XMOD_OSX64 ) || defined( XMOD_LINUX64 ) || defined( XMOD_WINDOWS64 ) || defined( XMOD_LINUX_AARCH64 ) || defined( XMOD_ANDROID_ARM64 ) || defined( XMOD_ANDROID_X86_64 )
 InlineText&
 InlineText::operator()( size_t v )
 {

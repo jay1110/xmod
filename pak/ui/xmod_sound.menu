@@ -10,7 +10,7 @@
 #define WINDOW_Y		16
 #define WINDOW_WIDTH	300
 #define WINDOW_HEIGHT	125
-#define GROUP_NAME		"grpJaymod"
+#define GROUP_NAME		"grpXmod"
 
 // Macros //
 
@@ -19,15 +19,15 @@
 // Customise Game Menu //
 	
 menuDef {
-	name		"jaymod_sound"
+	name		"xmod_sound"
 	visible		0
 	fullscreen	0
 	rect		WINDOW_X WINDOW_Y WINDOW_WIDTH WINDOW_HEIGHT
 	style		WINDOW_STYLE_FILLED
 	
 	onESC {
-		close jaymod_sound;
-		open jaymod_main
+		close xmod_sound;
+		open xmod_main
 	}
 
 // Window //
@@ -47,5 +47,5 @@ menuDef {
 
 // Buttons //
 	
-	BUTTON( 6, WINDOW_HEIGHT-24, WINDOW_WIDTH-12, 18, "^xBACK", .3, 14, close jaymod_sound; open jaymod_main )
+	BUTTON( 6, WINDOW_HEIGHT-24, WINDOW_WIDTH-12, 18, "^xBACK", .3, 14, close xmod_sound; open xmod_main )
 }

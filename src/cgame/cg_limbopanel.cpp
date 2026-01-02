@@ -2614,7 +2614,7 @@ void CG_LimboPanel_KeyHandling( int key, qboolean down ) {
 void CG_LimboPanel_GetWeaponCardIconData( weapon_t weap, qhandle_t* shader, float* w, float* h, float* s0, float* t0, float* s1, float* t1 ) {
 	// setup the shader
 
-    // Jaymod weapons will use dedicated cards.
+    // Xmod weapons will use dedicated cards.
     // So we setup all the values assuming this is the case.
 
     *s0 = 0.0f;

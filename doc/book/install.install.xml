@@ -18,9 +18,9 @@
 &bash.prompt.et; mkdir <emphasis role="bold">server1/</emphasis>
 &bash.prompt.et; cd server1/
 &bash.prompt.et; mkdir etmain/
-&bash.prompt.et; mkdir jaymod/
-&bash.prompt.et; mkdir jaymod/mapscripts/
-&bash.prompt.et; mkdir jaymod/mapconfigs/
+&bash.prompt.et; mkdir xmod/
+&bash.prompt.et; mkdir xmod/mapscripts/
+&bash.prompt.et; mkdir xmod/mapconfigs/
 &bash.prompt.et; mkdir pb/
 &bash.prompt.et; mkdir log/
 </screen>
@@ -40,7 +40,7 @@
         Copy game server module into place.
     </para>
 <screen>&bash.prompt.et; cd ~etserver/server1/
-&bash.prompt.et; cp ~etserver/&project:packageBase;/qagame.mp.i386.so jaymod/.
+&bash.prompt.et; cp ~etserver/&project:packageBase;/qagame.mp.i386.so xmod/.
 </screen>
     </listitem>
 
@@ -49,7 +49,7 @@
         Copy game server pak into place.
     </para>
 <screen>&bash.prompt.et; cd ~etserver/server1/
-&bash.prompt.et; cp ~etserver/&project:packageBase;/&project:pk3; jaymod/.
+&bash.prompt.et; cp ~etserver/&project:packageBase;/&project:pk3; xmod/.
 </screen>
     </listitem>
 
@@ -58,8 +58,8 @@
         Optional: copy sample configuration files into place.
     </para>
 <screen>&bash.prompt.et; cd ~etserver/server1/
-&bash.prompt.et; cp ~etserver/&project:packageBase;/server.cfg jaymod/.
-&bash.prompt.et; cp ~etserver/&project:packageBase;/jaymod.cfg jaymod/.
+&bash.prompt.et; cp ~etserver/&project:packageBase;/server.cfg xmod/.
+&bash.prompt.et; cp ~etserver/&project:packageBase;/xmod.cfg xmod/.
 </screen>
     </listitem>
 
@@ -72,7 +72,7 @@
         Optional: copy mapscripts into place.
     </para>
 <screen>&bash.prompt.et; cd ~etserver/server1/
-&bash.prompt.et; cp ~etserver/&project:packageBase;/mapscripts/* jaymod/mapscripts/.
+&bash.prompt.et; cp ~etserver/&project:packageBase;/mapscripts/* xmod/mapscripts/.
 </screen>
     </listitem>
 </orderedlist>

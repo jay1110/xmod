@@ -87,7 +87,7 @@ Slap::doExecute( Context& txt )
             continue;
 
         // slap the biatch
-        G_ClientSound( ent,"sound/jaymod/slap.wav" );
+        G_ClientSound( ent,"sound/xmod/slap.wav" );
         G_ShakeClient( ent, 1000000 );
         ent->health -= numDamage;
         if (ent->health < 1)
@@ -95,7 +95,7 @@ Slap::doExecute( Context& txt )
 
         // also play sound for txt._client
         if (txt._client)
-            G_ClientSound( g_entities + txt._client->slot, "sound/jaymod/slap.wav" );
+            G_ClientSound( g_entities + txt._client->slot, "sound/xmod/slap.wav" );
 
         num++;
     }

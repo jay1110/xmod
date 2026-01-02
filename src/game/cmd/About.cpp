@@ -8,7 +8,7 @@ About::About()
     : AbstractBuiltin( "about", true )
 {
     __usage << xvalue( "!" + _name );
-    __descr << "Shows information about the version of " << xnone( JAYMOD_namex ) << " that is currently installed.";
+    __descr << "Shows information about the version of " << xnone( XMOD_namex ) << " that is currently installed.";
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -33,10 +33,10 @@ About::doExecute( Context& txt )
     colA.suffix  = ":";
 
     Buffer buf;
-    buf << xnone(JAYMOD_titlex)
-        << '\n' << colA( "URL homepage" ) << colB( JAYMOD_website )
-        << '\n' << colA( "IRC channel" )  << colB( JAYMOD_irc )
-        << '\n' << colA( "build date" )   << colB( JAYMOD_buildDate );
+    buf << xnone(XMOD_titlex)
+        << '\n' << colA( "URL homepage" ) << colB( XMOD_website )
+        << '\n' << colA( "IRC channel" )  << colB( XMOD_irc )
+        << '\n' << colA( "build date" )   << colB( XMOD_buildDate );
 
     printCpm( txt._client, buf, true );
     return PA_NONE;

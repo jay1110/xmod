@@ -138,7 +138,7 @@ AlignedCuboidHV::castRayPlane(
         colA.width = 9;
         colA.suffixOutside = " = ";
 
-        trx.debug << xheader( JAYMOD_FUNCTION )
+        trx.debug << xheader( XMOD_FUNCTION )
             << "\n(" << xcpush << xcheader << " zone=" << xvalueBOLD( toString( zone ))
                                            << " type=" << xvalueBOLD( toString( type ))
                                            << " face=" << xvalueBOLD( name )

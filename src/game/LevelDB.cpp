@@ -186,7 +186,7 @@ LevelDB::save()
     // Output header
     _stream << "###############################################################################"
         << '\n' << "##"
-        << '\n' << "## " << JAYMOD_title << " -- " << _filename
+        << '\n' << "## " << XMOD_title << " -- " << _filename
         << '\n' << "## updated: " << fnow
         << '\n' << "## levels:  " << _mapLEVEL.size()
         << '\n' << "##"

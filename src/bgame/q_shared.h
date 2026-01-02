@@ -910,9 +910,9 @@ default values.
 
 #define CVAR_UNSAFE			4096	// ydnar: unsafe system cvars (renderer, sound settings, anything that might cause a crash)
 #define	CVAR_SERVERINFO_NOUPDATE		8192	// gordon: WONT automatically send this to clients, but server browsers will see it
-#define	CVAR_JAYMODINFO		16384	// marks variable as scanned for changes and CS_JAYMODINFO broadcast
+#define	CVAR_XMODINFO		16384	// marks variable as scanned for changes and CS_XMODINFO broadcast
 #define	CVAR_DELAYED		32768	// marks variable in cgame as delayed change
-#define	CVAR_JAYMODCB_INIT	65536	// causes callback to be invoked during game init
+#define	CVAR_XMODCB_INIT	65536	// causes callback to be invoked during game init
 
 // nothing outside the Cvar_*() functions should modify these fields!
 typedef struct cvar_s {

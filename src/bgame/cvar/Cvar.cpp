@@ -40,7 +40,7 @@ Cvar::init()
         v.trapRegister();
 
         // cvar has indicated it wants an init-time callback
-        if (v.flags & CVAR_JAYMODCB_INIT)
+        if (v.flags & CVAR_XMODCB_INIT)
             v._callback( v );
     }
 }

@@ -11,7 +11,7 @@ MODULE.CGAME.srcs.pch = $(sort \
 	$(PROJECT/)src/bgame/bg_attack2.cpp \
 	$(PROJECT/)src/bgame/bg_character.cpp \
 	$(PROJECT/)src/bgame/bg_classes.cpp \
-	$(PROJECT/)src/bgame/bg_jaymod.cpp \
+	$(PROJECT/)src/bgame/bg_xmod.cpp \
 	$(PROJECT/)src/bgame/bg_misc.cpp \
 	$(PROJECT/)src/bgame/bg_molotov.cpp \
 	$(PROJECT/)src/bgame/bg_pmove.cpp \

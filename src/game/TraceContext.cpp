@@ -156,7 +156,7 @@ TraceContext::trace( const string& name, int index )
     VectorCopy( data.endpos, fpos );
 
     if (cvars::g_hitmodeDebug.ivalue & AbstractHitModel::DEBUG_TRAY)
-        dump( JAYMOD_FUNCTION, index );
+        dump( XMOD_FUNCTION, index );
 
     return (data.fraction != 1.0f);
 }
@@ -177,7 +177,7 @@ TraceContext::traceNoEnts( const string& name, int index )
     VectorCopy( data.endpos, fpos );
 
     if (cvars::g_hitmodeDebug.ivalue & AbstractHitModel::DEBUG_TRAY)
-        dump( JAYMOD_FUNCTION, index );
+        dump( XMOD_FUNCTION, index );
 
     return (data.fraction != 1.0f);
 }

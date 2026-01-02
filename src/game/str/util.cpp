@@ -35,7 +35,7 @@ toDropMessage( string& out, bool duringConnect, const text::Buffer& msg, const s
     if (duringConnect)
         buf << "Connection Refused - ";
 
-    buf << xnone( JAYMOD_namex );
+    buf << xnone( XMOD_namex );
 
     if (!action.empty())
         buf << '\n' << xvalue( action );

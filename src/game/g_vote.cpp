@@ -707,7 +707,7 @@ int G_Pub_v(gentity_t *ent, unsigned int dwVoteIndex, char *arg, char *arg2, qbo
 			G_refPrintf(ent, "Usage: ^3%s %s%s\n", ((fRefereeCmd) ? "\\ref" : "\\callvote"), arg, aVoteInfo[dwVoteIndex].pszVoteHelp);
 			return(G_INVALID);
 		} else if(vote_allow_pub.integer<=0 && ent && !ent->client->sess.referee && !cmd::entityHasPermission( ent, priv::base::voteAny )) {
-			// Jaymod - check for shrubbot permission
+			// Xmod - check for shrubbot permission
 			G_voteDisableMessage(ent, arg);
 			return(G_INVALID);
 		}

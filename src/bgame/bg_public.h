@@ -21,7 +21,7 @@ using cvar::Cvar;
 #include <bgame/Process.h>
 #include <bgame/SampledStat.h>
 
-#include <bgame/bg_jaymod.h>
+#include <bgame/bg_xmod.h>
 #include <bgame/bg_molotov.h>
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -378,7 +378,7 @@ extern const unsigned int aReinfSeeds[MAX_REINFSEEDS];
 #define CS_ENDGAME_STATS				37
 #define CS_CHARGETIMES					38
 #define CS_FILTERCAMS					39
-#define CS_JAYMODINFO					40
+#define CS_XMODINFO					40
 #define CS_WATERMARKINFO				41
 
 #define CS_AVAILABLESTRIKES				42

@@ -1,5 +1,5 @@
-#ifndef GAME_G_JAYMOD_H
-#define GAME_G_JAYMOD_H
+#ifndef GAME_G_XMOD_H
+#define GAME_G_XMOD_H
 
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -26,7 +26,7 @@
 #define XPSAVE_ENABLE           1
 #define XPSAVE_RESETCAMPAIGN    2
 
-// Jaymod Cvars
+// Xmod Cvars
 extern vmCvar_t sv_uptime;
 extern vmCvar_t sv_uptimeStamp;
 extern vmCvar_t	g_privateMessages;
@@ -147,7 +147,7 @@ namespace cache {
 #define CH_MAX_DIST			1024    // use the largest value from above
 #define CH_MAX_DIST_ZOOM	8192    // max dist for zooming hints
 
-// g_jaymod.c
+// g_xmod.c
 #define CNSRPNLTY_KILL    1     // Gibs unless CNSRPNLTY_NOGIB
 #define CNSRPNLTY_KICK    2     // Kick if the word is in their name
 #define CNSRPNLTY_NOGIB   4     // Won't GIB, only kill
@@ -193,7 +193,7 @@ namespace cache {
 
 /*
 ===================
-g_jaymod.cpp
+g_xmod.cpp
 ===================
 */
 void     G_ApplyCustomRanks      ( gclient_t* );
@@ -214,7 +214,7 @@ int      G_TeamMaxLandMines      ( );
 int      G_TeamMaxTripmines      ( );
 void     ThrowingKnifeTouch      ( gentity_t*, gentity_t*, trace_t* );
 void     G_Update_CS_Airstrikes  ( );
-void     G_UpdateJaymodCS        ( );
+void     G_UpdateXmodCS        ( );
 void     G_UpdateUptime          ( );
 qboolean IsReflectable           ( int );
 bool     G_MutePlayer            ( gentity_t*, string, string = "" );
@@ -254,7 +254,7 @@ qboolean G_UniformSteal          ( gentity_t*, gentity_t* );
 
 /*
 ===================
-g_jaymod_utils.cpp
+g_xmod_utils.cpp
 ===================
 */
 int      ClientNumbersFromString ( char*, int* );
@@ -297,4 +297,4 @@ void G_LSFinalizeMap             ( );
 
 ///////////////////////////////////////////////////////////////////////////////
 
-#endif // GAME_G_JAYMOD_H
+#endif // GAME_G_XMOD_H

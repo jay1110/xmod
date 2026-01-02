@@ -33,7 +33,7 @@
     For example, specifying <replaceable>URL</replaceable> as
     <literal>"http://www.nowhere.com/et/"</literal>
     will result in the client attempting to download
-    <emphasis role="bold">http://www.nowhere.com/et/jaymod/&project:pk3;</emphasis> .
+    <emphasis role="bold">http://www.nowhere.com/et/xmod/&project:pk3;</emphasis> .
 </para>
 </refsection>
 

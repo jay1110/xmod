@@ -497,7 +497,7 @@ UserDB::save()
     _stream
         << "###############################################################################"
         << '\n' << "##"
-        << '\n' << "## " << JAYMOD_title << " -- " << _filename
+        << '\n' << "## " << XMOD_title << " -- " << _filename
         << '\n' << "## updated: " << fnow
         << '\n' << "## records: " << _mapGUID.size() << "  (bans: " << _mapBANTIME.size() << ')'
         << '\n' << "##"

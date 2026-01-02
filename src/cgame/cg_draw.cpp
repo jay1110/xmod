@@ -1148,11 +1148,11 @@ static void CG_DrawDisconnect( void ) {
 
 /*
 ========================
-CG_DrawJaymodWaterMark
+CG_DrawXmodWaterMark
 Jaybird
 ========================
 */
-static void CG_DrawJaymodWatermark(void) {
+static void CG_DrawXmodWatermark(void) {
 	int x, y;
 	static int startTime = 0;
 	int fadeafter = cgs.media.watermarkFadeAfter;
@@ -5044,7 +5044,7 @@ static void CG_Draw2D( void ) {
 			CG_DrawUpperRight();
 		}
 
-		CG_DrawJaymodWatermark();
+		CG_DrawXmodWatermark();
 		CG_DrawLagometer();
 
 		CG_DrawCenterString();

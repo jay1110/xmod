@@ -24,7 +24,7 @@
 <title>Default</title>
     <cmdsynopsis>
         <command>g_watermark</command>
-        <arg choice="plain"><literal>"jaymod"</literal></arg>
+        <arg choice="plain"><literal>"xmod"</literal></arg>
     </cmdsynopsis>
 </refsection>
 

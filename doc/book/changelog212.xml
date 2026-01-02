@@ -158,7 +158,7 @@
 <listitem>
 <simpara>
     <emphasis role="touch">Enhanced</emphasis>
-    client console command <emphasis role="subject">jaymodinfo</emphasis> to show more information.
+    client console command <emphasis role="subject">xmodinfo</emphasis> to show more information.
 </simpara>
 </listitem>
 
@@ -172,7 +172,7 @@
 <listitem>
 <simpara>
     <emphasis role="touch">Added</emphasis>
-    support for <emphasis role="subject">map locations</emphasis>.  Jaymod is bundled with the map
+    support for <emphasis role="subject">map locations</emphasis>.  Xmod is bundled with the map
     locations for the standard 6 maps.  The menus have been updated accordingly.
 </simpara>
 </listitem>

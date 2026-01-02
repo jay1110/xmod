@@ -1,6 +1,6 @@
 #include <bgame/impl.h>
 
-#undef JAYMOD_USERDB_DEBUG
+#undef XMOD_USERDB_DEBUG
 
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -361,9 +361,9 @@ User::encode( ostream& out, int recnum )
     out << '\n' << "guid = " << guid;
 
     unsigned long crc = base64::crc32( guid.c_str(), guid.length() );
-#if defined( JAYMOD_USERDB_DEBUG )
+#if defined( XMOD_USERDB_DEBUG )
     out << '\n' << "# guid CRC-32 = " << hex << crc << dec;
-#endif // JAYMOD_USERDB_DEBUG
+#endif // XMOD_USERDB_DEBUG
 
     char ftbuf[32];
     char ftbuf2[32];
@@ -381,16 +381,16 @@ User::encode( ostream& out, int recnum )
         PrivilegeSet::encode( privGranted, privDenied, out );
     }
 
-#if defined( JAYMOD_USERDB_DEBUG )
+#if defined( XMOD_USERDB_DEBUG )
     out << '\n' << "#authEffective = " << authority.effective;
     out << '\n' << "#authPermit    = " << authority.permit;
     out << '\n' << "#authDeny      = " << authority.deny;
-#endif // JAYMOD_USERDB_DEBUG
+#endif // XMOD_USERDB_DEBUG
 
     out << '\n' << "greetingText = "  << greetingText;
     out << '\n' << "greetingAudio = " << greetingAudio;
 
-#if defined( JAYMOD_USERDB_DEBUG )
+#if defined( XMOD_USERDB_DEBUG )
     out << "#xpSkills = " << xpSkills[0]
         << " " << xpSkills[1]
         << " " << xpSkills[2]
@@ -399,7 +399,7 @@ User::encode( ostream& out, int recnum )
         << " " << xpSkills[5]
         << " " << xpSkills[6]
         << '\n';
-#endif // JAYMOD_USERDB_DEBUG
+#endif // XMOD_USERDB_DEBUG
 
     char data[ sizeof(xpSkills) + sizeof(crc) ];
     memcpy( data, xpSkills, sizeof(xpSkills) );

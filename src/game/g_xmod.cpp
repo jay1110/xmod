@@ -590,7 +590,7 @@ qboolean G_PushPlayer(gentity_t *ent, gentity_t *victim)
     victim->client->pmext.wasShoved = qtrue;
     victim->client->pmext.shover = ent - g_entities;
 
-    G_AddEvent( victim, EV_GENERAL_SOUND, G_SoundIndex("sound/jaymod/push.wav" ));
+    G_AddEvent( victim, EV_GENERAL_SOUND, G_SoundIndex("sound/xmod/push.wav" ));
 
 	return qtrue;
 }
@@ -1049,7 +1049,7 @@ void G_FallDamage( gentity_t *ent, int event ) {
 		victim->pain_debounce_time = level.time + 200;	
 		G_Damage( victim, ent, ent, NULL, NULL, (damage * g_goomba.integer), 0, MOD_GOOMBA );
 
-		G_AddEvent( victim, EV_GENERAL_SOUND, G_SoundIndex("sound/jaymod/goomba.wav" ));
+		G_AddEvent( victim, EV_GENERAL_SOUND, G_SoundIndex("sound/xmod/goomba.wav" ));
 
         // Check if they died
         if (victim->client->ps.stats[STAT_HEALTH] < 0)
@@ -1065,17 +1065,17 @@ void G_FallDamage( gentity_t *ent, int event ) {
 
 /*
 ================
-G_UpdateJaymodCS
+G_UpdateXmodCS
 ----------------
 Jaybird
-Updates the ConfigString for Jaymod's client side stuff.
-If a cvar is here and is a game-tunable it should probably be flagged with CVAR_JAYMODINFO.
+Updates the ConfigString for Xmod's client side stuff.
+If a cvar is here and is a game-tunable it should probably be flagged with CVAR_XMODINFO.
 ================
 */
-void G_UpdateJaymodCS() {
+void G_UpdateXmodCS() {
     char cs[MAX_INFO_STRING] = { '\0' };
 
-    Info_SetValueForKey( cs, "jver", JAYMOD_title );
+    Info_SetValueForKey( cs, "jver", XMOD_title );
 
     // CVARS
     Info_SetValueForKey( cs, "0", cvars::bg_bulletmode.svalue );
@@ -1133,7 +1133,7 @@ void G_UpdateJaymodCS() {
 
     Info_SetValueForKey( cs, "z", cvars::bg_proneDelay.svalue );
 
-    trap_SetConfigstring( CS_JAYMODINFO, cs );
+    trap_SetConfigstring( CS_XMODINFO, cs );
 }
 
 /*************************************************
@@ -1763,22 +1763,22 @@ void G_AuthCheck( gentity_t *ent, char *version ) {
 
 	trap_GetUserinfo( ent-g_entities, userinfo, sizeof( userinfo ));
 
-	// Check Jaymod version
+	// Check Xmod version
 	if( !version || !*version ) {
-		version = Info_ValueForKey( userinfo, "cg_jaymod_title" );
+		version = Info_ValueForKey( userinfo, "cg_xmod_title" );
 	}
 
 	if( !*version )
 		version = "[MISSING INFO]";
-	else if( !Q_stricmp( version, JAYMOD_title ))
+	else if( !Q_stricmp( version, XMOD_title ))
 		version = "";
 
 	// Jaybird - just warn them.  ET Client is too buggy.
 	if( *version ) {
 		CP( "cpm \"\n^1IMPORTANT: ^3See your console for a game warning!\"" );
 		CP( "print \"^3*** ^1Invalid client detected ^3***^7\n\"" );
-		CP( va( "print \"^xDetected: ^1%s\n^xRequired: ^2%s\n\"", version, JAYMOD_title));
-		CP( "print \"^3This server requires the ^2" JAYMOD_title " ^3client.\n\"" );
+		CP( va( "print \"^xDetected: ^1%s\n^xRequired: ^2%s\n\"", version, XMOD_title));
+		CP( "print \"^3This server requires the ^2" XMOD_title " ^3client.\n\"" );
 		CP( "print \"^3This might be fixed by closing and restarting your game.\n\"" );
 		CP( "print \"^3If a restart fails, please notify a server admin for possible server misconfiguration.^7\n\n\"" );
 	}

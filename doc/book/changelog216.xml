@@ -24,7 +24,7 @@
     <emphasis role="add">Added</emphasis>
     a separate <emphasis role="subject">Goomba</emphasis> sound so that sound can be replaced in a soundpack
 	without also changing a regular map sound.  The current sound is the same as what's been used.  The sound
-	is located at <emphasis role="subject">sound/jaymod/goomba.wav</emphasis>.
+	is located at <emphasis role="subject">sound/xmod/goomba.wav</emphasis>.
 </simpara>
 </listitem>
 
@@ -85,7 +85,7 @@
 <simpara>
     <emphasis role="add">Added</emphasis>
     <emphasis role="subject">shove sound</emphasis>.  It uses the grenade throw sound by default,
-	but can be changed through a soundpack.  The sound is located at sound/jaymod/push.wav.
+	but can be changed through a soundpack.  The sound is located at sound/xmod/push.wav.
 </simpara>
 </listitem>
 

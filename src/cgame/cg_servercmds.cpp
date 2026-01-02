@@ -234,12 +234,12 @@ void CG_ParseOIDInfos( void ) {
 
 /*
 ==================
-CG_ParseJaymodinfo
+CG_ParseXmodinfo
 Jaybird
 ==================
 */
-void CG_ParseJaymodinfo( void) {
-    const char* const info = CG_ConfigString( CS_JAYMODINFO );
+void CG_ParseXmodinfo( void) {
+    const char* const info = CG_ConfigString( CS_XMODINFO );
 
     cvars::bg_bulletmode.set ( Info_ValueForKey( info, "0" ));
     cvars::bg_hitmode.set    ( Info_ValueForKey( info, "1" ));
@@ -683,8 +683,8 @@ void CG_ConfigStringModified( void )
             CG_ParseServerVersionInfo( csval ); // OSP - set versioning info for older demo playback
             return;
 
-        case CS_JAYMODINFO:
-            CG_ParseJaymodinfo();
+        case CS_XMODINFO:
+            CG_ParseXmodinfo();
             return;
 
         case CS_SKILLLEVELS:

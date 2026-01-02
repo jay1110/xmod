@@ -31,10 +31,10 @@ doc.clanfu:
 		$(BUILD/)doc/en/figures \
 		$(BUILD/)doc/en/images \
 		$(BUILD/)doc/en/styles \
-		et.clanfu.org:/var/www/html/jaymod/$(PROJECT.version)/.
+		et.clanfu.org:/var/www/html/xmod/$(PROJECT.version)/.
 
 doc.gencfg:
-	cat $(MODULE.PKG.stage/)jaymod.cfg \
+	cat $(MODULE.PKG.stage/)xmod.cfg \
 	| sed '1,17 d' \
 	| sed '/^set g_banner[0-9]/ { p; d; }; /^set/ { s,set \([^ ]*\),set \&cvar:\1;, }' \
 	| sed '/^set/ { s,"\([^"]*\)"\(.*\),"<literal>\1</literal>"\2, }' \
@@ -115,7 +115,7 @@ doc.langs.clanfu:
 		--exclude="*" \
 		$(BUILD/)doc/en/. \
 		$(BUILD/)clanfu/.
-	rsync $(RSYNC_SSHFLAGS) --delete -aP $(BUILD/)clanfu/. et.clanfu.org:/var/www/html/jaymod/$(PROJECT.version)/lang/.
+	rsync $(RSYNC_SSHFLAGS) --delete -aP $(BUILD/)clanfu/. et.clanfu.org:/var/www/html/xmod/$(PROJECT.version)/lang/.
 
 ###############################################################################
 

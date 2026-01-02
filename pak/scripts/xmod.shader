@@ -1,12 +1,12 @@
 // shader name
-watermark/jaymod
+watermark/xmod
 {
 	nocompress
 	nomipmaps
 	nopicmip
 	{
 		// image filename
-		map watermark/jaymod.tga
+		map watermark/xmod.tga
 		blendFunc blend
 		rgbGen vertex
 		alphaGen vertex
@@ -93,12 +93,12 @@ etpro/color_construction
 	}
 }
 
-ui/assets/icon_jaymod
+ui/assets/icon_xmod
 {
 	nomipmaps
 	nopicmip
 	{
-		clampmap ui/assets/icon_jaymod.tga
+		clampmap ui/assets/icon_xmod.tga
 		blendfunc blend
 		rgbGen vertex
 		alphaGen vertex
@@ -138,12 +138,12 @@ icons/iconw_m97_1_select
 	}
 }
 
-ui/assets/jaymod
+ui/assets/xmod
 {
     nomipmaps
     nopicmip
     {
-        clampmap ui/assets/jaymod.tga
+        clampmap ui/assets/xmod.tga
         blendfunc blend
         rgbGen vertex
         alphaGen vertex

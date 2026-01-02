@@ -109,7 +109,7 @@ AbstractBulletModel::fireWorldAtomic( TraceContext& trx, bool ref )
         colA.width  = 13;
         colA.suffix = " = ";
 
-        trx.debug << xheaderBOLD( JAYMOD_FUNCTION ) << xlindent
+        trx.debug << xheaderBOLD( XMOD_FUNCTION ) << xlindent
             << '\n' << colA( "source"        ) << xvalue ( trx.source.s.number )
             << '\n' << colA( "source.origin" ) << xvec3  ( trx.source.r.currentOrigin )
             << '\n' << colA( "actor"         ) << xvalue ( trx.actor.s.number )

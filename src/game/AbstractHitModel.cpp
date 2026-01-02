@@ -533,7 +533,7 @@ AbstractHitModel::tracePlayer( TraceContext& trx )
         colA.width = 14;
         colA.suffixOutside = " = ";
 
-        trx.debug << xheader( JAYMOD_FUNCTION ) << xlindent
+        trx.debug << xheader( XMOD_FUNCTION ) << xlindent
             << "\n" << colA( "hit"     ) << xvalue( true )
             << "\n" << colA( "hv"      ) << xvalue( str::toString( trx.hitvol ))
             << "\n" << colA( "hv.type" ) << xvalue( AbstractHitVolume::toString( trx.hitvol->type ))
@@ -562,7 +562,7 @@ AbstractHitModel::tracePlayerBegin( TraceContext& trx )
 
         colB.width = 7;
 
-        trx.debug << xheaderBOLD( JAYMOD_FUNCTION ) << xlindent
+        trx.debug << xheaderBOLD( XMOD_FUNCTION ) << xlindent
             << "\n" << colA( "trx.time" )    << colB( trx.time )
                     << " (" << xvalue( level.time - trx.time ) << " delta" << ")"
             << "\n" << colA( "client.slot" ) << colB( client.slot )
@@ -716,7 +716,7 @@ AbstractHitModel::traceWorld( TraceContext& trx )
     bool hit = false;
     for (int wi = 0; wi < MAX_CLIENTS; wi++) {
         // Check for hit against aa-bbox (worldVol).
-        hit = trx.trace( JAYMOD_FUNCTION, wi );
+        hit = trx.trace( XMOD_FUNCTION, wi );
 
         // No need to continue if we scored no hit.
         if (!hit)

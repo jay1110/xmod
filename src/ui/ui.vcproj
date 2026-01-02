@@ -110,7 +110,7 @@
 			<Tool
 				Name="VCPostBuildEventTool"
 				Description="Copy to ET"
-				CommandLine="copy &quot;$(TargetPath)&quot; &quot;$(ETDIR)\jaymod-dev\&quot;"
+				CommandLine="copy &quot;$(TargetPath)&quot; &quot;$(ETDIR)\xmod-dev\&quot;"
 			/>
 		</Configuration>
 		<Configuration
@@ -209,7 +209,7 @@
 			<Tool
 				Name="VCPostBuildEventTool"
 				Description="Copy to ET"
-				CommandLine="copy &quot;$(TargetPath)&quot; &quot;$(ETDIR)\jaymod-dev\&quot;"
+				CommandLine="copy &quot;$(TargetPath)&quot; &quot;$(ETDIR)\xmod-dev\&quot;"
 			/>
 		</Configuration>
 	</Configurations>
@@ -395,7 +395,7 @@
 					</FileConfiguration>
 				</File>
 				<File
-					RelativePath="..\bgame\bg_jaymod.cpp"
+					RelativePath="..\bgame\bg_xmod.cpp"
 					>
 					<FileConfiguration
 						Name="Release|Win32"
