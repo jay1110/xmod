@@ -2920,7 +2920,8 @@ void info_limbo_camera_setup( gentity_t* self ) {
 	}
 
 	if( !self->target || !*self->target ) {
-		G_Printf(S_COLOR_YELLOW "WARNING: info_limbo_camera with no target at %s, ignoring\n", vtos(self->s.origin));
+		G_Printf(S_COLOR_YELLOW "WARNING: info_limbo_camera with no target at (%i %i %i), ignoring\n", 
+			(int)self->s.origin[0], (int)self->s.origin[1], (int)self->s.origin[2]);
 		G_FreeEntity( self );
 		return;  // Don't crash, just skip
 	}

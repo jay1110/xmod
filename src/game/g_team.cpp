@@ -1078,7 +1078,7 @@ void team_wolf_objective_use( gentity_t *self, gentity_t *other, gentity_t *acti
 
 void objective_Register(gentity_t *self)
 {
-	static char cs[MAX_STRING_CHARS];
+	char cs[MAX_STRING_CHARS];
 	char        numspawntargets[128];
 	int         cs_obj = CS_MULTI_SPAWNTARGETS;
 
@@ -1107,7 +1107,7 @@ void objective_Register(gentity_t *self)
 
 	// set current # spawntargets
 	trap_GetConfigstring(CS_MULTI_INFO, cs, sizeof(cs));
-	Com_sprintf(numspawntargets, 128, "%d", level.numspawntargets);
+	Com_sprintf(numspawntargets, sizeof(numspawntargets), "%d", level.numspawntargets);
 	Info_SetValueForKey(cs, "numspawntargets", numspawntargets);
 	trap_SetConfigstring(CS_MULTI_INFO, cs);
 }
