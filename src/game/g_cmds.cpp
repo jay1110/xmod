@@ -2752,7 +2752,7 @@ qboolean Do_Activate_f(gentity_t *ent, gentity_t *traceEnt) {
 			ent->tagParent = traceEnt->nextTrain;
 			
 			// CRITICAL FIX: Ensure tagName is properly null-terminated and clean
-			Com_Memset(ent->tagName, 0, sizeof(ent->tagName));  // Clear first!
+			memset(ent->tagName, 0, sizeof(ent->tagName));  // Clear first!
 			Q_strncpyz( ent->tagName, "tag_player", sizeof(ent->tagName) );  // Then set safely
 			
 			ent->backupWeaponTime = ent->client->ps.weaponTime;
@@ -2890,7 +2890,7 @@ void G_LeaveTank( gentity_t* ent, qboolean position ) {
 	}
 	
 	ent->tagParent = NULL;
-	Com_Memset(ent->tagName, 0, sizeof(ent->tagName));  // Clear it completely
+	memset(ent->tagName, 0, sizeof(ent->tagName));  // Clear it completely
 	ent->s.eFlags &= ~EF_MOUNTEDTANK;
 	ent->client->ps.eFlags &= ~EF_MOUNTEDTANK;
 	tank->s.powerups = -1;
