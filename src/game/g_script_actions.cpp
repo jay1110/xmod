@@ -121,7 +121,8 @@ qboolean G_ScriptAction_SetAutoSpawn( gentity_t* ent, char *params ) {
 
 	tent = G_Find( NULL, FOFS(message), spawnname );
 	if(!tent) {
-		G_Error( "G_Scripting: setautospawn, couldn't find target\n" );
+		G_Printf( "^3WARNING: G_Scripting: setautospawn, couldn't find target '%s'\n", spawnname );
+		return qfalse;
 	}
 
 	if( !tent->count ) {
