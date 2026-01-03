@@ -10,6 +10,11 @@ typedef struct teamgame_s
 teamgame_t teamgame;
 static int numobjectives = 0; // TTimo - number of objectives in the map
 
+void reset_numobjectives(void)
+{
+	numobjectives = 0;
+}
+
 void Team_InitGame(void)
 {
 	memset(&teamgame, 0, sizeof teamgame);
