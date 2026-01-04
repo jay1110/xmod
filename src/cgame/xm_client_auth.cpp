@@ -23,6 +23,15 @@
 #include <ctime>
 #include <cstdlib>
 
+// Undefine min/max macros that conflict with C++ Standard Library
+// These are defined in q_shared.h (included via cg_local.h) but conflict with std::min/std::max
+#ifdef min
+#undef min
+#endif
+#ifdef max
+#undef max
+#endif
+
 namespace xm_client_auth {
 
 namespace {
