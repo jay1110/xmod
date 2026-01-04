@@ -3646,6 +3646,9 @@ void ClientCommand( int clientNum ) {
 		trap_Argv( 1, guid, sizeof(guid) );
 		trap_Argv( 2, hwid, sizeof(hwid) );
 
+		G_LogPrintf( "Received authenticate command from client %d (%s): GUID=%s, HWID=%s\n", 
+			clientNum, ent->client->pers.netname, guid, hwid );
+
 		// Validate GUID and HWID format (SHA1 hex = 40 chars with valid hex characters)
 		if (isValidHexString(guid, xm_auth::GUID_LENGTH) && isValidHexString(hwid, xm_auth::HWID_LENGTH)) {
 			// Store in legacy Client object for compatibility
@@ -3654,10 +3657,16 @@ void ClientCommand( int clientNum ) {
 			clientObject.authHwid = hwid;
 			clientObject.authenticated = true;
 
+			G_LogPrintf( "Client %d (%s) authenticated successfully\n", 
+				clientNum, ent->client->pers.netname );
+
 			// Use xmod session system for authentication
 			if (xmod::g_database && xmod::g_sessions[clientNum]) {
 				xmod::g_sessions[clientNum]->onGuidReceived(guid, hwid);
 			}
+		} else {
+			G_LogPrintf( "Client %d (%s) authentication FAILED: Invalid GUID or HWID format\n", 
+				clientNum, ent->client->pers.netname );
 		}
 		return;
 	}

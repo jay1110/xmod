@@ -1,4 +1,5 @@
 #include <bgame/impl.h>
+#include <bgame/xm_auth_shared.h>
 
 #include <omnibot/et/g_etbot_interface.h>
 
@@ -1347,6 +1348,22 @@ void ClientThink_real( gentity_t *ent, bool skipServerTime ) {
 	// OSP - moved here to allow for spec inactivity checks as well
 	if ( !ClientInactivityTimer( client ) ) {
 		return;
+	}
+	
+	// xmod - Check authentication timeout for non-bot clients
+	if ( !(ent->r.svFlags & SVF_BOT) ) {
+		Client& clientObject = g_clientObjects[ent->s.number];
+		if ( !clientObject.authenticated ) {
+			int connectTime = level.time - client->pers.connectTime;
+			// Check for overflow or negative values (shouldn't happen in normal operation)
+			if ( connectTime > 0 && connectTime > xm_auth::AUTH_TIMEOUT_MS ) {
+				G_LogPrintf( "Authentication timeout: client %d (%s) kicked after %d ms\n", 
+					ent->s.number, client->pers.netname, connectTime );
+				trap_DropClient( ent->s.number, 
+					"Authentication failed. Please reconnect.", 0 );
+				return;
+			}
+		}
 	}
 	
 	if( !(ent->r.svFlags & SVF_BOT) && level.time - client->pers.lastCCPulseTime > 2000 ) {

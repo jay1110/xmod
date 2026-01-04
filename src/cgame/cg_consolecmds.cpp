@@ -1318,6 +1318,9 @@ void CG_InitConsoleCommands( void ) {
 	trap_AddCommand ("messagemode4");
 	trap_AddCommand ("textshortcuts");
 	trap_AddCommand ("xmodinfo");
+	
+	// xmod authentication
+	trap_AddCommand ("authenticate");
 
 	trap_AddCommand ("sclogin");
 	trap_AddCommand ("sclogout");
