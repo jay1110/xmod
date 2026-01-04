@@ -244,7 +244,7 @@ void init() {
         );
         CG_Printf("[Auth] Subscribed to guid_request command\n");
     } else {
-        CG_Printf("[Auth] WARNING: Server commands handler not available!\n");
+        CG_Printf("[Auth] WARNING: Server commands handler not available! Using fallback.\n");
     }
 }
 

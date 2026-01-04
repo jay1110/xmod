@@ -2834,6 +2834,12 @@ static void CG_ServerCommand( void ) {
 		}
 	}
 	
+	// Fallback for guid_request if handler not available
+	if (!strcmp(cmd, "guid_request")) {
+		xm_client_auth::handleGuidRequest();
+		return;
+	}
+	
 	CG_Printf( "Unknown client game command: %s\n", cmd );
 }
 
