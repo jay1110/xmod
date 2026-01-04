@@ -659,7 +659,8 @@ bool Database::unbanUser(const std::string& guid) {
     rc = sqlite3_step(stmt);
     sqlite3_finalize(stmt);
 
-    return rc == SQLITE_DONE;
+    // Only return true if rows were actually deleted
+    return rc == SQLITE_DONE && sqlite3_changes(db) > 0;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -751,7 +752,8 @@ bool Database::unbanById(int banId) {
     rc = sqlite3_step(stmt);
     sqlite3_finalize(stmt);
 
-    return rc == SQLITE_DONE;
+    // Only return true if rows were actually deleted
+    return rc == SQLITE_DONE && sqlite3_changes(db) > 0;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
