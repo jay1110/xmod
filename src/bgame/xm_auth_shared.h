@@ -15,6 +15,7 @@ namespace xm_auth {
     // Constants
     const int GUID_LENGTH = 40;  // SHA1 hash length in hex
     const int HWID_LENGTH = 40;  // SHA1 hash length in hex
+    const int AUTH_TIMEOUT_MS = 15000;  // 15 seconds timeout for authentication
 }
 
 #endif // BGAME_XM_AUTH_SHARED_H

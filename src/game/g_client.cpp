@@ -2175,6 +2175,7 @@ ClientConnect( string& outmsg, int clientNum, qboolean firstTime, qboolean isBot
 
 	// Send GUID request to client for authentication
 	if (!isBot) {
+		G_LogPrintf( "Sending guid_request to client %d (%s)\n", clientNum, client->pers.netname );
 		trap_SendServerCommand( clientNum, xm_auth::CMD_GUID_REQUEST );
 		
 		// Initialize xmod session if available
