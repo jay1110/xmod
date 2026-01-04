@@ -112,52 +112,6 @@ int G_FindConfigstringIndex( const char *name, int start, int max, qboolean crea
 	return i;
 }
 
-/**
- * @brief Prevent player always mounting the last gun used, on multiple tank maps.
- * Ported from ETLegacy Bugfix project (#087)
- * 
- * Removes a config string entry and compacts the array by shifting remaining entries forward.
- * This prevents overflow by cleaning up stale entries.
- *
- * @param[in] name - Config string name to remove
- * @param[in] start - Starting config string index
- * @param[in] max - Maximum number of config strings
- */
-void G_RemoveConfigstringIndex(const char *name, int start, int max)
-{
-	int  i, j;
-	char s[MAX_STRING_CHARS];
-
-	if (!name || !name[0])
-	{
-		return;
-	}
-
-	for (i = 1; i < max; i++)
-	{
-		trap_GetConfigstring(start + i, s, sizeof(s));
-
-		if (!s[0])
-		{
-			break;
-		}
-
-		if (strcmp(s, name) == 0)
-		{
-			// Shift all subsequent entries down by one position
-			for (j = i; j < max - 1; j++)
-			{
-				trap_GetConfigstring(start + j + 1, s, sizeof(s));
-				trap_SetConfigstring(start + j, s);
-			}
-			// Clear the last entry
-			trap_SetConfigstring(start + max - 1, "");
-			break;
-		}
-	}
-}
-
-
 int G_ModelIndex( char *name ) {
 	return G_FindConfigstringIndex (name, CS_MODELS, MAX_MODELS, qtrue);
 }
@@ -324,9 +278,7 @@ gentity_t *G_PickTarget (char *targetname)
 
 	if (!num_choices)
 	{
-		// More detailed error message for debugging
-		G_Printf("WARNING: G_PickTarget: target '%s' not found (no entities with this targetname exist)\n", 
-		         targetname);
+		G_Printf("G_PickTarget: target %s not found\n", targetname);
 		return NULL;
 	}
 
@@ -880,37 +832,16 @@ qboolean infront (gentity_t *self, gentity_t *other)
 /*
 ==================
 G_ProcessTagConnect
-
-CRITICAL FIX: Remove old tag connection before creating new one to prevent overflow
 ==================
 */
 void G_ProcessTagConnect( gentity_t *ent, qboolean clearAngles ) {
-	char connectString[MAX_STRING_CHARS];
-	int index;
-	
-	if (!ent->tagName || ent->tagName[0] == '\0') {
-		G_Error("G_ProcessTagConnect: empty or NULL ent->tagName\n");
+	if (!ent->tagName) {
+		G_Error("G_ProcessTagConnect: NULL ent->tagName\n");
 	}
 	if (!ent->tagParent) {
 		G_Error("G_ProcessTagConnect: NULL ent->tagParent\n");
 	}
-	
-	// Build connection string
-	Com_sprintf(connectString, sizeof(connectString), "%i %i %s", 
-	            ent->s.number, ent->tagParent->s.number, ent->tagName);
-	
-	// CRITICAL: Remove any existing entry for this entity first!
-	// This prevents duplicate entries when remounting tanks/MG42s
-	G_RemoveConfigstringIndex(connectString, CS_TAGCONNECTS, MAX_TAGCONNECTS);
-	
-	// Now add the new entry
-	index = G_FindConfigstringIndex(connectString, CS_TAGCONNECTS, MAX_TAGCONNECTS, qtrue);
-	if (index == 0) {
-		G_Error("G_ProcessTagConnect: CS_TAGCONNECTS overflow (max %i reached)\n", MAX_TAGCONNECTS);
-	}
-	
-	G_Printf("Tag connected: %s (index %i/%i)\n", connectString, index, MAX_TAGCONNECTS);
-	
+	G_FindConfigstringIndex( va("%i %i %s", ent->s.number, ent->tagParent->s.number, ent->tagName), CS_TAGCONNECTS, MAX_TAGCONNECTS, qtrue );
 	ent->s.eFlags |= EF_TAGCONNECT;
 
 	if(ent->client) {
