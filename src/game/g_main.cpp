@@ -1793,8 +1793,6 @@ void G_InitGame( int levelTime, int randomSeed, int restart ) {
 
 	srand( randomSeed );
 
-	G_ResetRemappedShaders();
-
 	/*
      * Reference pak2.pk3 for pure-checks.
      */
@@ -2043,8 +2041,6 @@ void G_InitGame( int levelTime, int randomSeed, int restart ) {
 	G_InitWorldSession();
 
 	Team_InitGame();
-
-	G_ResetRemappedShaders();
 
 	// DHM - Nerve :: Clear out spawn target config strings
 	trap_GetConfigstring( CS_MULTI_INFO, cs, sizeof(cs) );
