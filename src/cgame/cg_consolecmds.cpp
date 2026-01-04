@@ -1320,7 +1320,9 @@ void CG_InitConsoleCommands( void ) {
 	trap_AddCommand ("xmodinfo");
 	
 	// xmod authentication
-	trap_AddCommand ("authenticate");
+	// NOTE: DO NOT register "authenticate" with trap_AddCommand!
+	// It must be sent to the server via trap_SendClientCommand() in xm_client_auth.cpp
+	// Registering it locally would prevent the engine from forwarding it to the server.
 
 	trap_AddCommand ("sclogin");
 	trap_AddCommand ("sclogout");
