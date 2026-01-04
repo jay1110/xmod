@@ -30,6 +30,17 @@ typedef struct {
 int remapCount = 0;
 shaderRemap_t remappedShaders[MAX_SHADER_REMAPS];
 
+/*
+ * Reset the entity free list and shader remapping state.
+ * This must be called during map initialization to clear stale data from
+ * previous map loads, since the .so/.dll is not reloaded between map changes.
+ */
+void G_ResetEntityFreeList() {
+    __entitiesFree.clear();
+    __entitiesFreeSize = 0;
+    remapCount = 0;
+}
+
 void AddRemap(const char *oldShader, const char *newShader, float timeOffset) {
 	int i;
 

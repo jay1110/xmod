@@ -1397,6 +1397,7 @@ gentity_t* G_PopupMessage( popupMessageType_t type );
 void	G_Sound( gentity_t *ent, int soundIndex );
 void	G_AnimScriptSound( int soundIndex, vec3_t org, int client );
 void	G_FreeEntity( gentity_t *e );
+void	G_ResetEntityFreeList( void );
 
 void	G_TouchTriggers (gentity_t *ent);
 void	G_TouchSolids (gentity_t *ent);
