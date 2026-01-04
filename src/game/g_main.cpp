@@ -989,7 +989,7 @@ void G_CheckForCursorHints( gentity_t *ent ) {
 					hintDist = CH_ACTIVATE_DIST;
 					checkEnt = 0;
 				} else { // use target for hint icon
-					checkEnt = G_FindByTargetname( NULL, traceEnt->target);
+					checkEnt = G_FindByTargetname( &g_entities[MAX_CLIENTS - 1], traceEnt->target);
 					if(!checkEnt) {		// no target found
 						hintType = HINT_BAD_USER;
 						hintDist = CH_MAX_DIST_ZOOM;	// show this one from super far for debugging

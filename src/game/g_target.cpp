@@ -25,7 +25,7 @@ void Use_Target_Give( gentity_t *ent, gentity_t *other, gentity_t *activator ) {
 	}
 
 	memset( &trace, 0, sizeof( trace ) );
-	t = NULL;
+	t = &g_entities[MAX_CLIENTS - 1];
 	while ( (t = G_FindByTargetname( t, ent->target )) != NULL ) {
 		if ( !t->item ) {
 			continue;
@@ -195,7 +195,7 @@ void target_speaker_multiple (gentity_t *ent)
 		G_Error( "target_speaker missing target at pos %s", vtos( ent->s.origin ) );	
 	}
 
-	vis_dummy = G_FindByTargetname( NULL, ent->target );
+	vis_dummy = G_FindByTargetname( &g_entities[MAX_CLIENTS - 1], ent->target );
 
 	if(vis_dummy)
 	{
@@ -361,7 +361,7 @@ void misc_beam_start ( gentity_t *self ) {
 	self->s.eType = ET_BEAM_2;
 
 	if ( self->target ) {
-		ent = G_FindByTargetname( NULL, self->target );
+		ent = G_FindByTargetname( &g_entities[MAX_CLIENTS - 1], self->target );
 		if (!ent) {
 			G_Printf ("%s at %s: %s is a bad target\n", self->classname, vtos(self->s.origin), self->target);
 			G_FreeEntity( self );
@@ -375,7 +375,7 @@ void misc_beam_start ( gentity_t *self ) {
 	}
 	
 	if( self->message ) {
-		ent = G_FindByTargetname( NULL, self->message );
+		ent = G_FindByTargetname( &g_entities[MAX_CLIENTS - 1], self->message );
 		if( !ent ) {
 			G_Printf ("%s at %s: %s is a bad target2\n", self->classname, vtos(self->s.origin), self->message);
 			G_FreeEntity( self );
@@ -476,7 +476,7 @@ void target_laser_start (gentity_t *self)
 	self->s.eType = ET_BEAM;
 
 	if (self->target) {
-		ent = G_FindByTargetname( NULL, self->target );
+		ent = G_FindByTargetname( &g_entities[MAX_CLIENTS - 1], self->target );
 		if (!ent) {
 			G_Printf ("%s at %s: %s is a bad target\n", self->classname, vtos(self->s.origin), self->target);
 		}

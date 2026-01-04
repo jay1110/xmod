@@ -81,7 +81,7 @@ qboolean G_ScriptAction_SetPosition( gentity_t *ent, char *params ) {
 		G_SetOrigin( ent, pPathCorner->origin );
 	} else  {
 		// find the entity with the given "targetname"
-		target = G_FindByTargetname( NULL, token );
+		target = G_FindByTargetname( &g_entities[MAX_CLIENTS - 1], token );
 		if (!target) {
 			G_Error( "G_Scripting: can't find entity with \"targetname\" = \"%s\"\n", token );
 		}
@@ -328,7 +328,7 @@ qboolean G_ScriptAction_AttatchToTrain( gentity_t* ent, char *params ) {
 		G_Error( "G_Scripting: attatchtotrain must have a target\n" );
 	}
 
-	target = G_FindByTargetname( NULL, token );
+	target = G_FindByTargetname( &g_entities[MAX_CLIENTS - 1], token );
 	if (!target) {
 		G_Error( "G_Scripting: can't find entity with \"targetname\" = \"%s\"\n", token );
 	}
@@ -906,7 +906,7 @@ qboolean G_ScriptAction_SetTankAmmo( gentity_t *ent, char *params ) {
 		G_Error( "G_Scripting: settankammo must have a target\n" );
 	}
 
-	tank = G_FindByTargetname( NULL, token );
+	tank = G_FindByTargetname( &g_entities[MAX_CLIENTS - 1], token );
 	if(!tank) {
 		G_Error( "G_Scripting: settankammo, failed to find target (%s)\n", token );
 	}
@@ -936,7 +936,7 @@ qboolean G_ScriptAction_AddTankAmmo( gentity_t *ent, char *params ) {
 		G_Error( "G_Scripting: addtankammo must have a target\n" );
 	}
 
-	tank = G_FindByTargetname( NULL, token );
+	tank = G_FindByTargetname( &g_entities[MAX_CLIENTS - 1], token );
 	if(!tank) {
 		G_Error( "G_Scripting: addtankammo, failed to find target (%s)\n", token );
 	}
@@ -1117,7 +1117,7 @@ qboolean G_ScriptAction_GotoMarker( gentity_t *ent, char *params )
 			VectorSubtract( pPathCorner->origin, ent->r.currentOrigin, vec );
 		} else {
 			// find the entity with the given "targetname"
-			target = G_FindByTargetname( NULL, token );
+			target = G_FindByTargetname( &g_entities[MAX_CLIENTS - 1], token );
 
 			if (!target) {
 				G_Error( "G_Scripting: can't find entity with \"targetname\" = \"%s\"\n", token );
@@ -1154,7 +1154,7 @@ qboolean G_ScriptAction_GotoMarker( gentity_t *ent, char *params )
 
 					if ((pPathCorner2 = BG_Find_PathCorner( token ))) {
 						VectorCopy( pPathCorner2->origin, vec2 );
-					} else if ((target2 = G_FindByTargetname( NULL, token ))) {
+					} else if ((target2 = G_FindByTargetname( &g_entities[MAX_CLIENTS - 1], token ))) {
 						VectorCopy( target2->r.currentOrigin, vec2 );
 					} else {
 						G_Error( "Target for relative gotomarker not found: %s\n", token );
@@ -2099,7 +2099,7 @@ qboolean G_ScriptAction_Accum( gentity_t *ent, char *params )
 			G_Error( "Scripting: accum %s requires a parameter\n", lastToken );
 		}
 
-		target = G_FindByTargetname( NULL, token );
+		target = G_FindByTargetname( &g_entities[MAX_CLIENTS - 1], token );
 		if( !target ) {
 			G_Error( "Scripting: accum %s could not find target\n", lastToken );
 		}
@@ -2502,7 +2502,7 @@ qboolean G_ScriptAction_TagConnect( gentity_t *ent, char *params )
 		G_Error( "G_ScriptAction_TagConnect: syntax: attachtotag <targetname> <tagname>\n" );
 	}
 
-	parent = G_FindByTargetname( NULL, token );
+	parent = G_FindByTargetname( &g_entities[MAX_CLIENTS - 1], token );
 	if (!parent) {
 		parent = G_Find( NULL, FOFS(scriptName), token );
 		if (!parent) {
@@ -3821,7 +3821,7 @@ qboolean G_ScriptAction_Construct(gentity_t *ent, char *params ) {
 		G_Error( "G_Scripting: \"construct\" must have a targetname\n" );
 	}
 
-	constructible = G_FindByTargetname( NULL, token );
+	constructible = G_FindByTargetname( &g_entities[MAX_CLIENTS - 1], token );
 	if(!constructible || !constructible->inuse || constructible->s.eType != ET_CONSTRUCTIBLE) {
 		G_Error( "G_Scripting: \"construct\" could not find entity with targetname: %s\n", token );
 	}

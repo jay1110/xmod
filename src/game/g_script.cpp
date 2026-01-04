@@ -1027,7 +1027,7 @@ void script_mover_spawn(gentity_t *ent) {
 		if(!ent->tagBuffer) {
 			ent->nextTrain = ent;
 		} else {
-			gentity_t* tent = G_FindByTargetname( NULL, ent->tagBuffer);
+			gentity_t* tent = G_FindByTargetname( &g_entities[MAX_CLIENTS - 1], ent->tagBuffer);
 			if(!tent) {
 				ent->nextTrain = ent;
 			} else {

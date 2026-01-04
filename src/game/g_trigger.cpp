@@ -556,7 +556,7 @@ void trigger_heal_think(gentity_t* self) {
 
 #define TRIGGER_HEAL_CANTHINK(self) self->count != -9999
 void trigger_heal_setup(gentity_t* self) {
-	self->target_ent = G_FindByTargetname( NULL, self->target );
+	self->target_ent = G_FindByTargetname( &g_entities[MAX_CLIENTS - 1], self->target );
 	if(!self->target_ent) {
 		G_Error( "trigger_heal failed to find target: %s\n", self->target );
 	}
@@ -752,7 +752,7 @@ void trigger_ammo_think(gentity_t* self) {
 
 #define TRIGGER_AMMO_CANTHINK(self) self->count != -9999
 void trigger_ammo_setup(gentity_t* self) {
-	self->target_ent = G_FindByTargetname( NULL, self->target );
+	self->target_ent = G_FindByTargetname( &g_entities[MAX_CLIENTS - 1], self->target );
 	if(!self->target_ent) {
 		G_Error( "trigger_ammo failed to find target: %s\n", self->target );
 	}
@@ -1221,7 +1221,7 @@ void Touch_ObjectiveInfo( gentity_t *ent, gentity_t *other, trace_t *trace ) {
 // of func_constructible and spawning the right indicator
 void Think_SetupObjectiveInfo( gentity_t *ent ) {
 
-	ent->target_ent = G_FindByTargetname( NULL, ent->target );
+	ent->target_ent = G_FindByTargetname( &g_entities[MAX_CLIENTS - 1], ent->target );
 
 	if( !ent->target_ent ) {
 		G_Error ("'trigger_objective_info' has a missing target '%s'\n", ent->target );

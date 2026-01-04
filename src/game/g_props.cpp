@@ -291,7 +291,7 @@ void sparks_angles_think (gentity_t *ent)
 	vec3_t		vec;
 
 	if( ent->target ) {
-		target = G_FindByTargetname( NULL, ent->target);
+		target = G_FindByTargetname( &g_entities[MAX_CLIENTS - 1], ent->target);
 	}
 
 	if( !target ) {
@@ -448,7 +448,7 @@ void dust_angles_think (gentity_t *ent)
 	gentity_t *target;
 	vec3_t		vec;
 
-	target = G_FindByTargetname( NULL, ent->target);
+	target = G_FindByTargetname( &g_entities[MAX_CLIENTS - 1], ent->target);
 
 	if (!target)
 		return;
@@ -1703,8 +1703,8 @@ void Use_DamageInflictor (gentity_t *ent, gentity_t *other, gentity_t *activator
 {
 	gentity_t *daent;
 
-	daent = NULL;
-	while ((daent = G_FindByTargetname( daent, daent->target)) != NULL) 
+	daent = &g_entities[MAX_CLIENTS - 1];
+	while ((daent = G_FindByTargetname( daent, ent->target)) != NULL) 
 	{
 		if ( daent == ent ) {
 			G_Printf ("Use_DamageInflictor damaging self.\n");
@@ -1928,7 +1928,7 @@ void SP_OilSlick (gentity_t *ent)
 	vec3_t		point;
 
 	if (ent->target)
-		target = G_FindByTargetname( NULL, ent->target );
+		target = G_FindByTargetname( &g_entities[MAX_CLIENTS - 1], ent->target );
 	
 	if (target)
 	{
@@ -4035,7 +4035,7 @@ void props_flamethrower_think (gentity_t *ent)
 	if (ent->spawnflags & 1) // tracking
 	{
 		if( ent->target ) {
-			target = G_FindByTargetname( NULL, ent->target);
+			target = G_FindByTargetname( &g_entities[MAX_CLIENTS - 1], ent->target);
 		}
 
 		if (!target)
@@ -4060,7 +4060,7 @@ void props_flamethrower_think (gentity_t *ent)
 	else
 	{
 		if (ent->target)
-			target = G_FindByTargetname( NULL, ent->target);
+			target = G_FindByTargetname( &g_entities[MAX_CLIENTS - 1], ent->target);
 
 		if (!target)
 		{
@@ -4142,7 +4142,7 @@ void props_flamethrower_init (gentity_t *ent)
 	vec3_t		angles;
 
 	if (ent->target)
-		target = G_FindByTargetname( NULL, ent->target);
+		target = G_FindByTargetname( &g_entities[MAX_CLIENTS - 1], ent->target);
 
 	if (!target)
 	{
