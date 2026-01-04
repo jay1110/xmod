@@ -5,6 +5,7 @@
 #include <bgame/impl.h>
 #include <cgame/jxac/jxac_client.h>
 #include <cgame/xm_client_auth.h>
+#include <cgame/xm_server_commands_handler.h>
 
 #define SCOREPARSE_COUNT	9
 
@@ -2822,6 +2823,21 @@ static void CG_ServerCommand( void ) {
 	
 	if( CG_Debriefing_ServerCommand( cmd ) ) {
 		return;
+	}
+	
+	// Check if the server commands handler can handle this command
+	if (xmod::g_serverCommandsHandler) {
+		std::vector<std::string> arguments;
+		for (int i = 1; i < trap_Argc(); ++i) {
+			const char* arg = CG_Argv(i);
+			if (arg) {
+				arguments.push_back(arg);
+			}
+		}
+		
+		if (xmod::g_serverCommandsHandler->check(cmd, arguments)) {
+			return;
+		}
 	}
 	
 	CG_Printf( "Unknown client game command: %s\n", cmd );

@@ -1,4 +1,5 @@
 #include "xm_client_auth.h"
+#include "xm_server_commands_handler.h"
 #include <bgame/xm_auth_shared.h>
 #include <bgame/xm_sha1.h>
 #include <cgame/cg_local.h>
@@ -64,10 +65,12 @@ std::string loadGuidFromFile() {
         if (len >= 32) {
             std::string guid(buffer);
             if (guid.length() >= 32) {
+                CG_Printf("[Auth] GUID loaded from file: %s\n", guid.substr(0, 36).c_str());
                 return guid.substr(0, 36); // UUID format with dashes
             }
         }
     }
+    CG_Printf("[Auth] No existing GUID file found\n");
     return "";
 }
 
@@ -78,6 +81,7 @@ void saveGuidToFile(const std::string& guid) {
     if (trap_FS_FOpenFile("xmodguid.dat", &f, FS_WRITE) >= 0) {
         trap_FS_Write(guid.c_str(), guid.length(), f);
         trap_FS_FCloseFile(f);
+        CG_Printf("[Auth] GUID saved to file\n");
     }
 }
 
@@ -164,6 +168,7 @@ std::string getGuid() {
     // Generate new GUID if not found
     if (g_guid.empty()) {
         g_guid = generateUUID();
+        CG_Printf("[Auth] Generated new GUID: %s\n", g_guid.c_str());
         saveGuidToFile(g_guid);
     }
     
@@ -183,12 +188,14 @@ std::string getHwid() {
     g_hwid = collectHwidLinux();
 #endif
     
+    CG_Printf("[Auth] HWID collected: %s\n", g_hwid.c_str());
+    
     return g_hwid;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
 
-void handleGuidRequest() {
+void login() {
     // Get GUID and HWID
     std::string guid = getGuid();
     std::string hwid = getHwid();
@@ -196,6 +203,10 @@ void handleGuidRequest() {
     // Hash both with SHA1
     std::string hashedGuid = xm_sha1::hashString(guid);
     std::string hashedHwid = xm_sha1::hashString(hwid);
+    
+    CG_Printf("[Auth] Sending authenticate command\n");
+    CG_Printf("[Auth]   Hashed GUID: %s\n", hashedGuid.c_str());
+    CG_Printf("[Auth]   Hashed HWID: %s\n", hashedHwid.c_str());
     
     // Send authenticate command to server
     std::stringstream cmd;
@@ -205,14 +216,36 @@ void handleGuidRequest() {
 
 ///////////////////////////////////////////////////////////////////////////////
 
+void handleGuidRequest() {
+    CG_Printf("[Auth] Received guid_request from server (legacy handler)\n");
+    login();
+}
+
+///////////////////////////////////////////////////////////////////////////////
+
 void init() {
     if (g_initialized) {
         return;
     }
     
+    CG_Printf("[Auth] Initializing authentication system\n");
+    
     g_initialized = true;
     g_guid.clear();
     g_hwid.clear();
+    
+    // Subscribe to guid_request command
+    if (xmod::g_serverCommandsHandler) {
+        xmod::g_serverCommandsHandler->subscribe("guid_request", 
+            [](const std::vector<std::string>& args) {
+                CG_Printf("[Auth] Received guid_request from server\n");
+                login();
+            }
+        );
+        CG_Printf("[Auth] Subscribed to guid_request command\n");
+    } else {
+        CG_Printf("[Auth] WARNING: Server commands handler not available!\n");
+    }
 }
 
 ///////////////////////////////////////////////////////////////////////////////

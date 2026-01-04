@@ -451,6 +451,14 @@
 					RelativePath=".\static.cpp"
 					>
 				</File>
+				<File
+					RelativePath=".\xm_client_auth.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\xm_server_commands_handler.cpp"
+					>
+				</File>
 				<Filter
 					Name="win32"
 					>
@@ -703,6 +711,14 @@
 				</File>
 				<File
 					RelativePath=".\tr_types.h"
+					>
+				</File>
+				<File
+					RelativePath=".\xm_client_auth.h"
+					>
+				</File>
+				<File
+					RelativePath=".\xm_server_commands_handler.h"
 					>
 				</File>
 				<Filter
