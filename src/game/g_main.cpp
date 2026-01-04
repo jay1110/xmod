@@ -1858,6 +1858,9 @@ void G_InitGame( int levelTime, int randomSeed, int restart ) {
 	G_ProcessIPBans();
 	G_InitMemory();
 
+	// Reset static entity free list to prevent stale data from previous map loads
+	G_ResetEntityFreeList();
+
     // NERVE - SMF - intialize gamestate
     if (cvars::gameState.ivalue == GS_INITIALIZE)
         cvars::gameState.set( cvars::g_warmup.ivalue ? GS_WARMUP : GS_PLAYING );
