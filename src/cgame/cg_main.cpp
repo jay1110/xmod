@@ -8,6 +8,7 @@
 #include <bgame/impl.h>
 #include <cgame/jxac/jxac_client.h>
 #include <cgame/xm_client_auth.h>
+#include <cgame/xm_server_commands_handler.h>
 
 displayContextDef_t cgDC;
 
@@ -2887,6 +2888,10 @@ void CG_Init( int serverMessageNum, int serverCommandSequence, int clientNum, qb
     consoleFont.registerShader();
     consoleFontShadowed.registerShader();
     console.init();
+    
+    // Initialize server commands handler before auth system
+    xmod::g_serverCommandsHandler = std::make_shared<xmod::ServerCommandsHandler>();
+    
     jxac::Client::init();  // Initialize JXAC client module
     xm_client_auth::init(); // Initialize authentication module
 
@@ -3117,6 +3122,11 @@ void CG_Shutdown( void ) {
     molotov::shutdown();
 	process.shutdown();
 	xm_client_auth::shutdown(); // Shutdown authentication module
+	
+	// Cleanup server commands handler
+	if (xmod::g_serverCommandsHandler) {
+		xmod::g_serverCommandsHandler.reset();
+	}
 
     // Restore rate
     if (cg_savedRate.integer) {

@@ -18,6 +18,9 @@ void shutdown();
 // Handle server command for GUID request
 void handleGuidRequest();
 
+// Login function - sends authentication to server
+void login();
+
 // Get or generate GUID
 std::string getGuid();
 
