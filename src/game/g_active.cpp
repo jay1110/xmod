@@ -1355,11 +1355,12 @@ void ClientThink_real( gentity_t *ent, bool skipServerTime ) {
 		Client& clientObject = g_clientObjects[ent->s.number];
 		if ( !clientObject.authenticated ) {
 			int connectTime = level.time - client->pers.connectTime;
-			if ( connectTime > xm_auth::AUTH_TIMEOUT_MS ) {
+			// Check for overflow or negative values (shouldn't happen in normal operation)
+			if ( connectTime > 0 && connectTime > xm_auth::AUTH_TIMEOUT_MS ) {
 				G_LogPrintf( "Authentication timeout: client %d (%s) kicked after %d ms\n", 
 					ent->s.number, client->pers.netname, connectTime );
 				trap_DropClient( ent->s.number, 
-					"Authentication timeout. Please update your xmod client.", 0 );
+					"Authentication failed. Please reconnect.", 0 );
 				return;
 			}
 		}
