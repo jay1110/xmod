@@ -6,6 +6,15 @@
 #include <cstdio>
 #include <cstring>
 
+// Undefine min/max macros that conflict with C++ Standard Library
+// These are defined in q_shared.h (included via impl.h) but conflict with std::min/std::max
+#ifdef min
+#undef min
+#endif
+#ifdef max
+#undef max
+#endif
+
 #ifdef _WIN32
 #include <windows.h>
 #include <psapi.h>
