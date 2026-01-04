@@ -535,11 +535,8 @@ void SP_misc_gamemodel( gentity_t *ent )
 			reverse = qtrue;
 		}
 
-		if( num_frames == 0 ) {
-			G_Printf( "^3WARNING: 'misc_gamemodel' with ANIMATE spawnflag set has 'frames' set to 0 at %s\n", vtos(ent->s.origin) );
-			G_FreeEntity( ent );
-			return;
-		}
+		if( num_frames == 0 )
+			G_Error( "'misc_model' with ANIMATE spawnflag set has 'frames' set to 0\n" );
 
 		ent->s.torsoAnim = num_frames;
 		ent->s.frame = rand() % ent->s.torsoAnim;
@@ -2425,8 +2422,7 @@ void constructiblemarker_setup( gentity_t *ent ) {
 	ent->target_ent = G_FindByTargetname( NULL, ent->target );
 
 	if( !ent->target_ent ) {
-		G_Printf ("WARNING: 'misc_constructiblemarker' has a missing target '%s'\n", ent->target );
-		return;
+		G_Error ("'misc_constructiblemarker' has a missing target '%s'\n", ent->target );
 	}
 
 	trap_LinkEntity( ent );

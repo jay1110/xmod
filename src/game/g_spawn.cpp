@@ -1027,29 +1027,6 @@ Parses textual entity definitions out of an entstring and spawns gentities.
 ==============
 */
 void G_SpawnEntitiesFromString( void ) {
-	int i;
-	
-	// CRITICAL: Clear ALL config strings before spawning entities
-	// This prevents entities from finding old config string indices as targetnames
-	
-	// Clear tag connections
-	for (i = 0; i < MAX_TAGCONNECTS; i++) {
-		trap_SetConfigstring(CS_TAGCONNECTS + i, "");
-	}
-	
-	// Clear spawn targets
-	for (i = 0; i < MAX_MULTI_SPAWNTARGETS; i++) {
-		trap_SetConfigstring(CS_MULTI_SPAWNTARGETS + i, "");
-	}
-	
-	// Clear OID triggers
-	for (i = 0; i < MAX_OID_TRIGGERS; i++) {
-		trap_SetConfigstring(CS_OID_TRIGGERS + i, "");
-		trap_SetConfigstring(CS_OID_DATA + i, "");
-	}
-	
-	G_Printf("Config strings cleared before entity spawn\n");
-	
 	// allow calls to G_Spawn*()
 	G_Printf( "Enable spawning!\n" );
 	level.spawning = qtrue;
