@@ -974,36 +974,6 @@ void G_ProcessTagConnect( gentity_t *ent, qboolean clearAngles ) {
 }
 
 /*
-==================
-G_ClearAllTagConnections
-
-Clears all tag connection config strings.
-MUST be called at:
-- G_InitGame (map load)
-- Warmup → Game transition
-- Game → Intermission transition
-- Map restart
-==================
-*/
-void G_ClearAllTagConnections(void) {
-	int i, count = 0;
-	char s[MAX_STRING_CHARS];
-	
-	// Count how many we're clearing for debug
-	for (i = 0; i < MAX_TAGCONNECTS; i++) {
-		trap_GetConfigstring(CS_TAGCONNECTS + i, s, sizeof(s));
-		if (s[0]) {
-			count++;
-		}
-		trap_SetConfigstring(CS_TAGCONNECTS + i, "");
-	}
-	
-	if (count > 0) {
-		G_Printf("Cleared %i tag connection(s) (CS_TAGCONNECTS)\n", count);
-	}
-}
-
-/*
 ================
 DebugLine
 

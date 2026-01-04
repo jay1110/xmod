@@ -1793,15 +1793,6 @@ void G_InitGame( int levelTime, int randomSeed, int restart ) {
 
 	srand( randomSeed );
 
-	// CRITICAL: Reset all level counters to prevent overflow on map reload
-	level.numLimboCams = 0;
-	level.numspawntargets = 0;
-	level.numBrushModels = 0;
-	level.numOidTriggers = 0;
-	
-	G_Printf("Level counters reset\n");
-
-	// CRITICAL: Reset shader remaps to prevent config string overflow
 	G_ResetRemappedShaders();
 
 	/*
@@ -2051,17 +2042,14 @@ void G_InitGame( int levelTime, int randomSeed, int restart ) {
 
 	G_InitWorldSession();
 
-	// Initialize team data (reset numobjectives to prevent crash on map change)
 	Team_InitGame();
 
-	// Reset remapped shaders to prevent accumulation across map changes (ET Legacy fix)
 	G_ResetRemappedShaders();
 
 	// DHM - Nerve :: Clear out spawn target config strings
 	trap_GetConfigstring( CS_MULTI_INFO, cs, sizeof(cs) );
 	Info_SetValueForKey( cs, "numspawntargets", "0" );
 	Info_SetValueForKey( cs, "numobjectives", "0" );
-	reset_numobjectives();
 	trap_SetConfigstring( CS_MULTI_INFO, cs );
 
 	for ( i=CS_MULTI_SPAWNTARGETS; i<CS_MULTI_SPAWNTARGETS + MAX_MULTI_SPAWNTARGETS; i++ ) {
@@ -2720,9 +2708,6 @@ void BeginIntermission( void ) {
 
 	trap_SetConfigstring( CS_INTERMISSION_START_TIME, va( "%i", level.intermissiontime ) );
     cvars::gameState.set( GS_INTERMISSION );
-	
-	// Clear tag connections when entering intermission
-	G_ClearAllTagConnections();
 
 	FindIntermissionPoint();
 

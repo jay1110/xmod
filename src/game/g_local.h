@@ -1416,7 +1416,6 @@ void G_SetAngle( gentity_t *ent, const vec3_t angle, bool = false );
 qboolean infront (gentity_t *self, gentity_t *other);
 
 void G_ProcessTagConnect(gentity_t *ent, qboolean clearAngles);
-void G_ClearAllTagConnections(void);
 
 void G_SetEntState( gentity_t *ent, entState_t state );
 void G_ParseCampaigns( void );
@@ -1690,7 +1689,6 @@ qboolean ReadyToConstruct(gentity_t *ent, gentity_t *constructible, qboolean upd
 //
 qboolean OnSameTeam( gentity_t *ent1, gentity_t *ent2 );
 int Team_ClassForString( char *string );
-void reset_numobjectives( void );
 
 
 //
