@@ -1272,13 +1272,6 @@ static int _et_G_ShaderRemapFlush(lua_State* L)
     return 0;
 }
 
-// et.G_ResetRemappedShaders() - Reset all remapped shaders
-static int _et_G_ResetRemappedShaders(lua_State* L)
-{
-    G_ResetRemappedShaders();
-    return 0;
-}
-
 // et.GetLevelTime() - Get current level time in milliseconds
 static int _et_GetLevelTime(lua_State* L)
 {
@@ -3717,7 +3710,6 @@ static const luaL_Reg etlib[] = {
     // Shader
     { "G_ShaderRemap",           _et_G_ShaderRemap           },
     { "G_ShaderRemapFlush",      _et_G_ShaderRemapFlush      },
-    { "G_ResetRemappedShaders",  _et_G_ResetRemappedShaders  },
     
     // Level/Time
     { "GetLevelTime",            _et_GetLevelTime            },
