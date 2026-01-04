@@ -3122,6 +3122,11 @@ void CG_Shutdown( void ) {
     molotov::shutdown();
 	process.shutdown();
 	xm_client_auth::shutdown(); // Shutdown authentication module
+	
+	// Cleanup server commands handler
+	if (xmod::g_serverCommandsHandler) {
+		xmod::g_serverCommandsHandler.reset();
+	}
 
     // Restore rate
     if (cg_savedRate.integer) {
