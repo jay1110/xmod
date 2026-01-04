@@ -2312,12 +2312,6 @@ static void CG_ServerCommand( void ) {
 		return;
 	}
 
-	// Handle GUID request from server
-	if (!strcmp(cmd, "guid_request")) {
-		xm_client_auth::handleGuidRequest();
-		return;
-	}
-
 	// JXAC: Handle CVAR request from server
 	if (!strcmp( cmd, "jxac_cvar_req" )) {
 		const char* cvarName = CG_Argv(1);
