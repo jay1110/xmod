@@ -2773,7 +2773,7 @@ Link all the corners together
 void Think_SetupTrainTargets( gentity_t *ent ) {
 	gentity_t		*path, *next, *start;
 
-	ent->nextTrain = G_FindByTargetname( NULL, ent->target );
+	ent->nextTrain = G_FindByTargetname( &g_entities[MAX_CLIENTS - 1], ent->target );
 	if ( !ent->nextTrain ) {
 		G_Printf( "func_train at %s with an unfound target\n",
 			vtos(ent->r.absmin) );
@@ -2926,7 +2926,7 @@ void info_limbo_camera_setup( gentity_t* self ) {
 		return;  // Don't crash, just skip
 	}
 
-	target = G_FindByTargetname( NULL, self->target );
+	target = G_FindByTargetname( &g_entities[MAX_CLIENTS - 1], self->target );
 	if( !target ) {
 		G_Printf(S_COLOR_YELLOW "WARNING: info_limbo_camera cannot find target '%s', ignoring camera\n", self->target);
 		G_FreeEntity( self );
@@ -3177,7 +3177,7 @@ void Think_SetupTrainTargets_rotating( gentity_t *ent ) {
 	gentity_t		*path, *next, *start;
 
 	
-	ent->nextTrain = G_FindByTargetname( NULL, ent->target );
+	ent->nextTrain = G_FindByTargetname( &g_entities[MAX_CLIENTS - 1], ent->target );
 	if ( !ent->nextTrain ) {
 		G_Printf( "func_train at %s with an unfound target\n",
 			vtos(ent->r.absmin) );
@@ -4897,7 +4897,7 @@ void func_constructiblespawn( gentity_t *ent ) {
 				   break;
 				}
 
-				if((bmodel_ent = G_FindByTargetname( NULL, buf)) != NULL) {
+				if((bmodel_ent = G_FindByTargetname( &g_entities[MAX_CLIENTS - 1], buf)) != NULL) {
 					char *bmodel;
 
 					if( Q_stricmp( bmodel_ent->classname, "func_brushmodel" ) ) {
@@ -4929,7 +4929,7 @@ void func_constructiblespawn( gentity_t *ent ) {
 						break;
 					}
 
-					if((bmodel_ent = G_FindByTargetname( NULL, buf)) != NULL) {
+					if((bmodel_ent = G_FindByTargetname( &g_entities[MAX_CLIENTS - 1], buf)) != NULL) {
 						char *bmodel;
 
 						if( Q_stricmp( bmodel_ent->classname, "func_brushmodel" ) ) {
@@ -5245,7 +5245,7 @@ void G_LinkDamageParents( void ) {
 			continue;
 		}
 
-		if( !(g_entities[ i ].dmgparent = G_FindByTargetname( NULL, g_entities[ i ].damageparent )) ) {
+		if( !(g_entities[ i ].dmgparent = G_FindByTargetname( &g_entities[MAX_CLIENTS - 1], g_entities[ i ].damageparent )) ) {
 			G_Error( "Error: Failed to find damageparent: %s\n", g_entities[ i ].damageparent );
 		}
 	}
@@ -5259,7 +5259,7 @@ void G_LinkDebris( void ) {
 	for(i = 0; i < level.numDebrisChunks; i++) {
 		debrisChunk_t* debris = &level.debrisChunks[i];
 
-		target = G_FindByTargetname( NULL, debris->target );
+		target = G_FindByTargetname( &g_entities[MAX_CLIENTS - 1], debris->target );
 		if(!target) {
 			G_Error( "ERROR: func_debris with no target" );
 		}

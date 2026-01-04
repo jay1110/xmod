@@ -37,7 +37,7 @@ void alarmbox_updateparts(gentity_t *ent, qboolean matestoo)
 		return;
 	}
 
-	t = NULL;
+	t = &g_entities[MAX_CLIENTS - 1];
 	while ( (t = G_FindByTargetname (t, ent->target)) != NULL )
 	{
 		if ( t == ent )
