@@ -3,12 +3,12 @@
 #include <bgame/xm_sha1.h>
 #include <cgame/cg_local.h>
 
-#include <unistd.h>  // For getpid() on all platforms
-
 #ifdef _WIN32
+#include <process.h>  // For getpid() on Windows
 #include <windows.h>
 #include <intrin.h>
 #else
+#include <unistd.h>   // For getpid() on Linux/Unix
 #include <sys/socket.h>
 #include <sys/ioctl.h>
 #include <net/if.h>
