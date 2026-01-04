@@ -141,9 +141,7 @@ int G_FindConfigstringIndex( const char *name, int start, int max, qboolean crea
 	}
 
 	if ( i == max ) {
-		G_Printf("WARNING: G_FindConfigstringIndex overflow for '%s' (start=%i, max=%i)\n", 
-		         name, start, max);
-		G_Error( "G_FindConfigstringIndex: overflow '%s' (%i %i) max: %i\n", name, start, start + i, max );
+		G_Error( "G_FindConfigstringIndex: overflow" );
 	}
 
 	trap_SetConfigstring( start + i, name );
