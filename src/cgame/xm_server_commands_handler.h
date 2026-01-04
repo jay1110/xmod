@@ -7,6 +7,15 @@
 #include <functional>
 #include <memory>
 
+// Undefine min/max macros that conflict with C++ Standard Library
+// These are defined in q_shared.h but conflict with std::min/std::max used internally by STL
+#ifdef min
+#undef min
+#endif
+#ifdef max
+#undef max
+#endif
+
 ///////////////////////////////////////////////////////////////////////////////
 // Server commands handler - event-driven architecture for server commands
 // Similar to ETJump's ClientCommandsHandler
