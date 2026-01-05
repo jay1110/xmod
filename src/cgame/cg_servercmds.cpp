@@ -2243,6 +2243,9 @@ static void CG_ServerCommand( void ) {
 	char		text[MAX_SAY_TEXT];
 
  	cmd = CG_Argv(0);
+	
+	// DEBUG: Log every server command received
+	CG_Printf("[DEBUG] CG_ServerCommand received: '%s'\n", cmd);
 
 	if ( !cmd[0] ) {
 		// server claimed the command
