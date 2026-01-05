@@ -209,10 +209,12 @@ void login() {
     
     // Get GUID and HWID
     std::string guid = getGuid();
-    CG_Printf("[Auth DEBUG] GUID obtained: %s\n", guid.c_str());
+    // Only log first 8 characters to avoid exposing full GUID
+    CG_Printf("[Auth DEBUG] GUID obtained: %s...\n", guid.substr(0, 8).c_str());
     
     std::string hwid = getHwid();
-    CG_Printf("[Auth DEBUG] HWID obtained: %s\n", hwid.c_str());
+    // Only log first 8 characters to avoid exposing full HWID
+    CG_Printf("[Auth DEBUG] HWID obtained: %s...\n", hwid.substr(0, 8).c_str());
     
     // Hash both with SHA1
     std::string hashedGuid = xm_sha1::hashString(guid);
@@ -225,7 +227,8 @@ void login() {
     // Send authenticate command to server
     std::stringstream cmd;
     cmd << xm_auth::CMD_AUTHENTICATE << " " << hashedGuid << " " << hashedHwid;
-    CG_Printf("[Auth DEBUG] About to call trap_SendClientCommand with: '%s'\n", cmd.str().c_str());
+    // Only log command name to avoid exposing hashed values in debug logs
+    CG_Printf("[Auth DEBUG] About to call trap_SendClientCommand with: '%s'\n", xm_auth::CMD_AUTHENTICATE);
     trap_SendClientCommand(cmd.str().c_str());
     CG_Printf("[Auth DEBUG] trap_SendClientCommand returned\n");
 }
