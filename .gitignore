@@ -2,9 +2,23 @@
 build/
 build-*/
 build.*/
+release/
 
 # CodeQL artifacts
 _codeql_detected_source_root
+
+# Visual Studio intermediate directories
+Debug/
+Debug_x64/
+Release/
+Release_x64/
+*.user
+*.suo
+*.ncb
+*.sdf
+*.opensdf
+*.VC.db
+*.VC.opendb
 
 # Editor/IDE files
 *.swp
@@ -27,6 +41,16 @@ _codeql_detected_source_root
 # Precompiled headers
 *.gch
 *.pch
+
+# Map files
+*.map
+
+# PDB files
+*.pdb
+
+# Import libraries (generated)
+*.exp
+*.ilk
 
 # Executables
 *.exe
