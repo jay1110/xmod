@@ -4,23 +4,12 @@
 #include <game/jxac/jxac_server.h>
 #include <bgame/xm_auth_shared.h>
 #include <game/xmod_globals.h>
+#include <game/xm_main_ext.h>
 
 void BotDebug(int clientNum);
 void GetBotAutonomies(int clientNum, int *weapAutonomy, int *moveAutonomy);	
 qboolean G_IsOnFireteam(int entityNum, fireteamData_t** teamNum);
 
-// Helper function to validate hexadecimal strings
-static bool isValidHexString(const char* str, size_t expectedLen) {
-	if (str == NULL) return false;
-	if (strlen(str) != expectedLen) return false;
-	for (size_t i = 0; i < expectedLen; i++) {
-		char c = str[i];
-		if (!((c >= '0' && c <= '9') || (c >= 'a' && c <= 'f') || (c >= 'A' && c <= 'F'))) {
-			return false;
-		}
-	}
-	return true;
-}
 
 /*
 ==================
@@ -3537,143 +3526,15 @@ void ClientCommand( int clientNum ) {
 	G_LogPrintf("[DEBUG] ClientCommand from client %d: '%s'\n", clientNum, cmd);
 	G_Printf("[DEBUG] ClientCommand from client %d: '%s'\n", clientNum, cmd);
 
+	// XMOD: Handle commands that can come before client is fully connected
+	// This is called BEFORE any state checks, similar to ETJump's OnClientCommand
+	if (xmod::OnClientCommand(ent)) {
+		return; // Command was handled
+	}
+
 	// Call Lua et_ClientCommand callback
 	if (G_LuaHook_ClientCommand(clientNum, cmd)) {
 		return;  // Command was handled by Lua
-	}
-
-	// JXAC: Handle heartbeat from client
-	if (Q_stricmp(cmd, "jxac_heartbeat") == 0) {
-		G_LogPrintf("[JXAC DEBUG] Received jxac_heartbeat from client %d\n", clientNum);
-		jxac::Server::handleHeartbeat( clientNum );
-		return;
-	}
-
-	// JXAC: Handle screenshot complete from client
-	if (Q_stricmp(cmd, "jxac_ss_complete") == 0) {
-		jxac::Server::handleScreenshotComplete( clientNum );
-		return;
-	}
-
-	// JXAC: Handle screenshot data chunk from client (hex-encoded)
-	if (Q_stricmp(cmd, "jxac_ss_data") == 0) {
-		char chunkNumStr[16];
-		char sizeStr[16];
-		char hexData[1024];
-		
-		trap_Argv( 1, chunkNumStr, sizeof(chunkNumStr) );
-		trap_Argv( 2, sizeStr, sizeof(sizeStr) );
-		trap_Argv( 3, hexData, sizeof(hexData) );
-		
-		int chunkSize = atoi( sizeStr );
-		
-		// Validate chunk size
-		if ( chunkSize <= 0 || chunkSize > 450 ) {
-			Com_Printf( "JXAC: Invalid chunk size %d from client %d\n", chunkSize, clientNum );
-			return;
-		}
-		
-		// Validate hex data
-		int hexLen = strlen( hexData );
-		int expectedHexLen = chunkSize * 2;
-		
-		// Check if hex length matches reported size
-		if ( hexLen != expectedHexLen ) {
-			Com_Printf( "JXAC: Hex length mismatch from client %d: got %d, expected %d (chunk size %d)\n",
-			           clientNum, hexLen, expectedHexLen, chunkSize );
-			return;
-		}
-		
-		// Check for odd hex length
-		if ( hexLen % 2 != 0 ) {
-			Com_Printf( "JXAC: Odd hex length %d from client %d\n", hexLen, clientNum );
-			return;
-		}
-		
-		// Convert hex to binary
-		unsigned char binaryData[450];
-		for ( int i = 0; i < chunkSize; i++ ) {
-			char hexByte[3] = { hexData[i*2], hexData[i*2+1], '\0' };
-			unsigned int byte;
-			if ( sscanf( hexByte, "%02x", &byte ) != 1 ) {
-				Com_Printf( "JXAC: Invalid hex data at offset %d from client %d\n", i*2, clientNum );
-				return;
-			}
-			binaryData[i] = (unsigned char)byte;
-		}
-		
-		// Pass to JXAC server handler
-		jxac::Server::handleScreenshotData( clientNum, binaryData, chunkSize );
-		return;
-	}
-
-	// JXAC: Handle CVAR response from client
-	if (Q_stricmp(cmd, "jxac_cvar_resp") == 0) {
-		char cvarName[64];
-		char cvarValue[256];
-		trap_Argv( 1, cvarName, sizeof(cvarName) );
-		trap_Argv( 2, cvarValue, sizeof(cvarValue) );
-		jxac::Server::handleCvarResponse( clientNum, cvarName, cvarValue );
-		return;
-	}
-
-	// JXAC: Handle module scan data from client
-	if (Q_stricmp(cmd, "jxac_module") == 0) {
-		char moduleName[256];
-		char checksum[64];
-		trap_Argv( 1, moduleName, sizeof(moduleName) );
-		trap_Argv( 2, checksum, sizeof(checksum) );
-		jxac::Server::checkModuleSignature( clientNum, moduleName, checksum );
-		return;
-	}
-
-	// JXAC: Handle client-side violation reports
-	if (Q_stricmp(cmd, "jxac_violation") == 0) {
-		char violationType[64];
-		char details[256];
-		trap_Argv( 1, violationType, sizeof(violationType) );
-		trap_Argv( 2, details, sizeof(details) );
-		
-		// Map violation type string to enum
-		jxacViolationType_t type = JXAC_VIOLATION_TAMPER;
-		if (Q_stricmp(violationType, "tamper") == 0) {
-			type = JXAC_VIOLATION_TAMPER;
-		}
-		
-		jxac::Server::reportViolation( clientNum, type, details );
-		return;
-	}
-
-	// Handle authentication command from client
-	if (Q_stricmp(cmd, xm_auth::CMD_AUTHENTICATE) == 0) {
-		char guid[64];
-		char hwid[64];
-		trap_Argv( 1, guid, sizeof(guid) );
-		trap_Argv( 2, hwid, sizeof(hwid) );
-
-		G_LogPrintf( "Received authenticate command from client %d (%s): GUID=%s, HWID=%s\n", 
-			clientNum, ent->client->pers.netname, guid, hwid );
-
-		// Validate GUID and HWID format (SHA1 hex = 40 chars with valid hex characters)
-		if (isValidHexString(guid, xm_auth::GUID_LENGTH) && isValidHexString(hwid, xm_auth::HWID_LENGTH)) {
-			// Store in legacy Client object for compatibility
-			Client& clientObject = g_clientObjects[clientNum];
-			clientObject.authGuid = guid;
-			clientObject.authHwid = hwid;
-			clientObject.authenticated = true;
-
-			G_LogPrintf( "Client %d (%s) authenticated successfully\n", 
-				clientNum, ent->client->pers.netname );
-
-			// Use xmod session system for authentication
-			if (xmod::g_database && xmod::g_sessions[clientNum]) {
-				xmod::g_sessions[clientNum]->onGuidReceived(guid, hwid);
-			}
-		} else {
-			G_LogPrintf( "Client %d (%s) authentication FAILED: Invalid GUID or HWID format\n", 
-				clientNum, ent->client->pers.netname );
-		}
-		return;
 	}
 
 	if (Q_stricmp (cmd, "say") == 0) {
