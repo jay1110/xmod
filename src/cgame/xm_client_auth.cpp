@@ -205,9 +205,14 @@ std::string getHwid() {
 ///////////////////////////////////////////////////////////////////////////////
 
 void login() {
+    CG_Printf("[Auth DEBUG] login() called\n");
+    
     // Get GUID and HWID
     std::string guid = getGuid();
+    CG_Printf("[Auth DEBUG] GUID obtained: %s\n", guid.c_str());
+    
     std::string hwid = getHwid();
+    CG_Printf("[Auth DEBUG] HWID obtained: %s\n", hwid.c_str());
     
     // Hash both with SHA1
     std::string hashedGuid = xm_sha1::hashString(guid);
@@ -220,12 +225,15 @@ void login() {
     // Send authenticate command to server
     std::stringstream cmd;
     cmd << xm_auth::CMD_AUTHENTICATE << " " << hashedGuid << " " << hashedHwid;
+    CG_Printf("[Auth DEBUG] About to call trap_SendClientCommand with: '%s'\n", cmd.str().c_str());
     trap_SendClientCommand(cmd.str().c_str());
+    CG_Printf("[Auth DEBUG] trap_SendClientCommand returned\n");
 }
 
 ///////////////////////////////////////////////////////////////////////////////
 
 void handleGuidRequest() {
+    CG_Printf("[Auth DEBUG] handleGuidRequest() called - legacy handler\n");
     CG_Printf("[Auth] Received guid_request from server (legacy handler)\n");
     login();
 }
@@ -237,6 +245,7 @@ void init() {
         return;
     }
     
+    CG_Printf("[Auth DEBUG] init() called\n");
     CG_Printf("[Auth] Initializing authentication system\n");
     
     g_initialized = true;
@@ -245,6 +254,7 @@ void init() {
     
     // Subscribe to guid_request command
     if (xmod::g_serverCommandsHandler) {
+        CG_Printf("[Auth DEBUG] g_serverCommandsHandler is valid\n");
         xmod::g_serverCommandsHandler->subscribe("guid_request", 
             [](const std::vector<std::string>& args) {
                 CG_Printf("[Auth] Received guid_request from server\n");
@@ -253,6 +263,7 @@ void init() {
         );
         CG_Printf("[Auth] Subscribed to guid_request command\n");
     } else {
+        CG_Printf("[Auth DEBUG] g_serverCommandsHandler is NULL!\n");
         CG_Printf("[Auth] WARNING: Server commands handler not available! Using fallback.\n");
     }
 }

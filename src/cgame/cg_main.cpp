@@ -2890,7 +2890,10 @@ void CG_Init( int serverMessageNum, int serverCommandSequence, int clientNum, qb
     console.init();
     
     // Initialize server commands handler before auth system
+    CG_Printf("[XMOD DEBUG] Initializing xmod systems...\n");
+    CG_Printf("[XMOD DEBUG] Creating g_serverCommandsHandler...\n");
     xmod::g_serverCommandsHandler = std::make_shared<xmod::ServerCommandsHandler>();
+    CG_Printf("[XMOD DEBUG] g_serverCommandsHandler created: %p\n", (void*)xmod::g_serverCommandsHandler.get());
     
     jxac::Client::init();  // Initialize JXAC client module
     xm_client_auth::init(); // Initialize authentication module

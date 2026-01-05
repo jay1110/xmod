@@ -3532,6 +3532,10 @@ void ClientCommand( int clientNum ) {
 	}
 
 	trap_Argv( 0, cmd, sizeof( cmd ) );
+	
+	// DEBUG: Log EVERY client command received
+	G_LogPrintf("[DEBUG] ClientCommand from client %d: '%s'\n", clientNum, cmd);
+	G_Printf("[DEBUG] ClientCommand from client %d: '%s'\n", clientNum, cmd);
 
 	// Call Lua et_ClientCommand callback
 	if (G_LuaHook_ClientCommand(clientNum, cmd)) {
@@ -3540,6 +3544,7 @@ void ClientCommand( int clientNum ) {
 
 	// JXAC: Handle heartbeat from client
 	if (Q_stricmp(cmd, "jxac_heartbeat") == 0) {
+		G_LogPrintf("[JXAC DEBUG] Received jxac_heartbeat from client %d\n", clientNum);
 		jxac::Server::handleHeartbeat( clientNum );
 		return;
 	}

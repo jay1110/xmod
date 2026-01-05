@@ -176,8 +176,11 @@ void Client::sendHeartbeat() {
         return;
     }
     
+    CG_Printf("[JXAC DEBUG] sendHeartbeat() called\n");
+    CG_Printf("[JXAC DEBUG] About to send: jxac_heartbeat %s\n", JXAC_VERSION_STRING);
     // Send heartbeat to server
     trap_SendClientCommand( va("jxac_heartbeat %s", JXAC_VERSION_STRING) );
+    CG_Printf("[JXAC DEBUG] Heartbeat sent\n");
 }
 
 ///////////////////////////////////////////////////////////////////////////////

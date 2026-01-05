@@ -103,7 +103,9 @@ void	trap_AddCommand( const char *cmdName ) {
 }
 
 void	trap_SendClientCommand( const char *s ) {
+	CG_Printf("[DEBUG] trap_SendClientCommand called with: '%s'\n", s);
 	Engine::ptr( CG_SENDCLIENTCOMMAND, s );
+	CG_Printf("[DEBUG] trap_SendClientCommand Engine::ptr returned\n");
 }
 
 void	trap_UpdateScreen( void ) {
