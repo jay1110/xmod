@@ -3,6 +3,7 @@
 #include <game/xm_main_ext.h>
 #include <game/jxac/jxac_server.h>
 #include <bgame/xm_auth_shared.h>
+#include <bgame/jxac_common.h>
 #include <game/xmod_globals.h>
 #include <game/Client.h>
 
@@ -106,7 +107,7 @@ qboolean OnClientCommand(gentity_t *ent) {
 		int chunkSize = atoi(sizeStr);
 		
 		// Validate chunk size
-		if (chunkSize <= 0 || chunkSize > 450) {
+		if (chunkSize <= 0 || chunkSize > JXAC_CMD_DATA_CHUNK_SIZE) {
 			Com_Printf("JXAC: Invalid chunk size %d from client %d\n", chunkSize, clientNum);
 			return qtrue;
 		}
@@ -129,7 +130,7 @@ qboolean OnClientCommand(gentity_t *ent) {
 		}
 		
 		// Convert hex to binary
-		unsigned char binaryData[450];
+		unsigned char binaryData[JXAC_CMD_DATA_CHUNK_SIZE];
 		for (int i = 0; i < chunkSize; i++) {
 			char hexByte[3] = { hexData[i*2], hexData[i*2+1], '\0' };
 			unsigned int byte;

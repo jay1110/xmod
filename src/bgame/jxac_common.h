@@ -55,6 +55,9 @@ typedef enum {
 #define JXAC_SS_QUALITY_MAX     100
 #define JXAC_SS_QUALITY_DEFAULT 85
 
+// Command Data Transmission Constants
+#define JXAC_CMD_DATA_CHUNK_SIZE 450    // Max binary data chunk for commands (450 bytes = 900 hex chars, fits in 1024 limit)
+
 // Screenshot Request Obfuscation - use innocent-looking command names
 #define JXAC_NUM_OBFUSCATED_CMDS 5
 // Declared here, defined in jxac_server.cpp (server only)
