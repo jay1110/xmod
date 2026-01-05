@@ -39,7 +39,7 @@ Visual Studio projects support both 32-bit (Win32) and 64-bit (x64) builds.
 
 ### Steps:
 
-1. Open `src/Jaymod.sln` in Visual Studio
+1. Open `src/xmod.sln` in Visual Studio
 2. Select your desired configuration and platform:
    - **Configuration**: Debug or Release
    - **Platform**: Win32 (32-bit) or x64 (64-bit)
@@ -58,16 +58,16 @@ Visual Studio projects support both 32-bit (Win32) and 64-bit (x64) builds.
 
 ```batch
 REM Build Win32 Release
-msbuild src\Jaymod.sln /p:Configuration=Release /p:Platform=Win32
+msbuild src\xmod.sln /p:Configuration=Release /p:Platform=Win32
 
 REM Build x64 Release
-msbuild src\Jaymod.sln /p:Configuration=Release /p:Platform=x64
+msbuild src\xmod.sln /p:Configuration=Release /p:Platform=x64
 
 REM Build Win32 Debug
-msbuild src\Jaymod.sln /p:Configuration=Debug /p:Platform=Win32
+msbuild src\xmod.sln /p:Configuration=Debug /p:Platform=Win32
 
 REM Build x64 Debug
-msbuild src\Jaymod.sln /p:Configuration=Debug /p:Platform=x64
+msbuild src\xmod.sln /p:Configuration=Debug /p:Platform=x64
 ```
 
 ## Building with Make (MSYS2/Linux)
