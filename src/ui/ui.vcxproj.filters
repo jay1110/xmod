@@ -1,0 +1,132 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="../bgame">
+      <UniqueIdentifier>{AC0D4C31-F412-9402-FFFF-FFFFFFFFFFFF}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="../bgame/cvar">
+      <UniqueIdentifier>{0A763C2F-F28C-74FD-0000-000000000000}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="../bgame/str">
+      <UniqueIdentifier>{7C01C689-870B-0814-0000-000000000000}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="../bgame/win32">
+      <UniqueIdentifier>{FC3A6348-8C77-3EDC-0000-000000000000}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="cvar">
+      <UniqueIdentifier>{7E0C6C24-D03C-71D8-0000-000000000000}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="../bgame/Process.cpp">
+      <Filter>../bgame</Filter>
+    </ClCompile>
+    <ClCompile Include="../bgame/bg_campaign.cpp">
+      <Filter>../bgame</Filter>
+    </ClCompile>
+    <ClCompile Include="../bgame/bg_classes.cpp">
+      <Filter>../bgame</Filter>
+    </ClCompile>
+    <ClCompile Include="../bgame/bg_misc.cpp">
+      <Filter>../bgame</Filter>
+    </ClCompile>
+    <ClCompile Include="../bgame/bg_xmod.cpp">
+      <Filter>../bgame</Filter>
+    </ClCompile>
+    <ClCompile Include="../bgame/cvar/Cvar.cpp">
+      <Filter>../bgame/cvar</Filter>
+    </ClCompile>
+    <ClCompile Include="../bgame/q_math.cpp">
+      <Filter>../bgame</Filter>
+    </ClCompile>
+    <ClCompile Include="../bgame/q_shared.cpp">
+      <Filter>../bgame</Filter>
+    </ClCompile>
+    <ClCompile Include="../bgame/win32/Process.cpp">
+      <Filter>../bgame/win32</Filter>
+    </ClCompile>
+    <ClCompile Include="../bgame/win32/bg_cpu.cpp">
+      <Filter>../bgame/win32</Filter>
+    </ClCompile>
+    <ClCompile Include="cvar/Cvar.cpp">
+      <Filter>cvar</Filter>
+    </ClCompile>
+    <ClCompile Include="static.cpp" />
+    <ClCompile Include="ui_atoms.cpp" />
+    <ClCompile Include="ui_gameinfo.cpp" />
+    <ClCompile Include="ui_loadpanel.cpp" />
+    <ClCompile Include="ui_main.cpp" />
+    <ClCompile Include="ui_players.cpp" />
+    <ClCompile Include="ui_shared.cpp" />
+    <ClCompile Include="ui_syscalls.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="../bgame/Engine.h">
+      <Filter>../bgame</Filter>
+    </ClInclude>
+    <ClInclude Include="../bgame/Logger.h">
+      <Filter>../bgame</Filter>
+    </ClInclude>
+    <ClInclude Include="../bgame/NewAllocator.h">
+      <Filter>../bgame</Filter>
+    </ClInclude>
+    <ClInclude Include="../bgame/Process.h">
+      <Filter>../bgame</Filter>
+    </ClInclude>
+    <ClInclude Include="../bgame/SampledStat.h">
+      <Filter>../bgame</Filter>
+    </ClInclude>
+    <ClInclude Include="../bgame/bg_attack2.h">
+      <Filter>../bgame</Filter>
+    </ClInclude>
+    <ClInclude Include="../bgame/bg_local.h">
+      <Filter>../bgame</Filter>
+    </ClInclude>
+    <ClInclude Include="../bgame/bg_molotov.h">
+      <Filter>../bgame</Filter>
+    </ClInclude>
+    <ClInclude Include="../bgame/bg_public.h">
+      <Filter>../bgame</Filter>
+    </ClInclude>
+    <ClInclude Include="../bgame/bg_xmod.h">
+      <Filter>../bgame</Filter>
+    </ClInclude>
+    <ClInclude Include="../bgame/cvar/Cvar.h">
+      <Filter>../bgame/cvar</Filter>
+    </ClInclude>
+    <ClInclude Include="../bgame/cvar/public.h">
+      <Filter>../bgame/cvar</Filter>
+    </ClInclude>
+    <ClInclude Include="../bgame/impl.h">
+      <Filter>../bgame</Filter>
+    </ClInclude>
+    <ClInclude Include="../bgame/jxac_common.h">
+      <Filter>../bgame</Filter>
+    </ClInclude>
+    <ClInclude Include="../bgame/q_shared.h">
+      <Filter>../bgame</Filter>
+    </ClInclude>
+    <ClInclude Include="../bgame/str/PairDump.h">
+      <Filter>../bgame/str</Filter>
+    </ClInclude>
+    <ClInclude Include="../bgame/str/public.h">
+      <Filter>../bgame/str</Filter>
+    </ClInclude>
+    <ClInclude Include="../bgame/str/util.h">
+      <Filter>../bgame/str</Filter>
+    </ClInclude>
+    <ClInclude Include="../bgame/surfaceflags.h">
+      <Filter>../bgame</Filter>
+    </ClInclude>
+    <ClInclude Include="../bgame/xm_auth_shared.h">
+      <Filter>../bgame</Filter>
+    </ClInclude>
+    <ClInclude Include="../bgame/xm_sha1.h">
+      <Filter>../bgame</Filter>
+    </ClInclude>
+    <ClInclude Include="keycodes.h" />
+    <ClInclude Include="ui_local.h" />
+    <ClInclude Include="ui_public.h" />
+    <ClInclude Include="ui_shared.h" />
+  </ItemGroup>
+</Project>

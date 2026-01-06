@@ -1,0 +1,864 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="../bgame">
+      <UniqueIdentifier>{AC0D4C31-F412-9402-FFFF-FFFFFFFFFFFF}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="../bgame/cvar">
+      <UniqueIdentifier>{0A763C2F-F28C-74FD-0000-000000000000}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="../bgame/str">
+      <UniqueIdentifier>{7C01C689-870B-0814-0000-000000000000}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="../bgame/win32">
+      <UniqueIdentifier>{FC3A6348-8C77-3EDC-0000-000000000000}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="../omnibot/common">
+      <UniqueIdentifier>{E6E2BD0D-722F-40BC-0000-000000000000}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="../omnibot/et">
+      <UniqueIdentifier>{7858A20C-6641-AD2E-FFFF-FFFFFFFFFFFF}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="cmd">
+      <UniqueIdentifier>{C49D811D-C961-FBBB-FFFF-FFFFFFFFFFFF}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="cvar">
+      <UniqueIdentifier>{7E0C6C24-D03C-71D8-0000-000000000000}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="jxac">
+      <UniqueIdentifier>{B49433ED-7884-EA74-FFFF-FFFFFFFFFFFF}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="str">
+      <UniqueIdentifier>{F9B79F55-DF58-30FA-0000-000000000000}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="../bgame/Engine.cpp">
+      <Filter>../bgame</Filter>
+    </ClCompile>
+    <ClCompile Include="../bgame/Logger.cpp">
+      <Filter>../bgame</Filter>
+    </ClCompile>
+    <ClCompile Include="../bgame/Process.cpp">
+      <Filter>../bgame</Filter>
+    </ClCompile>
+    <ClCompile Include="../bgame/SampledStat.cpp">
+      <Filter>../bgame</Filter>
+    </ClCompile>
+    <ClCompile Include="../bgame/bg_animation.cpp">
+      <Filter>../bgame</Filter>
+    </ClCompile>
+    <ClCompile Include="../bgame/bg_animgroup.cpp">
+      <Filter>../bgame</Filter>
+    </ClCompile>
+    <ClCompile Include="../bgame/bg_attack2.cpp">
+      <Filter>../bgame</Filter>
+    </ClCompile>
+    <ClCompile Include="../bgame/bg_campaign.cpp">
+      <Filter>../bgame</Filter>
+    </ClCompile>
+    <ClCompile Include="../bgame/bg_character.cpp">
+      <Filter>../bgame</Filter>
+    </ClCompile>
+    <ClCompile Include="../bgame/bg_classes.cpp">
+      <Filter>../bgame</Filter>
+    </ClCompile>
+    <ClCompile Include="../bgame/bg_misc.cpp">
+      <Filter>../bgame</Filter>
+    </ClCompile>
+    <ClCompile Include="../bgame/bg_molotov.cpp">
+      <Filter>../bgame</Filter>
+    </ClCompile>
+    <ClCompile Include="../bgame/bg_pmove.cpp">
+      <Filter>../bgame</Filter>
+    </ClCompile>
+    <ClCompile Include="../bgame/bg_slidemove.cpp">
+      <Filter>../bgame</Filter>
+    </ClCompile>
+    <ClCompile Include="../bgame/bg_sscript.cpp">
+      <Filter>../bgame</Filter>
+    </ClCompile>
+    <ClCompile Include="../bgame/bg_stats.cpp">
+      <Filter>../bgame</Filter>
+    </ClCompile>
+    <ClCompile Include="../bgame/bg_tracemap.cpp">
+      <Filter>../bgame</Filter>
+    </ClCompile>
+    <ClCompile Include="../bgame/bg_xmod.cpp">
+      <Filter>../bgame</Filter>
+    </ClCompile>
+    <ClCompile Include="../bgame/cvar/Cvar.cpp">
+      <Filter>../bgame/cvar</Filter>
+    </ClCompile>
+    <ClCompile Include="../bgame/q_math.cpp">
+      <Filter>../bgame</Filter>
+    </ClCompile>
+    <ClCompile Include="../bgame/q_shared.cpp">
+      <Filter>../bgame</Filter>
+    </ClCompile>
+    <ClCompile Include="../bgame/str/PairDump.cpp">
+      <Filter>../bgame/str</Filter>
+    </ClCompile>
+    <ClCompile Include="../bgame/str/util.cpp">
+      <Filter>../bgame/str</Filter>
+    </ClCompile>
+    <ClCompile Include="../bgame/win32/Process.cpp">
+      <Filter>../bgame/win32</Filter>
+    </ClCompile>
+    <ClCompile Include="../bgame/win32/bg_cpu.cpp">
+      <Filter>../bgame/win32</Filter>
+    </ClCompile>
+    <ClCompile Include="../omnibot/common/BotLoadLibrary.cpp">
+      <Filter>../omnibot/common</Filter>
+    </ClCompile>
+    <ClCompile Include="../omnibot/et/g_etbot_interface.cpp">
+      <Filter>../omnibot/et</Filter>
+    </ClCompile>
+    <ClCompile Include="AbstractBulletModel.cpp" />
+    <ClCompile Include="AbstractBulletVolume.cpp" />
+    <ClCompile Include="AbstractHitModel.cpp" />
+    <ClCompile Include="AbstractHitVolume.cpp" />
+    <ClCompile Include="AbstractStateHitModel.cpp" />
+    <ClCompile Include="AdminLog.cpp" />
+    <ClCompile Include="AdvancedHitModel.cpp" />
+    <ClCompile Include="AlignedCuboidHV.cpp" />
+    <ClCompile Include="BasicHitModel.cpp" />
+    <ClCompile Include="CensorDB.cpp" />
+    <ClCompile Include="Client.cpp" />
+    <ClCompile Include="Database.cpp" />
+    <ClCompile Include="Engine.cpp" />
+    <ClCompile Include="Entity.cpp" />
+    <ClCompile Include="EntityBulletModel.cpp" />
+    <ClCompile Include="EntityHitModel.cpp" />
+    <ClCompile Include="EtmainBulletModel.cpp" />
+    <ClCompile Include="EtmainHitModel.cpp" />
+    <ClCompile Include="Level.cpp" />
+    <ClCompile Include="LevelDB.cpp" />
+    <ClCompile Include="MapDB.cpp" />
+    <ClCompile Include="MapEntity.cpp" />
+    <ClCompile Include="MapEntityList.cpp" />
+    <ClCompile Include="MapRecord.cpp" />
+    <ClCompile Include="MuzzleBulletModel.cpp" />
+    <ClCompile Include="OrientedCuboidHV.cpp" />
+    <ClCompile Include="OrientedHitModel.cpp" />
+    <ClCompile Include="Privilege.cpp" />
+    <ClCompile Include="PrivilegeSet.cpp" />
+    <ClCompile Include="SEngine.cpp" />
+    <ClCompile Include="SingleBulletVolume.cpp" />
+    <ClCompile Include="StandardHitModel.cpp" />
+    <ClCompile Include="TraceContext.cpp" />
+    <ClCompile Include="User.cpp" />
+    <ClCompile Include="UserDB.cpp" />
+    <ClCompile Include="cmd/About.cpp">
+      <Filter>cmd</Filter>
+    </ClCompile>
+    <ClCompile Include="cmd/AbstractBuiltin.cpp">
+      <Filter>cmd</Filter>
+    </ClCompile>
+    <ClCompile Include="cmd/AbstractCommand.cpp">
+      <Filter>cmd</Filter>
+    </ClCompile>
+    <ClCompile Include="cmd/AdminTest.cpp">
+      <Filter>cmd</Filter>
+    </ClCompile>
+    <ClCompile Include="cmd/Ban.cpp">
+      <Filter>cmd</Filter>
+    </ClCompile>
+    <ClCompile Include="cmd/BanInfo.cpp">
+      <Filter>cmd</Filter>
+    </ClCompile>
+    <ClCompile Include="cmd/BanList.cpp">
+      <Filter>cmd</Filter>
+    </ClCompile>
+    <ClCompile Include="cmd/BanUser.cpp">
+      <Filter>cmd</Filter>
+    </ClCompile>
+    <ClCompile Include="cmd/CancelVote.cpp">
+      <Filter>cmd</Filter>
+    </ClCompile>
+    <ClCompile Include="cmd/Chicken.cpp">
+      <Filter>cmd</Filter>
+    </ClCompile>
+    <ClCompile Include="cmd/CrazyGravity.cpp">
+      <Filter>cmd</Filter>
+    </ClCompile>
+    <ClCompile Include="cmd/CryBaby.cpp">
+      <Filter>cmd</Filter>
+    </ClCompile>
+    <ClCompile Include="cmd/DbLoad.cpp">
+      <Filter>cmd</Filter>
+    </ClCompile>
+    <ClCompile Include="cmd/DbSave.cpp">
+      <Filter>cmd</Filter>
+    </ClCompile>
+    <ClCompile Include="cmd/Disorient.cpp">
+      <Filter>cmd</Filter>
+    </ClCompile>
+    <ClCompile Include="cmd/FTime.cpp">
+      <Filter>cmd</Filter>
+    </ClCompile>
+    <ClCompile Include="cmd/Finger.cpp">
+      <Filter>cmd</Filter>
+    </ClCompile>
+    <ClCompile Include="cmd/Fling.cpp">
+      <Filter>cmd</Filter>
+    </ClCompile>
+    <ClCompile Include="cmd/Flinga.cpp">
+      <Filter>cmd</Filter>
+    </ClCompile>
+    <ClCompile Include="cmd/Glow.cpp">
+      <Filter>cmd</Filter>
+    </ClCompile>
+    <ClCompile Include="cmd/Help.cpp">
+      <Filter>cmd</Filter>
+    </ClCompile>
+    <ClCompile Include="cmd/JxacScreenshot.cpp">
+      <Filter>cmd</Filter>
+    </ClCompile>
+    <ClCompile Include="cmd/JxacScreenshotAll.cpp">
+      <Filter>cmd</Filter>
+    </ClCompile>
+    <ClCompile Include="cmd/JxacStatus.cpp">
+      <Filter>cmd</Filter>
+    </ClCompile>
+    <ClCompile Include="cmd/Kick.cpp">
+      <Filter>cmd</Filter>
+    </ClCompile>
+    <ClCompile Include="cmd/Launch.cpp">
+      <Filter>cmd</Filter>
+    </ClCompile>
+    <ClCompile Include="cmd/Launcha.cpp">
+      <Filter>cmd</Filter>
+    </ClCompile>
+    <ClCompile Include="cmd/LevAdd.cpp">
+      <Filter>cmd</Filter>
+    </ClCompile>
+    <ClCompile Include="cmd/LevDelete.cpp">
+      <Filter>cmd</Filter>
+    </ClCompile>
+    <ClCompile Include="cmd/LevEdit.cpp">
+      <Filter>cmd</Filter>
+    </ClCompile>
+    <ClCompile Include="cmd/LevInfo.cpp">
+      <Filter>cmd</Filter>
+    </ClCompile>
+    <ClCompile Include="cmd/LevList.cpp">
+      <Filter>cmd</Filter>
+    </ClCompile>
+    <ClCompile Include="cmd/ListPlayers.cpp">
+      <Filter>cmd</Filter>
+    </ClCompile>
+    <ClCompile Include="cmd/Lock.cpp">
+      <Filter>cmd</Filter>
+    </ClCompile>
+    <ClCompile Include="cmd/Lol.cpp">
+      <Filter>cmd</Filter>
+    </ClCompile>
+    <ClCompile Include="cmd/LsPlayers.cpp">
+      <Filter>cmd</Filter>
+    </ClCompile>
+    <ClCompile Include="cmd/Mute.cpp">
+      <Filter>cmd</Filter>
+    </ClCompile>
+    <ClCompile Include="cmd/News.cpp">
+      <Filter>cmd</Filter>
+    </ClCompile>
+    <ClCompile Include="cmd/NextMap.cpp">
+      <Filter>cmd</Filter>
+    </ClCompile>
+    <ClCompile Include="cmd/Orient.cpp">
+      <Filter>cmd</Filter>
+    </ClCompile>
+    <ClCompile Include="cmd/Page.cpp">
+      <Filter>cmd</Filter>
+    </ClCompile>
+    <ClCompile Include="cmd/Pants.cpp">
+      <Filter>cmd</Filter>
+    </ClCompile>
+    <ClCompile Include="cmd/PanzerWar.cpp">
+      <Filter>cmd</Filter>
+    </ClCompile>
+    <ClCompile Include="cmd/Pause.cpp">
+      <Filter>cmd</Filter>
+    </ClCompile>
+    <ClCompile Include="cmd/Pip.cpp">
+      <Filter>cmd</Filter>
+    </ClCompile>
+    <ClCompile Include="cmd/Pop.cpp">
+      <Filter>cmd</Filter>
+    </ClCompile>
+    <ClCompile Include="cmd/PutTeam.cpp">
+      <Filter>cmd</Filter>
+    </ClCompile>
+    <ClCompile Include="cmd/Rename.cpp">
+      <Filter>cmd</Filter>
+    </ClCompile>
+    <ClCompile Include="cmd/Reset.cpp">
+      <Filter>cmd</Filter>
+    </ClCompile>
+    <ClCompile Include="cmd/ResetXp.cpp">
+      <Filter>cmd</Filter>
+    </ClCompile>
+    <ClCompile Include="cmd/ResetmyXp.cpp">
+      <Filter>cmd</Filter>
+    </ClCompile>
+    <ClCompile Include="cmd/Restart.cpp">
+      <Filter>cmd</Filter>
+    </ClCompile>
+    <ClCompile Include="cmd/Revive.cpp">
+      <Filter>cmd</Filter>
+    </ClCompile>
+    <ClCompile Include="cmd/Seen.cpp">
+      <Filter>cmd</Filter>
+    </ClCompile>
+    <ClCompile Include="cmd/SetLevel.cpp">
+      <Filter>cmd</Filter>
+    </ClCompile>
+    <ClCompile Include="cmd/Shake.cpp">
+      <Filter>cmd</Filter>
+    </ClCompile>
+    <ClCompile Include="cmd/Shuffle.cpp">
+      <Filter>cmd</Filter>
+    </ClCompile>
+    <ClCompile Include="cmd/Slap.cpp">
+      <Filter>cmd</Filter>
+    </ClCompile>
+    <ClCompile Include="cmd/Smite.cpp">
+      <Filter>cmd</Filter>
+    </ClCompile>
+    <ClCompile Include="cmd/SniperWar.cpp">
+      <Filter>cmd</Filter>
+    </ClCompile>
+    <ClCompile Include="cmd/Spec.cpp">
+      <Filter>cmd</Filter>
+    </ClCompile>
+    <ClCompile Include="cmd/Spec999.cpp">
+      <Filter>cmd</Filter>
+    </ClCompile>
+    <ClCompile Include="cmd/Splat.cpp">
+      <Filter>cmd</Filter>
+    </ClCompile>
+    <ClCompile Include="cmd/Splata.cpp">
+      <Filter>cmd</Filter>
+    </ClCompile>
+    <ClCompile Include="cmd/Status.cpp">
+      <Filter>cmd</Filter>
+    </ClCompile>
+    <ClCompile Include="cmd/Swap.cpp">
+      <Filter>cmd</Filter>
+    </ClCompile>
+    <ClCompile Include="cmd/Throw.cpp">
+      <Filter>cmd</Filter>
+    </ClCompile>
+    <ClCompile Include="cmd/Throwa.cpp">
+      <Filter>cmd</Filter>
+    </ClCompile>
+    <ClCompile Include="cmd/Time.cpp">
+      <Filter>cmd</Filter>
+    </ClCompile>
+    <ClCompile Include="cmd/Unban.cpp">
+      <Filter>cmd</Filter>
+    </ClCompile>
+    <ClCompile Include="cmd/Unlock.cpp">
+      <Filter>cmd</Filter>
+    </ClCompile>
+    <ClCompile Include="cmd/Unmute.cpp">
+      <Filter>cmd</Filter>
+    </ClCompile>
+    <ClCompile Include="cmd/Unpause.cpp">
+      <Filter>cmd</Filter>
+    </ClCompile>
+    <ClCompile Include="cmd/Uptime.cpp">
+      <Filter>cmd</Filter>
+    </ClCompile>
+    <ClCompile Include="cmd/UserDelete.cpp">
+      <Filter>cmd</Filter>
+    </ClCompile>
+    <ClCompile Include="cmd/UserEdit.cpp">
+      <Filter>cmd</Filter>
+    </ClCompile>
+    <ClCompile Include="cmd/UserInfo.cpp">
+      <Filter>cmd</Filter>
+    </ClCompile>
+    <ClCompile Include="cmd/UserList.cpp">
+      <Filter>cmd</Filter>
+    </ClCompile>
+    <ClCompile Include="cmd/util.cpp">
+      <Filter>cmd</Filter>
+    </ClCompile>
+    <ClCompile Include="cvar/Cvar.cpp">
+      <Filter>cvar</Filter>
+    </ClCompile>
+    <ClCompile Include="cvar/util.cpp">
+      <Filter>cvar</Filter>
+    </ClCompile>
+    <ClCompile Include="etpro_mdx.cpp" />
+    <ClCompile Include="g_active.cpp" />
+    <ClCompile Include="g_alarm.cpp" />
+    <ClCompile Include="g_antilag.cpp" />
+    <ClCompile Include="g_buddy_list.cpp" />
+    <ClCompile Include="g_character.cpp" />
+    <ClCompile Include="g_client.cpp" />
+    <ClCompile Include="g_cmds.cpp" />
+    <ClCompile Include="g_cmds_ext.cpp" />
+    <ClCompile Include="g_combat.cpp" />
+    <ClCompile Include="g_config.cpp" />
+    <ClCompile Include="g_fireteams.cpp" />
+    <ClCompile Include="g_items.cpp" />
+    <ClCompile Include="g_killingspree.cpp" />
+    <ClCompile Include="g_lua.cpp" />
+    <ClCompile Include="g_main.cpp" />
+    <ClCompile Include="g_match.cpp" />
+    <ClCompile Include="g_mem.cpp" />
+    <ClCompile Include="g_misc.cpp" />
+    <ClCompile Include="g_missile.cpp" />
+    <ClCompile Include="g_molotov.cpp" />
+    <ClCompile Include="g_mover.cpp" />
+    <ClCompile Include="g_multiview.cpp" />
+    <ClCompile Include="g_props.cpp" />
+    <ClCompile Include="g_referee.cpp" />
+    <ClCompile Include="g_script.cpp" />
+    <ClCompile Include="g_script_actions.cpp" />
+    <ClCompile Include="g_session.cpp" />
+    <ClCompile Include="g_spawn.cpp" />
+    <ClCompile Include="g_stats.cpp" />
+    <ClCompile Include="g_sv_entities.cpp" />
+    <ClCompile Include="g_svcmds.cpp" />
+    <ClCompile Include="g_syscalls.cpp" />
+    <ClCompile Include="g_systemmsg.cpp" />
+    <ClCompile Include="g_target.cpp" />
+    <ClCompile Include="g_team.cpp" />
+    <ClCompile Include="g_teammapdata.cpp" />
+    <ClCompile Include="g_trigger.cpp" />
+    <ClCompile Include="g_utils.cpp" />
+    <ClCompile Include="g_vote.cpp" />
+    <ClCompile Include="g_weapon.cpp" />
+    <ClCompile Include="g_xmod.cpp" />
+    <ClCompile Include="g_xmod_utils.cpp" />
+    <ClCompile Include="jxac/jxac_server.cpp">
+      <Filter>jxac</Filter>
+    </ClCompile>
+    <ClCompile Include="static.cpp" />
+    <ClCompile Include="str/util.cpp">
+      <Filter>str</Filter>
+    </ClCompile>
+    <ClCompile Include="xm_main_ext.cpp" />
+    <ClCompile Include="xmod_database.cpp" />
+    <ClCompile Include="xmod_globals.cpp" />
+    <ClCompile Include="xmod_session.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="../bgame/Engine.h">
+      <Filter>../bgame</Filter>
+    </ClInclude>
+    <ClInclude Include="../bgame/Logger.h">
+      <Filter>../bgame</Filter>
+    </ClInclude>
+    <ClInclude Include="../bgame/NewAllocator.h">
+      <Filter>../bgame</Filter>
+    </ClInclude>
+    <ClInclude Include="../bgame/Process.h">
+      <Filter>../bgame</Filter>
+    </ClInclude>
+    <ClInclude Include="../bgame/SampledStat.h">
+      <Filter>../bgame</Filter>
+    </ClInclude>
+    <ClInclude Include="../bgame/bg_attack2.h">
+      <Filter>../bgame</Filter>
+    </ClInclude>
+    <ClInclude Include="../bgame/bg_local.h">
+      <Filter>../bgame</Filter>
+    </ClInclude>
+    <ClInclude Include="../bgame/bg_molotov.h">
+      <Filter>../bgame</Filter>
+    </ClInclude>
+    <ClInclude Include="../bgame/bg_public.h">
+      <Filter>../bgame</Filter>
+    </ClInclude>
+    <ClInclude Include="../bgame/bg_xmod.h">
+      <Filter>../bgame</Filter>
+    </ClInclude>
+    <ClInclude Include="../bgame/cvar/Cvar.h">
+      <Filter>../bgame/cvar</Filter>
+    </ClInclude>
+    <ClInclude Include="../bgame/cvar/public.h">
+      <Filter>../bgame/cvar</Filter>
+    </ClInclude>
+    <ClInclude Include="../bgame/impl.h">
+      <Filter>../bgame</Filter>
+    </ClInclude>
+    <ClInclude Include="../bgame/jxac_common.h">
+      <Filter>../bgame</Filter>
+    </ClInclude>
+    <ClInclude Include="../bgame/q_shared.h">
+      <Filter>../bgame</Filter>
+    </ClInclude>
+    <ClInclude Include="../bgame/str/PairDump.h">
+      <Filter>../bgame/str</Filter>
+    </ClInclude>
+    <ClInclude Include="../bgame/str/public.h">
+      <Filter>../bgame/str</Filter>
+    </ClInclude>
+    <ClInclude Include="../bgame/str/util.h">
+      <Filter>../bgame/str</Filter>
+    </ClInclude>
+    <ClInclude Include="../bgame/surfaceflags.h">
+      <Filter>../bgame</Filter>
+    </ClInclude>
+    <ClInclude Include="../bgame/xm_auth_shared.h">
+      <Filter>../bgame</Filter>
+    </ClInclude>
+    <ClInclude Include="../bgame/xm_sha1.h">
+      <Filter>../bgame</Filter>
+    </ClInclude>
+    <ClInclude Include="../omnibot/common/Base_Messages.h">
+      <Filter>../omnibot/common</Filter>
+    </ClInclude>
+    <ClInclude Include="../omnibot/common/BotExports.h">
+      <Filter>../omnibot/common</Filter>
+    </ClInclude>
+    <ClInclude Include="../omnibot/common/Functions_Bot.h">
+      <Filter>../omnibot/common</Filter>
+    </ClInclude>
+    <ClInclude Include="../omnibot/common/IEngineInterface.h">
+      <Filter>../omnibot/common</Filter>
+    </ClInclude>
+    <ClInclude Include="../omnibot/common/MessageHelper.h">
+      <Filter>../omnibot/common</Filter>
+    </ClInclude>
+    <ClInclude Include="../omnibot/common/Omni-Bot.h">
+      <Filter>../omnibot/common</Filter>
+    </ClInclude>
+    <ClInclude Include="../omnibot/common/Omni-Bot_BasicTypes.h">
+      <Filter>../omnibot/common</Filter>
+    </ClInclude>
+    <ClInclude Include="../omnibot/common/Omni-Bot_BitFlags.h">
+      <Filter>../omnibot/common</Filter>
+    </ClInclude>
+    <ClInclude Include="../omnibot/common/Omni-Bot_Color.h">
+      <Filter>../omnibot/common</Filter>
+    </ClInclude>
+    <ClInclude Include="../omnibot/common/Omni-Bot_Events.h">
+      <Filter>../omnibot/common</Filter>
+    </ClInclude>
+    <ClInclude Include="../omnibot/common/Omni-Bot_Types.h">
+      <Filter>../omnibot/common</Filter>
+    </ClInclude>
+    <ClInclude Include="../omnibot/et/ET_Config.h">
+      <Filter>../omnibot/et</Filter>
+    </ClInclude>
+    <ClInclude Include="../omnibot/et/ET_Messages.h">
+      <Filter>../omnibot/et</Filter>
+    </ClInclude>
+    <ClInclude Include="../omnibot/et/g_etbot_interface.h">
+      <Filter>../omnibot/et</Filter>
+    </ClInclude>
+    <ClInclude Include="AbstractBulletModel.h" />
+    <ClInclude Include="AbstractBulletVolume.h" />
+    <ClInclude Include="AbstractHitModel.h" />
+    <ClInclude Include="AbstractHitVolume.h" />
+    <ClInclude Include="AbstractStateHitModel.h" />
+    <ClInclude Include="AdminLog.h" />
+    <ClInclude Include="AdvancedHitModel.h" />
+    <ClInclude Include="AlignedCuboidHV.h" />
+    <ClInclude Include="BasicHitModel.h" />
+    <ClInclude Include="CensorDB.h" />
+    <ClInclude Include="Client.h" />
+    <ClInclude Include="Database.h" />
+    <ClInclude Include="Entity.h" />
+    <ClInclude Include="EntityBulletModel.h" />
+    <ClInclude Include="EntityHitModel.h" />
+    <ClInclude Include="EtmainBulletModel.h" />
+    <ClInclude Include="EtmainHitModel.h" />
+    <ClInclude Include="Level.h" />
+    <ClInclude Include="LevelDB.h" />
+    <ClInclude Include="MapDB.h" />
+    <ClInclude Include="MapEntity.h" />
+    <ClInclude Include="MapEntityList.h" />
+    <ClInclude Include="MapRecord.h" />
+    <ClInclude Include="MuzzleBulletModel.h" />
+    <ClInclude Include="OrientedCuboidHV.h" />
+    <ClInclude Include="OrientedHitModel.h" />
+    <ClInclude Include="Privilege.h" />
+    <ClInclude Include="PrivilegeSet.h" />
+    <ClInclude Include="SEngine.h" />
+    <ClInclude Include="SingleBulletVolume.h" />
+    <ClInclude Include="StandardHitModel.h" />
+    <ClInclude Include="TraceContext.h" />
+    <ClInclude Include="User.h" />
+    <ClInclude Include="UserDB.h" />
+    <ClInclude Include="cmd/About.h">
+      <Filter>cmd</Filter>
+    </ClInclude>
+    <ClInclude Include="cmd/AbstractBuiltin.h">
+      <Filter>cmd</Filter>
+    </ClInclude>
+    <ClInclude Include="cmd/AbstractCommand.h">
+      <Filter>cmd</Filter>
+    </ClInclude>
+    <ClInclude Include="cmd/AdminTest.h">
+      <Filter>cmd</Filter>
+    </ClInclude>
+    <ClInclude Include="cmd/Ban.h">
+      <Filter>cmd</Filter>
+    </ClInclude>
+    <ClInclude Include="cmd/BanInfo.h">
+      <Filter>cmd</Filter>
+    </ClInclude>
+    <ClInclude Include="cmd/BanList.h">
+      <Filter>cmd</Filter>
+    </ClInclude>
+    <ClInclude Include="cmd/BanUser.h">
+      <Filter>cmd</Filter>
+    </ClInclude>
+    <ClInclude Include="cmd/CancelVote.h">
+      <Filter>cmd</Filter>
+    </ClInclude>
+    <ClInclude Include="cmd/Chicken.h">
+      <Filter>cmd</Filter>
+    </ClInclude>
+    <ClInclude Include="cmd/CrazyGravity.h">
+      <Filter>cmd</Filter>
+    </ClInclude>
+    <ClInclude Include="cmd/CryBaby.h">
+      <Filter>cmd</Filter>
+    </ClInclude>
+    <ClInclude Include="cmd/DbLoad.h">
+      <Filter>cmd</Filter>
+    </ClInclude>
+    <ClInclude Include="cmd/DbSave.h">
+      <Filter>cmd</Filter>
+    </ClInclude>
+    <ClInclude Include="cmd/Disorient.h">
+      <Filter>cmd</Filter>
+    </ClInclude>
+    <ClInclude Include="cmd/FTime.h">
+      <Filter>cmd</Filter>
+    </ClInclude>
+    <ClInclude Include="cmd/Finger.h">
+      <Filter>cmd</Filter>
+    </ClInclude>
+    <ClInclude Include="cmd/Fling.h">
+      <Filter>cmd</Filter>
+    </ClInclude>
+    <ClInclude Include="cmd/Flinga.h">
+      <Filter>cmd</Filter>
+    </ClInclude>
+    <ClInclude Include="cmd/Glow.h">
+      <Filter>cmd</Filter>
+    </ClInclude>
+    <ClInclude Include="cmd/Help.h">
+      <Filter>cmd</Filter>
+    </ClInclude>
+    <ClInclude Include="cmd/JxacScreenshot.h">
+      <Filter>cmd</Filter>
+    </ClInclude>
+    <ClInclude Include="cmd/JxacScreenshotAll.h">
+      <Filter>cmd</Filter>
+    </ClInclude>
+    <ClInclude Include="cmd/JxacStatus.h">
+      <Filter>cmd</Filter>
+    </ClInclude>
+    <ClInclude Include="cmd/Kick.h">
+      <Filter>cmd</Filter>
+    </ClInclude>
+    <ClInclude Include="cmd/Launch.h">
+      <Filter>cmd</Filter>
+    </ClInclude>
+    <ClInclude Include="cmd/Launcha.h">
+      <Filter>cmd</Filter>
+    </ClInclude>
+    <ClInclude Include="cmd/LevAdd.h">
+      <Filter>cmd</Filter>
+    </ClInclude>
+    <ClInclude Include="cmd/LevDelete.h">
+      <Filter>cmd</Filter>
+    </ClInclude>
+    <ClInclude Include="cmd/LevEdit.h">
+      <Filter>cmd</Filter>
+    </ClInclude>
+    <ClInclude Include="cmd/LevInfo.h">
+      <Filter>cmd</Filter>
+    </ClInclude>
+    <ClInclude Include="cmd/LevList.h">
+      <Filter>cmd</Filter>
+    </ClInclude>
+    <ClInclude Include="cmd/ListPlayers.h">
+      <Filter>cmd</Filter>
+    </ClInclude>
+    <ClInclude Include="cmd/Lock.h">
+      <Filter>cmd</Filter>
+    </ClInclude>
+    <ClInclude Include="cmd/Lol.h">
+      <Filter>cmd</Filter>
+    </ClInclude>
+    <ClInclude Include="cmd/LsPlayers.h">
+      <Filter>cmd</Filter>
+    </ClInclude>
+    <ClInclude Include="cmd/Mute.h">
+      <Filter>cmd</Filter>
+    </ClInclude>
+    <ClInclude Include="cmd/News.h">
+      <Filter>cmd</Filter>
+    </ClInclude>
+    <ClInclude Include="cmd/NextMap.h">
+      <Filter>cmd</Filter>
+    </ClInclude>
+    <ClInclude Include="cmd/Orient.h">
+      <Filter>cmd</Filter>
+    </ClInclude>
+    <ClInclude Include="cmd/Page.h">
+      <Filter>cmd</Filter>
+    </ClInclude>
+    <ClInclude Include="cmd/Pants.h">
+      <Filter>cmd</Filter>
+    </ClInclude>
+    <ClInclude Include="cmd/PanzerWar.h">
+      <Filter>cmd</Filter>
+    </ClInclude>
+    <ClInclude Include="cmd/Pause.h">
+      <Filter>cmd</Filter>
+    </ClInclude>
+    <ClInclude Include="cmd/Pip.h">
+      <Filter>cmd</Filter>
+    </ClInclude>
+    <ClInclude Include="cmd/Pop.h">
+      <Filter>cmd</Filter>
+    </ClInclude>
+    <ClInclude Include="cmd/PutTeam.h">
+      <Filter>cmd</Filter>
+    </ClInclude>
+    <ClInclude Include="cmd/Rename.h">
+      <Filter>cmd</Filter>
+    </ClInclude>
+    <ClInclude Include="cmd/Reset.h">
+      <Filter>cmd</Filter>
+    </ClInclude>
+    <ClInclude Include="cmd/ResetXp.h">
+      <Filter>cmd</Filter>
+    </ClInclude>
+    <ClInclude Include="cmd/ResetmyXp.h">
+      <Filter>cmd</Filter>
+    </ClInclude>
+    <ClInclude Include="cmd/Restart.h">
+      <Filter>cmd</Filter>
+    </ClInclude>
+    <ClInclude Include="cmd/Revive.h">
+      <Filter>cmd</Filter>
+    </ClInclude>
+    <ClInclude Include="cmd/Seen.h">
+      <Filter>cmd</Filter>
+    </ClInclude>
+    <ClInclude Include="cmd/SetLevel.h">
+      <Filter>cmd</Filter>
+    </ClInclude>
+    <ClInclude Include="cmd/Shake.h">
+      <Filter>cmd</Filter>
+    </ClInclude>
+    <ClInclude Include="cmd/Shuffle.h">
+      <Filter>cmd</Filter>
+    </ClInclude>
+    <ClInclude Include="cmd/Slap.h">
+      <Filter>cmd</Filter>
+    </ClInclude>
+    <ClInclude Include="cmd/Smite.h">
+      <Filter>cmd</Filter>
+    </ClInclude>
+    <ClInclude Include="cmd/SniperWar.h">
+      <Filter>cmd</Filter>
+    </ClInclude>
+    <ClInclude Include="cmd/Spec.h">
+      <Filter>cmd</Filter>
+    </ClInclude>
+    <ClInclude Include="cmd/Spec999.h">
+      <Filter>cmd</Filter>
+    </ClInclude>
+    <ClInclude Include="cmd/Splat.h">
+      <Filter>cmd</Filter>
+    </ClInclude>
+    <ClInclude Include="cmd/Splata.h">
+      <Filter>cmd</Filter>
+    </ClInclude>
+    <ClInclude Include="cmd/Status.h">
+      <Filter>cmd</Filter>
+    </ClInclude>
+    <ClInclude Include="cmd/Swap.h">
+      <Filter>cmd</Filter>
+    </ClInclude>
+    <ClInclude Include="cmd/Throw.h">
+      <Filter>cmd</Filter>
+    </ClInclude>
+    <ClInclude Include="cmd/Throwa.h">
+      <Filter>cmd</Filter>
+    </ClInclude>
+    <ClInclude Include="cmd/Time.h">
+      <Filter>cmd</Filter>
+    </ClInclude>
+    <ClInclude Include="cmd/Unban.h">
+      <Filter>cmd</Filter>
+    </ClInclude>
+    <ClInclude Include="cmd/Unlock.h">
+      <Filter>cmd</Filter>
+    </ClInclude>
+    <ClInclude Include="cmd/Unmute.h">
+      <Filter>cmd</Filter>
+    </ClInclude>
+    <ClInclude Include="cmd/Unpause.h">
+      <Filter>cmd</Filter>
+    </ClInclude>
+    <ClInclude Include="cmd/Uptime.h">
+      <Filter>cmd</Filter>
+    </ClInclude>
+    <ClInclude Include="cmd/UserDelete.h">
+      <Filter>cmd</Filter>
+    </ClInclude>
+    <ClInclude Include="cmd/UserEdit.h">
+      <Filter>cmd</Filter>
+    </ClInclude>
+    <ClInclude Include="cmd/UserInfo.h">
+      <Filter>cmd</Filter>
+    </ClInclude>
+    <ClInclude Include="cmd/UserList.h">
+      <Filter>cmd</Filter>
+    </ClInclude>
+    <ClInclude Include="cmd/public.h">
+      <Filter>cmd</Filter>
+    </ClInclude>
+    <ClInclude Include="cmd/util.h">
+      <Filter>cmd</Filter>
+    </ClInclude>
+    <ClInclude Include="cvar/Cvar.h">
+      <Filter>cvar</Filter>
+    </ClInclude>
+    <ClInclude Include="cvar/public.h">
+      <Filter>cvar</Filter>
+    </ClInclude>
+    <ClInclude Include="cvar/util.h">
+      <Filter>cvar</Filter>
+    </ClInclude>
+    <ClInclude Include="etpro_mdx.h" />
+    <ClInclude Include="etpro_mdx_lut.h" />
+    <ClInclude Include="g_local.h" />
+    <ClInclude Include="g_lua.h" />
+    <ClInclude Include="g_molotov.h" />
+    <ClInclude Include="g_public.h" />
+    <ClInclude Include="g_team.h" />
+    <ClInclude Include="g_xmod.h" />
+    <ClInclude Include="jxac/jxac_screenshot.h">
+      <Filter>jxac</Filter>
+    </ClInclude>
+    <ClInclude Include="jxac/jxac_server.h">
+      <Filter>jxac</Filter>
+    </ClInclude>
+    <ClInclude Include="str/public.h">
+      <Filter>str</Filter>
+    </ClInclude>
+    <ClInclude Include="str/util.h">
+      <Filter>str</Filter>
+    </ClInclude>
+    <ClInclude Include="xm_main_ext.h" />
+    <ClInclude Include="xmod_database.h" />
+    <ClInclude Include="xmod_globals.h" />
+    <ClInclude Include="xmod_session.h" />
+  </ItemGroup>
+</Project>

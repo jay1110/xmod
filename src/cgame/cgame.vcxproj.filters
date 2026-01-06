@@ -1,0 +1,292 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="../bgame">
+      <UniqueIdentifier>{AC0D4C31-F412-9402-FFFF-FFFFFFFFFFFF}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="../bgame/cvar">
+      <UniqueIdentifier>{0A763C2F-F28C-74FD-0000-000000000000}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="../bgame/str">
+      <UniqueIdentifier>{7C01C689-870B-0814-0000-000000000000}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="../bgame/win32">
+      <UniqueIdentifier>{FC3A6348-8C77-3EDC-0000-000000000000}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="../ui">
+      <UniqueIdentifier>{E0449559-10AD-1E7E-0000-000000000000}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="cvar">
+      <UniqueIdentifier>{7E0C6C24-D03C-71D8-0000-000000000000}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="jxac">
+      <UniqueIdentifier>{B49433ED-7884-EA74-FFFF-FFFFFFFFFFFF}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="linux">
+      <UniqueIdentifier>{2EC9D703-962C-D572-FFFF-FFFFFFFFFFFF}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="osx">
+      <UniqueIdentifier>{4C558431-014D-D05A-FFFF-FFFFFFFFFFFF}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="win32">
+      <UniqueIdentifier>{0DB717DD-F076-9916-FFFF-FFFFFFFFFFFF}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="../bgame/Engine.cpp">
+      <Filter>../bgame</Filter>
+    </ClCompile>
+    <ClCompile Include="../bgame/Process.cpp">
+      <Filter>../bgame</Filter>
+    </ClCompile>
+    <ClCompile Include="../bgame/SampledStat.cpp">
+      <Filter>../bgame</Filter>
+    </ClCompile>
+    <ClCompile Include="../bgame/bg_animation.cpp">
+      <Filter>../bgame</Filter>
+    </ClCompile>
+    <ClCompile Include="../bgame/bg_animgroup.cpp">
+      <Filter>../bgame</Filter>
+    </ClCompile>
+    <ClCompile Include="../bgame/bg_attack2.cpp">
+      <Filter>../bgame</Filter>
+    </ClCompile>
+    <ClCompile Include="../bgame/bg_character.cpp">
+      <Filter>../bgame</Filter>
+    </ClCompile>
+    <ClCompile Include="../bgame/bg_classes.cpp">
+      <Filter>../bgame</Filter>
+    </ClCompile>
+    <ClCompile Include="../bgame/bg_misc.cpp">
+      <Filter>../bgame</Filter>
+    </ClCompile>
+    <ClCompile Include="../bgame/bg_molotov.cpp">
+      <Filter>../bgame</Filter>
+    </ClCompile>
+    <ClCompile Include="../bgame/bg_pmove.cpp">
+      <Filter>../bgame</Filter>
+    </ClCompile>
+    <ClCompile Include="../bgame/bg_slidemove.cpp">
+      <Filter>../bgame</Filter>
+    </ClCompile>
+    <ClCompile Include="../bgame/bg_sscript.cpp">
+      <Filter>../bgame</Filter>
+    </ClCompile>
+    <ClCompile Include="../bgame/bg_stats.cpp">
+      <Filter>../bgame</Filter>
+    </ClCompile>
+    <ClCompile Include="../bgame/bg_tracemap.cpp">
+      <Filter>../bgame</Filter>
+    </ClCompile>
+    <ClCompile Include="../bgame/bg_xmod.cpp">
+      <Filter>../bgame</Filter>
+    </ClCompile>
+    <ClCompile Include="../bgame/cvar/Cvar.cpp">
+      <Filter>../bgame/cvar</Filter>
+    </ClCompile>
+    <ClCompile Include="../bgame/q_math.cpp">
+      <Filter>../bgame</Filter>
+    </ClCompile>
+    <ClCompile Include="../bgame/q_shared.cpp">
+      <Filter>../bgame</Filter>
+    </ClCompile>
+    <ClCompile Include="../bgame/str/PairDump.cpp">
+      <Filter>../bgame/str</Filter>
+    </ClCompile>
+    <ClCompile Include="../bgame/str/util.cpp">
+      <Filter>../bgame/str</Filter>
+    </ClCompile>
+    <ClCompile Include="../bgame/win32/Process.cpp">
+      <Filter>../bgame/win32</Filter>
+    </ClCompile>
+    <ClCompile Include="../bgame/win32/bg_cpu.cpp">
+      <Filter>../bgame/win32</Filter>
+    </ClCompile>
+    <ClCompile Include="../ui/ui_shared.cpp">
+      <Filter>../ui</Filter>
+    </ClCompile>
+    <ClCompile Include="CBulletVolume.cpp" />
+    <ClCompile Include="CHitVolume.cpp" />
+    <ClCompile Include="Console.cpp" />
+    <ClCompile Include="Engine.cpp" />
+    <ClCompile Include="Font.cpp" />
+    <ClCompile Include="Location.cpp" />
+    <ClCompile Include="LocationDB.cpp" />
+    <ClCompile Include="cg_atmospheric.cpp" />
+    <ClCompile Include="cg_character.cpp" />
+    <ClCompile Include="cg_commandmap.cpp" />
+    <ClCompile Include="cg_consolecmds.cpp" />
+    <ClCompile Include="cg_debriefing.cpp" />
+    <ClCompile Include="cg_draw.cpp" />
+    <ClCompile Include="cg_drawtools.cpp" />
+    <ClCompile Include="cg_effects.cpp" />
+    <ClCompile Include="cg_ents.cpp" />
+    <ClCompile Include="cg_event.cpp" />
+    <ClCompile Include="cg_fireteamoverlay.cpp" />
+    <ClCompile Include="cg_fireteams.cpp" />
+    <ClCompile Include="cg_flamethrower.cpp" />
+    <ClCompile Include="cg_info.cpp" />
+    <ClCompile Include="cg_limbopanel.cpp" />
+    <ClCompile Include="cg_loadpanel.cpp" />
+    <ClCompile Include="cg_localents.cpp" />
+    <ClCompile Include="cg_main.cpp" />
+    <ClCompile Include="cg_marks.cpp" />
+    <ClCompile Include="cg_missionbriefing.cpp" />
+    <ClCompile Include="cg_molotov.cpp" />
+    <ClCompile Include="cg_multiview.cpp" />
+    <ClCompile Include="cg_newDraw.cpp" />
+    <ClCompile Include="cg_particles.cpp" />
+    <ClCompile Include="cg_players.cpp" />
+    <ClCompile Include="cg_playerstate.cpp" />
+    <ClCompile Include="cg_polybus.cpp" />
+    <ClCompile Include="cg_popupmessages.cpp" />
+    <ClCompile Include="cg_predict.cpp" />
+    <ClCompile Include="cg_scoreboard.cpp" />
+    <ClCompile Include="cg_servercmds.cpp" />
+    <ClCompile Include="cg_snapshot.cpp" />
+    <ClCompile Include="cg_sound.cpp" />
+    <ClCompile Include="cg_spawn.cpp" />
+    <ClCompile Include="cg_statsranksmedals.cpp" />
+    <ClCompile Include="cg_syscalls.cpp" />
+    <ClCompile Include="cg_text.cpp" />
+    <ClCompile Include="cg_trails.cpp" />
+    <ClCompile Include="cg_view.cpp" />
+    <ClCompile Include="cg_weapons.cpp" />
+    <ClCompile Include="cg_window.cpp" />
+    <ClCompile Include="cvar/Cvar.cpp">
+      <Filter>cvar</Filter>
+    </ClCompile>
+    <ClCompile Include="cvar/util.cpp">
+      <Filter>cvar</Filter>
+    </ClCompile>
+    <ClCompile Include="jxac/jxac_antitamper.cpp">
+      <Filter>jxac</Filter>
+    </ClCompile>
+    <ClCompile Include="jxac/jxac_client.cpp">
+      <Filter>jxac</Filter>
+    </ClCompile>
+    <ClCompile Include="jxac/jxac_modules.cpp">
+      <Filter>jxac</Filter>
+    </ClCompile>
+    <ClCompile Include="jxac/jxac_screenshot.cpp">
+      <Filter>jxac</Filter>
+    </ClCompile>
+    <ClCompile Include="linux/cg_hardware.cpp">
+      <Filter>linux</Filter>
+    </ClCompile>
+    <ClCompile Include="osx/cg_hardware.cpp">
+      <Filter>osx</Filter>
+    </ClCompile>
+    <ClCompile Include="static.cpp" />
+    <ClCompile Include="win32/cg_hardware.cpp">
+      <Filter>win32</Filter>
+    </ClCompile>
+    <ClCompile Include="win32/cg_hardware.cpp">
+      <Filter>win32</Filter>
+    </ClCompile>
+    <ClCompile Include="xm_client_auth.cpp" />
+    <ClCompile Include="xm_server_commands_handler.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="../bgame/Engine.h">
+      <Filter>../bgame</Filter>
+    </ClInclude>
+    <ClInclude Include="../bgame/Logger.h">
+      <Filter>../bgame</Filter>
+    </ClInclude>
+    <ClInclude Include="../bgame/NewAllocator.h">
+      <Filter>../bgame</Filter>
+    </ClInclude>
+    <ClInclude Include="../bgame/Process.h">
+      <Filter>../bgame</Filter>
+    </ClInclude>
+    <ClInclude Include="../bgame/SampledStat.h">
+      <Filter>../bgame</Filter>
+    </ClInclude>
+    <ClInclude Include="../bgame/bg_attack2.h">
+      <Filter>../bgame</Filter>
+    </ClInclude>
+    <ClInclude Include="../bgame/bg_local.h">
+      <Filter>../bgame</Filter>
+    </ClInclude>
+    <ClInclude Include="../bgame/bg_molotov.h">
+      <Filter>../bgame</Filter>
+    </ClInclude>
+    <ClInclude Include="../bgame/bg_public.h">
+      <Filter>../bgame</Filter>
+    </ClInclude>
+    <ClInclude Include="../bgame/bg_xmod.h">
+      <Filter>../bgame</Filter>
+    </ClInclude>
+    <ClInclude Include="../bgame/cvar/Cvar.h">
+      <Filter>../bgame/cvar</Filter>
+    </ClInclude>
+    <ClInclude Include="../bgame/cvar/public.h">
+      <Filter>../bgame/cvar</Filter>
+    </ClInclude>
+    <ClInclude Include="../bgame/impl.h">
+      <Filter>../bgame</Filter>
+    </ClInclude>
+    <ClInclude Include="../bgame/jxac_common.h">
+      <Filter>../bgame</Filter>
+    </ClInclude>
+    <ClInclude Include="../bgame/q_shared.h">
+      <Filter>../bgame</Filter>
+    </ClInclude>
+    <ClInclude Include="../bgame/str/PairDump.h">
+      <Filter>../bgame/str</Filter>
+    </ClInclude>
+    <ClInclude Include="../bgame/str/public.h">
+      <Filter>../bgame/str</Filter>
+    </ClInclude>
+    <ClInclude Include="../bgame/str/util.h">
+      <Filter>../bgame/str</Filter>
+    </ClInclude>
+    <ClInclude Include="../bgame/surfaceflags.h">
+      <Filter>../bgame</Filter>
+    </ClInclude>
+    <ClInclude Include="../bgame/xm_auth_shared.h">
+      <Filter>../bgame</Filter>
+    </ClInclude>
+    <ClInclude Include="../bgame/xm_sha1.h">
+      <Filter>../bgame</Filter>
+    </ClInclude>
+    <ClInclude Include="../ui/ui_shared.h">
+      <Filter>../ui</Filter>
+    </ClInclude>
+    <ClInclude Include="CBulletVolume.h" />
+    <ClInclude Include="CHitVolume.h" />
+    <ClInclude Include="Console.h" />
+    <ClInclude Include="Font.h" />
+    <ClInclude Include="Location.h" />
+    <ClInclude Include="LocationDB.h" />
+    <ClInclude Include="cg_local.h" />
+    <ClInclude Include="cg_molotov.h" />
+    <ClInclude Include="cg_public.h" />
+    <ClInclude Include="cg_text.h" />
+    <ClInclude Include="cvar/Cvar.h">
+      <Filter>cvar</Filter>
+    </ClInclude>
+    <ClInclude Include="cvar/public.h">
+      <Filter>cvar</Filter>
+    </ClInclude>
+    <ClInclude Include="cvar/util.h">
+      <Filter>cvar</Filter>
+    </ClInclude>
+    <ClInclude Include="jxac/jxac_antitamper.h">
+      <Filter>jxac</Filter>
+    </ClInclude>
+    <ClInclude Include="jxac/jxac_client.h">
+      <Filter>jxac</Filter>
+    </ClInclude>
+    <ClInclude Include="jxac/jxac_modules.h">
+      <Filter>jxac</Filter>
+    </ClInclude>
+    <ClInclude Include="jxac/jxac_screenshot.h">
+      <Filter>jxac</Filter>
+    </ClInclude>
+    <ClInclude Include="tr_types.h" />
+    <ClInclude Include="xm_client_auth.h" />
+    <ClInclude Include="xm_server_commands_handler.h" />
+  </ItemGroup>
+</Project>

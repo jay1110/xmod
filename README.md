@@ -221,15 +221,16 @@ Admin commands use the `!` prefix (e.g., `!kick player`).
 
 ## Building from Source
 
-### Prerequisites
+### Quick Start Options
 
-- GCC/G++ (Linux) or MinGW-w64 (Windows cross-compile)
-- GNU Make 3.80+
-- Python 3.x
-- GNU M4
+**Option 1: Visual Studio 2022 (Windows) - Build All Platforms**
+```powershell
+# Builds Windows (VS2022) + Linux (WSL2) and creates complete release package
+.\build-all.ps1
+```
+See [docs/BUILD_VS2022.md](docs/BUILD_VS2022.md) for detailed instructions.
 
-### Build Commands
-
+**Option 2: GNU Make (Linux/MinGW) - Build Single Platform**
 ```bash
 # Linux 64-bit
 PLATFORM=linux64 make release
@@ -244,7 +245,36 @@ PLATFORM=mingw make release
 PLATFORM=mingw64 make release
 ```
 
-### Build Targets
+### Visual Studio 2022 Build System
+
+**New!** Complete cross-platform build system for Windows developers:
+
+- **Visual Studio 2022** - Build Windows 32-bit and 64-bit natively using MSVC
+- **WSL2 Integration** - Build Linux 32-bit and 64-bit from Windows
+- **One-Click Release** - Creates complete release package matching GitHub workflow output
+
+**Prerequisites:**
+- Visual Studio 2022 with "Desktop development with C++" workload
+- WSL2 with Ubuntu (optional, for Linux builds)
+
+**Quick Build:**
+```powershell
+.\build-all.ps1
+```
+
+**Output:** `release/xmod-2.0.0.zip` with all platform binaries, pk3 file, and configs.
+
+📖 **Full Documentation:** [docs/BUILD_VS2022.md](docs/BUILD_VS2022.md)
+
+### GNU Make Build System
+
+**Prerequisites:**
+- GCC/G++ (Linux) or MinGW-w64 (Windows cross-compile)
+- GNU Make 3.80+
+- Python 3.x
+- GNU M4
+
+**Build Targets:**
 
 | Target | Description |
 |--------|-------------|
@@ -254,7 +284,7 @@ PLATFORM=mingw64 make release
 | `make clean` | Clean build output |
 | `make pkg` | Build and package |
 
-For detailed build system documentation, see [notes/BuildSystem.txt](notes/BuildSystem.txt).
+📖 **Full Documentation:** [BUILD.md](BUILD.md) | [notes/BuildSystem.txt](notes/BuildSystem.txt)
 
 ---
 
