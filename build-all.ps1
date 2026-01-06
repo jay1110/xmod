@@ -22,22 +22,22 @@ function Write-Success {
     Write-Host $Message -ForegroundColor Green
 }
 
-function Write-Error {
+function Write-BuildError {
     param([string]$Message)
     Write-Host $Message -ForegroundColor Red
 }
 
-function Write-Warning {
+function Write-BuildWarning {
     param([string]$Message)
     Write-Host $Message -ForegroundColor Yellow
 }
 
 try {
     Write-Host ""
-    Write-Host "╔══════════════════════════════════════════════════════════╗" -ForegroundColor Cyan
-    Write-Host "║          xmod Multi-Platform Build System               ║" -ForegroundColor Cyan
-    Write-Host "║          Visual Studio 2022 + WSL2                       ║" -ForegroundColor Cyan
-    Write-Host "╚══════════════════════════════════════════════════════════╝" -ForegroundColor Cyan
+    Write-Host "============================================================" -ForegroundColor Cyan
+    Write-Host "          xmod Multi-Platform Build System                  " -ForegroundColor Cyan
+    Write-Host "          Visual Studio 2022 + WSL2                         " -ForegroundColor Cyan
+    Write-Host "============================================================" -ForegroundColor Cyan
     Write-Host ""
 
     # Get repository root
@@ -70,22 +70,22 @@ try {
         $vswherePath = "${env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer\vswhere.exe"
         
         if (-not (Test-Path $vswherePath)) {
-            Write-Error "Visual Studio Installer (vswhere.exe) not found."
-            Write-Warning "Please install Visual Studio 2022 with C++ workload."
+            Write-BuildError "Visual Studio Installer (vswhere.exe) not found."
+            Write-BuildWarning "Please install Visual Studio 2022 with C++ workload."
             throw "Visual Studio 2022 not found"
         }
 
         $vsPath = & $vswherePath -latest -products * -requires Microsoft.Component.MSBuild -property installationPath
         
         if ([string]::IsNullOrEmpty($vsPath)) {
-            Write-Error "Visual Studio 2022 installation not found."
+            Write-BuildError "Visual Studio 2022 installation not found."
             throw "Visual Studio 2022 not found"
         }
 
         $msbuildPath = Join-Path $vsPath "MSBuild\Current\Bin\MSBuild.exe"
         
         if (-not (Test-Path $msbuildPath)) {
-            Write-Error "MSBuild not found at: $msbuildPath"
+            Write-BuildError "MSBuild not found at: $msbuildPath"
             throw "MSBuild not found"
         }
 
@@ -101,7 +101,7 @@ try {
             throw "Windows 32-bit build failed"
         }
         
-        Write-Success "✓ Windows 32-bit build completed"
+        Write-Success "[OK] Windows 32-bit build completed"
 
         # Build Windows 64-bit
         Write-Host ""
@@ -112,7 +112,7 @@ try {
             throw "Windows 64-bit build failed"
         }
         
-        Write-Success "✓ Windows 64-bit build completed"
+        Write-Success "[OK] Windows 64-bit build completed"
         Write-Host ""
 
         # Verify Windows builds
@@ -134,9 +134,10 @@ try {
                 throw "Required file not found: $file"
             }
         }
-        Write-Success "✓ All Windows binaries verified"
-    } else {
-        Write-Warning "Skipping Windows builds (--SkipWindows specified)"
+        Write-Success "[OK] All Windows binaries verified"
+    }
+    else {
+        Write-BuildWarning "Skipping Windows builds (-SkipWindows specified)"
     }
 
     # ========================================
@@ -151,15 +152,16 @@ try {
         $wslAvailable = & "$ScriptRoot\build-tools\wsl-check.ps1"
         
         if (-not $wslAvailable) {
-            Write-Warning "WSL2 is not available. Skipping Linux builds."
-            Write-Warning "The release package will only contain Windows binaries."
+            Write-BuildWarning "WSL2 is not available. Skipping Linux builds."
+            Write-BuildWarning "The release package will only contain Windows binaries."
             Write-Host ""
             Write-Host "To enable Linux builds:" -ForegroundColor White
             Write-Host "  1. Install WSL2: wsl --install" -ForegroundColor Gray
             Write-Host "  2. Restart your computer" -ForegroundColor Gray
             Write-Host "  3. Re-run this build script" -ForegroundColor Gray
             Write-Host ""
-        } else {
+        }
+        else {
             Write-Success "WSL2 is available"
             Write-Host ""
 
@@ -171,13 +173,14 @@ try {
             Write-Host ""
 
             # Run the Linux build script in WSL
-            wsl bash -c "cd '$wslPath' && chmod +x build-tools/build-linux.sh && build-tools/build-linux.sh"
+            $wslCmd = "cd '$wslPath' && chmod +x build-tools/build-linux.sh && build-tools/build-linux.sh"
+            wsl bash -c $wslCmd
             
             if ($LASTEXITCODE -ne 0) {
                 throw "Linux builds failed in WSL2"
             }
 
-            Write-Success "✓ Linux builds completed"
+            Write-Success "[OK] Linux builds completed"
             Write-Host ""
 
             # Verify Linux builds
@@ -202,16 +205,18 @@ try {
             }
 
             if ($missingFiles.Count -gt 0) {
-                Write-Warning "Some Linux binaries were not found:"
+                Write-BuildWarning "Some Linux binaries were not found:"
                 foreach ($file in $missingFiles) {
                     Write-Host "  - $file" -ForegroundColor Yellow
                 }
-            } else {
-                Write-Success "✓ All Linux binaries verified"
+            }
+            else {
+                Write-Success "[OK] All Linux binaries verified"
             }
         }
-    } else {
-        Write-Warning "Skipping Linux builds (--SkipLinux specified)"
+    }
+    else {
+        Write-BuildWarning "Skipping Linux builds (-SkipLinux specified)"
     }
 
     # ========================================
@@ -246,7 +251,7 @@ try {
             Remove-Item "$pakTemp\pak.rules" -ErrorAction SilentlyContinue
             
             $pakFileCount = (Get-ChildItem -Path $pakTemp -Recurse -File).Count
-            Write-Success "✓ Collected $pakFileCount pak data files"
+            Write-Success "[OK] Collected $pakFileCount pak data files"
         }
 
         # Add client-side binaries to pak
@@ -285,12 +290,12 @@ try {
         }
 
         $clientBinaries = (Get-ChildItem -Path $pakTemp -File -Include "*.dll","*.so").Count
-        Write-Success "✓ Added $clientBinaries client binaries"
+        Write-Success "[OK] Added $clientBinaries client binaries"
 
         # Create .dat marker file
         Write-Host "Creating version marker..." -ForegroundColor White
         New-Item -Path "$pakTemp\xmod-2.0.0.dat" -ItemType File -Force | Out-Null
-        Write-Success "✓ Created xmod-2.0.0.dat"
+        Write-Success "[OK] Created xmod-2.0.0.dat"
 
         # Create pk3 file
         Write-Host "Creating pk3 archive..." -ForegroundColor White
@@ -305,17 +310,21 @@ try {
                 Remove-Item $pk3Path -Force
             }
             Move-Item $tempZip $pk3Path
-        } else {
+        }
+        else {
             # Fallback: try to use WSL zip
             $wslPakPath = $pakTemp.Replace('\', '/').Replace('C:', '/mnt/c')
             $wslPk3Path = $pk3Path.Replace('\', '/').Replace('C:', '/mnt/c')
-            wsl bash -c "cd '$wslPakPath' && zip -r '$wslPk3Path' *"
+            $zipCmd = "cd '$wslPakPath' && zip -r '$wslPk3Path' *"
+            wsl bash -c $zipCmd
         }
 
         if (Test-Path $pk3Path) {
             $pk3Size = (Get-Item $pk3Path).Length / 1MB
-            Write-Success "✓ Created pk3 file ($([math]::Round($pk3Size, 2)) MB)"
-        } else {
+            $pk3SizeRounded = [math]::Round($pk3Size, 2)
+            Write-Success "[OK] Created pk3 file ($pk3SizeRounded MB)"
+        }
+        else {
             throw "Failed to create pk3 file"
         }
 
@@ -343,7 +352,7 @@ try {
         }
 
         $serverBinaries = (Get-ChildItem -Path "release\xmod" -File -Include "qagame*").Count
-        Write-Success "✓ Copied $serverBinaries server binaries"
+        Write-Success "[OK] Copied $serverBinaries server binaries"
 
         # Copy config files
         Write-Host "Copying configuration files..." -ForegroundColor White
@@ -374,7 +383,7 @@ try {
             }
         }
 
-        Write-Success "✓ Configuration files copied"
+        Write-Success "[OK] Configuration files copied"
 
         # Create final release ZIP
         Write-Host "Creating final release package..." -ForegroundColor White
@@ -382,15 +391,18 @@ try {
         
         if (Get-Command "Compress-Archive" -ErrorAction SilentlyContinue) {
             Compress-Archive -Path "release\xmod" -DestinationPath $releaseZip -Force
-        } else {
+        }
+        else {
             # Fallback to WSL
             $wslReleasePath = "release".Replace('\', '/').Replace('C:', '/mnt/c')
-            wsl bash -c "cd '$wslReleasePath' && zip -r xmod-2.0.0.zip xmod/"
+            $zipReleaseCmd = "cd '$wslReleasePath' && zip -r xmod-2.0.0.zip xmod/"
+            wsl bash -c $zipReleaseCmd
         }
 
         if (Test-Path $releaseZip) {
             $zipSize = (Get-Item $releaseZip).Length / 1MB
-            Write-Success "✓ Created release package ($([math]::Round($zipSize, 2)) MB)"
+            $zipSizeRounded = [math]::Round($zipSize, 2)
+            Write-Success "[OK] Created release package ($zipSizeRounded MB)"
         }
 
         # Clean up temporary pak directory
@@ -400,8 +412,9 @@ try {
         Write-Host ""
         Write-Host "Release package contents:" -ForegroundColor White
         Get-ChildItem -Path "release\xmod" -Recurse | Select-Object -Property FullName, @{N='Size (KB)';E={[math]::Round($_.Length/1KB, 2)}} | Format-Table -AutoSize
-    } else {
-        Write-Warning "Skipping package creation (--SkipPackage specified)"
+    }
+    else {
+        Write-BuildWarning "Skipping package creation (-SkipPackage specified)"
     }
 
     # ========================================
@@ -409,31 +422,33 @@ try {
     # ========================================
     
     Write-Host ""
-    Write-Host "╔══════════════════════════════════════════════════════════╗" -ForegroundColor Green
-    Write-Host "║              BUILD COMPLETED SUCCESSFULLY!               ║" -ForegroundColor Green
-    Write-Host "╚══════════════════════════════════════════════════════════╝" -ForegroundColor Green
+    Write-Host "============================================================" -ForegroundColor Green
+    Write-Host "              BUILD COMPLETED SUCCESSFULLY!                 " -ForegroundColor Green
+    Write-Host "============================================================" -ForegroundColor Green
     Write-Host ""
     Write-Host "Release package: " -NoNewline
     Write-Host "release\xmod-2.0.0.zip" -ForegroundColor Cyan
     Write-Host ""
     Write-Host "The release contains:" -ForegroundColor White
-    Write-Host "  • xmod-2.0.0.pk3 (client binaries for all platforms + pak data)" -ForegroundColor Gray
-    Write-Host "  • qagame server binaries for all platforms" -ForegroundColor Gray
-    Write-Host "  • Configuration files and mapscripts" -ForegroundColor Gray
+    Write-Host "  - xmod-2.0.0.pk3 (client binaries for all platforms + pak data)" -ForegroundColor Gray
+    Write-Host "  - qagame server binaries for all platforms" -ForegroundColor Gray
+    Write-Host "  - Configuration files and mapscripts" -ForegroundColor Gray
     Write-Host ""
 
-} catch {
+}
+catch {
     Write-Host ""
-    Write-Host "╔══════════════════════════════════════════════════════════╗" -ForegroundColor Red
-    Write-Host "║                   BUILD FAILED!                          ║" -ForegroundColor Red
-    Write-Host "╚══════════════════════════════════════════════════════════╝" -ForegroundColor Red
+    Write-Host "============================================================" -ForegroundColor Red
+    Write-Host "                   BUILD FAILED!                            " -ForegroundColor Red
+    Write-Host "============================================================" -ForegroundColor Red
     Write-Host ""
-    Write-Error "Error: $_"
+    Write-BuildError "Error: $_"
     Write-Host ""
     Write-Host "Stack trace:" -ForegroundColor Gray
     Write-Host $_.ScriptStackTrace -ForegroundColor Gray
     Write-Host ""
     exit 1
-} finally {
+}
+finally {
     Set-Location $OriginalLocation
 }
