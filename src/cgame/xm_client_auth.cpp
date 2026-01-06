@@ -45,7 +45,11 @@ namespace {
 std::string generateUUID() {
     std::stringstream ss;
     // Use a combination of time and process ID for better randomness
+#ifdef _WIN32
+    unsigned int seed = (unsigned int)(time(NULL) ^ (clock() << 16) ^ _getpid());
+#else
     unsigned int seed = (unsigned int)(time(NULL) ^ (clock() << 16) ^ getpid());
+#endif
     srand(seed);
     
     for (int i = 0; i < 32; i++) {

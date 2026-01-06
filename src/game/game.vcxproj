@@ -64,7 +64,7 @@
       <SDLCheck>false</SDLCheck>
       <PreprocessorDefinitions>GAMEDLL;WIN32;NDEBUG;_WINDOWS;_USRDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>false</ConformanceMode>
-      <AdditionalIncludeDirectories>..;..\..;..\bgame;..\sqlite3;..\base;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..;..\..;..\bgame;..\sqlite3;..\base;..\lua;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <ExceptionHandling>false</ExceptionHandling>
       <RuntimeTypeInfo>false</RuntimeTypeInfo>
@@ -92,7 +92,7 @@
       <SDLCheck>false</SDLCheck>
       <PreprocessorDefinitions>GAMEDLL;WIN32;NDEBUG;_WINDOWS;_USRDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>false</ConformanceMode>
-      <AdditionalIncludeDirectories>..;..\..;..\bgame;..\sqlite3;..\base;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..;..\..;..\bgame;..\sqlite3;..\base;..\lua;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <ExceptionHandling>false</ExceptionHandling>
       <RuntimeTypeInfo>false</RuntimeTypeInfo>
@@ -168,6 +168,50 @@
     <ClCompile Include="../base/text/TerminalDevice.cpp">
       <ObjectFileName>$(IntDir)base_text_%(Filename).obj</ObjectFileName>
     </ClCompile>
+    <ClCompile Include="../base/str/util.cpp">
+      <ObjectFileName>$(IntDir)base_str_%(Filename).obj</ObjectFileName>
+    </ClCompile>
+    <ClCompile Include="../base/base64/util.cpp">
+      <ObjectFileName>$(IntDir)base_base64_%(Filename).obj</ObjectFileName>
+    </ClCompile>
+    <ClCompile Include="../base/base64/cksum.cpp">
+      <ObjectFileName>$(IntDir)base_base64_%(Filename).obj</ObjectFileName>
+    </ClCompile>
+    <ClCompile Include="../sqlite3/sqlite3.c">
+      <ObjectFileName>$(IntDir)sqlite3_%(Filename).obj</ObjectFileName>
+    </ClCompile>
+    <ClCompile Include="../lua/lapi.c" />
+    <ClCompile Include="../lua/lauxlib.c" />
+    <ClCompile Include="../lua/lbaselib.c" />
+    <ClCompile Include="../lua/lcode.c" />
+    <ClCompile Include="../lua/lcorolib.c" />
+    <ClCompile Include="../lua/lctype.c" />
+    <ClCompile Include="../lua/ldblib.c" />
+    <ClCompile Include="../lua/ldebug.c" />
+    <ClCompile Include="../lua/ldo.c" />
+    <ClCompile Include="../lua/ldump.c" />
+    <ClCompile Include="../lua/lfunc.c" />
+    <ClCompile Include="../lua/lgc.c" />
+    <ClCompile Include="../lua/linit.c" />
+    <ClCompile Include="../lua/liolib.c" />
+    <ClCompile Include="../lua/llex.c" />
+    <ClCompile Include="../lua/lmathlib.c" />
+    <ClCompile Include="../lua/lmem.c" />
+    <ClCompile Include="../lua/loadlib.c" />
+    <ClCompile Include="../lua/lobject.c" />
+    <ClCompile Include="../lua/lopcodes.c" />
+    <ClCompile Include="../lua/loslib.c" />
+    <ClCompile Include="../lua/lparser.c" />
+    <ClCompile Include="../lua/lstate.c" />
+    <ClCompile Include="../lua/lstring.c" />
+    <ClCompile Include="../lua/lstrlib.c" />
+    <ClCompile Include="../lua/ltable.c" />
+    <ClCompile Include="../lua/ltablib.c" />
+    <ClCompile Include="../lua/ltm.c" />
+    <ClCompile Include="../lua/lundump.c" />
+    <ClCompile Include="../lua/lutf8lib.c" />
+    <ClCompile Include="../lua/lvm.c" />
+    <ClCompile Include="../lua/lzio.c" />
     <ClCompile Include="../omnibot/common/BotLoadLibrary.cpp" />
     <ClCompile Include="../omnibot/et/g_etbot_interface.cpp" />
     <ClCompile Include="AbstractBulletModel.cpp" />

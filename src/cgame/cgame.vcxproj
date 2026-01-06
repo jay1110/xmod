@@ -166,6 +166,9 @@
     <ClCompile Include="../base/text/TerminalDevice.cpp">
       <ObjectFileName>$(IntDir)base_text_%(Filename).obj</ObjectFileName>
     </ClCompile>
+    <ClCompile Include="../base/str/util.cpp">
+      <ObjectFileName>$(IntDir)base_str_%(Filename).obj</ObjectFileName>
+    </ClCompile>
     <ClCompile Include="../ui/ui_shared.cpp" />
     <ClCompile Include="CBulletVolume.cpp" />
     <ClCompile Include="CHitVolume.cpp" />

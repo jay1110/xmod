@@ -145,6 +145,9 @@
     <ClCompile Include="../base/text/TerminalDevice.cpp">
       <ObjectFileName>$(IntDir)base_text_%(Filename).obj</ObjectFileName>
     </ClCompile>
+    <ClCompile Include="../base/str/util.cpp">
+      <ObjectFileName>$(IntDir)base_str_%(Filename).obj</ObjectFileName>
+    </ClCompile>
     <ClCompile Include="cvar/Cvar.cpp" />
     <ClCompile Include="static.cpp" />
     <ClCompile Include="ui_atoms.cpp" />
