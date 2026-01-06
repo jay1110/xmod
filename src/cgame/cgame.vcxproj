@@ -64,7 +64,7 @@
       <SDLCheck>false</SDLCheck>
       <PreprocessorDefinitions>CGAMEDLL;WIN32;NDEBUG;_WINDOWS;_USRDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>false</ConformanceMode>
-      <AdditionalIncludeDirectories>..;..\..;..\bgame;..\ui;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..;..\..;..\bgame;..\ui;..\base;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <ExceptionHandling>false</ExceptionHandling>
       <RuntimeTypeInfo>false</RuntimeTypeInfo>
@@ -92,7 +92,7 @@
       <SDLCheck>false</SDLCheck>
       <PreprocessorDefinitions>CGAMEDLL;WIN32;NDEBUG;_WINDOWS;_USRDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>false</ConformanceMode>
-      <AdditionalIncludeDirectories>..;..\..;..\bgame;..\ui;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..;..\..;..\bgame;..\ui;..\base;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <ExceptionHandling>false</ExceptionHandling>
       <RuntimeTypeInfo>false</RuntimeTypeInfo>
@@ -148,6 +148,24 @@
       <ObjectFileName>$(IntDir)bgame_win32_%(Filename).obj</ObjectFileName>
     </ClCompile>
     <ClCompile Include="../bgame/win32/bg_cpu.cpp" />
+    <ClCompile Include="../base/text/AbstractDevice.cpp">
+      <ObjectFileName>$(IntDir)base_text_%(Filename).obj</ObjectFileName>
+    </ClCompile>
+    <ClCompile Include="../base/text/Buffer.cpp">
+      <ObjectFileName>$(IntDir)base_text_%(Filename).obj</ObjectFileName>
+    </ClCompile>
+    <ClCompile Include="../base/text/ETDevice.cpp">
+      <ObjectFileName>$(IntDir)base_text_%(Filename).obj</ObjectFileName>
+    </ClCompile>
+    <ClCompile Include="../base/text/InlineText.cpp">
+      <ObjectFileName>$(IntDir)base_text_%(Filename).obj</ObjectFileName>
+    </ClCompile>
+    <ClCompile Include="../base/text/Manipulator.cpp">
+      <ObjectFileName>$(IntDir)base_text_%(Filename).obj</ObjectFileName>
+    </ClCompile>
+    <ClCompile Include="../base/text/TerminalDevice.cpp">
+      <ObjectFileName>$(IntDir)base_text_%(Filename).obj</ObjectFileName>
+    </ClCompile>
     <ClCompile Include="../ui/ui_shared.cpp" />
     <ClCompile Include="CBulletVolume.cpp" />
     <ClCompile Include="CHitVolume.cpp" />
