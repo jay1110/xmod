@@ -111,15 +111,21 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="../bgame/Process.cpp" />
+    <ClCompile Include="../bgame/Process.cpp">
+      <ObjectFileName>$(IntDir)bgame_%(Filename).obj</ObjectFileName>
+    </ClCompile>
     <ClCompile Include="../bgame/bg_campaign.cpp" />
     <ClCompile Include="../bgame/bg_classes.cpp" />
     <ClCompile Include="../bgame/bg_misc.cpp" />
     <ClCompile Include="../bgame/bg_xmod.cpp" />
-    <ClCompile Include="../bgame/cvar/Cvar.cpp" />
+    <ClCompile Include="../bgame/cvar/Cvar.cpp">
+      <ObjectFileName>$(IntDir)bgame_cvar_%(Filename).obj</ObjectFileName>
+    </ClCompile>
     <ClCompile Include="../bgame/q_math.cpp" />
     <ClCompile Include="../bgame/q_shared.cpp" />
-    <ClCompile Include="../bgame/win32/Process.cpp" />
+    <ClCompile Include="../bgame/win32/Process.cpp">
+      <ObjectFileName>$(IntDir)bgame_win32_%(Filename).obj</ObjectFileName>
+    </ClCompile>
     <ClCompile Include="../bgame/win32/bg_cpu.cpp" />
     <ClCompile Include="cvar/Cvar.cpp" />
     <ClCompile Include="static.cpp" />

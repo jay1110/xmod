@@ -113,8 +113,12 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="../bgame/Engine.cpp" />
-    <ClCompile Include="../bgame/Process.cpp" />
+    <ClCompile Include="../bgame/Engine.cpp">
+      <ObjectFileName>$(IntDir)bgame_%(Filename).obj</ObjectFileName>
+    </ClCompile>
+    <ClCompile Include="../bgame/Process.cpp">
+      <ObjectFileName>$(IntDir)bgame_%(Filename).obj</ObjectFileName>
+    </ClCompile>
     <ClCompile Include="../bgame/SampledStat.cpp" />
     <ClCompile Include="../bgame/bg_animation.cpp" />
     <ClCompile Include="../bgame/bg_animgroup.cpp" />
@@ -129,12 +133,20 @@
     <ClCompile Include="../bgame/bg_stats.cpp" />
     <ClCompile Include="../bgame/bg_tracemap.cpp" />
     <ClCompile Include="../bgame/bg_xmod.cpp" />
-    <ClCompile Include="../bgame/cvar/Cvar.cpp" />
+    <ClCompile Include="../bgame/cvar/Cvar.cpp">
+      <ObjectFileName>$(IntDir)bgame_cvar_%(Filename).obj</ObjectFileName>
+    </ClCompile>
     <ClCompile Include="../bgame/q_math.cpp" />
     <ClCompile Include="../bgame/q_shared.cpp" />
-    <ClCompile Include="../bgame/str/PairDump.cpp" />
-    <ClCompile Include="../bgame/str/util.cpp" />
-    <ClCompile Include="../bgame/win32/Process.cpp" />
+    <ClCompile Include="../bgame/str/PairDump.cpp">
+      <ObjectFileName>$(IntDir)bgame_str_%(Filename).obj</ObjectFileName>
+    </ClCompile>
+    <ClCompile Include="../bgame/str/util.cpp">
+      <ObjectFileName>$(IntDir)bgame_str_%(Filename).obj</ObjectFileName>
+    </ClCompile>
+    <ClCompile Include="../bgame/win32/Process.cpp">
+      <ObjectFileName>$(IntDir)bgame_win32_%(Filename).obj</ObjectFileName>
+    </ClCompile>
     <ClCompile Include="../bgame/win32/bg_cpu.cpp" />
     <ClCompile Include="../ui/ui_shared.cpp" />
     <ClCompile Include="CBulletVolume.cpp" />
