@@ -180,7 +180,7 @@
     <ClCompile Include="../sqlite3/sqlite3.c">
       <ObjectFileName>$(IntDir)sqlite3_%(Filename).obj</ObjectFileName>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
-      <AdditionalIncludeDirectories>..\sqlite3;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\sqlite3</AdditionalIncludeDirectories>
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
     <ClCompile Include="../lua/lapi.c">

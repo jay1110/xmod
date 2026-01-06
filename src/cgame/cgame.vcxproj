@@ -224,11 +224,10 @@
     <ClCompile Include="jxac/jxac_client.cpp" />
     <ClCompile Include="jxac/jxac_modules.cpp" />
     <ClCompile Include="jxac/jxac_screenshot.cpp" />
-    <ClCompile Include="linux/cg_hardware.cpp" />
-    <ClCompile Include="osx/cg_hardware.cpp" />
     <ClCompile Include="static.cpp" />
-    <ClCompile Include="win32/cg_hardware.cpp" />
-    <ClCompile Include="win32/cg_hardware.cpp" />
+    <ClCompile Include="win32/cg_hardware.cpp">
+      <ObjectFileName>$(IntDir)win32_%(Filename).obj</ObjectFileName>
+    </ClCompile>
     <ClCompile Include="xm_client_auth.cpp" />
     <ClCompile Include="xm_server_commands_handler.cpp" />
   </ItemGroup>
