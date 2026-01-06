@@ -4,6 +4,9 @@ build-*/
 build.*/
 release/
 
+# Exception: build-tools is for build scripts, not build output
+!build-tools/
+
 # CodeQL artifacts
 _codeql_detected_source_root
 
