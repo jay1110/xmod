@@ -4,7 +4,7 @@
 #include <string>
 #include <vector>
 #include <ctime>
-#include "sqlite3.h"
+#include <sqlite3.h>
 
 ///////////////////////////////////////////////////////////////////////////////
 // SQLite-based database for xmod authentication and user management
