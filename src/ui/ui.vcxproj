@@ -148,6 +148,12 @@
     <ClCompile Include="../base/str/util.cpp">
       <ObjectFileName>$(IntDir)base_str_%(Filename).obj</ObjectFileName>
     </ClCompile>
+    <ClCompile Include="../base/base64/util.cpp">
+      <ObjectFileName>$(IntDir)base_base64_%(Filename).obj</ObjectFileName>
+    </ClCompile>
+    <ClCompile Include="../base/base64/cksum.cpp">
+      <ObjectFileName>$(IntDir)base_base64_%(Filename).obj</ObjectFileName>
+    </ClCompile>
     <ClCompile Include="cvar/Cvar.cpp" />
     <ClCompile Include="static.cpp" />
     <ClCompile Include="ui_atoms.cpp" />
