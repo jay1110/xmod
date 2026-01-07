@@ -174,7 +174,10 @@ echo $ANDROID_NDK_HOME
 echo $NDK_ROOT
 ```
 
-Beide Befehle sollten den Pfad ausgeben, z.B. `$HOME/Android/Sdk/ndk/android-ndk-r26d` (wobei $HOME durch Ihren Home-Pfad ersetzt wird).
+Beide Befehle sollten den vollständigen Pfad ausgeben, z.B.:
+```
+/home/ihr-benutzername/Android/Sdk/ndk/android-ndk-r26d
+```
 
 ## Build-Befehle
 
@@ -298,11 +301,13 @@ CLion benötigt die NDK-Umgebungsvariablen, um das Projekt korrekt zu bauen.
 3. Im Bereich **Environment** klicken Sie auf das **+** Symbol
 4. Fügen Sie hinzu:
    - Name: `ANDROID_NDK_HOME`
-   - Value: `$HOME/Android/Sdk/ndk/android-ndk-r26d`
+   - Value: `/home/ihr-benutzername/Android/Sdk/ndk/android-ndk-r26d` (ersetzen Sie `ihr-benutzername` mit Ihrem tatsächlichen Benutzernamen)
 5. Fügen Sie hinzu:
    - Name: `NDK_ROOT`
-   - Value: `$HOME/Android/Sdk/ndk/android-ndk-r26d`
+   - Value: `/home/ihr-benutzername/Android/Sdk/ndk/android-ndk-r26d`
 6. Klicken Sie **OK**
+
+**Tipp:** Sie können den vollständigen Pfad mit `echo $HOME/Android/Sdk/ndk/android-ndk-r26d` im Terminal ermitteln.
 
 **Methode 2: Per Build Configuration**
 
@@ -322,9 +327,10 @@ Erstellen Sie separate Run Configurations für jede Android-Plattform:
 6. **Environment variables:** 
    ```
    PLATFORM=android-arm64
-   ANDROID_NDK_HOME=$HOME/Android/Sdk/ndk/android-ndk-r26d
-   NDK_ROOT=$HOME/Android/Sdk/ndk/android-ndk-r26d
+   ANDROID_NDK_HOME=/home/ihr-benutzername/Android/Sdk/ndk/android-ndk-r26d
+   NDK_ROOT=/home/ihr-benutzername/Android/Sdk/ndk/android-ndk-r26d
    ```
+   _(Ersetzen Sie `ihr-benutzername` mit Ihrem tatsächlichen Benutzernamen)_
 7. **Working directory:** Wählen Sie das Repository-Root
 8. Klicken Sie **OK**
 
@@ -338,9 +344,10 @@ Erstellen Sie separate Run Configurations für jede Android-Plattform:
 6. **Environment variables:**
    ```
    PLATFORM=android-x86_64
-   ANDROID_NDK_HOME=$HOME/Android/Sdk/ndk/android-ndk-r26d
-   NDK_ROOT=$HOME/Android/Sdk/ndk/android-ndk-r26d
+   ANDROID_NDK_HOME=/home/ihr-benutzername/Android/Sdk/ndk/android-ndk-r26d
+   NDK_ROOT=/home/ihr-benutzername/Android/Sdk/ndk/android-ndk-r26d
    ```
+   _(Ersetzen Sie `ihr-benutzername` mit Ihrem tatsächlichen Benutzernamen)_
 7. **Working directory:** Wählen Sie das Repository-Root
 8. Klicken Sie **OK**
 
@@ -354,9 +361,10 @@ Erstellen Sie separate Run Configurations für jede Android-Plattform:
 6. **Environment variables:**
    ```
    PLATFORM=android-x86
-   ANDROID_NDK_HOME=$HOME/Android/Sdk/ndk/android-ndk-r26d
-   NDK_ROOT=$HOME/Android/Sdk/ndk/android-ndk-r26d
+   ANDROID_NDK_HOME=/home/ihr-benutzername/Android/Sdk/ndk/android-ndk-r26d
+   NDK_ROOT=/home/ihr-benutzername/Android/Sdk/ndk/android-ndk-r26d
    ```
+   _(Ersetzen Sie `ihr-benutzername` mit Ihrem tatsächlichen Benutzernamen)_
 7. **Working directory:** Wählen Sie das Repository-Root
 8. Klicken Sie **OK**
 
