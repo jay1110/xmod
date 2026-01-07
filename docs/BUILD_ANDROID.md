@@ -115,7 +115,7 @@ rm android-ndk-r26d-linux.zip
 ls -la ~/Android/Sdk/ndk/android-ndk-r26d/toolchains/llvm/prebuilt/linux-x86_64/bin/
 ```
 
-Sie sollten verschiedene Compiler-Binaries wie `aarch64-linux-android*-clang++` sehen.
+Sie sollten verschiedene Compiler-Binaries wie `aarch64-linux-android21-clang++`, `x86_64-linux-android21-clang++` und `i686-linux-android21-clang++` sehen.
 
 ## Umgebungsvariablen konfigurieren
 
@@ -174,7 +174,7 @@ echo $ANDROID_NDK_HOME
 echo $NDK_ROOT
 ```
 
-Beide Befehle sollten `/home/<username>/Android/Sdk/ndk/android-ndk-r26d` ausgeben.
+Beide Befehle sollten den Pfad ausgeben, z.B. `$HOME/Android/Sdk/ndk/android-ndk-r26d` (wobei $HOME durch Ihren Home-Pfad ersetzt wird).
 
 ## Build-Befehle
 
@@ -186,7 +186,9 @@ Das xmod Build-System unterstützt folgende Android-Plattformen:
 |----------|-------------|--------------------------------|
 | `android-arm64` | ARM64-v8a (64-bit) | `libqagame.mp.android.arm64-v8a.so` |
 | `android-x86_64` | x86_64 (64-bit) | `libqagame.mp.android.x86_64.so` |
-| `android-x86` | x86 (32-bit) | `libqagame.mp.android.i386.so` |
+| `android-x86` | x86 (32-bit) | `libqagame.mp.android.i386.so` * |
+
+*_Hinweis: Die x86 32-bit Variante verwendet `i386` im Dateinamen statt `x86` (Linux-Konvention)._
 
 ### Build für ARM64 (empfohlen für moderne Geräte)
 
