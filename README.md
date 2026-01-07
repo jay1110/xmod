@@ -245,6 +245,19 @@ PLATFORM=mingw make release
 PLATFORM=mingw64 make release
 ```
 
+**Option 3: Android NDK (Linux) - Build Android Libraries**
+```bash
+# Android ARM64 (requires Android NDK)
+PLATFORM=android-arm64 make release
+
+# Android x86_64
+PLATFORM=android-x86_64 make release
+
+# Android x86 (32-bit)
+PLATFORM=android-x86 make release
+```
+See [docs/BUILD_ANDROID.md](docs/BUILD_ANDROID.md) for detailed instructions.
+
 ### Visual Studio 2022 Build System
 
 **New!** Complete cross-platform build system for Windows developers:
@@ -296,8 +309,13 @@ PLATFORM=mingw64 make release
 | Linux | x86_64 (64-bit) | `PLATFORM=linux64 make` | `qagame.mp.x86_64.so` |
 | Windows | x86 (32-bit) | `PLATFORM=mingw make` | `qagame_mp_x86.dll` |
 | Windows | x64 (64-bit) | `PLATFORM=mingw64 make` | `qagame_mp_x64.dll` |
+| Android | ARM64-v8a | `PLATFORM=android-arm64 make` | `libqagame.mp.android.arm64-v8a.so` |
+| Android | x86_64 (64-bit) | `PLATFORM=android-x86_64 make` | `libqagame.mp.android.x86_64.so` |
+| Android | x86 (32-bit) | `PLATFORM=android-x86 make` | `libqagame.mp.android.i386.so` |
 
 All platforms include full Lua 5.4.7 integration.
+
+📖 **Android Build Guide:** [docs/BUILD_ANDROID.md](docs/BUILD_ANDROID.md)
 
 ---
 
