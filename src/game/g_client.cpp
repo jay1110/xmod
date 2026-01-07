@@ -2173,18 +2173,13 @@ ClientConnect( string& outmsg, int clientNum, qboolean firstTime, qboolean isBot
 	// Jaybird - announce admin level entry.
 	clientObject.notifyConnecting( firstTime );
 
-	// Send GUID request to client for authentication
-	if (!isBot) {
-		G_LogPrintf( "Sending guid_request to client %d (%s)\n", clientNum, client->pers.netname );
-		G_LogPrintf("[DEBUG] Sending guid_request to client %d\n", clientNum);
-		trap_SendServerCommand( clientNum, xm_auth::CMD_GUID_REQUEST );
-		G_LogPrintf("[DEBUG] guid_request sent to client %d\n", clientNum);
-		
-		// Initialize xmod session if available
-		if (xmod::g_database && xmod::g_sessions[clientNum]) {
-			string ip = Info_ValueForKey( userinfo, "ip" );
-			xmod::g_sessions[clientNum]->init(clientNum, ip);
-		}
+	// Note: guid_request is sent in ClientBegin, not here, because
+	// the client's cgame module is not loaded yet during ClientConnect
+
+	// Initialize xmod session if available (IP is stored for later use)
+	if (!isBot && xmod::g_database && xmod::g_sessions[clientNum]) {
+		string ip = Info_ValueForKey( userinfo, "ip" );
+		xmod::g_sessions[clientNum]->init(clientNum, ip);
 	}
 
 	// Call Lua et_ClientConnect callback
@@ -2378,6 +2373,17 @@ void ClientBegin( int clientNum )
 	// OSP
 
 	g_clientObjects[clientNum].notifyBegin();
+
+	// Send GUID request to client for authentication
+	// This must be in ClientBegin, not ClientConnect, because the client's
+	// cgame module is only loaded after ClientConnect completes
+	if (!(ent->r.svFlags & SVF_BOT)) {
+		Client& clientObject = g_clientObjects[clientNum];
+		if (!clientObject.authenticated) {
+			G_LogPrintf("Sending guid_request to client %d (%s)\n", clientNum, client->pers.netname);
+			trap_SendServerCommand(clientNum, xm_auth::CMD_GUID_REQUEST);
+		}
+	}
 
 	// Call Lua et_ClientBegin callback
 	G_LuaHook_ClientBegin(clientNum);

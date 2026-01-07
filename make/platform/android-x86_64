@@ -56,7 +56,7 @@ CXX.ldopts.so  = -shared
 
 ###############################################################################
 
-CXX.D = ANDROID __ANDROID__
+CXX.D = XMOD_ANDROID_X86_64 ANDROID __ANDROID__
 CXX.I = $(BUILD/) $(PROJECT/)src $(PROJECT/)pak
 CXX.L = $(BUILD/)
 CXX.R =

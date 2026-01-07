@@ -50,7 +50,7 @@ CXX.ldopts.so = -bundle -undefined dynamic_lookup
 
 ###############################################################################
 
-CXX.D     =
+CXX.D     = XMOD_OSX64
 CXX.I     = $(BUILD/) $(PROJECT/)src $(PROJECT/)pak
 CXX.L     =
 CXX.R     =
