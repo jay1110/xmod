@@ -205,39 +205,29 @@ std::string getHwid() {
 ///////////////////////////////////////////////////////////////////////////////
 
 void login() {
-    CG_Printf("[Auth DEBUG] login() called\n");
-    
     // Get GUID and HWID
     std::string guid = getGuid();
-    // Only log first 8 characters to avoid exposing full GUID
-    CG_Printf("[Auth DEBUG] GUID obtained: %s...\n", guid.substr(0, 8).c_str());
-    
     std::string hwid = getHwid();
-    // Only log first 8 characters to avoid exposing full HWID
-    CG_Printf("[Auth DEBUG] HWID obtained: %s...\n", hwid.substr(0, 8).c_str());
-    
+
     // Hash both with SHA1
     std::string hashedGuid = xm_sha1::hashString(guid);
     std::string hashedHwid = xm_sha1::hashString(hwid);
     
-    CG_Printf("[Auth] Sending authenticate command\n");
-    CG_Printf("[Auth]   Hashed GUID: %s\n", hashedGuid.c_str());
-    CG_Printf("[Auth]   Hashed HWID: %s\n", hashedHwid.c_str());
-    
-    // Send authenticate command to server
+    // Build command string
     std::stringstream cmd;
     cmd << xm_auth::CMD_AUTHENTICATE << " " << hashedGuid << " " << hashedHwid;
-    // Only log command name to avoid exposing hashed values in debug logs
-    CG_Printf("[Auth DEBUG] About to call trap_SendClientCommand with: '%s'\n", xm_auth::CMD_AUTHENTICATE);
-    trap_SendClientCommand(cmd.str().c_str());
-    CG_Printf("[Auth DEBUG] trap_SendClientCommand returned\n");
+    std::string cmdStr = cmd.str();
+
+    CG_Printf("[Auth] Sending: %s\n", cmdStr.c_str());
+
+    // Send authenticate command to server
+    trap_SendClientCommand(cmdStr.c_str());
 }
 
 ///////////////////////////////////////////////////////////////////////////////
 
 void handleGuidRequest() {
-    CG_Printf("[Auth DEBUG] handleGuidRequest() called - legacy handler\n");
-    CG_Printf("[Auth] Received guid_request from server (legacy handler)\n");
+    CG_Printf("[Auth] Received guid_request from server\n");
     login();
 }
 
@@ -248,27 +238,26 @@ void init() {
         return;
     }
     
-    CG_Printf("[Auth DEBUG] init() called\n");
     CG_Printf("[Auth] Initializing authentication system\n");
     
     g_initialized = true;
     g_guid.clear();
     g_hwid.clear();
     
-    // Subscribe to guid_request command
+    // Subscribe to guid_request command for future requests (e.g., reconnect)
     if (xmod::g_serverCommandsHandler) {
-        CG_Printf("[Auth DEBUG] g_serverCommandsHandler is valid\n");
-        xmod::g_serverCommandsHandler->subscribe("guid_request", 
+        xmod::g_serverCommandsHandler->subscribe("guid_request",
             [](const std::vector<std::string>& args) {
                 CG_Printf("[Auth] Received guid_request from server\n");
                 login();
             }
         );
-        CG_Printf("[Auth] Subscribed to guid_request command\n");
-    } else {
-        CG_Printf("[Auth DEBUG] g_serverCommandsHandler is NULL!\n");
-        CG_Printf("[Auth] WARNING: Server commands handler not available! Using fallback.\n");
     }
+
+    // Send authentication immediately - don't wait for guid_request
+    // This is similar to how ETJump handles it
+    CG_Printf("[Auth] Sending authentication on init\n");
+    login();
 }
 
 ///////////////////////////////////////////////////////////////////////////////

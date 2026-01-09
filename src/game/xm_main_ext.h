@@ -17,9 +17,11 @@ namespace xmod {
 
 ///////////////////////////////////////////////////////////////////////////////
 
-// Called from ClientCommand BEFORE the CS_ACTIVE check
+// Called from ClientCommand BEFORE the ent->client check
+// This allows handling of commands like 'authenticate' that arrive
+// before the client is fully connected.
 // Returns qtrue if command was handled, qfalse to continue normal processing
-qboolean OnClientCommand(gentity_t *ent);
+qboolean OnClientCommand(int clientNum, const char* cmd);
 
 ///////////////////////////////////////////////////////////////////////////////
 

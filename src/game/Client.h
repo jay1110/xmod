@@ -60,6 +60,7 @@ public:
 
     // Authentication
     bool   authenticated;
+    bool   authWarningShown;
     string authGuid;
     string authHwid;
 };

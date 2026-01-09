@@ -96,6 +96,7 @@ Client::Client()
     , cmdDelta        ( 0 )
     , cmdLastRealTime ( 0 )
     , authenticated   ( false )
+    , authWarningShown( false )
 {
 }
 
@@ -197,6 +198,7 @@ Client::init()
 
     // Reset authentication state
     authenticated = false;
+    authWarningShown = false;
     authGuid.clear();
     authHwid.clear();
 }

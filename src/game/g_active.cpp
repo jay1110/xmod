@@ -1351,17 +1351,25 @@ void ClientThink_real( gentity_t *ent, bool skipServerTime ) {
 	}
 	
 	// xmod - Check authentication timeout for non-bot clients
+	// If auth fails, mark as fakeguid so XP won't be saved
 	if ( !(ent->r.svFlags & SVF_BOT) ) {
 		Client& clientObject = g_clientObjects[ent->s.number];
 		if ( !clientObject.authenticated ) {
 			int connectTime = level.time - client->pers.connectTime;
-			// Check for overflow or negative values (shouldn't happen in normal operation)
 			if ( connectTime > 0 && connectTime > xm_auth::AUTH_TIMEOUT_MS ) {
-				G_LogPrintf( "Authentication timeout: client %d (%s) kicked after %d ms\n", 
-					ent->s.number, client->pers.netname, connectTime );
-				trap_DropClient( ent->s.number, 
-					"Authentication failed. Please reconnect.", 0 );
-				return;
+				// Only process once
+				if ( !clientObject.authWarningShown ) {
+					clientObject.authWarningShown = true;
+
+					// Mark user as fakeguid so XP won't be saved
+					User& user = *connectedUsers[ent->s.number];
+					user.fakeguid = true;
+
+					G_LogPrintf("[Auth] Client %d (%s): authentication timeout after %d ms - using temporary GUID\n",
+						ent->s.number, client->pers.netname, connectTime);
+					trap_SendServerCommand( ent->s.number,
+						"cpm \"^3Authentication failed. Using temporary GUID - XP will not be saved.\n\"" );
+				}
 			}
 		}
 	}

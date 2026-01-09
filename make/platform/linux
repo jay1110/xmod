@@ -51,7 +51,7 @@ CXX.ldopts.so  = -shared -Wl,-z,defs -Wl,-z,relro -Wl,-z,now -Wl,-Bsymbolic
 
 ###############################################################################
 
-CXX.D =
+CXX.D = XMOD_LINUX
 CXX.I = $(BUILD/) $(PROJECT/)src $(PROJECT/)pak
 CXX.L = $(BUILD/)
 CXX.R =

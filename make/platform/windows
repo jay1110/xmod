@@ -47,7 +47,7 @@ CXX.opt.wd   = /wd4355 /wd4996
 
 ###############################################################################
 
-CXX.D =
+CXX.D = XMOD_WINDOWS
 CXX.I = &VC/include/ &SDK/include/ $(BUILD/) $(PROJECT/)src $(PROJECT/)pak
 CXX.U =
 CXX.L = &VC/lib/ &SDK/lib/

@@ -50,7 +50,7 @@ CXX.ldopts.so = -bundle
 
 ###############################################################################
 
-CXX.D     =
+CXX.D     = XMOD_OSX
 CXX.I     = $(BUILD/) $(PROJECT/)src $(PROJECT/)pak
 CXX.L     =
 CXX.R     =

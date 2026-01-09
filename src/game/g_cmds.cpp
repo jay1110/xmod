@@ -3516,20 +3516,22 @@ void ClientCommand( int clientNum ) {
 	char	cmd[MAX_TOKEN_CHARS];
 
 	ent = g_entities + clientNum;
-	if ( !ent->client ) {
-		return;		// not fully in game yet
-	}
 
+	// Get command name first - needed for early-stage command handling
 	trap_Argv( 0, cmd, sizeof( cmd ) );
 	
-	// DEBUG: Log EVERY client command received
-	G_LogPrintf("[DEBUG] ClientCommand from client %d: '%s'\n", clientNum, cmd);
-	G_Printf("[DEBUG] ClientCommand from client %d: '%s'\n", clientNum, cmd);
+	// DEBUG: Log ALL commands at the very beginning
+	G_LogPrintf("[ClientCommand] client=%d cmd='%s'\n", clientNum, cmd);
 
-	// XMOD: Handle commands that can come before client is fully connected
-	// This is called BEFORE any state checks, similar to ETJump's OnClientCommand
-	if (xmod::OnClientCommand(ent)) {
+	// XMOD: Handle commands that can come BEFORE client is fully connected
+	// This is critical for authentication - the authenticate command arrives
+	// early in the connection process when ent->client may not be set up yet
+	if (xmod::OnClientCommand(clientNum, cmd)) {
 		return; // Command was handled
+	}
+
+	if ( !ent->client ) {
+		return;		// not fully in game yet
 	}
 
 	// Call Lua et_ClientCommand callback

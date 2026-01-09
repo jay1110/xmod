@@ -6,6 +6,7 @@
 #include <bgame/jxac_common.h>
 #include <game/xmod_globals.h>
 #include <game/Client.h>
+#include <game/UserDB.h>
 
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -28,73 +29,96 @@ static bool isValidHexString(const char* str, size_t expectedLen) {
 
 ///////////////////////////////////////////////////////////////////////////////
 
-// Called from ClientCommand BEFORE the CS_ACTIVE check
-// Returns qtrue if command was handled, qfalse to continue normal processing
-qboolean OnClientCommand(gentity_t *ent) {
-	char cmd[MAX_TOKEN_CHARS];
-	trap_Argv(0, cmd, sizeof(cmd));
-	
-	int clientNum = ent - g_entities;
-	
-	// Handle authenticate command (can come before CS_ACTIVE)
-	if (Q_stricmp(cmd, xm_auth::CMD_AUTHENTICATE) == 0) {
+// Called from ClientCommand BEFORE the ent->client check
+// This is critical for authentication - the authenticate command arrives
+// before the client is fully connected (ent->client may be NULL)
+qboolean OnClientCommand(int clientNum, const char* cmd) {
+
+	// Handle authenticate command - this is the xmodguid authentication
+	if (Q_stricmp(cmd, "authenticate") == 0) {
 		char guid[64];
 		char hwid[64];
 		trap_Argv(1, guid, sizeof(guid));
 		trap_Argv(2, hwid, sizeof(hwid));
-		
-		G_LogPrintf("Received authenticate command from client %d (%s): GUID=%s, HWID=%s\n", 
-			clientNum, ent->client->pers.netname, guid, hwid);
-		
-		// Validate GUID and HWID format (SHA1 hex = 40 chars with valid hex characters)
+
+		// Get client name if available
+		gentity_t* ent = &g_entities[clientNum];
+		const char* clientName = (ent->client) ? ent->client->pers.netname : "connecting";
+
+		G_LogPrintf("[Auth] Client %d (%s): authenticate received\n", clientNum, clientName);
+
+		// Validate GUID and HWID format (SHA1 hex = 40 chars)
 		if (isValidHexString(guid, xm_auth::GUID_LENGTH) && isValidHexString(hwid, xm_auth::HWID_LENGTH)) {
-			// Store in legacy Client object for compatibility
+			// Store in Client object
 			Client& clientObject = g_clientObjects[clientNum];
 			clientObject.authGuid = guid;
 			clientObject.authHwid = hwid;
 			clientObject.authenticated = true;
-			
-			G_LogPrintf("Client %d (%s) authenticated successfully\n", 
-				clientNum, ent->client->pers.netname);
-			
-			// Use xmod session system for authentication
+			clientObject.authWarningShown = false;
+
+			G_LogPrintf("[Auth] Client %d (%s): authenticated successfully (GUID: %.8s...)\n",
+				clientNum, clientName, guid);
+
+			// Use xmod session system for database integration
 			if (xmod::g_database && xmod::g_sessions[clientNum]) {
 				xmod::g_sessions[clientNum]->onGuidReceived(guid, hwid);
 			}
+
+			// Update the legacy connectedUsers with the real GUID
+			// This is needed for !setlevel and other admin commands
+			if (connectedUsers[clientNum] && connectedUsers[clientNum] != &User::BAD) {
+				std::string err;
+				User& newUser = userDB.fetchByKey(guid, err, true);
+				if (&newUser != &User::BAD) {
+					User* oldUser = connectedUsers[clientNum];
+					// Transfer session data from PENDING user to real user
+					if (oldUser->guid.find("PENDING") == 0 || oldUser->fakeguid) {
+						newUser.name = oldUser->name;
+						newUser.namex = oldUser->namex;
+						newUser.ip = oldUser->ip;
+						newUser.mac = oldUser->mac;
+						newUser.timestamp = time(NULL);
+					}
+					connectedUsers[clientNum] = &newUser;
+					G_LogPrintf("[Auth] Client %d: Updated connectedUsers with GUID %.8s...\n", clientNum, guid);
+				}
+			}
 		} else {
-			G_LogPrintf("Client %d (%s) authentication FAILED: Invalid GUID or HWID format\n", 
-				clientNum, ent->client->pers.netname);
+			G_LogPrintf("[Auth] Client %d (%s): authentication FAILED - invalid format (GUID len=%d, HWID len=%d)\n",
+				clientNum, clientName, (int)strlen(guid), (int)strlen(hwid));
 		}
 		return qtrue;
 	}
 	
-	// Handle JXAC heartbeat command (can come before CS_ACTIVE)
+	// Handle JXAC heartbeat command
 	if (Q_stricmp(cmd, "jxac_heartbeat") == 0) {
-		G_LogPrintf("[JXAC DEBUG] Received jxac_heartbeat from client %d\n", clientNum);
 		jxac::Server::handleHeartbeat(clientNum);
 		return qtrue;
 	}
 	
-	// Handle JXAC module scan data (can come before CS_ACTIVE)
+	// Handle JXAC module scan data
 	if (Q_stricmp(cmd, "jxac_module") == 0) {
 		char moduleName[256];
 		char checksum[64];
 		trap_Argv(1, moduleName, sizeof(moduleName));
 		trap_Argv(2, checksum, sizeof(checksum));
-		
-		G_LogPrintf("[JXAC] Received module info from client %d: %s\n", clientNum, moduleName);
 		jxac::Server::checkModuleSignature(clientNum, moduleName, checksum);
 		return qtrue;
 	}
 	
-	// Handle JXAC screenshot complete (can come before CS_ACTIVE)
+	// Handle JXAC module complete
+	if (Q_stricmp(cmd, "jxac_module_complete") == 0) {
+		// Silently handled - no action needed
+		return qtrue;
+	}
+
+	// Handle JXAC screenshot complete
 	if (Q_stricmp(cmd, "jxac_ss_complete") == 0) {
-		G_LogPrintf("[JXAC] Received screenshot complete from client %d\n", clientNum);
 		jxac::Server::handleScreenshotComplete(clientNum);
 		return qtrue;
 	}
 	
-	// Handle JXAC screenshot data chunk (can come before CS_ACTIVE)
+	// Handle JXAC screenshot data chunk
 	if (Q_stricmp(cmd, "jxac_ss_data") == 0) {
 		char chunkNumStr[16];
 		char sizeStr[16];
@@ -108,24 +132,13 @@ qboolean OnClientCommand(gentity_t *ent) {
 		
 		// Validate chunk size
 		if (chunkSize <= 0 || chunkSize > JXAC_CMD_DATA_CHUNK_SIZE) {
-			Com_Printf("JXAC: Invalid chunk size %d from client %d\n", chunkSize, clientNum);
 			return qtrue;
 		}
 		
-		// Validate hex data
+		// Validate hex data length
 		int hexLen = strlen(hexData);
 		int expectedHexLen = chunkSize * 2;
-		
-		// Check if hex length matches reported size
-		if (hexLen != expectedHexLen) {
-			Com_Printf("JXAC: Hex length mismatch from client %d: got %d, expected %d (chunk size %d)\n",
-			           clientNum, hexLen, expectedHexLen, chunkSize);
-			return qtrue;
-		}
-		
-		// Check for odd hex length
-		if (hexLen % 2 != 0) {
-			Com_Printf("JXAC: Odd hex length %d from client %d\n", hexLen, clientNum);
+		if (hexLen != expectedHexLen || hexLen % 2 != 0) {
 			return qtrue;
 		}
 		
@@ -135,44 +148,38 @@ qboolean OnClientCommand(gentity_t *ent) {
 			char hexByte[3] = { hexData[i*2], hexData[i*2+1], '\0' };
 			unsigned int byte;
 			if (sscanf(hexByte, "%02x", &byte) != 1) {
-				Com_Printf("JXAC: Invalid hex data at offset %d from client %d\n", i*2, clientNum);
 				return qtrue;
 			}
 			binaryData[i] = (unsigned char)byte;
 		}
 		
-		// Pass to JXAC server handler
-		G_LogPrintf("[JXAC] Received screenshot data from client %d\n", clientNum);
 		jxac::Server::handleScreenshotData(clientNum, binaryData, chunkSize);
 		return qtrue;
 	}
 	
-	// Handle JXAC CVAR response (can come before CS_ACTIVE)
+	// Handle JXAC CVAR response
 	if (Q_stricmp(cmd, "jxac_cvar_resp") == 0) {
 		char cvarName[64];
 		char cvarValue[256];
 		trap_Argv(1, cvarName, sizeof(cvarName));
 		trap_Argv(2, cvarValue, sizeof(cvarValue));
-		
-		G_LogPrintf("[JXAC] Received CVAR response from client %d: %s=%s\n", clientNum, cvarName, cvarValue);
 		jxac::Server::handleCvarResponse(clientNum, cvarName, cvarValue);
 		return qtrue;
 	}
 	
-	// Handle JXAC client-side violation reports (can come before CS_ACTIVE)
+	// Handle JXAC violation reports
 	if (Q_stricmp(cmd, "jxac_violation") == 0) {
 		char violationType[64];
 		char details[256];
 		trap_Argv(1, violationType, sizeof(violationType));
 		trap_Argv(2, details, sizeof(details));
 		
-		// Map violation type string to enum
 		jxacViolationType_t type = JXAC_VIOLATION_TAMPER;
 		if (Q_stricmp(violationType, "tamper") == 0) {
 			type = JXAC_VIOLATION_TAMPER;
 		}
 		
-		G_LogPrintf("[JXAC] Received violation report from client %d: %s - %s\n", clientNum, violationType, details);
+		G_LogPrintf("[JXAC] Violation from client %d: %s - %s\n", clientNum, violationType, details);
 		jxac::Server::reportViolation(clientNum, type, details);
 		return qtrue;
 	}
