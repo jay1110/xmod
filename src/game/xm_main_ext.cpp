@@ -79,8 +79,15 @@ qboolean OnClientCommand(int clientNum, const char* cmd) {
 						newUser.mac = oldUser->mac;
 						newUser.timestamp = time(NULL);
 					}
+					// Mark as real GUID (not fake)
+					newUser.fakeguid = false;
 					connectedUsers[clientNum] = &newUser;
-					G_LogPrintf("[Auth] Client %d: Updated connectedUsers with GUID %.8s...\n", clientNum, guid);
+					G_LogPrintf("[Auth] Client %d: Updated connectedUsers with GUID %.8s... (fakeguid=false)\n", clientNum, guid);
+				} else {
+					// If we can't create a new user entry, at least mark current user as not fake
+					// so admin commands will work
+					connectedUsers[clientNum]->fakeguid = false;
+					G_LogPrintf("[Auth] Client %d: Marked existing user as authenticated (fakeguid=false)\n", clientNum);
 				}
 			}
 		} else {
@@ -183,7 +190,15 @@ qboolean OnClientCommand(int clientNum, const char* cmd) {
 		jxac::Server::reportViolation(clientNum, type, details);
 		return qtrue;
 	}
-	
+
+	// Handle old "auth" command (legacy MAC/version check) - silently ignore
+	// This command is sent by CG_Authenticate() and is no longer needed
+	// We handle it here to prevent "unknown cmd auth" warnings
+	if (Q_stricmp(cmd, "auth") == 0) {
+		// Silently handled - legacy command, no longer needed
+		return qtrue;
+	}
+
 	return qfalse; // Command not handled, continue normal processing
 }
 

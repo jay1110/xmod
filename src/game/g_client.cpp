@@ -2180,6 +2180,188 @@ ClientConnect( string& outmsg, int clientNum, qboolean firstTime, qboolean isBot
 	return false;
 }
 
+int G_ComputeMaxLives(gclient_t *cl, int maxRespawns)
+{
+	float scaled = (float)(maxRespawns - 1) * (1.0f - ((float)(level.time - level.startTime) / (g_timelimit.value * 60000.0f)));
+	int val = (int)scaled;
+
+	// rain - #102 - don't scale of the timelimit is 0
+	if (g_timelimit.value == 0.0) {
+		return maxRespawns - 1;
+	}
+
+	val += ((scaled - (float)val) < 0.5f) ? 0 : 1;
+	return(val);
+}
+
+/*
+===========
+ClientBegin
+
+Called when a client has finished connecting, and is ready
+to be placed into the level. This will happen every level load,
+and on transition between teams, but doesn't happen on respawns
+============
+*/
+void ClientBegin( int clientNum )
+{
+	gentity_t	*ent;
+	gclient_t	*client;
+	int			flags;
+	int			spawn_count, lives_left;		// DHM - Nerve
+
+	ent = g_entities + clientNum;
+
+	client = level.clients + clientNum;
+
+	if ( ent->r.linked ) {
+		trap_UnlinkEntity( ent );
+	}
+
+	G_InitGentity( ent );
+	ent->touch = 0;
+	ent->pain = 0;
+	ent->client = client;
+
+	client->pers.connected = CON_CONNECTED;
+	client->pers.teamState.state = TEAM_BEGIN;
+
+	// save eflags around this, because changing teams will
+	// cause this to happen with a valid entity, and we
+	// want to make sure the teleport bit is set right
+	// so the viewpoint doesn't interpolate through the
+	// world to the new position
+	// DHM - Nerve :: Also save PERS_SPAWN_COUNT, so that CG_Respawn happens
+	spawn_count = client->ps.persistant[PERS_SPAWN_COUNT];
+	//bani - proper fix for #328
+	if( client->ps.persistant[PERS_RESPAWNS_LEFT] > 0 ) {
+		lives_left = client->ps.persistant[PERS_RESPAWNS_LEFT] - 1;
+	} else {
+		lives_left = client->ps.persistant[PERS_RESPAWNS_LEFT];
+	}
+	flags = client->ps.eFlags;
+	memset( &client->ps, 0, sizeof( client->ps ) );
+	client->ps.eFlags = flags;
+	client->ps.persistant[PERS_SPAWN_COUNT] = spawn_count;
+	client->ps.persistant[PERS_RESPAWNS_LEFT] = lives_left;
+
+
+	client->pers.complaintClient = -1;
+	client->pers.complaintEndTime = -1;
+
+	//Omni-bot
+	client->sess.botSuicide = qfalse;
+	client->sess.botPush = (ent->r.svFlags & SVF_BOT) ? qtrue : qfalse;
+
+	// Jaybird - shrubbot shortcuts
+	Q_strncpyz(client->pers.lastammo, "nobody", sizeof(client->pers.lastammo));
+	Q_strncpyz(client->pers.lastkilled, "nobody", sizeof(client->pers.lastkilled));
+	Q_strncpyz(client->pers.lasthealth, "nobody", sizeof(client->pers.lasthealth));
+	Q_strncpyz(client->pers.lastkill, "nobody", sizeof(client->pers.lastkill));
+	Q_strncpyz(client->pers.lastrevive, "nobody", sizeof(client->pers.lastrevive));
+
+	// locate ent at a spawn point
+	ClientSpawn( ent, qfalse );
+
+	// Xian -- Changed below for team independant maxlives
+	if( g_gametype.integer != GT_WOLF_LMS ) {
+		if( ( client->sess.sessionTeam == TEAM_AXIS || client->sess.sessionTeam == TEAM_ALLIES ) ) {
+
+			if( !client->maxlivescalced ) {
+				if(g_maxlives.integer > 0) {
+					client->ps.persistant[PERS_RESPAWNS_LEFT] = G_ComputeMaxLives(client, g_maxlives.integer);
+				} else {
+					client->ps.persistant[PERS_RESPAWNS_LEFT] = -1;
+				}
+
+				if( g_axismaxlives.integer > 0 || g_alliedmaxlives.integer > 0 ) {
+					if(client->sess.sessionTeam == TEAM_AXIS) {
+						client->ps.persistant[PERS_RESPAWNS_LEFT] = G_ComputeMaxLives(client, g_axismaxlives.integer);
+					} else if(client->sess.sessionTeam == TEAM_ALLIES) {
+						client->ps.persistant[PERS_RESPAWNS_LEFT] = G_ComputeMaxLives(client, g_alliedmaxlives.integer);
+					} else {
+						client->ps.persistant[PERS_RESPAWNS_LEFT] = -1;
+					}
+				}
+
+				client->maxlivescalced = qtrue;
+			} else {
+				if( g_axismaxlives.integer > 0 || g_alliedmaxlives.integer > 0 ) {
+					if( client->sess.sessionTeam == TEAM_AXIS ) {
+						if( client->ps.persistant[ PERS_RESPAWNS_LEFT ] > g_axismaxlives.integer ) {
+							client->ps.persistant[ PERS_RESPAWNS_LEFT ] = g_axismaxlives.integer;
+						}
+					} else if( client->sess.sessionTeam == TEAM_ALLIES ) {
+						if( client->ps.persistant[ PERS_RESPAWNS_LEFT ] > g_alliedmaxlives.integer ) {
+							client->ps.persistant[ PERS_RESPAWNS_LEFT ] = g_alliedmaxlives.integer;
+						}
+					}
+				}
+			}
+		}
+	}
+
+
+	// DHM - Nerve :: Start players in limbo mode if they change teams during the match
+	if(client->sess.sessionTeam != TEAM_SPECTATOR && (level.time - level.startTime > FRAMETIME * GAME_INIT_FRAMES) ) {
+		ent->health = 0;
+		ent->r.contents = CONTENTS_CORPSE;
+
+		client->ps.pm_type = PM_DEAD;
+		client->ps.stats[STAT_HEALTH] = 0;
+
+		if( g_gametype.integer != GT_WOLF_LMS ) {
+			if( g_maxlives.integer > 0 ) {
+				client->ps.persistant[PERS_RESPAWNS_LEFT]++;
+			}
+		}
+
+		limbo(ent, qfalse);
+	}
+
+	if(client->sess.sessionTeam != TEAM_SPECTATOR) {
+		trap_SendServerCommand( -1, va("print \"[lof]%s" S_COLOR_WHITE " [lon]entered the game\n\"", client->pers.netname) );
+	}
+
+	G_LogPrintf( "ClientBegin: %i\n", clientNum );
+
+	// Send guid_request to client for xmod authentication
+	G_LogPrintf("Sending guid_request to client %d (%s)\n", clientNum, client->pers.netname);
+	trap_SendServerCommand(clientNum, "guid_request");
+
+	// Xian - Check for maxlives enforcement
+	if( g_gametype.integer != GT_WOLF_LMS ) {
+		if ( g_enforcemaxlives.integer == 1 && (g_maxlives.integer > 0 || g_axismaxlives.integer > 0 || g_alliedmaxlives.integer > 0)) {
+			char *value;
+			char userinfo[MAX_INFO_STRING];
+			trap_GetUserinfo( clientNum, userinfo, sizeof( userinfo ) );
+			value = Info_ValueForKey ( userinfo, "cl_guid" );
+			G_LogPrintf( "EnforceMaxLives-GUID: %s\n", value );
+			AddMaxLivesGUID( value );
+
+			value = Info_ValueForKey (userinfo, "ip");
+			G_LogPrintf( "EnforceMaxLives-IP: %s\n", value );
+			AddMaxLivesBan( value );
+		}
+	}
+	// End Xian
+
+	// count current clients and rank for scoreboard
+	CalculateRanks();
+
+	// No surface determined yet.
+	ent->surfaceFlags = 0;
+
+	// OSP
+	G_smvUpdateClientCSList(ent);
+	// OSP
+
+	g_clientObjects[clientNum].notifyBegin();
+
+	// Call Lua et_ClientBegin callback
+	G_LuaHook_ClientBegin(clientNum);
+}
+
 gentity_t *SelectSpawnPointFromList( char *list, vec3_t spawn_origin, vec3_t spawn_angles )
 {
 	char *pStr, *token;
