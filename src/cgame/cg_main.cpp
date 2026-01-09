@@ -3124,6 +3124,7 @@ void CG_Shutdown( void ) {
 
     molotov::shutdown();
 	process.shutdown();
+	jxac::Client::shutdown(); // Shutdown JXAC client module
 	xm_client_auth::shutdown(); // Shutdown authentication module
 	
 	// Cleanup server commands handler

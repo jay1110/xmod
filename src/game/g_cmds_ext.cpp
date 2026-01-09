@@ -27,6 +27,7 @@ static const cmd_reference_t aCommandInfo[] = {
 	{ "?"		,		qtrue,	qtrue,	G_commands_cmd, ":^7 Gives a list of OSP-specific commands" },
 	// Jaybird
 	{ "auth",			qtrue,	qtrue,	Cmd_AuthCheck_f, "" },
+	{ "xauth",			qtrue,	qtrue,	NULL, "" },  // xmod authentication command
 	{ "autorecord",		qtrue,	qtrue,	NULL, ":^7 Creates a demo with a consistent naming scheme" },
 	{ "autoscreenshot",	qtrue,	qtrue,	NULL, ":^7 Creates a screenshot with a consistent naming scheme" },
 	{ "bottomshots",	qtrue,	qfalse,	G_weaponRankings_cmd, ":^7 Shows WORST player for each weapon. Add ^3<weapon_ID>^7 to show all stats for a weapon" },

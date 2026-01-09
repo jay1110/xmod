@@ -504,7 +504,7 @@ static void CG_TeamVoiceChat_f( void ) {
 	}
 
 	// NERVE - SMF - don't let spectators voice chat
-	// NOTE - This cg.snap will be the person you are following, but its just for intermission test
+	// NOTE - This cg.snap will be the person you are following, but it's just for intermission test
 	if ( cg.snap && ( cg.snap->ps.pm_type != PM_INTERMISSION ) ) {
 		if ( cgs.clientinfo[cg.clientNum].team == TEAM_SPECTATOR || cgs.clientinfo[cg.clientNum].team == TEAM_FREE ) {
 			CG_Printf ( CG_TranslateString( "Can't team voice chat as a spectator.\n" ) );
@@ -1319,10 +1319,8 @@ void CG_InitConsoleCommands( void ) {
 	trap_AddCommand ("textshortcuts");
 	trap_AddCommand ("xmodinfo");
 	
-	// xmod authentication
-	// NOTE: DO NOT register "authenticate" with trap_AddCommand!
-	// It must be sent to the server via trap_SendClientCommand() in xm_client_auth.cpp
-	// Registering it locally would prevent the engine from forwarding it to the server.
+	// xmod authentication - like ETJump, "authenticate" is NOT registered here
+	// it's sent directly via trap_SendClientCommand and handled on server side
 
 	trap_AddCommand ("sclogin");
 	trap_AddCommand ("sclogout");
