@@ -92,6 +92,9 @@ void Client::frame() {
         return;
     }
     
+    // Process module queue (send 2 modules per frame)
+    processModuleQueue();
+
     // Send periodic heartbeat
     if ( cg.time - lastHeartbeat > JXAC_HEARTBEAT_INTERVAL ) {
         sendHeartbeat();

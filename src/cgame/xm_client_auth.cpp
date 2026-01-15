@@ -38,6 +38,7 @@ namespace {
     std::string g_guid;
     std::string g_hwid;
     bool g_initialized = false;
+    bool g_loginPending = false;  // Flag to defer login to first frame
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -243,7 +244,8 @@ void init() {
     g_initialized = true;
     g_guid.clear();
     g_hwid.clear();
-    
+    g_loginPending = true;  // Defer login to first frame
+
     // Subscribe to guid_request command for future requests (e.g., reconnect)
     if (xmod::g_serverCommandsHandler) {
         xmod::g_serverCommandsHandler->subscribe("guid_request",
@@ -254,10 +256,24 @@ void init() {
         );
     }
 
-    // Send authentication immediately - don't wait for guid_request
-    // This is similar to how ETJump handles it
-    CG_Printf("[Auth] Sending authentication on init\n");
-    login();
+    // Don't send authentication immediately during init
+    // Wait for first frame to ensure client is fully ready
+    CG_Printf("[Auth] Authentication deferred to first frame\n");
+}
+
+///////////////////////////////////////////////////////////////////////////////
+
+void frame() {
+    if (!g_initialized) {
+        return;
+    }
+
+    // Send deferred login on first frame
+    if (g_loginPending) {
+        g_loginPending = false;
+        CG_Printf("[Auth] Sending deferred authentication\n");
+        login();
+    }
 }
 
 ///////////////////////////////////////////////////////////////////////////////

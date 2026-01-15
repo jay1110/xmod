@@ -38,6 +38,10 @@ platformName = OSX
 
 platformName = Windows
 
+::android
+
+platformName = Android
+
 ###############################################################################
 
 ::release

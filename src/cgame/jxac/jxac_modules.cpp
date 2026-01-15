@@ -25,12 +25,21 @@ namespace jxac {
 // Module scanning constants
 #define JXAC_MAX_MODULE_FILE_SIZE (50 * 1024 * 1024)  // Max 50MB
 #define JXAC_MAX_MODULES_WINDOWS 1024  // Max modules to scan on Windows
+#define JXAC_MAX_MODULE_QUEUE 512  // Max modules in queue
 
 struct ModuleInfo {
     char name[256];
     char path[512];
     char checksum[41];  // SHA1 hex (40 chars + null)
 };
+
+// Module queue for frame-based sending (prevents command overflow)
+static ModuleInfo moduleQueue[JXAC_MAX_MODULE_QUEUE];
+static int moduleQueueHead = 0;
+static int moduleQueueTail = 0;
+static int moduleQueueCount = 0;
+static int moduleTotalCount = 0;
+static qboolean moduleTransferActive = qfalse;
 
 // Calculate SHA1 of file
 static bool calculateSHA1(const char* filepath, char* outHash) {
@@ -161,13 +170,47 @@ void scanAndSendModules() {
     
     Com_Printf("JXAC: Scanned %d loaded modules\n", (int)modules.size());
     
-    // Send each module to server
-    for (const auto& mod : modules) {
-        trap_SendClientCommand(va("jxac_module %s %s", mod.name, mod.checksum));
+    // Queue modules for frame-based sending (prevents command overflow)
+    moduleQueueHead = 0;
+    moduleQueueTail = 0;
+    moduleQueueCount = 0;
+    moduleTotalCount = (int)modules.size();
+
+    for (size_t i = 0; i < modules.size() && moduleQueueCount < JXAC_MAX_MODULE_QUEUE; i++) {
+        memcpy(&moduleQueue[moduleQueueTail], &modules[i], sizeof(ModuleInfo));
+        moduleQueueTail = (moduleQueueTail + 1) % JXAC_MAX_MODULE_QUEUE;
+        moduleQueueCount++;
     }
-    
-    // Send completion message
-    trap_SendClientCommand(va("jxac_module_complete %d", (int)modules.size()));
+
+    if (moduleQueueCount > 0) {
+        moduleTransferActive = qtrue;
+        Com_Printf("JXAC: Queued %d modules for transfer\n", moduleQueueCount);
+    }
+}
+
+// Process module queue (call each frame)
+void processModuleQueue() {
+    if (!moduleTransferActive || moduleQueueCount == 0) {
+        return;
+    }
+
+    // Send up to 2 modules per frame to avoid command overflow
+    int modulesToSend = (moduleQueueCount > 2) ? 2 : moduleQueueCount;
+
+    for (int i = 0; i < modulesToSend; i++) {
+        ModuleInfo* mod = &moduleQueue[moduleQueueHead];
+        trap_SendClientCommand(va("jxac_module %s %s", mod->name, mod->checksum));
+
+        moduleQueueHead = (moduleQueueHead + 1) % JXAC_MAX_MODULE_QUEUE;
+        moduleQueueCount--;
+    }
+
+    // Check if transfer is complete
+    if (moduleQueueCount == 0) {
+        moduleTransferActive = qfalse;
+        trap_SendClientCommand(va("jxac_module_complete %d", moduleTotalCount));
+        Com_Printf("JXAC: Module transfer complete\n");
+    }
 }
 
 } // namespace jxac

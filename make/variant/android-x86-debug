@@ -1,0 +1,3 @@
+# Android x86 Debug Build Configuration
+CXX.g = 1
+

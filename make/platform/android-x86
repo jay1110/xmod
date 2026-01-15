@@ -48,11 +48,11 @@ CXX.opt.W      = -w
 CXX.opt.g      = -g
 CXX.opt.pipe   = -pipe
 CXX.opt.p      = -p
-CXX.opt.static =
+CXX.opt.static = -static-libstdc++
 CXX.opt.std    = -fno-exceptions -fno-rtti
 
-CXX.ldopts.exe =
-CXX.ldopts.so  = -shared
+CXX.ldopts.exe = -static-libstdc++
+CXX.ldopts.so  = -shared -static-libstdc++
 
 ###############################################################################
 

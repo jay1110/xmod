@@ -21,6 +21,9 @@ namespace xm_client_auth {
 // Initialize authentication system
 void init();
 
+// Process per-frame authentication tasks
+void frame();
+
 // Shutdown authentication system
 void shutdown();
 
