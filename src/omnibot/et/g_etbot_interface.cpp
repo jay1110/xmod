@@ -1593,8 +1593,9 @@ public:
 
 		char userinfo[MAX_INFO_STRING] = {0};
 
+		// Bot GUID: OMNIBOT + num (2 digits) + padding (31 chars) = 40 chars total
 		std::stringstream guid;
-		guid << "OMNIBOT" << std::setw(2) << std::setfill('0') << num << std::right << std::setw(23) << "";
+		guid << "OMNIBOT" << std::setw(2) << std::setfill('0') << num << std::right << std::setw(31) << "";
 
 		gentity_t* bot = &g_entities[num];
 

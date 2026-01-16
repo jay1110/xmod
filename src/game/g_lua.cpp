@@ -1589,8 +1589,8 @@ static int _et_G_GetClientGuid(lua_State* L)
         return 1;
     }
     
-    trap_GetUserinfo(clientnum, userinfo, sizeof(userinfo));
-    guid = Info_ValueForKey(userinfo, "cl_guid");
+    // Use authenticated GUID from Client object (40 chars) instead of cl_guid
+    guid = g_clientObjects[clientnum].authGuid.c_str();
     lua_pushstring(L, guid);
     return 1;
 }

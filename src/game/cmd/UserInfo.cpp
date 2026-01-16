@@ -67,7 +67,7 @@ UserInfo::doUser( Buffer& buf, const User& user, InlineText& cA, InlineText& cB 
         buf << '\n' << cA( "level" ) << cB( lev.level ) << " (" << xvalue( lev.namex ) << ')';
 
         buf << '\n' << cA( "GUID"        ) << cB( user.guid )
-            << " (USERID: " << xvalue( user.guid.length() == 32 ? user.guid.substr( 24 ) : "" ) << ')'
+            << " (USERID: " << xvalue( user.guid.length() == 40 ? user.guid.substr( 32 ) : "" ) << ')'
         << '\n' << cA( "IP"          ) << cB( user.ip )
         << '\n' << cA( "MAC"         ) << cB( user.mac )
         << '\n' << cA( "timestamp"   ) << cB( ftime )
