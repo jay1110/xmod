@@ -1933,9 +1933,10 @@ ClientConnect( string& outmsg, int clientNum, qboolean firstTime, qboolean isBot
  			return true;
 		} else {
 			// Generate a fake local GUID (must be exactly 40 characters)
+			// PENDING(7) + clientNum(2) + padding(31) = 40 chars
 			stringstream newguid;
 			newguid << "PENDING" << setw(2) << setfill('0') << clientNum 
-			        << setw(31) << 0;  // Total: PENDING(7) + clientNum(2) + padding(31) = 40
+			        << string(31, '0');  // Add 31 zeros for padding
 			guid = newguid.str().c_str();
             fakeguid = true;
 		}

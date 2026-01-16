@@ -1897,24 +1897,25 @@ void G_BanPlayer(gentity_t* ent, string banner, string reason, int duration)
     
     // If this is a fake GUID, we need to generate a permanent fake GUID
     if (user->fakeguid) {
+        // Construct GUID - exactly 40 characters to match xmodguid format
+        // BANLOC(6) + timestamp(10) + random hex(24) = 40 chars
         stringstream guidstream;
-
-        // Construct GUID - now 40 characters to match xmodguid format
-        guidstream << setfill('0') <<
-            "BANLOC" <<
-            setw(10) << time(NULL) <<
-            hex <<
-            setw(4) << rand() % 0xffff <<
-            setw(4) << rand() % 0x0fff <<
-            setw(4) << rand() % 0x3fff <<
-            setw(6) << rand() % 0xffffff;  // Extended to reach 40 chars
+        guidstream << "BANLOC"
+            << setw(10) << setfill('0') << time(NULL)
+            << hex << setfill('0')
+            << setw(6) << (rand() % 0x1000000)   // 6 hex digits
+            << setw(6) << (rand() % 0x1000000)   // 6 hex digits
+            << setw(6) << (rand() % 0x1000000)   // 6 hex digits
+            << setw(6) << (rand() % 0x1000000);  // 6 hex digits
         guid = guidstream.str();
 
-        // Check GUID - ensure it's exactly 40 characters
-        if (guid.length() > 40) {
-            guid.resize(40);
-        } else if (guid.length() < 40) {
-            guid.append(40 - guid.length(), '0');
+        // Ensure exactly 40 characters (should be guaranteed by above)
+        if (guid.length() != 40) {
+            if (guid.length() > 40) {
+                guid.resize(40);
+            } else {
+                guid.append(40 - guid.length(), '0');
+            }
         }
     }
 
