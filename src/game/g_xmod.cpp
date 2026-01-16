@@ -1901,12 +1901,12 @@ void G_BanPlayer(gentity_t* ent, string banner, string reason, int duration)
         // BANLOC(6) + timestamp(10) + random hex(24) = 40 chars
         stringstream guidstream;
         guidstream << "BANLOC"
-            << setw(10) << setfill('0') << time(NULL)
+            << setw(10) << setfill('0') << dec << time(NULL)
             << hex << setfill('0')
-            << setw(6) << (rand() % 0x1000000)   // 6 hex digits
-            << setw(6) << (rand() % 0x1000000)   // 6 hex digits
-            << setw(6) << (rand() % 0x1000000)   // 6 hex digits
-            << setw(6) << (rand() % 0x1000000);  // 6 hex digits
+            << setw(6) << ((rand() & 0xFFFFFF))   // 6 hex digits (000000-FFFFFF)
+            << setw(6) << ((rand() & 0xFFFFFF))   // 6 hex digits
+            << setw(6) << ((rand() & 0xFFFFFF))   // 6 hex digits
+            << setw(6) << ((rand() & 0xFFFFFF));  // 6 hex digits
         guid = guidstream.str();
 
         // Ensure exactly 40 characters (should be guaranteed by above)
