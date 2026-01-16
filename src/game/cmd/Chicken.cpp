@@ -35,7 +35,7 @@ Chicken::doExecute( Context& txt )
     const std::string& namex = getPlayerNamex(target->slot);
     Buffer buf;
     buf << _name << ": "
-        << xcvalue << xnone( namex ) << " is running around like a headless chicken!\n";
+        << xcvalue << xnone( namex) << " is running around like a headless chicken!\n";
     printCpm( txt._client, buf, true );
 
     return PA_NONE;
