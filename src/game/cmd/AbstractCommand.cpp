@@ -284,12 +284,18 @@ AbstractCommand::lookupPLAYER( const string& name, vector<Client*>& out, string&
     str::toLower( lname );
 
     // search connected users
+    // Phase 4: Prefer session data when available, fallback to User
     for (int i = 0; i < MAX_CLIENTS; i++) {
         Client& client = g_clientObjects[i];
         if (client.gclient.pers.connected != CON_CONNECTED)
             continue;
 
-        string cname = connectedUsers[i]->name;
+        // Get player name from session or User
+        string cname = getPlayerName(i);
+        if (cname.empty() && connectedUsers[i] && connectedUsers[i] != &User::BAD) {
+            cname = connectedUsers[i]->name;
+        }
+        
         str::toLower( cname );
         if (cname.find( lname ) != string::npos)
             out.push_back( &client );
@@ -363,6 +369,84 @@ AbstractCommand::Context::Context( Client* client, bool silent )
 
 AbstractCommand::Context::~Context()
 {
+}
+
+///////////////////////////////////////////////////////////////////////////////
+
+// Phase 4: Session-aware helper methods
+// These provide safe access to session data with fallbacks to User data
+
+xmod::Session*
+AbstractCommand::getSession( int clientNum )
+{
+    if (clientNum < 0 || clientNum >= MAX_CLIENTS)
+        return nullptr;
+    
+    return xmod::g_sessions[clientNum];
+}
+
+///////////////////////////////////////////////////////////////////////////////
+
+const std::string&
+AbstractCommand::getPlayerName( int clientNum )
+{
+    static const std::string empty = "";
+    
+    // Try session first
+    xmod::Session* session = getSession(clientNum);
+    if (session && session->isInitialized() && !session->getName().empty()) {
+        return session->getName();
+    }
+    
+    // Fallback to User
+    if (clientNum >= 0 && clientNum < MAX_CLIENTS && 
+        connectedUsers[clientNum] && connectedUsers[clientNum] != &User::BAD) {
+        return connectedUsers[clientNum]->name;
+    }
+    
+    return empty;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+
+const std::string&
+AbstractCommand::getPlayerNamex( int clientNum )
+{
+    static const std::string empty = "";
+    
+    // Try session first
+    xmod::Session* session = getSession(clientNum);
+    if (session && session->isInitialized() && !session->getNamex().empty()) {
+        return session->getNamex();
+    }
+    
+    // Fallback to User
+    if (clientNum >= 0 && clientNum < MAX_CLIENTS && 
+        connectedUsers[clientNum] && connectedUsers[clientNum] != &User::BAD) {
+        return connectedUsers[clientNum]->namex;
+    }
+    
+    return empty;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+
+int
+AbstractCommand::getPlayerLevel( int clientNum )
+{
+    // Try session first
+    xmod::Session* session = getSession(clientNum);
+    if (session && session->isAuthenticated()) {
+        return session->getUserLevel();
+    }
+    
+    // Fallback to User
+    if (clientNum >= 0 && clientNum < MAX_CLIENTS && 
+        connectedUsers[clientNum] && connectedUsers[clientNum] != &User::BAD) {
+        return connectedUsers[clientNum]->authLevel;
+    }
+    
+    return 0;
 }
 
 ///////////////////////////////////////////////////////////////////////////////

@@ -174,14 +174,30 @@ bool Session::guidReceived(const std::string& hashedGuid, const std::string& has
     }
 
     // Sync user data from SQLite to runtime User object
+    // This maintains backward compatibility with legacy UserDB system
     if (authenticated && clientNum >= 0 && clientNum < MAX_CLIENTS) {
         if (connectedUsers[clientNum] && connectedUsers[clientNum] != &User::BAD) {
+            // Sync session data to User object
             connectedUsers[clientNum]->authLevel = userLevel;
             connectedUsers[clientNum]->muted = userData.muted;
+            connectedUsers[clientNum]->muteTime = userData.muteTime;
+            connectedUsers[clientNum]->muteExpiry = userData.muteExpiry;
+            connectedUsers[clientNum]->muteReason = userData.muteReason;
+            connectedUsers[clientNum]->muteAuthority = userData.muteAuthority;
+            
+            // Store session data locally for quick access
+            muted = userData.muted;
+            muteTime = userData.muteTime;
+            muteExpiry = userData.muteExpiry;
+            muteReason = userData.muteReason;
+            muteAuthority = userData.muteAuthority;
+            name = userData.name;
+            namex = userData.name;  // TODO: Get actual namex from somewhere
+            
             G_Printf("^2[SQLite] Synced user %d: authLevel=%d, muted=%d for client %d\n", 
                      userId, userLevel, userData.muted ? 1 : 0, clientNum);
         } else {
-            G_Printf("^3[SQLite] WARNING: connectedUsers[%d] is NULL or BAD, cannot sync authLevel\n", clientNum);
+            G_Printf("^3[SQLite] WARNING: connectedUsers[%d] is NULL or BAD, cannot sync data\n", clientNum);
         }
     }
 
