@@ -31,10 +31,11 @@ CryBaby::doExecute( Context& txt )
 
     G_globalSound( "sound/xmod/crybaby.wav" );
 
-    const User& user = *connectedUsers[target->slot];
+    // Phase 5: Use session-aware helper for player name
+    const std::string& namex = getPlayerNamex(target->slot);
     Buffer buf;
     buf << _name << ": "
-        << xcvalue << xnone( user.namex) << " is crying like a little baby!\n";
+        << xcvalue << xnone( namex ) << " is crying like a little baby!\n";
     printCpm( txt._client, buf, true );
 
     return PA_NONE;

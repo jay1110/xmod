@@ -36,9 +36,10 @@ Disorient::doExecute( Context& txt )
         return PA_ERROR;
 
     // bail if already disoriented
-    const User& targetUser = *connectedUsers[target->slot];
+    // Phase 5: Use session-aware helper for player name
+    const std::string& targetNamex = getPlayerNamex(target->slot);
     if (target->gclient.sess.disoriented[1]) {
-        txt._ebuf << xvalue( targetUser.namex ) << " is already disoriented.";
+        txt._ebuf << xvalue( targetNamex ) << " is already disoriented.";
         return PA_ERROR;
     }
 
@@ -48,7 +49,7 @@ Disorient::doExecute( Context& txt )
     // Tell the world
     Buffer buf;
     buf << "disorient: "
-        << xcvalue << xnone( targetUser.namex ) << " is disoriented.";
+        << xcvalue << xnone( targetNamex ) << " is disoriented.";
     printCpm( txt._client, buf, true );
 
     return PA_NONE;
