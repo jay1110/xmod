@@ -27,7 +27,8 @@ static bool validateSha1Hash(const std::string& hash) {
 
 Session::Session(Database* database) 
     : clientNum(-1), userId(-1), userLevel(0), sessionStartTime(0),
-      initialized(false), authenticated(false), db(database) {
+      initialized(false), authenticated(false), db(database),
+      muted(false), muteTime(0), muteExpiry(0), fakeguid(false) {
 }
 
 Session::~Session() {
@@ -60,6 +61,17 @@ void Session::reset() {
     sessionStartTime = 0;
     initialized = false;
     authenticated = false;
+    
+    // Reset additional attributes
+    muted = false;
+    muteTime = 0;
+    muteExpiry = 0;
+    muteReason.clear();
+    muteAuthority.clear();
+    fakeguid = false;
+    name.clear();
+    namex.clear();
+    mac.clear();
 }
 
 ///////////////////////////////////////////////////////////////////////////////
