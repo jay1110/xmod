@@ -1595,7 +1595,7 @@ public:
 
 		// Bot GUID: OMNIBOT + num (2 digits) + padding (31 zeros) = 40 chars total
 		std::stringstream guid;
-		guid << "OMNIBOT" << std::setw(2) << std::setfill('0') << num 
+		guid << "OMNIBOT" << std::setw(2) << std::setfill('0') << (num % 100)  // Ensure 2 digits
 		     << std::string(31, '0');  // Add 31 zeros for padding
 
 		gentity_t* bot = &g_entities[num];
