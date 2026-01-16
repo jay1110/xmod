@@ -192,7 +192,14 @@ bool Session::guidReceived(const std::string& hashedGuid, const std::string& has
             muteReason = userData.muteReason;
             muteAuthority = userData.muteAuthority;
             name = userData.name;
-            namex = userData.name;  // TODO: Get actual namex from somewhere
+            
+            // Get namex from gclient if available, otherwise use plain name
+            gclient_t* client = &level.clients[clientNum];
+            if (client && client->pers.netname[0]) {
+                namex = client->pers.netname;  // This includes color codes
+            } else {
+                namex = userData.name;
+            }
             
             G_Printf("^2[SQLite] Synced user %d: authLevel=%d, muted=%d for client %d\n", 
                      userId, userLevel, userData.muted ? 1 : 0, clientNum);

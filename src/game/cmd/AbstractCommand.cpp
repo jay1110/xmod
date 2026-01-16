@@ -299,18 +299,14 @@ AbstractCommand::lookupPLAYER( const string& name, vector<Client*>& out, string&
     str::toLower( lname );
 
     // search connected users
-    // Phase 4: Prefer session data when available, fallback to User
+    // Phase 4: Prefer session data when available
     for (int i = 0; i < MAX_CLIENTS; i++) {
         Client& client = g_clientObjects[i];
         if (client.gclient.pers.connected != CON_CONNECTED)
             continue;
 
-        // Get player name from session or User
+        // Get player name from session (already has User fallback built-in)
         string cname = getPlayerName(i);
-        if (cname.empty() && connectedUsers[i] && connectedUsers[i] != &User::BAD) {
-            cname = connectedUsers[i]->name;
-        }
-        
         str::toLower( cname );
         if (cname.find( lname ) != string::npos)
             out.push_back( &client );
