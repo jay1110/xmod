@@ -604,4 +604,128 @@ const std::string& getClientMuteAuthorityx(int clientNum)
 
 ///////////////////////////////////////////////////////////////////////////////
 
+time_t getClientBanExpiry(int clientNum)
+{
+    if (clientNum < 0 || clientNum >= MAX_CLIENTS) {
+        return 0;
+    }
+    
+    // Fallback to User (ban expiry not stored in Session)
+    if (connectedUsers[clientNum] && connectedUsers[clientNum] != &User::BAD) {
+        return connectedUsers[clientNum]->banExpiry;
+    }
+    
+    return 0;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+
+time_t getClientMuteTime(int clientNum)
+{
+    if (clientNum < 0 || clientNum >= MAX_CLIENTS) {
+        return 0;
+    }
+    
+    // Try session first
+    if (g_sessions[clientNum] && g_sessions[clientNum]->isInitialized()) {
+        return g_sessions[clientNum]->getMuteTime();
+    }
+    
+    // Fallback to User
+    if (connectedUsers[clientNum] && connectedUsers[clientNum] != &User::BAD) {
+        return connectedUsers[clientNum]->muteTime;
+    }
+    
+    return 0;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+
+const std::string& getClientMuteReason(int clientNum)
+{
+    if (clientNum < 0 || clientNum >= MAX_CLIENTS) {
+        return EMPTY_STRING;
+    }
+    
+    // Try session first
+    if (g_sessions[clientNum] && g_sessions[clientNum]->isInitialized() &&
+        !g_sessions[clientNum]->getMuteReason().empty()) {
+        return g_sessions[clientNum]->getMuteReason();
+    }
+    
+    // Fallback to User
+    if (connectedUsers[clientNum] && connectedUsers[clientNum] != &User::BAD) {
+        return connectedUsers[clientNum]->muteReason;
+    }
+    
+    return EMPTY_STRING;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+
+const PrivilegeSet* getClientPrivGranted(int clientNum)
+{
+    if (clientNum < 0 || clientNum >= MAX_CLIENTS) {
+        return nullptr;
+    }
+    
+    // Only available from User
+    if (connectedUsers[clientNum] && connectedUsers[clientNum] != &User::BAD) {
+        return connectedUsers[clientNum]->privGranted;
+    }
+    
+    return nullptr;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+
+const PrivilegeSet* getClientPrivDenied(int clientNum)
+{
+    if (clientNum < 0 || clientNum >= MAX_CLIENTS) {
+        return nullptr;
+    }
+    
+    // Only available from User
+    if (connectedUsers[clientNum] && connectedUsers[clientNum] != &User::BAD) {
+        return connectedUsers[clientNum]->privDenied;
+    }
+    
+    return nullptr;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+
+static const std::vector<std::string> EMPTY_NOTES;
+
+const std::vector<std::string>& getClientNotes(int clientNum)
+{
+    if (clientNum < 0 || clientNum >= MAX_CLIENTS) {
+        return EMPTY_NOTES;
+    }
+    
+    // Only available from User
+    if (connectedUsers[clientNum] && connectedUsers[clientNum] != &User::BAD) {
+        return connectedUsers[clientNum]->notes;
+    }
+    
+    return EMPTY_NOTES;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+
+const User& getClientUser(int clientNum)
+{
+    if (clientNum < 0 || clientNum >= MAX_CLIENTS) {
+        return User::BAD;
+    }
+    
+    if (connectedUsers[clientNum] && connectedUsers[clientNum] != &User::BAD) {
+        return *connectedUsers[clientNum];
+    }
+    
+    return User::BAD;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+
 } // namespace xmod

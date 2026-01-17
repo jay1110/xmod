@@ -4,9 +4,13 @@
 #include "xmod_database.h"
 #include "xmod_session.h"
 #include <bgame/q_shared.h>
+#include <vector>
+#include <string>
 
-// Forward declaration
+// Forward declarations
 class Privilege;
+class PrivilegeSet;
+class User;
 
 ///////////////////////////////////////////////////////////////////////////////
 // Global xmod instances and initialization
@@ -100,6 +104,28 @@ void setClientGreetingAudio(int clientNum, const std::string& audio);
 
 // Get mute authority formatted name
 const std::string& getClientMuteAuthorityx(int clientNum);
+
+// Get client ban expiry time
+time_t getClientBanExpiry(int clientNum);
+
+// Get mute time
+time_t getClientMuteTime(int clientNum);
+
+// Get mute reason
+const std::string& getClientMuteReason(int clientNum);
+
+// Get privileges granted to client (returns pointer, may be nullptr)
+const PrivilegeSet* getClientPrivGranted(int clientNum);
+
+// Get privileges denied for client (returns pointer, may be nullptr)
+const PrivilegeSet* getClientPrivDenied(int clientNum);
+
+// Get client notes (returns reference to empty vector if not available)
+const std::vector<std::string>& getClientNotes(int clientNum);
+
+// Get User reference for client (returns User::BAD if not available)
+// Note: This is for backward compatibility with code that requires full User object
+const User& getClientUser(int clientNum);
 
 } // namespace xmod
 

@@ -29,7 +29,11 @@ Finger::doExecute( Context& txt )
     if (lookupPLAYER( txt._args[1], txt, target ))
         return PA_ERROR;
 
-    const User& user = *connectedUsers[target->slot];
+    const User& user = ::xmod::getClientUser(target->slot);
+    if (user == User::BAD) {
+        txt._ebuf << "Unable to get user information for player.";
+        return PA_ERROR;
+    }
 
     InlineText cA;
     InlineText cB = xvalue;
