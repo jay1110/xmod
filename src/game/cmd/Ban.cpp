@@ -25,7 +25,7 @@ Ban::~Ban()
 ///////////////////////////////////////////////////////////////////////////////
 
 void
-Ban::doBan( User& user, User& authority, int duration, const string& reason, Buffer& out, const Client* client )
+Ban::doBan( User& user, const User& authority, int duration, const string& reason, Buffer& out, const Client* client )
 {
     out << xvalue( user.namex ) << " banned " << (duration ? "for " : "")
         << (duration ? str::toStringSecondsRemaining( duration, true ) : "permanently")

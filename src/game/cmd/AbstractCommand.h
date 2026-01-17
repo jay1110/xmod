@@ -25,7 +25,7 @@ public:
 
         Buffer        _ebuf;    // error buffer if needed
         Client* const _client;  // null when server-console or client
-        User&         _user;    // User::CONSOLE or client's user
+        const User&   _user;    // User::CONSOLE or client's user
         Args          _args;    // command-line arguments
         const bool    _silent;  // silent command processing is desired
     };
