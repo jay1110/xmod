@@ -69,10 +69,17 @@ Ban::doExecute( Context& txt )
     if (lookupPLAYER( txt._args[1], txt, target ))
         return PA_ERROR;
 
-    User& user = *connectedUsers[target->slot];
-    if (user == txt._user) {
-        txt._ebuf << "You cannot ban yourself.";
-        return PA_ERROR;
+    // Use session-aware helpers for player data
+    const std::string& targetNamex = getPlayerNamex(target->slot);
+    
+    // Self-ban check using GUID comparison (only if user is a client, not console)
+    if (txt._client) {
+        const std::string& targetGuid = getPlayerGuid(target->slot);
+        const std::string& userGuid = getPlayerGuid(txt._client->slot);
+        if (!targetGuid.empty() && !userGuid.empty() && targetGuid == userGuid) {
+            txt._ebuf << "You cannot ban yourself.";
+            return PA_ERROR;
+        }
     }
 
     if (isBotError( *target, txt ))
@@ -108,6 +115,9 @@ Ban::doExecute( Context& txt )
         banReason = "none";
     }
 
+    // Still need User reference for doBan which uses User's guid, ip, name attributes
+    User& user = *connectedUsers[target->slot];
+    
     Buffer buf;
     buf << _name << ": ";
     doBan( user, txt._user, banDuration, banReason, buf, target );

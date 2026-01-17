@@ -44,15 +44,20 @@ SetLevel::doExecute( Context& txt )
         return PA_ERROR;
     }
 
+    // Use session-aware helpers for player data
+    const std::string& targetNamex = getPlayerNamex(target->slot);
+    
     // bail if fake GUID
-    User& targetUser = *connectedUsers[target->slot];
-    if (targetUser.fakeguid) {
-        txt._ebuf << xvalue( targetUser.namex ) << " has no GUID.";
+    if (isPlayerFakeGuid(target->slot)) {
+        txt._ebuf << xvalue( targetNamex ) << " has no GUID.";
         return PA_ERROR;
     }
 
-    // Update runtime user level
-    targetUser.authLevel = lev.level;
+    // Update runtime user level - still need connectedUsers for modifying authLevel
+    // since Session doesn't have a direct setter that syncs to User
+    if (connectedUsers[target->slot] && connectedUsers[target->slot] != &User::BAD) {
+        connectedUsers[target->slot]->authLevel = lev.level;
+    }
 
     // Persist level to SQLite database
     if (::xmod::g_database && ::xmod::g_database->isOpened() && 
@@ -61,6 +66,8 @@ SetLevel::doExecute( Context& txt )
         if (userId > 0) {
             if (::xmod::g_database->setLevel(userId, lev.level)) {
                 G_Printf("SetLevel: Updated user %d level to %d in SQLite\n", userId, lev.level);
+                // Also update session level
+                ::xmod::g_sessions[target->slot]->setUserLevel(lev.level);
             } else {
                 G_Printf("^1SetLevel: Failed to update user %d level in SQLite\n", userId);
             }
@@ -69,7 +76,7 @@ SetLevel::doExecute( Context& txt )
 
     // Report success
     Buffer buf;
-    buf << _name << ": " << xvalue( targetUser.namex ) << "'s level set to " << xvalue( lev.level );
+    buf << _name << ": " << xvalue( targetNamex ) << "'s level set to " << xvalue( lev.level );
     printCpm(txt._client, buf, true);
 
     return PA_NONE;
