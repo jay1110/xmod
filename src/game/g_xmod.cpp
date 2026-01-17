@@ -416,8 +416,7 @@ void G_PrivateMessage( gentity_t *ent )
             continue;
 
         // skip if no privilege
-        User& u = *connectedUsers[c.slot];
-        if (!u.hasPrivilege( priv::base::specChat ))
+        if (!::xmod::hasClientPrivilege(c.slot, priv::base::specChat))
             continue;
 
         admins.insert( c.slot );
@@ -436,11 +435,12 @@ void G_PrivateMessage( gentity_t *ent )
         const set<int>::iterator max = subscribers.end();
         for ( set<int>::iterator it = subscribers.begin(); it != max; it++ ) {
             Client& c = g_clientObjects[*it];
-            User& u = *connectedUsers[*it];
+            int recipientLevel = ::xmod::getClientLevel(*it);
+            const std::string& recipientNamex = ::xmod::getClientNamex(*it);
 
             // skip if pm-blocked and actor is not higher level
-            if (c.gclient.pers.pmblock && user.authLevel <= u.authLevel) {
-                ebuf << xvalue( u.namex ) << " is blocking private messages.";
+            if (c.gclient.pers.pmblock && user.authLevel <= recipientLevel) {
+                ebuf << xvalue( recipientNamex ) << " is blocking private messages.";
                 cmd::printChat( &actor, ebuf );
                 continue;
             }
@@ -448,7 +448,7 @@ void G_PrivateMessage( gentity_t *ent )
 		    // Send message
             {
                 Buffer buf;
-                buf << xvalue( user.namex ) << " -> " << xvalue( u.namex ) << " (" << xvalue( nsubs ) << "): "
+                buf << xvalue( user.namex ) << " -> " << xvalue( recipientNamex ) << " (" << xvalue( nsubs ) << "): "
                     << xcbold << message;
                 cmd::printPm( &c, buf, true );
 
@@ -460,7 +460,7 @@ void G_PrivateMessage( gentity_t *ent )
                 Buffer buf;
                 if (pmcount++)
                     bcc << '\n';
-                bcc << "PM -> " << xvalue( u.namex ) << ": " << message;
+                bcc << "PM -> " << xvalue( recipientNamex ) << ": " << message;
             }
         }
 

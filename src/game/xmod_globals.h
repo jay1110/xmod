@@ -5,6 +5,9 @@
 #include "xmod_session.h"
 #include <bgame/q_shared.h>
 
+// Forward declaration
+class Privilege;
+
 ///////////////////////////////////////////////////////////////////////////////
 // Global xmod instances and initialization
 ///////////////////////////////////////////////////////////////////////////////
@@ -54,6 +57,9 @@ void setClientFakeGuid(int clientNum, bool fakeguid);
 
 // Get mute expiry time
 time_t getClientMuteExpiry(int clientNum);
+
+// Check if client has a specific privilege
+bool hasClientPrivilege(int clientNum, const Privilege& privilege);
 
 } // namespace xmod
 

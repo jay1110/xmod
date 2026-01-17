@@ -305,4 +305,20 @@ time_t getClientMuteExpiry(int clientNum)
 
 ///////////////////////////////////////////////////////////////////////////////
 
+bool hasClientPrivilege(int clientNum, const Privilege& privilege)
+{
+    if (clientNum < 0 || clientNum >= MAX_CLIENTS) {
+        return false;
+    }
+    
+    // Use User for privilege checks (User has privDenied/privGranted)
+    if (connectedUsers[clientNum] && connectedUsers[clientNum] != &User::BAD) {
+        return connectedUsers[clientNum]->hasPrivilege(privilege);
+    }
+    
+    return false;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+
 } // namespace xmod
