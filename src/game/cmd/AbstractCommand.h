@@ -79,6 +79,11 @@ protected:
     static const std::string& getPlayerName( int clientNum );
     static const std::string& getPlayerNamex( int clientNum );
     static int getPlayerLevel( int clientNum );
+    static bool isPlayerMuted( int clientNum );
+    static const std::string& getPlayerGuid( int clientNum );
+    static const std::string& getPlayerIp( int clientNum );
+    static const std::string& getPlayerMac( int clientNum );
+    static bool isPlayerFakeGuid( int clientNum );
 
 public:
     static InlineText _ovalue;

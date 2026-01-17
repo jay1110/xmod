@@ -463,4 +463,110 @@ AbstractCommand::getPlayerLevel( int clientNum )
 
 ///////////////////////////////////////////////////////////////////////////////
 
+bool
+AbstractCommand::isPlayerMuted( int clientNum )
+{
+    // Try session first
+    ::xmod::Session* session = static_cast<::xmod::Session*>(getSession(clientNum));
+    if (session && session->isInitialized()) {
+        return session->isMuted();
+    }
+    
+    // Fallback to User
+    if (clientNum >= 0 && clientNum < MAX_CLIENTS && 
+        connectedUsers[clientNum] && connectedUsers[clientNum] != &User::BAD) {
+        return connectedUsers[clientNum]->muted;
+    }
+    
+    return false;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+
+const std::string&
+AbstractCommand::getPlayerGuid( int clientNum )
+{
+    static const std::string empty = "";
+    
+    // Try session first
+    ::xmod::Session* session = static_cast<::xmod::Session*>(getSession(clientNum));
+    if (session && session->isInitialized() && !session->getGuid().empty()) {
+        return session->getGuid();
+    }
+    
+    // Fallback to User
+    if (clientNum >= 0 && clientNum < MAX_CLIENTS && 
+        connectedUsers[clientNum] && connectedUsers[clientNum] != &User::BAD) {
+        return connectedUsers[clientNum]->guid;
+    }
+    
+    return empty;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+
+const std::string&
+AbstractCommand::getPlayerIp( int clientNum )
+{
+    static const std::string empty = "";
+    
+    // Try session first
+    ::xmod::Session* session = static_cast<::xmod::Session*>(getSession(clientNum));
+    if (session && session->isInitialized() && !session->getIp().empty()) {
+        return session->getIp();
+    }
+    
+    // Fallback to User
+    if (clientNum >= 0 && clientNum < MAX_CLIENTS && 
+        connectedUsers[clientNum] && connectedUsers[clientNum] != &User::BAD) {
+        return connectedUsers[clientNum]->ip;
+    }
+    
+    return empty;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+
+const std::string&
+AbstractCommand::getPlayerMac( int clientNum )
+{
+    static const std::string empty = "";
+    
+    // Try session first
+    ::xmod::Session* session = static_cast<::xmod::Session*>(getSession(clientNum));
+    if (session && session->isInitialized() && !session->getMac().empty()) {
+        return session->getMac();
+    }
+    
+    // Fallback to User
+    if (clientNum >= 0 && clientNum < MAX_CLIENTS && 
+        connectedUsers[clientNum] && connectedUsers[clientNum] != &User::BAD) {
+        return connectedUsers[clientNum]->mac;
+    }
+    
+    return empty;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+
+bool
+AbstractCommand::isPlayerFakeGuid( int clientNum )
+{
+    // Try session first
+    ::xmod::Session* session = static_cast<::xmod::Session*>(getSession(clientNum));
+    if (session && session->isInitialized()) {
+        return session->isFakeGuid();
+    }
+    
+    // Fallback to User
+    if (clientNum >= 0 && clientNum < MAX_CLIENTS && 
+        connectedUsers[clientNum] && connectedUsers[clientNum] != &User::BAD) {
+        return connectedUsers[clientNum]->fakeguid;
+    }
+    
+    return true;  // Default to fake if unknown
+}
+
+///////////////////////////////////////////////////////////////////////////////
+
 } // namespace cmd
