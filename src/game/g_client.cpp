@@ -1814,7 +1814,7 @@ void ClientUserinfoChanged( int clientNum ) {
         client->sess.playerWeapon,
         client->sess.latchPlayerWeapon,
         client->sess.latchPlayerWeapon2,
-        connectedUsers[clientNum]->muted ? 1 : 0,
+        ::xmod::isClientMuted(clientNum) ? 1 : 0,
         client->sess.referee,
         client->sess.shoutcaster
     );
