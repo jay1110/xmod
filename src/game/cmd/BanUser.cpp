@@ -70,9 +70,12 @@ BanUser::doExecute( Context& txt )
     }
 
     // check if user happens to be online so their connection is dropped
+    // Use session-aware helpers to find matching client by GUID
     Client* target = NULL;
+    const std::string& userGuid = user.guid;
     for (int i = 0; i < MAX_CLIENTS; i++) {
-        if (user == *connectedUsers[i]) {
+        const std::string& clientGuid = AbstractCommand::getPlayerGuid(i);
+        if (!clientGuid.empty() && clientGuid == userGuid) {
             target = &g_clientObjects[i];
             break;
         }

@@ -1,4 +1,5 @@
 #include <bgame/impl.h>
+#include <game/xmod_globals.h>
 
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -371,7 +372,7 @@ AbstractCommand::lookupUSER( const string& id, Context& txt, string argName )
 
 AbstractCommand::Context::Context( Client* client, bool silent )
     : _client ( client )
-    , _user   ( client ? *connectedUsers[client->slot] : User::CONSOLE )
+    , _user   ( client ? ::xmod::getClientUser(client->slot) : User::CONSOLE )
     , _silent ( silent )
 {
 }
@@ -387,13 +388,13 @@ AbstractCommand::Context::~Context()
 // Phase 4: Session-aware helper methods
 // These provide safe access to session data with fallbacks to User data
 
-xmod::Session*
+void*
 AbstractCommand::getSession( int clientNum )
 {
     if (clientNum < 0 || clientNum >= MAX_CLIENTS)
         return nullptr;
     
-    return xmod::g_sessions[clientNum];
+    return ::xmod::g_sessions[clientNum];
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -401,21 +402,8 @@ AbstractCommand::getSession( int clientNum )
 const std::string&
 AbstractCommand::getPlayerName( int clientNum )
 {
-    static const std::string empty = "";
-    
-    // Try session first
-    xmod::Session* session = getSession(clientNum);
-    if (session && session->isInitialized() && !session->getName().empty()) {
-        return session->getName();
-    }
-    
-    // Fallback to User
-    if (clientNum >= 0 && clientNum < MAX_CLIENTS && 
-        connectedUsers[clientNum] && connectedUsers[clientNum] != &User::BAD) {
-        return connectedUsers[clientNum]->name;
-    }
-    
-    return empty;
+    // Delegate to global helper
+    return ::xmod::getClientName(clientNum);
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -423,21 +411,8 @@ AbstractCommand::getPlayerName( int clientNum )
 const std::string&
 AbstractCommand::getPlayerNamex( int clientNum )
 {
-    static const std::string empty = "";
-    
-    // Try session first
-    xmod::Session* session = getSession(clientNum);
-    if (session && session->isInitialized() && !session->getNamex().empty()) {
-        return session->getNamex();
-    }
-    
-    // Fallback to User
-    if (clientNum >= 0 && clientNum < MAX_CLIENTS && 
-        connectedUsers[clientNum] && connectedUsers[clientNum] != &User::BAD) {
-        return connectedUsers[clientNum]->namex;
-    }
-    
-    return empty;
+    // Delegate to global helper
+    return ::xmod::getClientNamex(clientNum);
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -445,19 +420,53 @@ AbstractCommand::getPlayerNamex( int clientNum )
 int
 AbstractCommand::getPlayerLevel( int clientNum )
 {
-    // Try session first
-    xmod::Session* session = getSession(clientNum);
-    if (session && session->isAuthenticated()) {
-        return session->getUserLevel();
-    }
-    
-    // Fallback to User
-    if (clientNum >= 0 && clientNum < MAX_CLIENTS && 
-        connectedUsers[clientNum] && connectedUsers[clientNum] != &User::BAD) {
-        return connectedUsers[clientNum]->authLevel;
-    }
-    
-    return 0;
+    // Delegate to global helper
+    return ::xmod::getClientLevel(clientNum);
+}
+
+///////////////////////////////////////////////////////////////////////////////
+
+bool
+AbstractCommand::isPlayerMuted( int clientNum )
+{
+    // Delegate to global helper
+    return ::xmod::isClientMuted(clientNum);
+}
+
+///////////////////////////////////////////////////////////////////////////////
+
+const std::string&
+AbstractCommand::getPlayerGuid( int clientNum )
+{
+    // Delegate to global helper
+    return ::xmod::getClientGuid(clientNum);
+}
+
+///////////////////////////////////////////////////////////////////////////////
+
+const std::string&
+AbstractCommand::getPlayerIp( int clientNum )
+{
+    // Delegate to global helper
+    return ::xmod::getClientIp(clientNum);
+}
+
+///////////////////////////////////////////////////////////////////////////////
+
+const std::string&
+AbstractCommand::getPlayerMac( int clientNum )
+{
+    // Delegate to global helper
+    return ::xmod::getClientMac(clientNum);
+}
+
+///////////////////////////////////////////////////////////////////////////////
+
+bool
+AbstractCommand::isPlayerFakeGuid( int clientNum )
+{
+    // Delegate to global helper
+    return ::xmod::isClientFakeGuid(clientNum);
 }
 
 ///////////////////////////////////////////////////////////////////////////////

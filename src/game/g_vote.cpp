@@ -3,6 +3,7 @@
 //
 
 #include <bgame/impl.h>
+#include <game/xmod_globals.h>
 
 
 #define T_FFA	0x01
@@ -426,7 +427,7 @@ int G_Mute_v(gentity_t *ent, unsigned int dwVoteIndex, char *arg, char *arg2, qb
 			return(G_INVALID);
 		}
 
-		if(connectedUsers[pid]->muted) {
+		if(::xmod::isClientMuted(pid)) {
 			G_refPrintf(ent, "Player is already muted!");
 			return(G_INVALID);
 		}
@@ -477,7 +478,7 @@ int G_UnMute_v(gentity_t *ent, unsigned int dwVoteIndex, char *arg, char *arg2, 
             return(G_INVALID);
         } else if((pid = ClientNumberFromString(ent, arg2)) == -1) {
             return(G_INVALID);
-        } else if(!connectedUsers[pid]->muted) {
+        } else if(!::xmod::isClientMuted(pid)) {
 			G_refPrintf(ent, "Player is not muted!");
 			return(G_INVALID);
         }

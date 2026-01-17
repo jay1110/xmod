@@ -2,6 +2,7 @@
 // -------------------------------------------
 //
 #include <bgame/impl.h>
+#include <game/xmod_globals.h>
 
 int iWeap = WS_MAX;
 
@@ -421,7 +422,7 @@ void G_ready_cmd(gentity_t *ent, unsigned int dwCommand, qboolean state)
 // Team chat w/no location info
 void G_say_teamnl_cmd(gentity_t *ent, unsigned int dwCommand, qboolean fValue)
 {
-	if (!connectedUsers[ent-g_entities]->muted) {
+	if (!::xmod::isClientMuted(ent-g_entities)) {
 			Cmd_Say_f(ent, SAY_TEAMNL, qfalse);
 	}
 }

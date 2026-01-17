@@ -8,6 +8,7 @@
 #include <bgame/impl.h>
 #include <bgame/surfaceflags.h>
 #include <game/g_lua.h>
+#include <game/xmod_globals.h>
 
 // Forward declarations for external functions
 void GibEntity(gentity_t* self, int killer);
@@ -2688,10 +2689,8 @@ static int _et_MutePlayer(lua_State* L)
         return 0;
     }
     
-    // Mute through the User system
-    if (connectedUsers[clientNum]) {
-        connectedUsers[clientNum]->muted = true;
-    }
+    // Mute through session and User system
+    ::xmod::setClientMuted(clientNum, true);
     
     // Notify player
     trap_SendServerCommand(clientNum, va("print \"You have been muted%s%s\n\"", 
@@ -2714,10 +2713,8 @@ static int _et_UnmutePlayer(lua_State* L)
         return 0;
     }
     
-    // Unmute through the User system
-    if (connectedUsers[clientNum]) {
-        connectedUsers[clientNum]->muted = false;
-    }
+    // Unmute through session and User system
+    ::xmod::setClientMuted(clientNum, false);
     
     trap_SendServerCommand(clientNum, "print \"You have been unmuted\n\"");
     
@@ -2740,12 +2737,8 @@ static int _et_G_IsPlayerMuted(lua_State* L)
         return 1;
     }
     
-    // Check through the User system
-    if (connectedUsers[clientNum]) {
-        lua_pushboolean(L, connectedUsers[clientNum]->muted);
-    } else {
-        lua_pushboolean(L, 0);
-    }
+    // Check through session-aware helper
+    lua_pushboolean(L, ::xmod::isClientMuted(clientNum));
     return 1;
 }
 

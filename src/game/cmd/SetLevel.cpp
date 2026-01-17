@@ -44,15 +44,17 @@ SetLevel::doExecute( Context& txt )
         return PA_ERROR;
     }
 
+    // Use session-aware helpers for player data
+    const std::string& targetNamex = getPlayerNamex(target->slot);
+    
     // bail if fake GUID
-    User& targetUser = *connectedUsers[target->slot];
-    if (targetUser.fakeguid) {
-        txt._ebuf << xvalue( targetUser.namex ) << " has no GUID.";
+    if (isPlayerFakeGuid(target->slot)) {
+        txt._ebuf << xvalue( targetNamex ) << " has no GUID.";
         return PA_ERROR;
     }
 
-    // Update runtime user level
-    targetUser.authLevel = lev.level;
+    // Update runtime user level using global helper (sets on both session and User)
+    ::xmod::setClientLevel(target->slot, lev.level);
 
     // Persist level to SQLite database
     if (::xmod::g_database && ::xmod::g_database->isOpened() && 
@@ -69,7 +71,7 @@ SetLevel::doExecute( Context& txt )
 
     // Report success
     Buffer buf;
-    buf << _name << ": " << xvalue( targetUser.namex ) << "'s level set to " << xvalue( lev.level );
+    buf << _name << ": " << xvalue( targetNamex ) << "'s level set to " << xvalue( lev.level );
     printCpm(txt._client, buf, true);
 
     return PA_NONE;

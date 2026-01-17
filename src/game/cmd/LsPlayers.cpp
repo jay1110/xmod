@@ -88,20 +88,23 @@ LsPlayers::doExecute( Context& txt )
 
     string tmp;
     for (int i = 0; i < MAX_CLIENTS; i++) {
-        User& user = *connectedUsers[i];
-        if (user == User::BAD)
+        // Use session-aware helpers - skip if no valid player data
+        const std::string& playerNamex = getPlayerNamex(i);
+        if (playerNamex.empty())
             continue;
 
         Client& cobj = g_clientObjects[i];
+        int playerLevel = getPlayerLevel(i);
+        bool playerMuted = isPlayerMuted(i);
 
         string err;
-        Level& lev = levelDB.fetchByKey( user.authLevel, err );
+        Level& lev = levelDB.fetchByKey( playerLevel, err );
         gclient_t& client = level.clients[i];
 
         buf << colA( i )
             << colB( (client.pers.connected == CON_CONNECTING ? 'C' : '-') )
-            << colC( (user.muted ? 'M' : '-') )
-            << colD( str::etAlignLeft( user.namex, colD.width, tmp ));
+            << colC( (playerMuted ? 'M' : '-') )
+            << colD( str::etAlignLeft( playerNamex, colD.width, tmp ));
 
         if (lev.namex.empty())
             buf << colE( lev.level );

@@ -1,5 +1,6 @@
 #include <bgame/impl.h>
 #include <bgame/xm_auth_shared.h>
+#include <game/xmod_globals.h>
 
 #include <omnibot/et/g_etbot_interface.h>
 
@@ -1307,10 +1308,11 @@ void ClientThink_real( gentity_t *ent, bool skipServerTime ) {
 
 
     // Unmute the player if the time is expired
-    if (connectedUsers[ent-g_entities]->muted) {
-        User& user = *connectedUsers[ent-g_entities];
+    if (::xmod::isClientMuted(ent-g_entities)) {
+        // Get mute expiry from session helper
+        time_t muteExpiry = ::xmod::getClientMuteExpiry(ent-g_entities);
 
-		if (user.muteExpiry && user.muteExpiry <= time(NULL)) {
+		if (muteExpiry && muteExpiry <= time(NULL)) {
             // Clear normal mute
             G_UnmutePlayer(ent);
 		    CPx(ent - g_entities, "chat \"^3Your mute has expired, and you have been auto-unmuted.\"");
@@ -1362,8 +1364,7 @@ void ClientThink_real( gentity_t *ent, bool skipServerTime ) {
 					clientObject.authWarningShown = true;
 
 					// Mark user as fakeguid so XP won't be saved
-					User& user = *connectedUsers[ent->s.number];
-					user.fakeguid = true;
+					::xmod::setClientFakeGuid(ent->s.number, true);
 
 					G_LogPrintf("[Auth] Client %d (%s): authentication timeout after %d ms - using temporary GUID\n",
 						ent->s.number, client->pers.netname, connectTime);

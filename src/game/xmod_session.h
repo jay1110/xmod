@@ -30,10 +30,14 @@ private:
     time_t muteExpiry;
     std::string muteReason;
     std::string muteAuthority;
+    std::string muteAuthorityx;  // formatted authority name with color codes
     bool fakeguid;
     std::string name;
     std::string namex;
     std::string mac;
+    time_t timestamp;  // time of last activity
+    std::string greetingText;
+    std::string greetingAudio;
 
     Database* db;
 
@@ -68,10 +72,14 @@ public:
     time_t getMuteExpiry() const { return muteExpiry; }
     const std::string& getMuteReason() const { return muteReason; }
     const std::string& getMuteAuthority() const { return muteAuthority; }
+    const std::string& getMuteAuthorityx() const { return muteAuthorityx; }
     bool isFakeGuid() const { return fakeguid; }
     const std::string& getName() const { return name; }
     const std::string& getNamex() const { return namex; }
     const std::string& getMac() const { return mac; }
+    time_t getTimestamp() const { return timestamp; }
+    const std::string& getGreetingText() const { return greetingText; }
+    const std::string& getGreetingAudio() const { return greetingAudio; }
     
     // Setters for session attributes
     void setMuted(bool value) { muted = value; }
@@ -79,11 +87,15 @@ public:
     void setMuteExpiry(time_t value) { muteExpiry = value; }
     void setMuteReason(const std::string& value) { muteReason = value; }
     void setMuteAuthority(const std::string& value) { muteAuthority = value; }
+    void setMuteAuthorityx(const std::string& value) { muteAuthorityx = value; }
     void setFakeGuid(bool value) { fakeguid = value; }
     void setName(const std::string& value) { name = value; }
     void setNamex(const std::string& value) { namex = value; }
     void setMac(const std::string& value) { mac = value; }
     void setUserLevel(int level) { userLevel = level; }
+    void setTimestamp(time_t value) { timestamp = value; }
+    void setGreetingText(const std::string& value) { greetingText = value; }
+    void setGreetingAudio(const std::string& value) { greetingAudio = value; }
 
     // User data operations
     bool getUserAndLevelData();
