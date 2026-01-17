@@ -32,12 +32,14 @@ Mute::doExecute( Context& txt )
     // Use session-aware helpers for player data
     const std::string& targetNamex = getPlayerNamex(target->slot);
     
-    // Self-mute check using GUID comparison
-    const std::string& targetGuid = getPlayerGuid(target->slot);
-    const std::string& userGuid = getPlayerGuid(txt._client ? txt._client->slot : -1);
-    if (!targetGuid.empty() && !userGuid.empty() && targetGuid == userGuid) {
-        txt._ebuf << "You cannot mute yourself.";
-        return PA_ERROR;
+    // Self-mute check using GUID comparison (only if user is a client, not console)
+    if (txt._client) {
+        const std::string& targetGuid = getPlayerGuid(target->slot);
+        const std::string& userGuid = getPlayerGuid(txt._client->slot);
+        if (!targetGuid.empty() && !userGuid.empty() && targetGuid == userGuid) {
+            txt._ebuf << "You cannot mute yourself.";
+            return PA_ERROR;
+        }
     }
 
     if (isHigherLevelError( *target, txt ))

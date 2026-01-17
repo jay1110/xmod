@@ -31,13 +31,15 @@ Kick::doExecute( Context& txt )
 
     // Use session-aware helpers for player data
     const std::string& targetNamex = getPlayerNamex(target->slot);
-    const std::string& targetGuid = getPlayerGuid(target->slot);
-    const std::string& userGuid = getPlayerGuid(txt._client ? txt._client->slot : -1);
     
-    // Self-kick check using GUID comparison
-    if (!targetGuid.empty() && !userGuid.empty() && targetGuid == userGuid) {
-        txt._ebuf << "You cannot kick yourself.";
-        return PA_ERROR;
+    // Self-kick check using GUID comparison (only if user is a client, not console)
+    if (txt._client) {
+        const std::string& targetGuid = getPlayerGuid(target->slot);
+        const std::string& userGuid = getPlayerGuid(txt._client->slot);
+        if (!targetGuid.empty() && !userGuid.empty() && targetGuid == userGuid) {
+            txt._ebuf << "You cannot kick yourself.";
+            return PA_ERROR;
+        }
     }
 
     if (isHigherLevelError( *target, txt ))
