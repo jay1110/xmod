@@ -1,4 +1,5 @@
 #include <bgame/impl.h>
+#include <game/xmod_globals.h>
 
 /*
 =======================================================================
@@ -55,8 +56,8 @@ void G_WriteClientSessionData( gclient_t *client, qboolean restart )
 		client->sess.team_kills,
 		(mvc & 0xFFFF),
 		((mvc >> 16) & 0xFFFF), 
-		(int)connectedUsers[client - level.clients]->muted,
-		(int)connectedUsers[client - level.clients]->muteExpiry,		// Jaybird
+		(int)(::xmod::isClientMuted(client - level.clients) ? 1 : 0),
+		0,		// Jaybird - muteExpiry stored in SQLite now
 		client->sess.shoutcaster,
 		client->sess.ignoreClients[0],
 		client->sess.ignoreClients[1],
@@ -175,6 +176,8 @@ void G_ReadSessionData( gclient_t *client )
 	int mvc_l, mvc_h;
 	char s[MAX_STRING_CHARS];
 	qboolean test;
+	int tempMuted = 0;
+	int tempMuteExpiry = 0;
 
 	trap_Cvar_VariableStringBuffer( va( "session%i", client - level.clients ), s, sizeof(s) );
 
@@ -207,8 +210,8 @@ void G_ReadSessionData( gclient_t *client )
 		&mvc_l,
 		&mvc_h,
 
-		(int *)&connectedUsers[client - level.clients]->muted,
-		(int *)&connectedUsers[client - level.clients]->muteExpiry,
+		&tempMuted,
+		&tempMuteExpiry,
 
 		&client->sess.shoutcaster,
 		&client->sess.ignoreClients[0],
@@ -218,6 +221,11 @@ void G_ReadSessionData( gclient_t *client )
 		&client->sess.revives,				// Jaybird
 		&client->sess.headshots				// Jaybird
 		);
+
+	// Apply muted status via session helper
+	if (tempMuted) {
+		::xmod::setClientMuted(client - level.clients, true);
+	}
 
 	// OSP -- reinstate MV clients
 	client->pers.mvReferenceList = (mvc_h << 16) | mvc_l;
