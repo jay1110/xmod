@@ -94,7 +94,19 @@ commandForName( const string& name )
 bool
 entityHasPermission( const gentity_t* ent, const Privilege& priv )
 {
-    return (ent ? connectedUsers[ ent-g_entities ]->hasPrivilege( priv ) : true);
+    if (!ent)
+        return true;
+    
+    int slot = ent - g_entities;
+    
+    // Try session first for level check, but privilege checks still need User
+    // since Session doesn't have PrivilegeSet
+    if (slot >= 0 && slot < MAX_CLIENTS &&
+        connectedUsers[slot] && connectedUsers[slot] != &User::BAD) {
+        return connectedUsers[slot]->hasPrivilege( priv );
+    }
+    
+    return true;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -102,7 +114,13 @@ entityHasPermission( const gentity_t* ent, const Privilege& priv )
 int
 levelForEntity( const gentity_t* ent )
 {
-    return (ent->client ? connectedUsers[ ent-g_entities ]->authLevel : 0);
+    if (!ent || !ent->client)
+        return 0;
+    
+    int slot = ent - g_entities;
+    
+    // Use session-aware helper
+    return AbstractCommand::getPlayerLevel(slot);
 }
 
 ///////////////////////////////////////////////////////////////////////////////
