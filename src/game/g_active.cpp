@@ -1309,13 +1309,8 @@ void ClientThink_real( gentity_t *ent, bool skipServerTime ) {
 
     // Unmute the player if the time is expired
     if (::xmod::isClientMuted(ent-g_entities)) {
-        // Get mute expiry from session first, fallback to User
-        time_t muteExpiry = 0;
-        if (::xmod::g_sessions[ent-g_entities] && ::xmod::g_sessions[ent-g_entities]->isInitialized()) {
-            muteExpiry = ::xmod::g_sessions[ent-g_entities]->getMuteExpiry();
-        } else if (connectedUsers[ent-g_entities] && connectedUsers[ent-g_entities] != &User::BAD) {
-            muteExpiry = connectedUsers[ent-g_entities]->muteExpiry;
-        }
+        // Get mute expiry from session helper
+        time_t muteExpiry = ::xmod::getClientMuteExpiry(ent-g_entities);
 
 		if (muteExpiry && muteExpiry <= time(NULL)) {
             // Clear normal mute
@@ -1369,8 +1364,7 @@ void ClientThink_real( gentity_t *ent, bool skipServerTime ) {
 					clientObject.authWarningShown = true;
 
 					// Mark user as fakeguid so XP won't be saved
-					User& user = *connectedUsers[ent->s.number];
-					user.fakeguid = true;
+					::xmod::setClientFakeGuid(ent->s.number, true);
 
 					G_LogPrintf("[Auth] Client %d (%s): authentication timeout after %d ms - using temporary GUID\n",
 						ent->s.number, client->pers.netname, connectTime);

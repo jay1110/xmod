@@ -265,4 +265,44 @@ int getClientLevel(int clientNum) {
 
 ///////////////////////////////////////////////////////////////////////////////
 
+void setClientFakeGuid(int clientNum, bool fakeguid)
+{
+    if (clientNum < 0 || clientNum >= MAX_CLIENTS) {
+        return;
+    }
+    
+    // Set on session if available
+    if (g_sessions[clientNum] && g_sessions[clientNum]->isInitialized()) {
+        g_sessions[clientNum]->setFakeGuid(fakeguid);
+    }
+    
+    // Also set on User for backward compatibility
+    if (connectedUsers[clientNum] && connectedUsers[clientNum] != &User::BAD) {
+        connectedUsers[clientNum]->fakeguid = fakeguid;
+    }
+}
+
+///////////////////////////////////////////////////////////////////////////////
+
+time_t getClientMuteExpiry(int clientNum)
+{
+    if (clientNum < 0 || clientNum >= MAX_CLIENTS) {
+        return 0;
+    }
+    
+    // Try session first
+    if (g_sessions[clientNum] && g_sessions[clientNum]->isInitialized()) {
+        return g_sessions[clientNum]->getMuteExpiry();
+    }
+    
+    // Fallback to User
+    if (connectedUsers[clientNum] && connectedUsers[clientNum] != &User::BAD) {
+        return connectedUsers[clientNum]->muteExpiry;
+    }
+    
+    return 0;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+
 } // namespace xmod

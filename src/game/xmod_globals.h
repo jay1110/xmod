@@ -49,6 +49,12 @@ const std::string& getClientNamex(int clientNum);
 // Get player auth level
 int getClientLevel(int clientNum);
 
+// Set fake GUID status on both session and User
+void setClientFakeGuid(int clientNum, bool fakeguid);
+
+// Get mute expiry time
+time_t getClientMuteExpiry(int clientNum);
+
 } // namespace xmod
 
 #endif // GAME_XMOD_GLOBALS_H
