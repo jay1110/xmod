@@ -29,8 +29,13 @@ Kick::doExecute( Context& txt )
     if (lookupPLAYER( txt._args[1], txt, target ))
         return PA_ERROR;
 
-    User& user = *connectedUsers[target->slot];
-    if (user == txt._user) {
+    // Use session-aware helpers for player data
+    const std::string& targetNamex = getPlayerNamex(target->slot);
+    const std::string& targetGuid = getPlayerGuid(target->slot);
+    const std::string& userGuid = getPlayerGuid(txt._client ? txt._client->slot : -1);
+    
+    // Self-kick check using GUID comparison
+    if (!targetGuid.empty() && !userGuid.empty() && targetGuid == userGuid) {
         txt._ebuf << "You cannot kick yourself.";
         return PA_ERROR;
     }
@@ -52,13 +57,12 @@ Kick::doExecute( Context& txt )
         kickReason = "none";
     }
 
-    const User& targetUser = *connectedUsers[target->slot];
     Buffer buf;
-    buf << _name << ": " << xvalue( targetUser.namex ) << " kicked for " << xvalue( cache::kickDuration ) << '.';
+    buf << _name << ": " << xvalue( targetNamex ) << " kicked for " << xvalue( cache::kickDuration ) << '.';
     printCpm( txt._client, buf, true );
 
     buf.reset();
-    buf << '\n' << "player: " << xvalue( targetUser.namex )
+    buf << '\n' << "player: " << xvalue( targetNamex )
         << '\n'
         << '\n' << "duration:"
         << '\n' << xvalue( cache::kickDuration )

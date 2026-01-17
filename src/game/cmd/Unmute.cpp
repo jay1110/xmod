@@ -30,9 +30,11 @@ Unmute::doExecute( Context& txt )
     if (lookupPLAYER( txt._args[1], txt, target ))
         return PA_ERROR;
 
+    // Use session-aware helpers for player data
+    const std::string& targetNamex = getPlayerNamex(target->slot);
+
     // bail if not muted
-    const User& targetUser = *connectedUsers[target->slot];
-    if (!targetUser.muted) {
+    if (!isPlayerMuted(target->slot)) {
         txt._ebuf << "Player is already unmuted.";
         return PA_ERROR;
     }
@@ -41,7 +43,7 @@ Unmute::doExecute( Context& txt )
     trap_SendServerCommand( target->slot, "cp \"^xYou've been unmuted.\n\"" );
 
     Buffer buf;
-    buf << _name << ": " << xvalue( targetUser.namex ) << " was unmuted.";
+    buf << _name << ": " << xvalue( targetNamex ) << " was unmuted.";
     printCpm( txt._client, buf, true );
 
     return PA_NONE;
