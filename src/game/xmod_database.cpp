@@ -50,7 +50,11 @@ bool Database::createTables() {
         "commands TEXT,"
         "greeting TEXT,"
         "xp_skills TEXT,"
-        "muted INTEGER DEFAULT 0"
+        "muted INTEGER DEFAULT 0,"
+        "muteTime INTEGER DEFAULT 0,"
+        "muteExpiry INTEGER DEFAULT 0,"
+        "muteReason TEXT,"
+        "muteAuthority TEXT"
         ");";
 
     const char* sql_bans = 
@@ -103,12 +107,23 @@ bool Database::createTables() {
         "CREATE INDEX IF NOT EXISTS idx_bans_ip ON bans(ip);"
         "CREATE INDEX IF NOT EXISTS idx_names_user_id ON names(user_id);";
 
-    return executeSQL(sql_users) &&
+    bool result = executeSQL(sql_users) &&
            executeSQL(sql_bans) &&
            executeSQL(sql_levels) &&
            executeSQL(sql_maps) &&
            executeSQL(sql_names) &&
            executeSQL(sql_indexes);
+    
+    // Add mute columns if they don't exist (migration for existing databases)
+    if (result) {
+        // These will fail silently if columns already exist
+        executeSQL("ALTER TABLE users ADD COLUMN muteTime INTEGER DEFAULT 0;");
+        executeSQL("ALTER TABLE users ADD COLUMN muteExpiry INTEGER DEFAULT 0;");
+        executeSQL("ALTER TABLE users ADD COLUMN muteReason TEXT;");
+        executeSQL("ALTER TABLE users ADD COLUMN muteAuthority TEXT;");
+    }
+    
+    return result;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -231,7 +246,8 @@ bool Database::userExistsById(int id) {
 bool Database::getUserData(const std::string& guid, UserData& data) {
     if (!isOpen || !db) return false;
 
-    const char* sql = "SELECT id, guid, level, lastSeen, name, hwid, title, commands, greeting, xp_skills, muted "
+    const char* sql = "SELECT id, guid, level, lastSeen, name, hwid, title, commands, greeting, xp_skills, "
+                      "muted, muteTime, muteExpiry, muteReason, muteAuthority "
                       "FROM users WHERE guid = ? LIMIT 1;";
     sqlite3_stmt* stmt = nullptr;
     
@@ -268,6 +284,14 @@ bool Database::getUserData(const std::string& guid, UserData& data) {
         data.xp_skills = xp_skills ? xp_skills : "";
         
         data.muted = sqlite3_column_int(stmt, 10) != 0;
+        data.muteTime = (time_t)sqlite3_column_int64(stmt, 11);
+        data.muteExpiry = (time_t)sqlite3_column_int64(stmt, 12);
+        
+        const char* muteReason = (const char*)sqlite3_column_text(stmt, 13);
+        data.muteReason = muteReason ? muteReason : "";
+        
+        const char* muteAuthority = (const char*)sqlite3_column_text(stmt, 14);
+        data.muteAuthority = muteAuthority ? muteAuthority : "";
         
         sqlite3_finalize(stmt);
         return true;
@@ -282,7 +306,8 @@ bool Database::getUserData(const std::string& guid, UserData& data) {
 bool Database::getUserDataById(int id, UserData& data) {
     if (!isOpen || !db) return false;
 
-    const char* sql = "SELECT id, guid, level, lastSeen, name, hwid, title, commands, greeting, xp_skills, muted "
+    const char* sql = "SELECT id, guid, level, lastSeen, name, hwid, title, commands, greeting, xp_skills, "
+                      "muted, muteTime, muteExpiry, muteReason, muteAuthority "
                       "FROM users WHERE id = ? LIMIT 1;";
     sqlite3_stmt* stmt = nullptr;
     
@@ -319,6 +344,14 @@ bool Database::getUserDataById(int id, UserData& data) {
         data.xp_skills = xp_skills ? xp_skills : "";
         
         data.muted = sqlite3_column_int(stmt, 10) != 0;
+        data.muteTime = (time_t)sqlite3_column_int64(stmt, 11);
+        data.muteExpiry = (time_t)sqlite3_column_int64(stmt, 12);
+        
+        const char* muteReason = (const char*)sqlite3_column_text(stmt, 13);
+        data.muteReason = muteReason ? muteReason : "";
+        
+        const char* muteAuthority = (const char*)sqlite3_column_text(stmt, 14);
+        data.muteAuthority = muteAuthority ? muteAuthority : "";
         
         sqlite3_finalize(stmt);
         return true;
@@ -497,6 +530,41 @@ bool Database::setMuted(int id, bool muted) {
     sqlite3_finalize(stmt);
 
     return rc == SQLITE_DONE;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+
+bool Database::setMuteData(int userId, bool muted, time_t muteTime, time_t muteExpiry, 
+                          const std::string& reason, const std::string& authority) {
+    if (!isOpen || !db) return false;
+
+    const char* sql = "UPDATE users SET muted = ?, muteTime = ?, muteExpiry = ?, "
+                      "muteReason = ?, muteAuthority = ? WHERE id = ?;";
+    sqlite3_stmt* stmt = nullptr;
+    
+    int rc = sqlite3_prepare_v2(db, sql, -1, &stmt, nullptr);
+    if (rc != SQLITE_OK) {
+        return false;
+    }
+
+    sqlite3_bind_int(stmt, 1, muted ? 1 : 0);
+    sqlite3_bind_int64(stmt, 2, (sqlite3_int64)muteTime);
+    sqlite3_bind_int64(stmt, 3, (sqlite3_int64)muteExpiry);
+    sqlite3_bind_text(stmt, 4, reason.c_str(), -1, SQLITE_TRANSIENT);
+    sqlite3_bind_text(stmt, 5, authority.c_str(), -1, SQLITE_TRANSIENT);
+    sqlite3_bind_int(stmt, 6, userId);
+    
+    rc = sqlite3_step(stmt);
+    sqlite3_finalize(stmt);
+
+    return rc == SQLITE_DONE;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+
+bool Database::getUserByGuid(const std::string& guid, UserData& data) {
+    // Alias for getUserData for compatibility
+    return getUserData(guid, data);
 }
 
 ///////////////////////////////////////////////////////////////////////////////

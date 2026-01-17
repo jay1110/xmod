@@ -37,9 +37,10 @@ Splat::doExecute( Context& txt )
 
     G_Damage( &target->gentity, NULL, NULL, NULL, NULL, 10000, DAMAGE_JAY_NO_PROTECTION, MOD_UNKNOWN );
 
-    const User& targetUser = *connectedUsers[target->slot];
+    // Phase 5: Use session-aware helper for player name
+    const std::string& targetNamex = getPlayerNamex(target->slot);
     Buffer buf;
-    buf << _name << ": " << xvalue( targetUser.namex ) << " went splat!";
+    buf << _name << ": " << xvalue( targetNamex ) << " went splat!";
 
     printCpm( txt._client, buf, true );
     return PA_NONE;

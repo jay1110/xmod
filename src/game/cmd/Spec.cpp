@@ -58,9 +58,10 @@ Spec::doExecute( Context& txt )
     actorEnt.client->sess.spectatorState = SPECTATOR_FOLLOW;
     actorEnt.client->sess.spectatorClient = targetEnt->s.number;
 
-    const User& targetUser = *connectedUsers[target->slot];
+    // Phase 5: Use session-aware helper for player name
+    const std::string& targetNamex = getPlayerNamex(target->slot);
     Buffer buf;
-    buf << _name << ": " << "Now following " << xvalue( targetUser.namex ) << " .";
+    buf << _name << ": " << "Now following " << xvalue( targetNamex ) << " .";
     printChat( txt._client, buf );
 
     return PA_NONE;

@@ -73,8 +73,9 @@ Pip::doExecute( Context& txt )
     Buffer buf;
     buf << _name << ": ";
     if (single) {
-       const User& u = *connectedUsers[single->slot];
-       buf << xvalue( u.namex ) << " was pip'd.";
+       // Phase 5: Use session-aware helper for player name
+       const std::string& namex = getPlayerNamex(single->slot);
+       buf << xvalue( namex ) << " was pip'd.";
     }
     else {
        buf << xvalue( num ) << " player" << (num == 1 ? "" : "s") << " pip'd.";

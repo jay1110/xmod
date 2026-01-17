@@ -37,17 +37,18 @@ Pants::doExecute( Context& txt )
 
 
     // bail if already stripped
-    const User& targetUser = *connectedUsers[target->slot];
+    // Phase 5: Use session-aware helper for player name
+    const std::string& targetNamex = getPlayerNamex(target->slot);
     gentity_t* const targetEnt = &target->gentity;
     if (G_HasJayFlag( targetEnt, 1, JF_LOSTPANTS )) {
-        txt._ebuf << xvalue( targetUser.namex ) << " is already stripped.";
+        txt._ebuf << xvalue( targetNamex ) << " is already stripped.";
         return PA_ERROR;
     }
 
     G_SetJayFlag( targetEnt, 1, JF_LOSTPANTS );
 
     Buffer buf;
-    buf << _name << ": " << xvalue( targetUser.namex ) << " was stripped.";
+    buf << _name << ": " << xvalue( targetNamex ) << " was stripped.";
     printCpm( txt._client, buf, true );
 
     return PA_NONE;

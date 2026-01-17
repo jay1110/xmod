@@ -53,9 +53,10 @@ Launch::doExecute( Context& txt )
     targetEnt->client->ps.velocity[1] = 0;
     targetEnt->client->ps.velocity[2] = dist;
 
-    const User& targetUser = *connectedUsers[target->slot];
+    // Phase 5: Use session-aware helper for player name
+    const std::string& targetNamex = getPlayerNamex(target->slot);
     Buffer buf;
-    buf << _name << ": " << xvalue( targetUser.namex ) << " was launched.";
+    buf << _name << ": " << xvalue( targetNamex ) << " was launched.";
     printCpm( txt._client, buf, true );
 
     return PA_NONE;

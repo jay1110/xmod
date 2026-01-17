@@ -72,6 +72,12 @@ protected:
     static bool   lookupPLAYER ( const string&, Context&, Client*&, string = "PLAYER" );
     static bool   lookupPLAYER ( const string&, Context&, vector<Client*>&, string = "PLAYER" );
     static User&  lookupUSER   ( const string&, Context&, string = "USER" );
+    
+    // Session-aware helpers (Phase 4 migration)
+    static xmod::Session* getSession( int clientNum );
+    static const std::string& getPlayerName( int clientNum );
+    static const std::string& getPlayerNamex( int clientNum );
+    static int getPlayerLevel( int clientNum );
 
 public:
     static InlineText _ovalue;

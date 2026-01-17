@@ -90,8 +90,9 @@ AbstractCommand::isAliveError( const Client& target, Context& txt )
     if (target.gentity.health <= 0)
         return false;
 
-    const User& targetUser = *connectedUsers[target.slot];
-    txt._ebuf << xvalue( targetUser.namex) << " is alive.";
+    // Phase 4: Use session-aware helper for player name
+    const std::string& namex = getPlayerNamex(target.slot);
+    txt._ebuf << xvalue( namex ) << " is alive.";
     return true;
 }
 
@@ -111,8 +112,9 @@ AbstractCommand::isBotError( const Client& target, Context& txt )
     if (!(target.gentity.r.svFlags & SVF_BOT))
         return false;
 
-    const User& targetUser = *connectedUsers[target.slot];
-    txt._ebuf << xvalue( targetUser.namex ) << " is a bot.";
+    // Phase 4: Use session-aware helper for player name
+    const std::string& namex = getPlayerNamex(target.slot);
+    txt._ebuf << xvalue( namex ) << " is a bot.";
     return true;
 }
 
@@ -132,8 +134,9 @@ AbstractCommand::isDeadError( const Client& target, Context& txt )
     if (target.gentity.health > 0)
         return false;
 
-    const User& targetUser = *connectedUsers[target.slot];
-    txt._ebuf << xvalue( targetUser.namex) << " is dead.";
+    // Phase 4: Use session-aware helper for player name
+    const std::string& namex = getPlayerNamex(target.slot);
+    txt._ebuf << xvalue( namex ) << " is dead.";
     return true;
 }
 
@@ -145,7 +148,10 @@ AbstractCommand::isHigherLevel( const Client& target, const Client* actor )
     if (!actor)
         return false;
 
-    return (connectedUsers[actor->slot]->authLevel < connectedUsers[target.slot]->authLevel );
+    // Phase 4: Use session-aware helper for level comparison
+    int actorLevel = getPlayerLevel(actor->slot);
+    int targetLevel = getPlayerLevel(target.slot);
+    return (actorLevel < targetLevel);
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -153,7 +159,14 @@ AbstractCommand::isHigherLevel( const Client& target, const Client* actor )
 bool
 AbstractCommand::isHigherLevelError( const Client& target, Context& txt )
 {
-    return isHigherLevelError( *connectedUsers[target.slot], txt );
+    // Phase 4: Use session-aware helpers for level and name
+    int targetLevel = getPlayerLevel(target.slot);
+    if (targetLevel <= txt._user.authLevel)
+        return false;
+
+    const std::string& namex = getPlayerNamex(target.slot);
+    txt._ebuf << xvalue( namex ) << " has the same or higher level than you.";
+    return true;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -191,8 +204,9 @@ AbstractCommand::isNotOnTeamError( const Client& target, Context& txt )
     if (!isNotOnTeam( target ))
         return false;
 
-    const User& targetUser = *connectedUsers[target.slot];
-    txt._ebuf << xvalue( targetUser.namex ) << " is not on a team.";
+    // Phase 4: Use session-aware helper for player name
+    const std::string& namex = getPlayerNamex(target.slot);
+    txt._ebuf << xvalue( namex ) << " is not on a team.";
     return true;
 }
 
@@ -212,8 +226,9 @@ AbstractCommand::isPlayingDeadError( const Client& target, Context& txt )
     if (!(target.gclient.ps.eFlags & EF_PLAYDEAD))
         return false;
 
-    const User& targetUser = *connectedUsers[target.slot];
-    txt._ebuf << xvalue( targetUser.namex) << " is playing dead.";
+    // Phase 4: Use session-aware helper for player name
+    const std::string& namex = getPlayerNamex(target.slot);
+    txt._ebuf << xvalue( namex ) << " is playing dead.";
     return true;
 }
 
@@ -284,12 +299,14 @@ AbstractCommand::lookupPLAYER( const string& name, vector<Client*>& out, string&
     str::toLower( lname );
 
     // search connected users
+    // Phase 4: Prefer session data when available
     for (int i = 0; i < MAX_CLIENTS; i++) {
         Client& client = g_clientObjects[i];
         if (client.gclient.pers.connected != CON_CONNECTED)
             continue;
 
-        string cname = connectedUsers[i]->name;
+        // Get player name from session (already has User fallback built-in)
+        string cname = getPlayerName(i);
         str::toLower( cname );
         if (cname.find( lname ) != string::npos)
             out.push_back( &client );
@@ -363,6 +380,84 @@ AbstractCommand::Context::Context( Client* client, bool silent )
 
 AbstractCommand::Context::~Context()
 {
+}
+
+///////////////////////////////////////////////////////////////////////////////
+
+// Phase 4: Session-aware helper methods
+// These provide safe access to session data with fallbacks to User data
+
+xmod::Session*
+AbstractCommand::getSession( int clientNum )
+{
+    if (clientNum < 0 || clientNum >= MAX_CLIENTS)
+        return nullptr;
+    
+    return xmod::g_sessions[clientNum];
+}
+
+///////////////////////////////////////////////////////////////////////////////
+
+const std::string&
+AbstractCommand::getPlayerName( int clientNum )
+{
+    static const std::string empty = "";
+    
+    // Try session first
+    xmod::Session* session = getSession(clientNum);
+    if (session && session->isInitialized() && !session->getName().empty()) {
+        return session->getName();
+    }
+    
+    // Fallback to User
+    if (clientNum >= 0 && clientNum < MAX_CLIENTS && 
+        connectedUsers[clientNum] && connectedUsers[clientNum] != &User::BAD) {
+        return connectedUsers[clientNum]->name;
+    }
+    
+    return empty;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+
+const std::string&
+AbstractCommand::getPlayerNamex( int clientNum )
+{
+    static const std::string empty = "";
+    
+    // Try session first
+    xmod::Session* session = getSession(clientNum);
+    if (session && session->isInitialized() && !session->getNamex().empty()) {
+        return session->getNamex();
+    }
+    
+    // Fallback to User
+    if (clientNum >= 0 && clientNum < MAX_CLIENTS && 
+        connectedUsers[clientNum] && connectedUsers[clientNum] != &User::BAD) {
+        return connectedUsers[clientNum]->namex;
+    }
+    
+    return empty;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+
+int
+AbstractCommand::getPlayerLevel( int clientNum )
+{
+    // Try session first
+    xmod::Session* session = getSession(clientNum);
+    if (session && session->isAuthenticated()) {
+        return session->getUserLevel();
+    }
+    
+    // Fallback to User
+    if (clientNum >= 0 && clientNum < MAX_CLIENTS && 
+        connectedUsers[clientNum] && connectedUsers[clientNum] != &User::BAD) {
+        return connectedUsers[clientNum]->authLevel;
+    }
+    
+    return 0;
 }
 
 ///////////////////////////////////////////////////////////////////////////////

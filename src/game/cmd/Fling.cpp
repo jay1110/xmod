@@ -56,9 +56,10 @@ Fling::doExecute( Context& txt )
     if (targetEnt->client->ps.velocity[2] < 0)
         targetEnt->client->ps.velocity[2] *= -1;
 
-    const User& targetUser = *connectedUsers[target->slot];
+    // Phase 5: Use session-aware helper for player name
+    const std::string& targetNamex = getPlayerNamex(target->slot);
     Buffer buf;
-    buf << _name << ": " << xvalue( targetUser.namex ) << " was flung.";
+    buf << _name << ": " << xvalue( targetNamex ) << " was flung.";
     printCpm( txt._client, buf, true );
 
     return PA_NONE;

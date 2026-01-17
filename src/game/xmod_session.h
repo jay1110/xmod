@@ -24,6 +24,17 @@ private:
     bool initialized;
     bool authenticated;
 
+    // Additional attributes from User class for session tracking
+    bool muted;
+    time_t muteTime;
+    time_t muteExpiry;
+    std::string muteReason;
+    std::string muteAuthority;
+    bool fakeguid;
+    std::string name;
+    std::string namex;
+    std::string mac;
+
     Database* db;
 
     bool validateGuid(const std::string& guid);
@@ -50,6 +61,29 @@ public:
     const std::string& getIp() const { return ip; }
     int getUserId() const { return userId; }
     int getUserLevel() const { return userLevel; }
+    
+    // Additional getters for session attributes
+    bool isMuted() const { return muted; }
+    time_t getMuteTime() const { return muteTime; }
+    time_t getMuteExpiry() const { return muteExpiry; }
+    const std::string& getMuteReason() const { return muteReason; }
+    const std::string& getMuteAuthority() const { return muteAuthority; }
+    bool isFakeGuid() const { return fakeguid; }
+    const std::string& getName() const { return name; }
+    const std::string& getNamex() const { return namex; }
+    const std::string& getMac() const { return mac; }
+    
+    // Setters for session attributes
+    void setMuted(bool value) { muted = value; }
+    void setMuteTime(time_t value) { muteTime = value; }
+    void setMuteExpiry(time_t value) { muteExpiry = value; }
+    void setMuteReason(const std::string& value) { muteReason = value; }
+    void setMuteAuthority(const std::string& value) { muteAuthority = value; }
+    void setFakeGuid(bool value) { fakeguid = value; }
+    void setName(const std::string& value) { name = value; }
+    void setNamex(const std::string& value) { namex = value; }
+    void setMac(const std::string& value) { mac = value; }
+    void setUserLevel(int level) { userLevel = level; }
 
     // User data operations
     bool getUserAndLevelData();

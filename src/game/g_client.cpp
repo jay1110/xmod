@@ -1916,21 +1916,27 @@ ClientConnect( string& outmsg, int clientNum, qboolean firstTime, qboolean isBot
 	sv_pb_enabled = trap_Cvar_VariableIntegerValue( "sv_punkbuster" ) > 0 ? true : false;
 	cl_pb_enabled = atoi(Info_ValueForKey(userinfo, "cl_punkbuster")) > 0 ? true : false;
 
-	// Get GUID
-	guid = Info_ValueForKey(userinfo, "cl_guid");
+	// Get GUID - prefer authenticated GUID from xmod system
+	// This is now 40 characters (SHA1 hex) instead of 32 (old PB GUID)
+	if (!g_clientObjects[clientNum].authGuid.empty()) {
+		guid = g_clientObjects[clientNum].authGuid;
+	} else {
+		guid = Info_ValueForKey(userinfo, "cl_guid");
+	}
 
 	// Check GUID
     bool fakeguid = false;
-	if (guid.length() != 32) {
+	if (guid.length() != 40) {
 		if (sv_pb_enabled || cl_pb_enabled) {
 			// If PB is enabled anywhere, must have a valid GUID
 			outmsg = "You have an invalid GUID.  This might be a temporary problem, and you should try reconnecting.";
  			return true;
 		} else {
-			// Generate a fake local GUID (must be exactly 32 characters)
+			// Generate a fake local GUID (must be exactly 40 characters)
+			// PENDING(7) + clientNum(2) + padding(31) = 40 chars
 			stringstream newguid;
-			newguid << "CLIENT" << setw(2) << setfill('0') << clientNum 
-			        << setw(24) << 0;  // setfill already set above
+			newguid << "PENDING" << setw(2) << setfill('0') << clientNum 
+			        << string(31, '0');  // Add 31 zeros for padding
 			guid = newguid.str().c_str();
             fakeguid = true;
 		}
@@ -2063,15 +2069,21 @@ ClientConnect( string& outmsg, int clientNum, qboolean firstTime, qboolean isBot
 				if( clientNum == clientNum2 )
 					continue;
 
-				trap_GetUserinfo( clientNum2, userinfo2, sizeof( userinfo2 ));
-				value = Info_ValueForKey( userinfo2, "cl_guid" );
+				// Use xmod session GUID if available (40 chars), otherwise fall back to cl_guid
+				std::string otherGuid;
+				if (xmod::g_sessions[clientNum2] && xmod::g_sessions[clientNum2]->isInitialized()) {
+					otherGuid = xmod::g_sessions[clientNum2]->getGuid();
+				} else {
+					trap_GetUserinfo( clientNum2, userinfo2, sizeof( userinfo2 ));
+					otherGuid = Info_ValueForKey( userinfo2, "cl_guid" );
+				}
 
 				// Do not compare if no guid here
-				if( !value.length() )
+				if( !otherGuid.length() )
 					continue;
 
 				// Drop client if using duplicate GUID.
-				if( !Q_stricmp( guid.c_str(), value.c_str() )) { 
+				if( !Q_stricmp( guid.c_str(), otherGuid.c_str() )) { 
 	            	ostringstream msg;
 					msg	<< "Duplicate GUID already in use by client " << clientNum2
 						<< ", disconnecting: client " << clientNum << "\n";
@@ -2335,9 +2347,12 @@ void ClientBegin( int clientNum )
 			char *value;
 			char userinfo[MAX_INFO_STRING];
 			trap_GetUserinfo( clientNum, userinfo, sizeof( userinfo ) );
-			value = Info_ValueForKey ( userinfo, "cl_guid" );
-			G_LogPrintf( "EnforceMaxLives-GUID: %s\n", value );
-			AddMaxLivesGUID( value );
+			// Use authenticated xmod GUID (40 chars) instead of cl_guid (32 chars)
+			const char* guidForMaxLives = g_clientObjects[clientNum].authGuid.empty() 
+				? Info_ValueForKey ( userinfo, "cl_guid" )
+				: g_clientObjects[clientNum].authGuid.c_str();
+			G_LogPrintf( "EnforceMaxLives-GUID: %s\n", guidForMaxLives );
+			AddMaxLivesGUID( guidForMaxLives );
 
 			value = Info_ValueForKey (userinfo, "ip");
 			G_LogPrintf( "EnforceMaxLives-IP: %s\n", value );
