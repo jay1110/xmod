@@ -284,6 +284,27 @@ void setClientFakeGuid(int clientNum, bool fakeguid)
 
 ///////////////////////////////////////////////////////////////////////////////
 
+bool isClientFakeGuid(int clientNum)
+{
+    if (clientNum < 0 || clientNum >= MAX_CLIENTS) {
+        return false;
+    }
+    
+    // Try session first
+    if (g_sessions[clientNum] && g_sessions[clientNum]->isInitialized()) {
+        return g_sessions[clientNum]->isFakeGuid();
+    }
+    
+    // Fallback to User
+    if (connectedUsers[clientNum] && connectedUsers[clientNum] != &User::BAD) {
+        return connectedUsers[clientNum]->fakeguid;
+    }
+    
+    return false;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+
 time_t getClientMuteExpiry(int clientNum)
 {
     if (clientNum < 0 || clientNum >= MAX_CLIENTS) {
@@ -317,6 +338,82 @@ bool hasClientPrivilege(int clientNum, const Privilege& privilege)
     }
     
     return false;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+
+void setClientMuteData(int clientNum, time_t muteTime, const std::string& reason, 
+                       const std::string& authority, const std::string& authorityx, time_t expiry)
+{
+    if (clientNum < 0 || clientNum >= MAX_CLIENTS) {
+        return;
+    }
+    
+    // Set on session if available
+    if (g_sessions[clientNum] && g_sessions[clientNum]->isInitialized()) {
+        g_sessions[clientNum]->setMuteTime(muteTime);
+        g_sessions[clientNum]->setMuteReason(reason);
+        g_sessions[clientNum]->setMuteAuthority(authority);
+        g_sessions[clientNum]->setMuteExpiry(expiry);
+    }
+    
+    // Also set on User for backward compatibility
+    if (connectedUsers[clientNum] && connectedUsers[clientNum] != &User::BAD) {
+        connectedUsers[clientNum]->muteTime = muteTime;
+        connectedUsers[clientNum]->muteReason = reason;
+        connectedUsers[clientNum]->muteAuthority = authority;
+        connectedUsers[clientNum]->muteAuthorityx = authorityx;
+        connectedUsers[clientNum]->muteExpiry = expiry;
+    }
+}
+
+///////////////////////////////////////////////////////////////////////////////
+
+void clearClientMuteData(int clientNum)
+{
+    if (clientNum < 0 || clientNum >= MAX_CLIENTS) {
+        return;
+    }
+    
+    // Clear on session if available
+    if (g_sessions[clientNum] && g_sessions[clientNum]->isInitialized()) {
+        g_sessions[clientNum]->setMuteTime(0);
+        g_sessions[clientNum]->setMuteReason("");
+        g_sessions[clientNum]->setMuteAuthority("");
+        g_sessions[clientNum]->setMuteExpiry(0);
+    }
+    
+    // Also clear on User for backward compatibility
+    if (connectedUsers[clientNum] && connectedUsers[clientNum] != &User::BAD) {
+        connectedUsers[clientNum]->muteTime = 0;
+        connectedUsers[clientNum]->muteReason = "";
+        connectedUsers[clientNum]->muteAuthority = "";
+        connectedUsers[clientNum]->muteAuthorityx = "";
+        connectedUsers[clientNum]->muteExpiry = 0;
+    }
+}
+
+///////////////////////////////////////////////////////////////////////////////
+
+static const std::string EMPTY_STRING;
+
+const std::string& getClientIp(int clientNum)
+{
+    if (clientNum < 0 || clientNum >= MAX_CLIENTS) {
+        return EMPTY_STRING;
+    }
+    
+    // Try session first
+    if (g_sessions[clientNum] && g_sessions[clientNum]->isInitialized()) {
+        return g_sessions[clientNum]->getIp();
+    }
+    
+    // Fallback to User
+    if (connectedUsers[clientNum] && connectedUsers[clientNum] != &User::BAD) {
+        return connectedUsers[clientNum]->ip;
+    }
+    
+    return EMPTY_STRING;
 }
 
 ///////////////////////////////////////////////////////////////////////////////

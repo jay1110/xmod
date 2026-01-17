@@ -333,8 +333,11 @@ void G_PrivateMessage( gentity_t *ent )
 		return;
 
     int clientIndex = ent - g_entities;
-
-    User& user = *connectedUsers[clientIndex];
+    
+    // Get sender info using session helpers
+    int senderLevel = ::xmod::getClientLevel(clientIndex);
+    const std::string& senderNamex = ::xmod::getClientNamex(clientIndex);
+    const std::string& senderName = ::xmod::getClientName(clientIndex);
     Client& actor = g_clientObjects[clientIndex];
 
 	// Disallow when muted - use session helper
@@ -439,7 +442,7 @@ void G_PrivateMessage( gentity_t *ent )
             const std::string& recipientNamex = ::xmod::getClientNamex(*it);
 
             // skip if pm-blocked and actor is not higher level
-            if (c.gclient.pers.pmblock && user.authLevel <= recipientLevel) {
+            if (c.gclient.pers.pmblock && senderLevel <= recipientLevel) {
                 ebuf << xvalue( recipientNamex ) << " is blocking private messages.";
                 cmd::printChat( &actor, ebuf );
                 continue;
@@ -448,11 +451,11 @@ void G_PrivateMessage( gentity_t *ent )
 		    // Send message
             {
                 Buffer buf;
-                buf << xvalue( user.namex ) << " -> " << xvalue( recipientNamex ) << " (" << xvalue( nsubs ) << "): "
+                buf << xvalue( senderNamex ) << " -> " << xvalue( recipientNamex ) << " (" << xvalue( nsubs ) << "): "
                     << xcbold << message;
                 cmd::printPm( &c, buf, true );
 
-    		    CPx( c.slot, va( "cp \"^3Private message from ^7%s^3.\"", user.namex.c_str() ));
+    		    CPx( c.slot, va( "cp \"^3Private message from ^7%s^3.\"", senderNamex.c_str() ));
             }
 
             // bcc: self
@@ -474,14 +477,14 @@ void G_PrivateMessage( gentity_t *ent )
             Client& c = g_clientObjects[*it];
 
             Buffer buf;
-            buf << xvalue( user.namex ) << " -> " << xvalue( args[1] ) << " (" << xvalue( nsubs ) << "): "
+            buf << xvalue( senderNamex ) << " -> " << xvalue( args[1] ) << " (" << xvalue( nsubs ) << "): "
                 << xcbold << message;
             cmd::printPm( &c, buf, false );
         }
     }
 
     // Also log the chat
-	G_LogPrintf( "pm: %s -> %s: %s\n", user.name.c_str(), args[1].c_str(), message.c_str() );
+	G_LogPrintf( "pm: %s -> %s: %s\n", senderName.c_str(), args[1].c_str(), message.c_str() );
 }
 
 /*
@@ -1832,19 +1835,10 @@ bool G_MutePlayer(gentity_t* ent, string muter, string reason)
     // Set mute on both session and User
     ::xmod::setClientMuted(clientNum, true);
     
-    // Also set additional mute info on User (not yet in Session)
-    if (connectedUsers[clientNum] && connectedUsers[clientNum] != &User::BAD) {
-        User& user = *connectedUsers[clientNum];
-        user.muteTime = time( NULL );
-        user.muteReason = reason;
-        user.muteAuthorityx = muter;
-        user.muteAuthority = SanitizeString(muter, false);
-        if (g_muteTime.integer) {
-            user.muteExpiry = time(NULL) + str::toSeconds( g_muteTime.string );
-        } else {
-            user.muteExpiry = 0;
-        }
-    }
+    // Set additional mute info using global helper
+    time_t muteTime = time(NULL);
+    time_t muteExpiry = g_muteTime.integer ? muteTime + str::toSeconds(g_muteTime.string) : 0;
+    ::xmod::setClientMuteData(clientNum, muteTime, reason, SanitizeString(muter, false), muter, muteExpiry);
 
     // Sync to SQLite database
     if (xmod::g_database && xmod::g_database->isOpened() && 
@@ -1874,12 +1868,8 @@ bool G_UnmutePlayer(gentity_t* ent)
     // Set unmute on both session and User
     ::xmod::setClientMuted(clientNum, false);
     
-    // Also clear additional mute info on User (not yet in Session)
-    if (connectedUsers[clientNum] && connectedUsers[clientNum] != &User::BAD) {
-        User& user = *connectedUsers[clientNum];
-        user.muteTime = 0;
-        user.muteAuthorityx = user.muteAuthority = "";
-    }
+    // Clear additional mute info using global helper
+    ::xmod::clearClientMuteData(clientNum);
 
     // Sync to SQLite database
     if (xmod::g_database && xmod::g_database->isOpened() && 
@@ -1899,16 +1889,20 @@ bool G_UnmutePlayer(gentity_t* ent)
 
 void G_BanPlayer(gentity_t* ent, string banner, string reason, int duration)
 {
-    User* user = connectedUsers[ent-g_entities];
+    int clientNum = ent - g_entities;
     time_t expires = duration ? time(NULL) + duration : 0; // 0 is a permanent ban
     
-    string guid = user->guid;
-    string name = user->name;
+    // Get user info using session helpers
+    string guid = ::xmod::getClientGuid(clientNum);
+    string name = ::xmod::getClientName(clientNum);
     string hwid = "";  // Get HWID from authenticated session if available
-    string ip = user->ip;
+    string ip = ::xmod::getClientIp(clientNum);
+    
+    // Check if this is a fake GUID using global helper
+    bool isFakeGuid = ::xmod::isClientFakeGuid(clientNum);
     
     // If this is a fake GUID, we need to generate a permanent fake GUID
-    if (user->fakeguid) {
+    if (isFakeGuid) {
         // Construct GUID - exactly 40 characters to match xmodguid format
         // BANLOC(6) + timestamp(10) + random hex(24) = 40 chars
         stringstream guidstream;
@@ -1932,7 +1926,6 @@ void G_BanPlayer(gentity_t* ent, string banner, string reason, int duration)
     }
 
     // Get HWID from xmod session if available
-    int clientNum = ent - g_entities;
     if (xmod::g_sessions[clientNum] && xmod::g_sessions[clientNum]->isAuthenticated()) {
         hwid = xmod::g_sessions[clientNum]->getHwid();
     }

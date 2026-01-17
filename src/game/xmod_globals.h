@@ -55,11 +55,24 @@ int getClientLevel(int clientNum);
 // Set fake GUID status on both session and User
 void setClientFakeGuid(int clientNum, bool fakeguid);
 
+// Check if client has a fake GUID
+bool isClientFakeGuid(int clientNum);
+
 // Get mute expiry time
 time_t getClientMuteExpiry(int clientNum);
 
 // Check if client has a specific privilege
 bool hasClientPrivilege(int clientNum, const Privilege& privilege);
+
+// Set mute metadata (time, reason, authority) on both session and User
+void setClientMuteData(int clientNum, time_t muteTime, const std::string& reason, 
+                       const std::string& authority, const std::string& authorityx, time_t expiry);
+
+// Clear mute metadata on both session and User
+void clearClientMuteData(int clientNum);
+
+// Get client IP address
+const std::string& getClientIp(int clientNum);
 
 } // namespace xmod
 
