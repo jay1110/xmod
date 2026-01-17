@@ -62,11 +62,11 @@ Ban::doBan( User& user, User& authority, int duration, const string& reason, Buf
 void
 Ban::doBanSlot( int targetSlot, const string& authorityName, int duration, const string& reason, Buffer& out )
 {
-    // Get target player data using session helpers
-    const std::string& targetNamex = getPlayerNamex(targetSlot);
-    const std::string& targetGuid = getPlayerGuid(targetSlot);
-    const std::string& targetIp = getPlayerIp(targetSlot);
-    const std::string& targetName = getPlayerName(targetSlot);
+    // Get target player data using session helpers (qualify with AbstractCommand::)
+    const std::string& targetNamex = AbstractCommand::getPlayerNamex(targetSlot);
+    const std::string& targetGuid = AbstractCommand::getPlayerGuid(targetSlot);
+    const std::string& targetIp = AbstractCommand::getPlayerIp(targetSlot);
+    const std::string& targetName = AbstractCommand::getPlayerName(targetSlot);
     
     out << xvalue( targetNamex ) << " banned " << (duration ? "for " : "")
         << (duration ? str::toStringSecondsRemaining( duration, true ) : "permanently")
