@@ -1,4 +1,5 @@
 #include <bgame/impl.h>
+#include <game/xmod_globals.h>
 
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -387,13 +388,13 @@ AbstractCommand::Context::~Context()
 // Phase 4: Session-aware helper methods
 // These provide safe access to session data with fallbacks to User data
 
-xmod::Session*
+void*
 AbstractCommand::getSession( int clientNum )
 {
     if (clientNum < 0 || clientNum >= MAX_CLIENTS)
         return nullptr;
     
-    return xmod::g_sessions[clientNum];
+    return ::xmod::g_sessions[clientNum];
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -404,7 +405,7 @@ AbstractCommand::getPlayerName( int clientNum )
     static const std::string empty = "";
     
     // Try session first
-    xmod::Session* session = getSession(clientNum);
+    ::xmod::Session* session = static_cast<::xmod::Session*>(getSession(clientNum));
     if (session && session->isInitialized() && !session->getName().empty()) {
         return session->getName();
     }
@@ -426,7 +427,7 @@ AbstractCommand::getPlayerNamex( int clientNum )
     static const std::string empty = "";
     
     // Try session first
-    xmod::Session* session = getSession(clientNum);
+    ::xmod::Session* session = static_cast<::xmod::Session*>(getSession(clientNum));
     if (session && session->isInitialized() && !session->getNamex().empty()) {
         return session->getNamex();
     }
@@ -446,7 +447,7 @@ int
 AbstractCommand::getPlayerLevel( int clientNum )
 {
     // Try session first
-    xmod::Session* session = getSession(clientNum);
+    ::xmod::Session* session = static_cast<::xmod::Session*>(getSession(clientNum));
     if (session && session->isAuthenticated()) {
         return session->getUserLevel();
     }

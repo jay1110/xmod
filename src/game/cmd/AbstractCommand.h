@@ -74,7 +74,8 @@ protected:
     static User&  lookupUSER   ( const string&, Context&, string = "USER" );
     
     // Session-aware helpers (Phase 4 migration)
-    static xmod::Session* getSession( int clientNum );
+    // Uses global namespace ::xmod:: since this header is included within namespace cmd
+    static void* getSession( int clientNum );  // Returns ::xmod::Session* (use static_cast in cpp)
     static const std::string& getPlayerName( int clientNum );
     static const std::string& getPlayerNamex( int clientNum );
     static int getPlayerLevel( int clientNum );

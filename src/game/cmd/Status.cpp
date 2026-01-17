@@ -127,9 +127,9 @@ Status::doExecute( Context& txt )
     // Get counts from SQLite database
     int userCount = 0;
     int banCount = 0;
-    if (xmod::g_database && xmod::g_database->isOpened()) {
-        userCount = xmod::g_database->getUserCount();
-        banCount = xmod::g_database->getBanCount();
+    if (::xmod::g_database && ::xmod::g_database->isOpened()) {
+        userCount = ::xmod::g_database->getUserCount();
+        banCount = ::xmod::g_database->getBanCount();
     }
     
     buf << '\n' << colA("user")  << colB( userCount )

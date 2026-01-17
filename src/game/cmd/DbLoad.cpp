@@ -48,18 +48,18 @@ DbLoad::doExecute( Context& txt )
     // Get counts from SQLite
     int userCount = 0;
     int banCount = 0;
-    if (xmod::g_database && xmod::g_database->isOpened()) {
+    if (::xmod::g_database && ::xmod::g_database->isOpened()) {
         if (doMigration) {
             // Perform migration
-            int migrated = xmod::g_database->importFromLegacyUserDB();
+            int migrated = ::xmod::g_database->importFromLegacyUserDB();
             Buffer buf;
             buf << "^2Migrated " << xvalue(migrated) << " users from legacy userDB to SQLite";
             printCpm( txt._client, buf, true );
             return PA_NONE;
         }
         
-        userCount = xmod::g_database->getUserCount();
-        banCount = xmod::g_database->getBanCount();
+        userCount = ::xmod::g_database->getUserCount();
+        banCount = ::xmod::g_database->getBanCount();
     }
 
     Buffer buf;

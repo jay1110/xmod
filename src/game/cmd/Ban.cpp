@@ -33,14 +33,14 @@ Ban::doBan( User& user, User& authority, int duration, const string& reason, Buf
 
     // Get HWID from xmod session if available
     string hwid = "";
-    if (client && xmod::g_sessions[client->slot] && xmod::g_sessions[client->slot]->isAuthenticated()) {
-        hwid = xmod::g_sessions[client->slot]->getHwid();
+    if (client && ::xmod::g_sessions[client->slot] && ::xmod::g_sessions[client->slot]->isAuthenticated()) {
+        hwid = ::xmod::g_sessions[client->slot]->getHwid();
     }
     
     // Add ban to SQLite database
     time_t expires = duration ? time(NULL) + duration : 0;
-    if (xmod::g_database && xmod::g_database->isOpened()) {
-        xmod::g_database->banUser(user.guid, hwid, user.ip, user.name, authority.name, reason, expires);
+    if (::xmod::g_database && ::xmod::g_database->isOpened()) {
+        ::xmod::g_database->banUser(user.guid, hwid, user.ip, user.name, authority.name, reason, expires);
     }
 
     if (!client)
