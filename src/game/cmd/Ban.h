@@ -13,7 +13,7 @@ public:
     ~Ban();
 
 public:
-    static void doBan( User&, User&, int, const string&, Buffer&, const Client* = NULL );
+    static void doBan( User&, const User&, int, const string&, Buffer&, const Client* = NULL );
     static void doBanSlot( int targetSlot, const string& authorityName, int duration, const string& reason, Buffer& out );
 };
 
