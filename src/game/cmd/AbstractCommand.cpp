@@ -372,7 +372,7 @@ AbstractCommand::lookupUSER( const string& id, Context& txt, string argName )
 
 AbstractCommand::Context::Context( Client* client, bool silent )
     : _client ( client )
-    , _user   ( client ? *connectedUsers[client->slot] : User::CONSOLE )
+    , _user   ( client ? ::xmod::getClientUser(client->slot) : User::CONSOLE )
     , _silent ( silent )
 {
 }
@@ -402,21 +402,8 @@ AbstractCommand::getSession( int clientNum )
 const std::string&
 AbstractCommand::getPlayerName( int clientNum )
 {
-    static const std::string empty = "";
-    
-    // Try session first
-    ::xmod::Session* session = static_cast<::xmod::Session*>(getSession(clientNum));
-    if (session && session->isInitialized() && !session->getName().empty()) {
-        return session->getName();
-    }
-    
-    // Fallback to User
-    if (clientNum >= 0 && clientNum < MAX_CLIENTS && 
-        connectedUsers[clientNum] && connectedUsers[clientNum] != &User::BAD) {
-        return connectedUsers[clientNum]->name;
-    }
-    
-    return empty;
+    // Delegate to global helper
+    return ::xmod::getClientName(clientNum);
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -424,21 +411,8 @@ AbstractCommand::getPlayerName( int clientNum )
 const std::string&
 AbstractCommand::getPlayerNamex( int clientNum )
 {
-    static const std::string empty = "";
-    
-    // Try session first
-    ::xmod::Session* session = static_cast<::xmod::Session*>(getSession(clientNum));
-    if (session && session->isInitialized() && !session->getNamex().empty()) {
-        return session->getNamex();
-    }
-    
-    // Fallback to User
-    if (clientNum >= 0 && clientNum < MAX_CLIENTS && 
-        connectedUsers[clientNum] && connectedUsers[clientNum] != &User::BAD) {
-        return connectedUsers[clientNum]->namex;
-    }
-    
-    return empty;
+    // Delegate to global helper
+    return ::xmod::getClientNamex(clientNum);
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -446,19 +420,8 @@ AbstractCommand::getPlayerNamex( int clientNum )
 int
 AbstractCommand::getPlayerLevel( int clientNum )
 {
-    // Try session first
-    ::xmod::Session* session = static_cast<::xmod::Session*>(getSession(clientNum));
-    if (session && session->isAuthenticated()) {
-        return session->getUserLevel();
-    }
-    
-    // Fallback to User
-    if (clientNum >= 0 && clientNum < MAX_CLIENTS && 
-        connectedUsers[clientNum] && connectedUsers[clientNum] != &User::BAD) {
-        return connectedUsers[clientNum]->authLevel;
-    }
-    
-    return 0;
+    // Delegate to global helper
+    return ::xmod::getClientLevel(clientNum);
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -466,19 +429,8 @@ AbstractCommand::getPlayerLevel( int clientNum )
 bool
 AbstractCommand::isPlayerMuted( int clientNum )
 {
-    // Try session first
-    ::xmod::Session* session = static_cast<::xmod::Session*>(getSession(clientNum));
-    if (session && session->isInitialized()) {
-        return session->isMuted();
-    }
-    
-    // Fallback to User
-    if (clientNum >= 0 && clientNum < MAX_CLIENTS && 
-        connectedUsers[clientNum] && connectedUsers[clientNum] != &User::BAD) {
-        return connectedUsers[clientNum]->muted;
-    }
-    
-    return false;
+    // Delegate to global helper
+    return ::xmod::isClientMuted(clientNum);
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -486,21 +438,8 @@ AbstractCommand::isPlayerMuted( int clientNum )
 const std::string&
 AbstractCommand::getPlayerGuid( int clientNum )
 {
-    static const std::string empty = "";
-    
-    // Try session first
-    ::xmod::Session* session = static_cast<::xmod::Session*>(getSession(clientNum));
-    if (session && session->isInitialized() && !session->getGuid().empty()) {
-        return session->getGuid();
-    }
-    
-    // Fallback to User
-    if (clientNum >= 0 && clientNum < MAX_CLIENTS && 
-        connectedUsers[clientNum] && connectedUsers[clientNum] != &User::BAD) {
-        return connectedUsers[clientNum]->guid;
-    }
-    
-    return empty;
+    // Delegate to global helper
+    return ::xmod::getClientGuid(clientNum);
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -508,21 +447,8 @@ AbstractCommand::getPlayerGuid( int clientNum )
 const std::string&
 AbstractCommand::getPlayerIp( int clientNum )
 {
-    static const std::string empty = "";
-    
-    // Try session first
-    ::xmod::Session* session = static_cast<::xmod::Session*>(getSession(clientNum));
-    if (session && session->isInitialized() && !session->getIp().empty()) {
-        return session->getIp();
-    }
-    
-    // Fallback to User
-    if (clientNum >= 0 && clientNum < MAX_CLIENTS && 
-        connectedUsers[clientNum] && connectedUsers[clientNum] != &User::BAD) {
-        return connectedUsers[clientNum]->ip;
-    }
-    
-    return empty;
+    // Delegate to global helper
+    return ::xmod::getClientIp(clientNum);
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -530,21 +456,8 @@ AbstractCommand::getPlayerIp( int clientNum )
 const std::string&
 AbstractCommand::getPlayerMac( int clientNum )
 {
-    static const std::string empty = "";
-    
-    // Try session first
-    ::xmod::Session* session = static_cast<::xmod::Session*>(getSession(clientNum));
-    if (session && session->isInitialized() && !session->getMac().empty()) {
-        return session->getMac();
-    }
-    
-    // Fallback to User
-    if (clientNum >= 0 && clientNum < MAX_CLIENTS && 
-        connectedUsers[clientNum] && connectedUsers[clientNum] != &User::BAD) {
-        return connectedUsers[clientNum]->mac;
-    }
-    
-    return empty;
+    // Delegate to global helper
+    return ::xmod::getClientMac(clientNum);
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -552,19 +465,8 @@ AbstractCommand::getPlayerMac( int clientNum )
 bool
 AbstractCommand::isPlayerFakeGuid( int clientNum )
 {
-    // Try session first
-    ::xmod::Session* session = static_cast<::xmod::Session*>(getSession(clientNum));
-    if (session && session->isInitialized()) {
-        return session->isFakeGuid();
-    }
-    
-    // Fallback to User
-    if (clientNum >= 0 && clientNum < MAX_CLIENTS && 
-        connectedUsers[clientNum] && connectedUsers[clientNum] != &User::BAD) {
-        return connectedUsers[clientNum]->fakeguid;
-    }
-    
-    return true;  // Default to fake if unknown
+    // Delegate to global helper
+    return ::xmod::isClientFakeGuid(clientNum);
 }
 
 ///////////////////////////////////////////////////////////////////////////////
