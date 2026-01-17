@@ -337,8 +337,8 @@ void G_PrivateMessage( gentity_t *ent )
     User& user = *connectedUsers[clientIndex];
     Client& actor = g_clientObjects[clientIndex];
 
-	// Disallow when muted
-	if (user.muted)
+	// Disallow when muted - use session helper
+	if (::xmod::isClientMuted(clientIndex))
 		return;
 
 	// Get the arguments (this part sucks)
@@ -1823,21 +1823,27 @@ void G_UpdateUptime() {
 bool G_MutePlayer(gentity_t* ent, string muter, string reason)
 {
     int clientNum = ent - g_entities;
-    User& user = *connectedUsers[clientNum];
-
-    if (user.muted) {
+    
+    // Check if already muted using session helper
+    if (::xmod::isClientMuted(clientNum)) {
         return false;
     }
 
-    user.muted = true;
-    user.muteTime = time( NULL );
-    user.muteReason = reason;
-    user.muteAuthorityx = muter;
-    user.muteAuthority = SanitizeString(muter, false);
-    if (g_muteTime.integer) {
-        user.muteExpiry = time(NULL) + str::toSeconds( g_muteTime.string );
-    } else {
-        user.muteExpiry = 0;
+    // Set mute on both session and User
+    ::xmod::setClientMuted(clientNum, true);
+    
+    // Also set additional mute info on User (not yet in Session)
+    if (connectedUsers[clientNum] && connectedUsers[clientNum] != &User::BAD) {
+        User& user = *connectedUsers[clientNum];
+        user.muteTime = time( NULL );
+        user.muteReason = reason;
+        user.muteAuthorityx = muter;
+        user.muteAuthority = SanitizeString(muter, false);
+        if (g_muteTime.integer) {
+            user.muteExpiry = time(NULL) + str::toSeconds( g_muteTime.string );
+        } else {
+            user.muteExpiry = 0;
+        }
     }
 
     // Sync to SQLite database
@@ -1859,15 +1865,21 @@ bool G_MutePlayer(gentity_t* ent, string muter, string reason)
 bool G_UnmutePlayer(gentity_t* ent)
 {
     int clientNum = ent - g_entities;
-    User& user = *connectedUsers[clientNum];
-
-    if (!user.muted) {
+    
+    // Check if not muted using session helper
+    if (!::xmod::isClientMuted(clientNum)) {
         return false;
     }
 
-    user.muted = false;
-    user.muteTime = 0;
-    user.muteAuthorityx = user.muteAuthority = "";
+    // Set unmute on both session and User
+    ::xmod::setClientMuted(clientNum, false);
+    
+    // Also clear additional mute info on User (not yet in Session)
+    if (connectedUsers[clientNum] && connectedUsers[clientNum] != &User::BAD) {
+        User& user = *connectedUsers[clientNum];
+        user.muteTime = 0;
+        user.muteAuthorityx = user.muteAuthority = "";
+    }
 
     // Sync to SQLite database
     if (xmod::g_database && xmod::g_database->isOpened() && 
