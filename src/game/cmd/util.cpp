@@ -1,4 +1,5 @@
 #include <bgame/impl.h>
+#include <game/xmod_globals.h>
 
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -99,11 +100,9 @@ entityHasPermission( const gentity_t* ent, const Privilege& priv )
     
     int slot = ent - g_entities;
     
-    // Try session first for level check, but privilege checks still need User
-    // since Session doesn't have PrivilegeSet
-    if (slot >= 0 && slot < MAX_CLIENTS &&
-        connectedUsers[slot] && connectedUsers[slot] != &User::BAD) {
-        return connectedUsers[slot]->hasPrivilege( priv );
+    // Use global helper for privilege check
+    if (slot >= 0 && slot < MAX_CLIENTS) {
+        return ::xmod::hasClientPrivilege(slot, priv);
     }
     
     return true;

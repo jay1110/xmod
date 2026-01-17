@@ -53,11 +53,8 @@ SetLevel::doExecute( Context& txt )
         return PA_ERROR;
     }
 
-    // Update runtime user level - still need connectedUsers for modifying authLevel
-    // since Session doesn't have a direct setter that syncs to User
-    if (connectedUsers[target->slot] && connectedUsers[target->slot] != &User::BAD) {
-        connectedUsers[target->slot]->authLevel = lev.level;
-    }
+    // Update runtime user level using global helper (sets on both session and User)
+    ::xmod::setClientLevel(target->slot, lev.level);
 
     // Persist level to SQLite database
     if (::xmod::g_database && ::xmod::g_database->isOpened() && 
@@ -66,8 +63,6 @@ SetLevel::doExecute( Context& txt )
         if (userId > 0) {
             if (::xmod::g_database->setLevel(userId, lev.level)) {
                 G_Printf("SetLevel: Updated user %d level to %d in SQLite\n", userId, lev.level);
-                // Also update session level
-                ::xmod::g_sessions[target->slot]->setUserLevel(lev.level);
             } else {
                 G_Printf("^1SetLevel: Failed to update user %d level in SQLite\n", userId);
             }

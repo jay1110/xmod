@@ -74,6 +74,12 @@ void clearClientMuteData(int clientNum);
 // Get client IP address
 const std::string& getClientIp(int clientNum);
 
+// Set client auth level (on both session and User)
+void setClientLevel(int clientNum, int level);
+
+// Get client MAC address
+const std::string& getClientMac(int clientNum);
+
 } // namespace xmod
 
 #endif // GAME_XMOD_GLOBALS_H

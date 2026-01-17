@@ -418,4 +418,44 @@ const std::string& getClientIp(int clientNum)
 
 ///////////////////////////////////////////////////////////////////////////////
 
+void setClientLevel(int clientNum, int level)
+{
+    if (clientNum < 0 || clientNum >= MAX_CLIENTS) {
+        return;
+    }
+    
+    // Set on session if available
+    if (g_sessions[clientNum] && g_sessions[clientNum]->isInitialized()) {
+        g_sessions[clientNum]->setUserLevel(level);
+    }
+    
+    // Also set on User for backward compatibility
+    if (connectedUsers[clientNum] && connectedUsers[clientNum] != &User::BAD) {
+        connectedUsers[clientNum]->authLevel = level;
+    }
+}
+
+///////////////////////////////////////////////////////////////////////////////
+
+const std::string& getClientMac(int clientNum)
+{
+    if (clientNum < 0 || clientNum >= MAX_CLIENTS) {
+        return EMPTY_STRING;
+    }
+    
+    // Try session first
+    if (g_sessions[clientNum] && g_sessions[clientNum]->isInitialized()) {
+        return g_sessions[clientNum]->getMac();
+    }
+    
+    // Fallback to User
+    if (connectedUsers[clientNum] && connectedUsers[clientNum] != &User::BAD) {
+        return connectedUsers[clientNum]->mac;
+    }
+    
+    return EMPTY_STRING;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+
 } // namespace xmod

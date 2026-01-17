@@ -59,6 +59,45 @@ Ban::doBan( User& user, User& authority, int duration, const string& reason, Buf
 
 ///////////////////////////////////////////////////////////////////////////////
 
+void
+Ban::doBanSlot( int targetSlot, const string& authorityName, int duration, const string& reason, Buffer& out )
+{
+    // Get target player data using session helpers
+    const std::string& targetNamex = getPlayerNamex(targetSlot);
+    const std::string& targetGuid = getPlayerGuid(targetSlot);
+    const std::string& targetIp = getPlayerIp(targetSlot);
+    const std::string& targetName = getPlayerName(targetSlot);
+    
+    out << xvalue( targetNamex ) << " banned " << (duration ? "for " : "")
+        << (duration ? str::toStringSecondsRemaining( duration, true ) : "permanently")
+        << '.';
+
+    // Get HWID from xmod session if available
+    string hwid = "";
+    if (::xmod::g_sessions[targetSlot] && ::xmod::g_sessions[targetSlot]->isAuthenticated()) {
+        hwid = ::xmod::g_sessions[targetSlot]->getHwid();
+    }
+    
+    // Add ban to SQLite database
+    time_t expires = duration ? time(NULL) + duration : 0;
+    if (::xmod::g_database && ::xmod::g_database->isOpened()) {
+        ::xmod::g_database->banUser(targetGuid, hwid, targetIp, targetName, authorityName, reason, expires);
+    }
+
+    // Drop the client
+    Buffer buf;
+    buf << '\n' << "user: " << xvalue( targetNamex )
+        << '\n'
+        << '\n' << "duration:"
+        << '\n' << xvalue( duration ? str::toStringSecondsRemaining( duration, true ) : "PERMANENT" )
+        << '\n'
+        << '\n' << "reason:"
+        << '\n' << xvalue( reason );
+    SEngine::dropClient( targetSlot, buf, "You have been banned." );
+}
+
+///////////////////////////////////////////////////////////////////////////////
+
 AbstractCommand::PostAction
 Ban::doExecute( Context& txt )
 {
@@ -115,12 +154,10 @@ Ban::doExecute( Context& txt )
         banReason = "none";
     }
 
-    // Still need User reference for doBan which uses User's guid, ip, name attributes
-    User& user = *connectedUsers[target->slot];
-    
+    // Use session-aware doBanSlot
     Buffer buf;
     buf << _name << ": ";
-    doBan( user, txt._user, banDuration, banReason, buf, target );
+    doBanSlot( target->slot, txt._user.name, banDuration, banReason, buf );
     printCpm( txt._client, buf, true );
 
     return PA_NONE;
