@@ -1,5 +1,6 @@
 #include <bgame/impl.h>
 #include <bgame/xm_auth_shared.h>
+#include <game/xmod_globals.h>
 
 #include <omnibot/et/g_etbot_interface.h>
 
@@ -1307,10 +1308,16 @@ void ClientThink_real( gentity_t *ent, bool skipServerTime ) {
 
 
     // Unmute the player if the time is expired
-    if (connectedUsers[ent-g_entities]->muted) {
-        User& user = *connectedUsers[ent-g_entities];
+    if (::xmod::isClientMuted(ent-g_entities)) {
+        // Get mute expiry from session first, fallback to User
+        time_t muteExpiry = 0;
+        if (::xmod::g_sessions[ent-g_entities] && ::xmod::g_sessions[ent-g_entities]->isInitialized()) {
+            muteExpiry = ::xmod::g_sessions[ent-g_entities]->getMuteExpiry();
+        } else if (connectedUsers[ent-g_entities] && connectedUsers[ent-g_entities] != &User::BAD) {
+            muteExpiry = connectedUsers[ent-g_entities]->muteExpiry;
+        }
 
-		if (user.muteExpiry && user.muteExpiry <= time(NULL)) {
+		if (muteExpiry && muteExpiry <= time(NULL)) {
             // Clear normal mute
             G_UnmutePlayer(ent);
 		    CPx(ent - g_entities, "chat \"^3Your mute has expired, and you have been auto-unmuted.\"");

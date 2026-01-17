@@ -2072,7 +2072,7 @@ qboolean Cmd_CallVote_f( gentity_t *ent, unsigned int dwCommand, qboolean fRefCo
 	// Normal checks, if its not being issued as a referee command
 	// CHRUKER: b067 - Was using the cpm command, but these needs to be displayed immediately.
 	if( !fRefCommand ) {
-		if (connectedUsers[ent-g_entities]->muted) {
+		if (::xmod::isClientMuted(ent-g_entities)) {
 			G_printFull("You cannot vote because you are muted.", ent);
 			return qfalse;
 		} else if( level.voteInfo.voteTime ) {
@@ -3540,34 +3540,34 @@ void ClientCommand( int clientNum ) {
 	}
 
 	if (Q_stricmp (cmd, "say") == 0) {
-		if( !connectedUsers[ent-g_entities]->muted ) {
+		if( !::xmod::isClientMuted(ent-g_entities) ) {
 			Cmd_Say_f (ent, SAY_ALL, qfalse);
 		}
 		return;
 	}
 
 	if( Q_stricmp (cmd, "say_team") == 0 ) {
-		if( !connectedUsers[ent-g_entities]->muted ) {
+		if( !::xmod::isClientMuted(ent-g_entities) ) {
 			Cmd_Say_f (ent, SAY_TEAM, qfalse);
 		}
 		return;
 	} else if (Q_stricmp (cmd, "vsay") == 0) {
-		if( !connectedUsers[ent-g_entities]->muted ) {
+		if( !::xmod::isClientMuted(ent-g_entities) ) {
 			Cmd_Voice_f (ent, SAY_ALL, qfalse, qfalse);
 		}
 		return;
 	} else if (Q_stricmp (cmd, "vsay_team") == 0) {
-		if( !connectedUsers[ent-g_entities]->muted ) {
+		if( !::xmod::isClientMuted(ent-g_entities) ) {
 			Cmd_Voice_f (ent, SAY_TEAM, qfalse, qfalse);
 		}
 		return;
 	} else if (Q_stricmp (cmd, "say_buddy") == 0) {
-		if( !connectedUsers[ent-g_entities]->muted ) {
+		if( !::xmod::isClientMuted(ent-g_entities) ) {
 			Cmd_Say_f( ent, SAY_BUDDY, qfalse );
 		}
 		return;
 	} else if (Q_stricmp (cmd, "vsay_buddy") == 0) {
-		if( !connectedUsers[ent-g_entities]->muted ) {
+		if( !::xmod::isClientMuted(ent-g_entities) ) {
 			Cmd_Voice_f( ent, SAY_BUDDY, qfalse, qfalse );
 		}
 		return;

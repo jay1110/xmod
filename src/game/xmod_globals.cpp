@@ -145,5 +145,124 @@ void updateClientSession(int clientNum) {
 }
 
 ///////////////////////////////////////////////////////////////////////////////
+// Global helper functions for accessing session data
+///////////////////////////////////////////////////////////////////////////////
+
+bool isClientMuted(int clientNum) {
+    if (clientNum < 0 || clientNum >= MAX_CLIENTS) {
+        return false;
+    }
+    
+    // Try session first
+    if (g_sessions[clientNum] && g_sessions[clientNum]->isInitialized()) {
+        return g_sessions[clientNum]->isMuted();
+    }
+    
+    // Fallback to User
+    if (connectedUsers[clientNum] && connectedUsers[clientNum] != &User::BAD) {
+        return connectedUsers[clientNum]->muted;
+    }
+    
+    return false;
+}
+
+void setClientMuted(int clientNum, bool muted) {
+    if (clientNum < 0 || clientNum >= MAX_CLIENTS) {
+        return;
+    }
+    
+    // Set on session
+    if (g_sessions[clientNum] && g_sessions[clientNum]->isInitialized()) {
+        g_sessions[clientNum]->setMuted(muted);
+    }
+    
+    // Also set on User for backward compatibility
+    if (connectedUsers[clientNum] && connectedUsers[clientNum] != &User::BAD) {
+        connectedUsers[clientNum]->muted = muted;
+    }
+}
+
+const std::string& getClientGuid(int clientNum) {
+    static const std::string empty = "";
+    
+    if (clientNum < 0 || clientNum >= MAX_CLIENTS) {
+        return empty;
+    }
+    
+    // Try session first
+    if (g_sessions[clientNum] && g_sessions[clientNum]->isInitialized() && 
+        !g_sessions[clientNum]->getGuid().empty()) {
+        return g_sessions[clientNum]->getGuid();
+    }
+    
+    // Fallback to User
+    if (connectedUsers[clientNum] && connectedUsers[clientNum] != &User::BAD) {
+        return connectedUsers[clientNum]->guid;
+    }
+    
+    return empty;
+}
+
+const std::string& getClientName(int clientNum) {
+    static const std::string empty = "";
+    
+    if (clientNum < 0 || clientNum >= MAX_CLIENTS) {
+        return empty;
+    }
+    
+    // Try session first
+    if (g_sessions[clientNum] && g_sessions[clientNum]->isInitialized() && 
+        !g_sessions[clientNum]->getName().empty()) {
+        return g_sessions[clientNum]->getName();
+    }
+    
+    // Fallback to User
+    if (connectedUsers[clientNum] && connectedUsers[clientNum] != &User::BAD) {
+        return connectedUsers[clientNum]->name;
+    }
+    
+    return empty;
+}
+
+const std::string& getClientNamex(int clientNum) {
+    static const std::string empty = "";
+    
+    if (clientNum < 0 || clientNum >= MAX_CLIENTS) {
+        return empty;
+    }
+    
+    // Try session first
+    if (g_sessions[clientNum] && g_sessions[clientNum]->isInitialized() && 
+        !g_sessions[clientNum]->getNamex().empty()) {
+        return g_sessions[clientNum]->getNamex();
+    }
+    
+    // Fallback to User
+    if (connectedUsers[clientNum] && connectedUsers[clientNum] != &User::BAD) {
+        return connectedUsers[clientNum]->namex;
+    }
+    
+    return empty;
+}
+
+int getClientLevel(int clientNum) {
+    if (clientNum < 0 || clientNum >= MAX_CLIENTS) {
+        return 0;
+    }
+    
+    // Try session first
+    if (g_sessions[clientNum] && g_sessions[clientNum]->isAuthenticated()) {
+        return g_sessions[clientNum]->getUserLevel();
+    }
+    
+    // Fallback to User
+    if (connectedUsers[clientNum] && connectedUsers[clientNum] != &User::BAD) {
+        return connectedUsers[clientNum]->authLevel;
+    }
+    
+    return 0;
+}
+
+///////////////////////////////////////////////////////////////////////////////
 
 } // namespace xmod
