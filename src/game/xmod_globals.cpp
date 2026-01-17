@@ -354,6 +354,7 @@ void setClientMuteData(int clientNum, time_t muteTime, const std::string& reason
         g_sessions[clientNum]->setMuteTime(muteTime);
         g_sessions[clientNum]->setMuteReason(reason);
         g_sessions[clientNum]->setMuteAuthority(authority);
+        g_sessions[clientNum]->setMuteAuthorityx(authorityx);
         g_sessions[clientNum]->setMuteExpiry(expiry);
     }
     
@@ -380,6 +381,7 @@ void clearClientMuteData(int clientNum)
         g_sessions[clientNum]->setMuteTime(0);
         g_sessions[clientNum]->setMuteReason("");
         g_sessions[clientNum]->setMuteAuthority("");
+        g_sessions[clientNum]->setMuteAuthorityx("");
         g_sessions[clientNum]->setMuteExpiry(0);
     }
     
@@ -451,6 +453,150 @@ const std::string& getClientMac(int clientNum)
     // Fallback to User
     if (connectedUsers[clientNum] && connectedUsers[clientNum] != &User::BAD) {
         return connectedUsers[clientNum]->mac;
+    }
+    
+    return EMPTY_STRING;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+
+time_t getClientTimestamp(int clientNum)
+{
+    if (clientNum < 0 || clientNum >= MAX_CLIENTS) {
+        return 0;
+    }
+    
+    // Try session first
+    if (g_sessions[clientNum] && g_sessions[clientNum]->isInitialized()) {
+        return g_sessions[clientNum]->getTimestamp();
+    }
+    
+    // Fallback to User
+    if (connectedUsers[clientNum] && connectedUsers[clientNum] != &User::BAD) {
+        return connectedUsers[clientNum]->timestamp;
+    }
+    
+    return 0;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+
+void setClientTimestamp(int clientNum, time_t ts)
+{
+    if (clientNum < 0 || clientNum >= MAX_CLIENTS) {
+        return;
+    }
+    
+    // Set on session if available
+    if (g_sessions[clientNum] && g_sessions[clientNum]->isInitialized()) {
+        g_sessions[clientNum]->setTimestamp(ts);
+    }
+    
+    // Also set on User for backward compatibility
+    if (connectedUsers[clientNum] && connectedUsers[clientNum] != &User::BAD) {
+        connectedUsers[clientNum]->timestamp = ts;
+    }
+}
+
+///////////////////////////////////////////////////////////////////////////////
+
+const std::string& getClientGreetingText(int clientNum)
+{
+    if (clientNum < 0 || clientNum >= MAX_CLIENTS) {
+        return EMPTY_STRING;
+    }
+    
+    // Try session first
+    if (g_sessions[clientNum] && g_sessions[clientNum]->isInitialized() &&
+        !g_sessions[clientNum]->getGreetingText().empty()) {
+        return g_sessions[clientNum]->getGreetingText();
+    }
+    
+    // Fallback to User
+    if (connectedUsers[clientNum] && connectedUsers[clientNum] != &User::BAD) {
+        return connectedUsers[clientNum]->greetingText;
+    }
+    
+    return EMPTY_STRING;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+
+void setClientGreetingText(int clientNum, const std::string& text)
+{
+    if (clientNum < 0 || clientNum >= MAX_CLIENTS) {
+        return;
+    }
+    
+    // Set on session if available
+    if (g_sessions[clientNum] && g_sessions[clientNum]->isInitialized()) {
+        g_sessions[clientNum]->setGreetingText(text);
+    }
+    
+    // Also set on User for backward compatibility
+    if (connectedUsers[clientNum] && connectedUsers[clientNum] != &User::BAD) {
+        connectedUsers[clientNum]->greetingText = text;
+    }
+}
+
+///////////////////////////////////////////////////////////////////////////////
+
+const std::string& getClientGreetingAudio(int clientNum)
+{
+    if (clientNum < 0 || clientNum >= MAX_CLIENTS) {
+        return EMPTY_STRING;
+    }
+    
+    // Try session first
+    if (g_sessions[clientNum] && g_sessions[clientNum]->isInitialized() &&
+        !g_sessions[clientNum]->getGreetingAudio().empty()) {
+        return g_sessions[clientNum]->getGreetingAudio();
+    }
+    
+    // Fallback to User
+    if (connectedUsers[clientNum] && connectedUsers[clientNum] != &User::BAD) {
+        return connectedUsers[clientNum]->greetingAudio;
+    }
+    
+    return EMPTY_STRING;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+
+void setClientGreetingAudio(int clientNum, const std::string& audio)
+{
+    if (clientNum < 0 || clientNum >= MAX_CLIENTS) {
+        return;
+    }
+    
+    // Set on session if available
+    if (g_sessions[clientNum] && g_sessions[clientNum]->isInitialized()) {
+        g_sessions[clientNum]->setGreetingAudio(audio);
+    }
+    
+    // Also set on User for backward compatibility
+    if (connectedUsers[clientNum] && connectedUsers[clientNum] != &User::BAD) {
+        connectedUsers[clientNum]->greetingAudio = audio;
+    }
+}
+
+///////////////////////////////////////////////////////////////////////////////
+
+const std::string& getClientMuteAuthorityx(int clientNum)
+{
+    if (clientNum < 0 || clientNum >= MAX_CLIENTS) {
+        return EMPTY_STRING;
+    }
+    
+    // Try session first
+    if (g_sessions[clientNum] && g_sessions[clientNum]->isInitialized() &&
+        !g_sessions[clientNum]->getMuteAuthorityx().empty()) {
+        return g_sessions[clientNum]->getMuteAuthorityx();
+    }
+    
+    // Fallback to User
+    if (connectedUsers[clientNum] && connectedUsers[clientNum] != &User::BAD) {
+        return connectedUsers[clientNum]->muteAuthorityx;
     }
     
     return EMPTY_STRING;

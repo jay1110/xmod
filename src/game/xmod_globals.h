@@ -80,6 +80,27 @@ void setClientLevel(int clientNum, int level);
 // Get client MAC address
 const std::string& getClientMac(int clientNum);
 
+// Get client timestamp
+time_t getClientTimestamp(int clientNum);
+
+// Set client timestamp
+void setClientTimestamp(int clientNum, time_t ts);
+
+// Get client greeting text
+const std::string& getClientGreetingText(int clientNum);
+
+// Set client greeting text
+void setClientGreetingText(int clientNum, const std::string& text);
+
+// Get client greeting audio
+const std::string& getClientGreetingAudio(int clientNum);
+
+// Set client greeting audio
+void setClientGreetingAudio(int clientNum, const std::string& audio);
+
+// Get mute authority formatted name
+const std::string& getClientMuteAuthorityx(int clientNum);
+
 } // namespace xmod
 
 #endif // GAME_XMOD_GLOBALS_H
