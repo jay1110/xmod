@@ -1622,6 +1622,13 @@ public:
 			// Without this, the bot stays in CON_CONNECTING state and the engine
 			// will disconnect it after ~250ms (zombie cleanup timeout)
 			ClientBegin(num);
+
+			// Respect requested team/class so bots don't get kicked back to limbo
+			if (pMsg)
+			{
+				ChangeTeam(num, pMsg->m_Team, NULL);
+				ChangeClass(num, pMsg->m_Class, NULL);
+			}
 		}
 		// bad hack to prevent unhandled errors being returned as successful connections
 		return bot && bot->inuse ? num : -1;
