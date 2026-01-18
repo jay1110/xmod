@@ -324,32 +324,47 @@ GeoIP_seek_record
 
 Binary search in GeoIP database for country code
 Requires the database to be loaded into memory cache
+
+GeoIP database is a binary tree where each node is 6 bytes:
+- Bytes 0-2: pointer to left child (when IP bit is 0)
+- Bytes 3-5: pointer to right child (when IP bit is 1)
 =================
 */
 unsigned int GeoIP_seek_record(GeoIP *gi, unsigned long ipnum) {
     int             depth;
-    unsigned int    x;
+    unsigned int    x = 0;
     unsigned int    step;
     const unsigned char *buf;
-    unsigned int    offset = 0;
 
     if (gi == NULL || gi->cache == NULL) {
         return 0;
     }
 
     for (depth = 31; depth >= 0; depth--) {
-        step = 6 * offset + 6 * ((ipnum >> depth) & 1);
-        if (step >= gi->memsize) {
-            return 0;
+        step = 6 * x;
+
+        if (step + 6 >= gi->memsize) {
+            G_Printf("GeoIP: Error Traversing Database for ipnum = %lu - Perhaps database is corrupt?\n", ipnum);
+            return 255;
         }
+
         buf = gi->cache + step;
-        x = (buf[0] << (0 * 8)) + (buf[1] << (1 * 8)) + (buf[2] << (2 * 8));
+
+        if (ipnum & (1 << depth)) {
+            // Right branch: read bytes 3-5
+            x = (buf[3] << 0) + (buf[4] << 8) + (buf[5] << 16);
+        } else {
+            // Left branch: read bytes 0-2
+            x = (buf[0] << 0) + (buf[1] << 8) + (buf[2] << 16);
+        }
+
         if (x >= GEOIP_COUNTRY_BEGIN) {
             return x - GEOIP_COUNTRY_BEGIN;
         }
-        offset = x;
     }
-    return 0;
+
+    G_Printf("GeoIP: Error Traversing Database for ipnum = %lu - Perhaps database is corrupt?\n", ipnum);
+    return 255;
 }
 
 /*
