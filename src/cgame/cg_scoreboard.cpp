@@ -24,7 +24,7 @@ Returns qtrue if the flag was drawn
 static qboolean CG_DrawFlag(float x, float y, float fade, int clientNum) {
 	int client_flag = atoi(Info_ValueForKey(CG_ConfigString(clientNum + CS_PLAYERS), "u"));  // uci
 
-	if (client_flag < MAX_COUNTRY_NUM) {
+	if (client_flag >= 0 && client_flag < MAX_COUNTRY_NUM) {
 		const int flag_size = 32;  // dimensions of a single flag
 		const int all_flags = 512; // dimensions of the picture containing all flags
 

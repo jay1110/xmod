@@ -343,7 +343,7 @@ unsigned int GeoIP_seek_record(GeoIP *gi, unsigned long ipnum) {
     for (depth = 31; depth >= 0; depth--) {
         step = 6 * x;
 
-        if (step + 6 >= gi->memsize) {
+        if (step + 6 > gi->memsize) {
             G_Printf("GeoIP: Error Traversing Database for ipnum = %lu - Perhaps database is corrupt?\n", ipnum);
             return 255;
         }
