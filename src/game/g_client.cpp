@@ -3,6 +3,7 @@
 #include <game/g_lua.h>
 #include <bgame/xm_auth_shared.h>
 #include <game/xmod_globals.h>
+#include <game/g_geoip.h>
 
 // g_client.c -- client functions that don't happen every frame
 
@@ -1802,7 +1803,7 @@ void ClientUserinfoChanged( int clientNum ) {
 
     // send over a subset of the userinfo keys so other clients can
     // print scoreboards, display models, and play custom sounds
-    s = va( "n\\%s\\t\\%i\\c\\%i\\r\\%i\\m\\%s\\s\\%s\\dn\\%s\\dr\\%i\\w\\%i\\lw\\%i\\sw\\%i\\mu\\%i\\ref\\%i\\sc\\%i",
+    s = va( "n\\%s\\t\\%i\\c\\%i\\r\\%i\\m\\%s\\s\\%s\\dn\\%s\\dr\\%i\\w\\%i\\lw\\%i\\sw\\%i\\mu\\%i\\ref\\%i\\sc\\%i\\u\\%i",
         client->pers.netname, 
         client->sess.sessionTeam, 
         client->sess.playerType, 
@@ -1816,7 +1817,8 @@ void ClientUserinfoChanged( int clientNum ) {
         client->sess.latchPlayerWeapon2,
         ::xmod::isClientMuted(clientNum) ? 1 : 0,
         client->sess.referee,
-        client->sess.shoutcaster
+        client->sess.shoutcaster,
+        client->sess.uci
     );
 
     trap_GetConfigstring( CS_PLAYERS + clientNum, oldname, sizeof( oldname ) );
@@ -2114,6 +2116,18 @@ ClientConnect( string& outmsg, int clientNum, qboolean firstTime, qboolean isBot
 	// IP Address
     user.ip = Info_ValueForKey( userinfo, "ip" );
     G_StripIPPort( user.ip );
+
+    // GeoIP country lookup for country flags
+    if (gidb != NULL && g_countryflags.integer) {
+        if (!Q_stricmp(user.ip.c_str(), "localhost")) {
+            client->sess.uci = 254; // Localhost
+        } else {
+            unsigned long ipnum = GeoIP_addr_to_num(user.ip.c_str());
+            client->sess.uci = GeoIP_seek_record(gidb, ipnum);
+        }
+    } else {
+        client->sess.uci = 255; // Unknown
+    }
 
     // MAC
     user.mac = Info_ValueForKey(userinfo, "cl_mac");

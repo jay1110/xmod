@@ -695,6 +695,9 @@ typedef struct {
 	// OSP
 
 	qboolean	versionOK;
+
+	// GeoIP country index for country flags
+	int			uci;		// User Country Index (0-255)
 } clientSession_t;
 
 //

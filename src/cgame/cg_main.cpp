@@ -325,6 +325,9 @@ vmCvar_t	cg_debugDelag;
 vmCvar_t	cg_optimizePrediction;
 //unlagged - client options
 
+// Country Flags
+vmCvar_t	cg_countryflags;
+
 typedef struct {
 	vmCvar_t	*vmCvar;
 	char		*cvarName;
@@ -572,6 +575,9 @@ cvarTable_t		cvarTable[] = {
 	// this will be automagically copied from the server
 	{ &cg_optimizePrediction, "cg_optimizePrediction", "1", CVAR_ARCHIVE },
 //unlagged - client options
+
+	// Country Flags
+	{ &cg_countryflags, "cg_countryflags", "1", CVAR_ARCHIVE },
 
 	//bani - demo recording cvars
 	{ &cl_demorecording, "cl_demorecording", "0", CVAR_ROM },
@@ -1870,6 +1876,9 @@ static void CG_RegisterGraphics( void ) {
 	cgs.media.gamestatePause       = trap_R_RegisterShaderNoMip( "gfx/hud/gamestate/pause" );
 	cgs.media.gamestatePlay        = trap_R_RegisterShaderNoMip( "gfx/hud/gamestate/play" );
 	cgs.media.gamestateWarmup      = trap_R_RegisterShaderNoMip( "gfx/hud/gamestate/warmup" );
+
+	// Country Flags texture
+	cgs.media.countryFlags         = trap_R_RegisterShaderNoMip( "gfx/flags/world_flags" );
 
 	WM_RegisterWeaponTypeShaders();
 
