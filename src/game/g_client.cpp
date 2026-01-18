@@ -1665,8 +1665,8 @@ void ClientUserinfoChanged( int clientNum ) {
     mac = Info_ValueForKey(userinfo, "cl_mac");
     str::toLower( mac );
 
-	// Don't put up with bullshit
-	if (!user.mac.empty() && mac.empty()) {
+	// Don't put up with bullshit - but skip for bots (they don't have MACs)
+	if (!user.mac.empty() && mac.empty() && !(ent->r.svFlags & SVF_BOT)) {
 		ClientDisconnect(clientNum);
 	}
 
