@@ -323,29 +323,31 @@ unsigned long GeoIP_addr_to_num(const char *addr) {
 GeoIP_seek_record
 
 Binary search in GeoIP database for country code
+Requires the database to be loaded into memory cache
 =================
 */
 unsigned int GeoIP_seek_record(GeoIP *gi, unsigned long ipnum) {
     int             depth;
     unsigned int    x;
     unsigned int    step;
-    const unsigned char *buf = NULL;
-    static const unsigned int const_array[] = { 16777216, 65536, 256, 1 };
+    const unsigned char *buf;
+    unsigned int    offset = 0;
+
+    if (gi == NULL || gi->cache == NULL) {
+        return 0;
+    }
 
     for (depth = 31; depth >= 0; depth--) {
-        step = 6 * ((ipnum >> depth) & 1);
-        if (gi->cache != NULL) {
-            buf = gi->cache + step;
-        } else {
-            trap_FS_Seek(gi->GeoIPDatabase, step, FS_SEEK_SET);
-            trap_FS_Read((void *)buf, 6, gi->GeoIPDatabase);
+        step = 6 * offset + 6 * ((ipnum >> depth) & 1);
+        if (step >= gi->memsize) {
+            return 0;
         }
-        if (buf) {
-            x = (buf[0] << (0 * 8)) + (buf[1] << (1 * 8)) + (buf[2] << (2 * 8));
-            if (x >= GEOIP_COUNTRY_BEGIN) {
-                return x - GEOIP_COUNTRY_BEGIN;
-            }
+        buf = gi->cache + step;
+        x = (buf[0] << (0 * 8)) + (buf[1] << (1 * 8)) + (buf[2] << (2 * 8));
+        if (x >= GEOIP_COUNTRY_BEGIN) {
+            return x - GEOIP_COUNTRY_BEGIN;
         }
+        offset = x;
     }
     return 0;
 }
@@ -354,11 +356,12 @@ unsigned int GeoIP_seek_record(GeoIP *gi, unsigned long ipnum) {
 =================
 GeoIP_open
 
-Open and cache the GeoIP database
+Open and cache the GeoIP database into memory
 =================
 */
 void GeoIP_open(void) {
     int len;
+    fileHandle_t f;
 
     if (gidb != NULL) {
         return;
@@ -370,7 +373,11 @@ void GeoIP_open(void) {
         return;
     }
 
-    len = trap_FS_FOpenFile("GeoIP.dat", &gidb->GeoIPDatabase, FS_READ);
+    gidb->cache = NULL;
+    gidb->memsize = 0;
+    gidb->GeoIPDatabase = 0;
+
+    len = trap_FS_FOpenFile("GeoIP.dat", &f, FS_READ);
     if (len < 0) {
         G_Printf("GeoIP: GeoIP.dat not found. Country flags will not be available.\n");
         free(gidb);
@@ -381,13 +388,14 @@ void GeoIP_open(void) {
     gidb->cache = (unsigned char *)malloc((size_t)len);
     if (gidb->cache != NULL) {
         gidb->memsize = (unsigned int)len;
-        trap_FS_Read(gidb->cache, len, gidb->GeoIPDatabase);
-        trap_FS_FCloseFile(gidb->GeoIPDatabase);
-        gidb->GeoIPDatabase = 0;
+        trap_FS_Read(gidb->cache, len, f);
+        trap_FS_FCloseFile(f);
         G_Printf("GeoIP: Loaded GeoIP.dat (%d bytes) into memory.\n", len);
     } else {
-        gidb->memsize = 0;
-        G_Printf("GeoIP: Memory allocation error. Using file-based lookups.\n");
+        trap_FS_FCloseFile(f);
+        G_Printf("GeoIP: Memory allocation error. Country flags will not be available.\n");
+        free(gidb);
+        gidb = NULL;
     }
 }
 

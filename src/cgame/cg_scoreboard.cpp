@@ -23,7 +23,7 @@ static qboolean CG_DrawFlag(float x, float y, float fade, int clientNum) {
 	const int all_flags = 512;
 	
 	// Get country index from client's ConfigString
-	client_flag = Q_atoi(Info_ValueForKey(CG_ConfigString(clientNum + CS_PLAYERS), "u"));
+	client_flag = atoi(Info_ValueForKey(CG_ConfigString(clientNum + CS_PLAYERS), "u"));
 	
 	// Validate flag index
 	if (client_flag < 0 || client_flag >= MAX_COUNTRY_NUM || !cg_countryflags.integer) {
