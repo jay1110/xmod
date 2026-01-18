@@ -344,7 +344,6 @@ unsigned int GeoIP_seek_record(GeoIP *gi, unsigned long ipnum) {
         step = 6 * x;
 
         if (step + 6 > gi->memsize) {
-            G_Printf("GeoIP: Error Traversing Database for ipnum = %lu - Perhaps database is corrupt?\n", ipnum);
             return 255;
         }
 
@@ -363,7 +362,6 @@ unsigned int GeoIP_seek_record(GeoIP *gi, unsigned long ipnum) {
         }
     }
 
-    G_Printf("GeoIP: Error Traversing Database for ipnum = %lu - Perhaps database is corrupt?\n", ipnum);
     return 255;
 }
 
