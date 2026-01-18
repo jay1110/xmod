@@ -1593,10 +1593,12 @@ public:
 
 		char userinfo[MAX_INFO_STRING] = {0};
 
-		// Bot GUID: OMNIBOT + num (2 digits) + padding (31 zeros) = 40 chars total
+		// Bot cl_guid: OMNIBOT + num (2 digits) + padding (23 zeros) = 32 chars total
+		// This matches the standard ET cl_guid format (32 characters)
+		// Note: xmod internally uses 40-char GUIDs, but cl_guid in userinfo should be 32 chars
 		std::stringstream guid;
 		guid << "OMNIBOT" << std::setw(2) << std::setfill('0') << (num % 100)  // Ensure 2 digits
-		     << std::string(31, '0');  // Add 31 zeros for padding
+		     << std::string(23, '0');  // Add 23 zeros for padding (32 - 7 - 2 = 23)
 
 		gentity_t* bot = &g_entities[num];
 
