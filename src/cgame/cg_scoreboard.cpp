@@ -41,11 +41,11 @@ static qboolean CG_DrawFlag(float x, float y, float fade, int clientNum) {
 	// Calculate texture coordinates for the flag
 	// Flags are arranged in a 16x16 grid in a 512x512 texture
 	// Each flag is 32x32 pixels
-	// Calculate row and column in the flag grid
-	int row = (client_flag * flag_size) / all_flags;
-	int col = (client_flag * flag_size) % all_flags;
-	float x1 = (float)col;
-	float y1 = (float)(row * flag_size);
+	const int flags_per_row = all_flags / flag_size;  // 16
+	int grid_row = client_flag / flags_per_row;
+	int grid_col = client_flag % flags_per_row;
+	float x1 = (float)(grid_col * flag_size);
+	float y1 = (float)(grid_row * flag_size);
 	float x2 = x1 + flag_size;
 	float y2 = y1 + flag_size;
 	
