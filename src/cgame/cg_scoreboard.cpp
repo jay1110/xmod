@@ -21,6 +21,7 @@ static qboolean CG_DrawFlag(float x, float y, float fade, int clientNum) {
 	float alpha[4] = { 1.f, 1.f, 1.f, fade };
 	const int flag_size = 32;
 	const int all_flags = 512;
+	const int flags_per_row = 16;
 	
 	// Get country index from client's ConfigString
 	client_flag = atoi(Info_ValueForKey(CG_ConfigString(clientNum + CS_PLAYERS), "u"));
@@ -33,8 +34,8 @@ static qboolean CG_DrawFlag(float x, float y, float fade, int clientNum) {
 	// Calculate texture coordinates for the flag
 	// Flags are arranged in a 16x16 grid in a 512x512 texture
 	// Each flag is 32x32 pixels
-	x1 = (float)((client_flag * flag_size) % all_flags);
-	y1 = (float)((int)((client_flag * flag_size) / all_flags) * flag_size);
+	x1 = (float)((client_flag % flags_per_row) * flag_size);
+	y1 = (float)((client_flag / flags_per_row) * flag_size);
 	x2 = x1 + flag_size;
 	y2 = y1 + flag_size;
 	
