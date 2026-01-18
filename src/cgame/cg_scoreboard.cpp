@@ -12,51 +12,36 @@ vec4_t clrUiBar = { .16f, .2f, .17f, .8f };
 CG_DrawFlag
 
 Draw a country flag at the specified position
+
+All flags are stored in one single image where they are aligned
+into a grid of 16x16 fields. Each flag has an id number starting
+with 0 at the top left corner and ending with 255 in the bottom right
+corner. Client's flag id is stored in the "u" field of configstrings.
+
 Returns qtrue if the flag was drawn
 =================
 */
 static qboolean CG_DrawFlag(float x, float y, float fade, int clientNum) {
-	float alpha[4] = { 1.f, 1.f, 1.f, fade };
-	const int flag_size = 32;  // dimensions of a single flag
-	const int all_flags = 512; // dimensions of the picture containing all flags
-	
-	// Get country index from client's ConfigString
-	const char *configstring = CG_ConfigString(clientNum + CS_PLAYERS);
-	if (!configstring || !*configstring) {
-		return qfalse;  // No client info available
+	int client_flag = atoi(Info_ValueForKey(CG_ConfigString(clientNum + CS_PLAYERS), "u"));  // uci
+
+	if (client_flag >= 0 && client_flag < MAX_COUNTRY_NUM) {
+		const int flag_size = 32;  // dimensions of a single flag
+		const int all_flags = 512; // dimensions of the picture containing all flags
+
+		float alpha[4] = { 1.f, 1.f, 1.f, fade };
+		float x1       = (float)((client_flag * flag_size) % all_flags);
+		float y1       = (float)(floor((client_flag * flag_size) / all_flags) * flag_size);
+		float x2       = x1 + flag_size;
+		float y2       = y1 + flag_size;
+
+		trap_R_SetColor(alpha);
+
+		CG_DrawPicST(x, y, 14, 14, x1 / all_flags, y1 / all_flags, x2 / all_flags, y2 / all_flags, cgs.media.countryFlags);
+
+		trap_R_SetColor(NULL);
+		return qtrue;
 	}
-	
-	const char *uci_value = Info_ValueForKey(configstring, "u");
-	if (!uci_value || !*uci_value) {
-		return qfalse;  // No country code in ConfigString
-	}
-	
-	int client_flag = atoi(uci_value);
-	
-	// Validate flag index and cvar
-	if (client_flag < 0 || client_flag >= MAX_COUNTRY_NUM || !cg_countryflags.integer) {
-		return qfalse;
-	}
-	
-	// Calculate texture coordinates for the flag
-	// Flags are arranged in a 16x16 grid in a 512x512 texture
-	// Each flag is 32x32 pixels
-	const int flags_per_row = all_flags / flag_size;  // 16
-	int grid_row = client_flag / flags_per_row;
-	int grid_col = client_flag % flags_per_row;
-	float x1 = (float)(grid_col * flag_size);
-	float y1 = (float)(grid_row * flag_size);
-	float x2 = x1 + flag_size;
-	float y2 = y1 + flag_size;
-	
-	trap_R_SetColor(alpha);
-	CG_DrawPicST(x, y, 14, 14,
-		x1 / all_flags, y1 / all_flags,
-		x2 / all_flags, y2 / all_flags,
-		cgs.media.countryFlags);
-	trap_R_SetColor(NULL);
-	
-	return qtrue;
+	return qfalse;
 }
 
 /*
