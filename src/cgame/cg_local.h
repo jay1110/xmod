@@ -23,6 +23,7 @@
 #include <ui/ui_shared.h>
 
 #define MAX_LOCATIONS		256
+#define MAX_COUNTRY_NUM		256
 #define	POWERUP_BLINKS		5
 
 #define STATS_FADE_TIME		200.0f
@@ -1873,6 +1874,9 @@ typedef struct {
 	qhandle_t		gamestatePause;
 	qhandle_t		gamestatePlay;
 	qhandle_t		gamestateWarmup;
+
+	// Country Flags
+	qhandle_t		countryFlags;
 } cgMedia_t;
 
 typedef struct {
@@ -2410,6 +2414,9 @@ extern	vmCvar_t		cg_delag;
 extern	vmCvar_t		cg_debugDelag;
 extern	vmCvar_t		cg_optimizePrediction;
 //unlagged - client options
+
+// Country Flags
+extern	vmCvar_t		cg_countryflags;
 
 //
 // cg_main.c
