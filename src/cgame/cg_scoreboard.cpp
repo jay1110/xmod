@@ -16,17 +16,24 @@ Returns qtrue if the flag was drawn
 =================
 */
 static qboolean CG_DrawFlag(float x, float y, float fade, int clientNum) {
-	int client_flag;
-	float x1, y1, x2, y2;
 	float alpha[4] = { 1.f, 1.f, 1.f, fade };
-	const int flag_size = 32;
-	const int all_flags = 512;
-	const int flags_per_row = 16;
+	const int flag_size = 32;  // dimensions of a single flag
+	const int all_flags = 512; // dimensions of the picture containing all flags
 	
 	// Get country index from client's ConfigString
-	client_flag = atoi(Info_ValueForKey(CG_ConfigString(clientNum + CS_PLAYERS), "u"));
+	const char *configstring = CG_ConfigString(clientNum + CS_PLAYERS);
+	if (!configstring || !*configstring) {
+		return qfalse;  // No client info available
+	}
 	
-	// Validate flag index
+	const char *uci_value = Info_ValueForKey(configstring, "u");
+	if (!uci_value || !*uci_value) {
+		return qfalse;  // No country code in ConfigString
+	}
+	
+	int client_flag = atoi(uci_value);
+	
+	// Validate flag index and cvar
 	if (client_flag < 0 || client_flag >= MAX_COUNTRY_NUM || !cg_countryflags.integer) {
 		return qfalse;
 	}
@@ -34,10 +41,13 @@ static qboolean CG_DrawFlag(float x, float y, float fade, int clientNum) {
 	// Calculate texture coordinates for the flag
 	// Flags are arranged in a 16x16 grid in a 512x512 texture
 	// Each flag is 32x32 pixels
-	x1 = (float)((client_flag % flags_per_row) * flag_size);
-	y1 = (float)((client_flag / flags_per_row) * flag_size);
-	x2 = x1 + flag_size;
-	y2 = y1 + flag_size;
+	const int flags_per_row = all_flags / flag_size;  // 16
+	int grid_row = client_flag / flags_per_row;
+	int grid_col = client_flag % flags_per_row;
+	float x1 = (float)(grid_col * flag_size);
+	float y1 = (float)(grid_row * flag_size);
+	float x2 = x1 + flag_size;
+	float y2 = y1 + flag_size;
 	
 	trap_R_SetColor(alpha);
 	CG_DrawPicST(x, y, 14, 14,
