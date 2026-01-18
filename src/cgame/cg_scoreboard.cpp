@@ -21,9 +21,19 @@ static qboolean CG_DrawFlag(float x, float y, float fade, int clientNum) {
 	const int all_flags = 512; // dimensions of the picture containing all flags
 	
 	// Get country index from client's ConfigString
-	int client_flag = atoi(Info_ValueForKey(CG_ConfigString(clientNum + CS_PLAYERS), "u"));
+	const char *configstring = CG_ConfigString(clientNum + CS_PLAYERS);
+	if (!configstring || !*configstring) {
+		return qfalse;  // No client info available
+	}
 	
-	// Validate flag index
+	const char *uci_value = Info_ValueForKey(configstring, "u");
+	if (!uci_value || !*uci_value) {
+		return qfalse;  // No country code in ConfigString
+	}
+	
+	int client_flag = atoi(uci_value);
+	
+	// Validate flag index and cvar
 	if (client_flag < 0 || client_flag >= MAX_COUNTRY_NUM || !cg_countryflags.integer) {
 		return qfalse;
 	}
