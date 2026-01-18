@@ -1616,6 +1616,13 @@ public:
 			PrintError(va("Could not connect bot: %s", connectErrMsg.c_str()));
 			num = -1;
 		}
+		else
+		{
+			// Call ClientBegin to complete the bot connection
+			// Without this, the bot stays in CON_CONNECTING state and the engine
+			// will disconnect it after ~250ms (zombie cleanup timeout)
+			ClientBegin(num);
+		}
 		// bad hack to prevent unhandled errors being returned as successful connections
 		return bot && bot->inuse ? num : -1;
 	}
