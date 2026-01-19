@@ -133,8 +133,8 @@ std::string collectHwidUnix() {
                 if (strcmp(name, "en0") == 0 || strcmp(name, "en1") == 0 || 
                     strcmp(name, "eth0") == 0 || strcmp(name, "wlan0") == 0) {
                     
-                    struct sockaddr_dl* sdl = (struct sockaddr_dl*)ifaptr->ifa_addr;
-                    unsigned char* mac = (unsigned char*)LLADDR(sdl);
+                    struct sockaddr_dl* sdl = static_cast<struct sockaddr_dl*>(static_cast<void*>(ifaptr->ifa_addr));
+                    unsigned char* mac = reinterpret_cast<unsigned char*>(LLADDR(sdl));
                     
                     // Check if MAC is not all zeros
                     bool allZeros = true;
@@ -167,7 +167,7 @@ std::string collectHwidUnix() {
             strncpy(ifr.ifr_name, interfaces[idx], IFNAMSIZ - 1);
             
             if (ioctl(sock, SIOCGIFHWADDR, &ifr) == 0) {
-                unsigned char* mac = (unsigned char*)ifr.ifr_hwaddr.sa_data;
+                unsigned char* mac = reinterpret_cast<unsigned char*>(ifr.ifr_hwaddr.sa_data);
                 // Check if MAC is not all zeros
                 bool allZeros = true;
                 for (int i = 0; i < 6; i++) {
