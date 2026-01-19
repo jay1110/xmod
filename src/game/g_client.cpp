@@ -2193,14 +2193,21 @@ ClientConnect( string& outmsg, int clientNum, qboolean firstTime, qboolean isBot
 		trap_UnlinkEntity( ent );
 	}
 
-	// get and distribute relevent paramters
+	// get and distribute relevant parameters
 	G_LogPrintf( "ClientConnect: %i\n", clientNum );
 	G_UpdateCharacter( client );
-	// For bots, delay Bot_Event_ClientConnected until after team/class is set in AddBot.
-	// This prevents Omnibot from seeing the bot in TEAM_SPECTATOR state before the team
-	// is properly configured, which was causing crashes in CheckServerSettings.
+	// For NEW bots (isBot=true), delay Bot_Event_ClientConnected until after team/class 
+	// is set in AddBot. This prevents Omnibot from seeing the bot in TEAM_SPECTATOR state 
+	// before the team is properly configured.
+	// For PERSISTENT bots on map_restart, isBot=false but SVF_BOT is set. We must pass
+	// the actual bot status to Omnibot so it correctly registers them as bots.
+	// Without this fix, bots would be registered as human players after map_restart
+	// and would not move (their AI would not be started).
 	if (!isBot) {
-		Bot_Event_ClientConnected(clientNum, isBot);
+		// Pass actual bot status from SVF_BOT flag, not the isBot parameter
+		// isBot is only true for NEW bots from AddBot, but SVF_BOT persists across map_restart
+		qboolean actuallyBot = (ent->r.svFlags & SVF_BOT) ? qtrue : qfalse;
+		Bot_Event_ClientConnected(clientNum, actuallyBot);
 	}
 	ClientUserinfoChanged( clientNum );
 
