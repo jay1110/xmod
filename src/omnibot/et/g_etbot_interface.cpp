@@ -23,6 +23,9 @@ void Bot_Event_EntityCreated(gentity_t *pEnt);
 
 bool IsBot(gentity_t *e)
 {
+	// Safety check: ensure entity pointer is valid before accessing
+	if(!e || !e->inuse)
+		return false;
 	return e->r.svFlags & SVF_BOT ? true : false;
 }
 
@@ -1696,16 +1699,27 @@ public:
 			if(G_IsWeaponDisabled(bot, (weapon_t)client->sess.latchPlayerWeapon2, qtrue))
 				client->sess.latchPlayerWeapon2 = 0;
 			
-			// Notify Omnibot about the bot connection AFTER team/class is properly set.
-			// This is critical - Bot_Event_ClientConnected was previously called in ClientConnect
-			// when the bot was still in TEAM_SPECTATOR state, causing Omnibot's CheckServerSettings
-			// to crash when it detected the team change. By moving this call here, Omnibot sees
-			// the bot with its correct team from the start.
-			Bot_Event_ClientConnected(num, qtrue);
-			
-			// Now call ClientBegin once with all data properly set
-			// This completes the connection and spawns the bot
+			// Now call ClientBegin with all session data properly set.
+			// This completes the connection and spawns the bot.
 			ClientBegin(num);
+			
+			// Process the bot entity registration immediately.
+			// G_InitGentity (called by ClientBegin) queued the entity via Bot_Queue_EntityCreated,
+			// but we need to register it NOW before Bot_Event_ClientConnected is called.
+			// Otherwise Omnibot receives GAME_CLIENTCONNECTED before GAME_ENTITYCREATED
+			// which can cause it to access an unregistered entity.
+			if(m_EntityHandles[num].m_NewEntity && bot->inuse)
+			{
+				m_EntityHandles[num].m_NewEntity = false;
+				Bot_Event_EntityCreated(bot);
+			}
+			
+			// Notify Omnibot about the bot connection AFTER ClientBegin has completed
+			// AND the entity has been registered. This is critical because:
+			// 1. ClientBegin zeros out client->ps and may put the bot in limbo
+			// 2. Omnibot's CheckServerSettings needs to see the bot in a consistent state
+			// 3. The bot entity must be registered before Omnibot starts processing it
+			Bot_Event_ClientConnected(num, qtrue);
 		}
 		// bad hack to prevent unhandled errors being returned as successful connections
 		return bot && bot->inuse ? num : -1;
@@ -1719,7 +1733,8 @@ public:
 			if(pMsg->m_GameId >= 0 && pMsg->m_GameId < MAX_CLIENTS)
 			{
 				gentity_t *ent = &g_entities[pMsg->m_GameId];
-				if(IsBot(ent))
+				// Validate entity before checking IsBot
+				if(ent->inuse && ent->client && IsBot(ent))
 					trap_DropClient(pMsg->m_GameId, "disconnected", 0);
 			}
 		}
