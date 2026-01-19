@@ -1932,13 +1932,14 @@ ClientConnect( string& outmsg, int clientNum, qboolean firstTime, qboolean isBot
     // For bots, generate a proper 40-char bot GUID
     // Format: 32 zeros + BOT + 5-digit slot number = 40 chars
     // This gives us: 00000000000000000000000000000000BOT00XXX
+    // Note: fakeguid is NOT set for bots so they get saved to xmod.db
     if (isBot || (ent->r.svFlags & SVF_BOT)) {
         stringstream botguid;
         botguid << string(32, '0')  // 32 zeros prefix
                 << "BOT"
                 << setw(5) << setfill('0') << (clientNum % 100000);  // 5-digit slot number
         guid = botguid.str().c_str();
-        fakeguid = true;
+        // fakeguid = false - bots get saved to xmod.db with their fixed GUID
     }
     else if (guid.length() != 40) {
 		if (sv_pb_enabled || cl_pb_enabled) {
