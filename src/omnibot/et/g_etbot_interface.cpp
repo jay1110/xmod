@@ -1694,6 +1694,13 @@ public:
 			if(G_IsWeaponDisabled(bot, (weapon_t)client->sess.latchPlayerWeapon2, qtrue))
 				client->sess.latchPlayerWeapon2 = 0;
 			
+			// Notify Omnibot about the bot connection AFTER team/class is properly set.
+			// This is critical - Bot_Event_ClientConnected was previously called in ClientConnect
+			// when the bot was still in TEAM_SPECTATOR state, causing Omnibot's CheckServerSettings
+			// to crash when it detected the team change. By moving this call here, Omnibot sees
+			// the bot with its correct team from the start.
+			Bot_Event_ClientConnected(num, qtrue);
+			
 			// Now call ClientBegin once with all data properly set
 			// This completes the connection and spawns the bot
 			ClientBegin(num);
