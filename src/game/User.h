@@ -107,6 +107,10 @@ public:
 
     static const vector<string>::size_type notesMax;
 
+    // XP encoding/decoding for xmod.db storage
+    static std::string encodeXpSkills(const float* xpSkills, const std::string& guid);
+    static bool decodeXpSkills(const std::string& encoded, const std::string& guid, float* xpSkills);
+
 private:
     static void scramble( char*, int );
 };
