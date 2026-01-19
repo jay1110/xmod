@@ -1928,7 +1928,21 @@ ClientConnect( string& outmsg, int clientNum, qboolean firstTime, qboolean isBot
 
 	// Check GUID
     bool fakeguid = false;
-	if (guid.length() != 40) {
+
+    // For bots, generate a proper 40-char bot GUID
+    // Format: 32 zeros + BOT + 5-digit slot number = 40 chars
+    // This gives us: 00000000000000000000000000000000BOT00XXX
+    // Using clientNum (0-63) ensures only up to 64 bot entries in xmod.db
+    // Note: fakeguid is NOT set for bots so they get saved to xmod.db
+    if (isBot || (ent->r.svFlags & SVF_BOT)) {
+        stringstream botguid;
+        botguid << string(32, '0')  // 32 zeros prefix
+                << "BOT"
+                << setw(5) << setfill('0') << clientNum;  // 5-digit slot number (0-63)
+        guid = botguid.str().c_str();
+        // fakeguid = false - bots get saved to xmod.db with their fixed GUID
+    }
+    else if (guid.length() != 40) {
 		if (sv_pb_enabled || cl_pb_enabled) {
 			// If PB is enabled anywhere, must have a valid GUID
 			outmsg = "You have an invalid GUID.  This might be a temporary problem, and you should try reconnecting.";
@@ -1943,11 +1957,6 @@ ClientConnect( string& outmsg, int clientNum, qboolean firstTime, qboolean isBot
             fakeguid = true;
 		}
 	}
-
-    // Bots are also fake
-    if (isBot || (ent->r.svFlags & SVF_BOT)) {
-        fakeguid = true;
-    }
 
     // Get user object
     string err;
@@ -2130,8 +2139,13 @@ ClientConnect( string& outmsg, int clientNum, qboolean firstTime, qboolean isBot
     }
 
     // MAC
-    user.mac = Info_ValueForKey(userinfo, "cl_mac");
-    str::toLower( user.mac );
+    // Bots get a fixed MAC address of 00-00-00-00-00-00
+    if (isBot || (ent->r.svFlags & SVF_BOT)) {
+        user.mac = "00-00-00-00-00-00";
+    } else {
+        user.mac = Info_ValueForKey(userinfo, "cl_mac");
+        str::toLower( user.mac );
+    }
 
     // index user after updating values
     userDB.index( user );
