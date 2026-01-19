@@ -2182,7 +2182,12 @@ ClientConnect( string& outmsg, int clientNum, qboolean firstTime, qboolean isBot
 	// get and distribute relevent paramters
 	G_LogPrintf( "ClientConnect: %i\n", clientNum );
 	G_UpdateCharacter( client );
-	Bot_Event_ClientConnected(clientNum, isBot);
+	// For bots, delay Bot_Event_ClientConnected until after team/class is set in AddBot.
+	// This prevents Omnibot from seeing the bot in TEAM_SPECTATOR state before the team
+	// is properly configured, which was causing crashes in CheckServerSettings.
+	if (!isBot) {
+		Bot_Event_ClientConnected(clientNum, isBot);
+	}
 	ClientUserinfoChanged( clientNum );
 
 	// don't do the "xxx connected" messages if they were caried over from previous level
