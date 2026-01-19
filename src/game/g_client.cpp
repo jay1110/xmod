@@ -2162,6 +2162,13 @@ ClientConnect( string& outmsg, int clientNum, qboolean firstTime, qboolean isBot
 
 		ent->r.svFlags |= SVF_BOT;
 		ent->inuse = qtrue;
+
+		// Auto-authenticate bots with a fake xmodguid
+		// This prevents authentication timeouts and related issues
+		clientObject.authenticated = true;
+		clientObject.authWarningShown = false;
+		// Generate a fake GUID for bots based on their cl_guid (40 chars like real xmodguid)
+		clientObject.authGuid = guid;
 	} else if( firstTime ) {
 		// force into spectator
 		client->sess.sessionTeam = TEAM_SPECTATOR;
@@ -2352,8 +2359,11 @@ void ClientBegin( int clientNum )
 	G_LogPrintf( "ClientBegin: %i\n", clientNum );
 
 	// Send guid_request to client for xmod authentication
-	G_LogPrintf("Sending guid_request to client %d (%s)\n", clientNum, client->pers.netname);
-	trap_SendServerCommand(clientNum, "guid_request");
+	// Skip for bots - they can't process authentication commands
+	if (!(ent->r.svFlags & SVF_BOT)) {
+		G_LogPrintf("Sending guid_request to client %d (%s)\n", clientNum, client->pers.netname);
+		trap_SendServerCommand(clientNum, "guid_request");
+	}
 
 	// Xian - Check for maxlives enforcement
 	if( g_gametype.integer != GT_WOLF_LMS ) {
