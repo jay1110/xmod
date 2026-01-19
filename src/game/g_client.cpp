@@ -2147,7 +2147,7 @@ ClientConnect( string& outmsg, int clientNum, qboolean firstTime, qboolean isBot
 		trap_UnlinkEntity( ent );
 	}
 
-	// get and distribute relevent paramters
+	// get and distribute relevant parameters
 	G_LogPrintf( "ClientConnect: %i\n", clientNum );
 	G_UpdateCharacter( client );
 	
@@ -2159,7 +2159,7 @@ ClientConnect( string& outmsg, int clientNum, qboolean firstTime, qboolean isBot
 	
 	ClientUserinfoChanged( clientNum );
 
-	// don't do the "xxx connected" messages if they were caried over from previous level
+	// don't do the "xxx connected" messages if they were carried over from previous level
 	//		TAT 12/10/2002 - Don't display connected messages in single player
 	if ( firstTime )
 	{
