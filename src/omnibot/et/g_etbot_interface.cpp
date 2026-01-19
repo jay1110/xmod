@@ -23,6 +23,8 @@ void Bot_Event_EntityCreated(gentity_t *pEnt);
 
 bool IsBot(gentity_t *e)
 {
+	if (!e)
+		return false;
 	return e->r.svFlags & SVF_BOT ? true : false;
 }
 
@@ -1624,8 +1626,11 @@ public:
 			if(pMsg->m_GameId >= 0 && pMsg->m_GameId < MAX_CLIENTS)
 			{
 				gentity_t *ent = &g_entities[pMsg->m_GameId];
-				if(IsBot(ent))
+				// Validate entity is in use and is a bot before dropping
+				if(ent->inuse && ent->client && IsBot(ent))
+				{
 					trap_DropClient(pMsg->m_GameId, "disconnected", 0);
+				}
 			}
 		}
 		else

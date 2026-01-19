@@ -2150,7 +2150,13 @@ ClientConnect( string& outmsg, int clientNum, qboolean firstTime, qboolean isBot
 	// get and distribute relevent paramters
 	G_LogPrintf( "ClientConnect: %i\n", clientNum );
 	G_UpdateCharacter( client );
-	Bot_Event_ClientConnected(clientNum, isBot);
+	
+	// Use actual bot status from SVF_BOT flag, not the isBot parameter
+	// On map_restart, persistent bots reconnect via ClientConnect with isBot=false
+	// but still have SVF_BOT set. We must tell Omnibot they are still bots.
+	qboolean actuallyBot = (ent->r.svFlags & SVF_BOT) ? qtrue : qfalse;
+	Bot_Event_ClientConnected(clientNum, actuallyBot);
+	
 	ClientUserinfoChanged( clientNum );
 
 	// don't do the "xxx connected" messages if they were caried over from previous level
