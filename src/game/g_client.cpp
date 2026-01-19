@@ -2163,11 +2163,11 @@ ClientConnect( string& outmsg, int clientNum, qboolean firstTime, qboolean isBot
 		ent->r.svFlags |= SVF_BOT;
 		ent->inuse = qtrue;
 
-		// Auto-authenticate bots with a fake xmodguid
+		// Auto-authenticate bots since they can't respond to guid_request
 		// This prevents authentication timeouts and related issues
 		clientObject.authenticated = true;
 		clientObject.authWarningShown = false;
-		// Generate a fake GUID for bots based on their cl_guid (40 chars like real xmodguid)
+		// Use the bot's cl_guid (e.g., OMNIBOT04...) as their authGuid
 		clientObject.authGuid = guid;
 	} else if( firstTime ) {
 		// force into spectator
@@ -2359,7 +2359,7 @@ void ClientBegin( int clientNum )
 	G_LogPrintf( "ClientBegin: %i\n", clientNum );
 
 	// Send guid_request to client for xmod authentication
-	// Skip for bots - they can't process authentication commands
+	// Skip for bots - they don't have the xmod client module to respond
 	if (!(ent->r.svFlags & SVF_BOT)) {
 		G_LogPrintf("Sending guid_request to client %d (%s)\n", clientNum, client->pers.netname);
 		trap_SendServerCommand(clientNum, "guid_request");
