@@ -2,6 +2,7 @@
 #include <omnibot/et/g_etbot_interface.h>
 #include <game/g_lua.h>
 #include <bgame/xm_auth_shared.h>
+#include <bgame/xm_sha1.h>
 #include <game/xmod_globals.h>
 #include <game/g_geoip.h>
 
@@ -2228,10 +2229,44 @@ ClientConnect( string& outmsg, int clientNum, qboolean firstTime, qboolean isBot
 	// Jaybird - announce admin level entry.
 	clientObject.notifyConnecting( firstTime );
 
-	// Initialize xmod session if available (IP is stored for later use)
-	if (!isBot && xmod::g_database && xmod::g_sessions[clientNum]) {
+	// Initialize xmod session if available
+	if (xmod::g_database && xmod::g_database->isOpened() && xmod::g_sessions[clientNum]) {
 		string ip = Info_ValueForKey( userinfo, "ip" );
 		xmod::g_sessions[clientNum]->init(clientNum, ip);
+		
+		// For bots: store them in the database immediately since they can't authenticate via cgame
+		if (isBot || (ent->r.svFlags & SVF_BOT)) {
+			// Generate a unique bot GUID using SHA1 hash of bot name + identifier
+			// This ensures each bot has a consistent, unique GUID
+			std::string botIdentifier = "XMOD_BOT_" + std::string(client->pers.netname);
+			std::string botGuid = xm_sha1::hashString(botIdentifier);
+			
+			// Generate unique HWID for this bot based on slot
+			std::string botHwidSource = "XMOD_BOT_HWID_" + std::string(client->pers.netname) + "_SLOT" + std::to_string(clientNum);
+			std::string botHwid = xm_sha1::hashString(botHwidSource);
+			
+			G_Printf("[SQLite] Registering bot %d (%s) with GUID: %.8s...\n", 
+			         clientNum, client->pers.netname, botGuid.c_str());
+			
+			// Check if bot exists in database, if not create entry
+			xmod::UserData userData;
+			if (!xmod::g_database->getUserData(botGuid, userData)) {
+				// Create new bot entry
+				if (xmod::g_database->addUser(botGuid, botHwid, client->pers.netname)) {
+					G_Printf("[SQLite] Bot %d (%s) stored in database as NEW user\n", 
+					         clientNum, client->pers.netname);
+				} else {
+					G_Printf("[SQLite] Failed to store bot %d (%s) in database\n", 
+					         clientNum, client->pers.netname);
+				}
+			} else {
+				// Bot already exists, update last seen
+				xmod::g_database->updateLastSeen(userData.id, time(NULL));
+				xmod::g_database->updateName(userData.id, client->pers.netname);
+				G_Printf("[SQLite] Bot %d (%s) exists in database (ID=%d)\n", 
+				         clientNum, client->pers.netname, userData.id);
+			}
+		}
 	}
 
 	// Call Lua et_ClientConnect callback
