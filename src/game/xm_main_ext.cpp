@@ -36,9 +36,9 @@ qboolean OnClientCommand(int clientNum, const char* cmd) {
 
 	// Handle authenticate command - this is the xmodguid authentication
 	if (Q_stricmp(cmd, "authenticate") == 0) {
-		// Validate client number
+		// Validate client number - reject invalid indices
 		if (clientNum < 0 || clientNum >= MAX_CLIENTS) {
-			return qtrue; // Invalid client, but command handled
+			return qtrue; // Command handled (error case - invalid client)
 		}
 
 		gentity_t* ent = &g_entities[clientNum];

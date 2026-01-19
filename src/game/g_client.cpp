@@ -2788,17 +2788,16 @@ We must be careful not to reset important state.
 ============
 */
 void ClientBegin( int clientNum ) {
-	gentity_t* ent;
 	gclient_t* client;
 
 	if ( clientNum < 0 || clientNum >= MAX_CLIENTS ) {
 		return;
 	}
 
-	ent = g_entities + clientNum;
 	client = level.clients + clientNum;
 
-	if ( !client ) {
+	// Ensure client has valid connection state
+	if ( client->pers.connected == CON_DISCONNECTED ) {
 		return;
 	}
 
