@@ -2,6 +2,7 @@
 #include <omnibot/et/g_etbot_interface.h>
 #include <game/g_lua.h>
 #include <bgame/xm_auth_shared.h>
+#include <bgame/xm_sha1.h>
 #include <game/xmod_globals.h>
 
 // g_client.c -- client functions that don't happen every frame
@@ -2169,31 +2170,16 @@ ClientConnect( string& outmsg, int clientNum, qboolean firstTime, qboolean isBot
 		
 		// For bots: store them in the database immediately since they can't authenticate via cgame
 		if (isBot || (ent->r.svFlags & SVF_BOT)) {
-			// Generate a unique bot GUID using SHA1 hash of bot name + slot
-			// This ensures each bot has a consistent GUID across map changes
-			std::string botIdentifier = "BOT_" + std::string(client->pers.netname) + "_SLOT" + std::to_string(clientNum);
+			// Generate a unique bot GUID using SHA1 hash of bot name + identifier
+			// This ensures each bot has a consistent, unique GUID
+			std::string botIdentifier = "XMOD_BOT_" + std::string(client->pers.netname);
+			std::string botGuid = xm_sha1::hashString(botIdentifier);
 			
-			// Create simple hash for bot (just use the identifier padded to 40 chars)
-			std::string botGuid;
-			for (size_t i = 0; i < 40; i++) {
-				if (i < botIdentifier.length()) {
-					char c = botIdentifier[i];
-					// Convert to hex-like character
-					if ((c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z')) {
-						botGuid += 'a' + (c % 6); // a-f
-					} else if (c >= '0' && c <= '9') {
-						botGuid += c;
-					} else {
-						botGuid += '0' + (i % 10);
-					}
-				} else {
-					botGuid += '0' + (i % 10);
-				}
-			}
+			// Generate unique HWID for this bot based on slot
+			std::string botHwidSource = "XMOD_BOT_HWID_" + std::string(client->pers.netname) + "_SLOT" + std::to_string(clientNum);
+			std::string botHwid = xm_sha1::hashString(botHwidSource);
 			
-			std::string botHwid = "0000000000000000000000000000000000000000"; // Bot HWID (40 zeros)
-			
-			G_Printf("^3[SQLite] Registering bot %d (%s) with GUID: %.8s...\n", 
+			G_Printf("[SQLite] Registering bot %d (%s) with GUID: %.8s...\n", 
 			         clientNum, client->pers.netname, botGuid.c_str());
 			
 			// Check if bot exists in database, if not create entry
@@ -2201,17 +2187,17 @@ ClientConnect( string& outmsg, int clientNum, qboolean firstTime, qboolean isBot
 			if (!xmod::g_database->getUserData(botGuid, userData)) {
 				// Create new bot entry
 				if (xmod::g_database->addUser(botGuid, botHwid, client->pers.netname)) {
-					G_Printf("^2[SQLite] Bot %d (%s) stored in database as NEW user\n", 
+					G_Printf("[SQLite] Bot %d (%s) stored in database as NEW user\n", 
 					         clientNum, client->pers.netname);
 				} else {
-					G_Printf("^1[SQLite] Failed to store bot %d (%s) in database\n", 
+					G_Printf("[SQLite] Failed to store bot %d (%s) in database\n", 
 					         clientNum, client->pers.netname);
 				}
 			} else {
 				// Bot already exists, update last seen
 				xmod::g_database->updateLastSeen(userData.id, time(NULL));
 				xmod::g_database->updateName(userData.id, client->pers.netname);
-				G_Printf("^2[SQLite] Bot %d (%s) exists in database (ID=%d)\n", 
+				G_Printf("[SQLite] Bot %d (%s) exists in database (ID=%d)\n", 
 				         clientNum, client->pers.netname, userData.id);
 			}
 		}
