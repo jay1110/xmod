@@ -1736,6 +1736,7 @@ public:
 				// Validate entity before checking IsBot
 				if(ent->inuse && ent->client && IsBot(ent))
 					trap_DropClient(pMsg->m_GameId, "disconnected", 0);
+				}
 			}
 		}
 		else

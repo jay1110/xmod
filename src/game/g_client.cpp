@@ -2219,7 +2219,7 @@ ClientConnect( string& outmsg, int clientNum, qboolean firstTime, qboolean isBot
 	}
 	ClientUserinfoChanged( clientNum );
 
-	// don't do the "xxx connected" messages if they were caried over from previous level
+	// don't do the "xxx connected" messages if they were carried over from previous level
 	//		TAT 12/10/2002 - Don't display connected messages in single player
 	if ( firstTime )
 	{
@@ -3075,6 +3075,49 @@ void ClientDisconnect( int clientNum ) {
 	G_verifyMatchState(i);
 	G_smvAllRemoveSingleClient(ent - g_entities);
 	// OSP
+}
+
+/*
+===========
+ClientBegin
+
+Called when a client is ready to be placed into the game after the
+first serverframe. This happens every time the client is placed fresh
+in the game (team change, respawn, etc).
+
+The engine will also call this on map change or when switching teams.
+
+NOTE: This function may be called multiple times for the same client
+(e.g., when a spectator's followed client disconnects, or on team changes).
+We must be careful not to reset important state.
+============
+*/
+void ClientBegin( int clientNum ) {
+	gclient_t* client;
+
+	if ( clientNum < 0 || clientNum >= MAX_CLIENTS ) {
+		return;
+	}
+
+	client = level.clients + clientNum;
+
+	// Ensure client has valid connection state
+	if ( client->pers.connected == CON_DISCONNECTED ) {
+		return;
+	}
+
+	// Mark client as connected
+	client->pers.connected = CON_CONNECTED;
+
+	// xmod: Notify client object that begin happened (handles greeting)
+	// This function tracks if greeting was already shown
+	g_clientObjects[clientNum].notifyBegin();
+
+	// Call Lua callback
+	G_LuaHook_ClientBegin( clientNum );
+
+	// Log the begin event
+	G_LogPrintf( "ClientBegin: %i\n", clientNum );
 }
 
 // In just the GAME DLL, we want to store the groundtrace surface stuff,
