@@ -121,8 +121,8 @@ sudo pacman -S aarch64-linux-gnu-gcc python zip m4
 Build the modules:
 
 ```bash
-# Build all modules
-PLATFORM=linux-aarch64 make release
+# Cross-compile all modules (when building on x86_64 for ARM64)
+PLATFORM=linux-aarch64 CROSS_COMPILE=1 make release
 
 # Output files will be in:
 # build.linux-aarch64-release/cgame/cgame.mp.aarch64.so
