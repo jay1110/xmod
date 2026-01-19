@@ -120,13 +120,15 @@ class Project:
         for k in initDB.keys():
             this.__dict__[k] = initDB[k]
 
-        this.platformNamef = platform.system().lower()
-        if (re.compile('^cygwin.*').match(this.platformNamef)):
-            this.platformNamef = 'windows'
-        elif (re.compile('^darwin*').match(this.platformNamef)):
-            this.platformNamef = 'osx'
-        elif ('PLATFORM' in os.environ):
+        # PLATFORM environment variable takes priority over auto-detection
+        if ('PLATFORM' in os.environ):
             this.platformNamef = os.environ['PLATFORM']
+        else:
+            this.platformNamef = platform.system().lower()
+            if (re.compile('^cygwin.*').match(this.platformNamef)):
+                this.platformNamef = 'windows'
+            elif (re.compile('^darwin*').match(this.platformNamef)):
+                this.platformNamef = 'osx'
 
         this.variant = this.platformNamef
         if ('VARIANT' in os.environ and len(os.environ['VARIANT']) > 0):
