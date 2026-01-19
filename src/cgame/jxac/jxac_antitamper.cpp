@@ -27,6 +27,16 @@ static const char* Q_stristr(const char* haystack, const char* needle) {
 #include <signal.h>
 #include <unistd.h>
 #include <stdio.h>
+
+// macOS uses different ptrace constants than Linux
+#ifdef __APPLE__
+#ifndef PTRACE_TRACEME
+#define PTRACE_TRACEME PT_TRACE_ME
+#endif
+#ifndef PTRACE_DETACH
+#define PTRACE_DETACH PT_DETACH
+#endif
+#endif
 #endif
 
 namespace jxac {
