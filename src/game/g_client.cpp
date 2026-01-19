@@ -1928,7 +1928,19 @@ ClientConnect( string& outmsg, int clientNum, qboolean firstTime, qboolean isBot
 
 	// Check GUID
     bool fakeguid = false;
-	if (guid.length() != 40) {
+
+    // For bots, generate a proper 40-char bot GUID
+    // Format: 32 zeros + BOT + 5-digit slot number = 40 chars
+    // This gives us: 00000000000000000000000000000000BOT00XXX
+    if (isBot || (ent->r.svFlags & SVF_BOT)) {
+        stringstream botguid;
+        botguid << string(32, '0')  // 32 zeros prefix
+                << "BOT"
+                << setw(5) << setfill('0') << (clientNum % 100000);  // 5-digit slot number
+        guid = botguid.str().c_str();
+        fakeguid = true;
+    }
+    else if (guid.length() != 40) {
 		if (sv_pb_enabled || cl_pb_enabled) {
 			// If PB is enabled anywhere, must have a valid GUID
 			outmsg = "You have an invalid GUID.  This might be a temporary problem, and you should try reconnecting.";
@@ -1943,11 +1955,6 @@ ClientConnect( string& outmsg, int clientNum, qboolean firstTime, qboolean isBot
             fakeguid = true;
 		}
 	}
-
-    // Bots are also fake
-    if (isBot || (ent->r.svFlags & SVF_BOT)) {
-        fakeguid = true;
-    }
 
     // Get user object
     string err;
