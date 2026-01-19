@@ -1600,11 +1600,12 @@ public:
 
 		// Bot cl_guid: 24 zeros + BOT + 5 digit slot number = 32 chars total
 		// Format: 000000000000000000000000BOT00XXX
+		// Using num (slot 0-63) ensures only up to 64 bot entries in xmod.db
 		// This matches the user's expected format and allows proper display in !finger
 		std::stringstream guid;
 		guid << std::string(24, '0')  // 24 zeros prefix
 		     << "BOT"
-		     << std::setw(5) << std::setfill('0') << (num % 100000);  // 5-digit slot number
+		     << std::setw(5) << std::setfill('0') << num;  // 5-digit slot number (0-63)
 
 		gentity_t* bot = &g_entities[num];
 
