@@ -129,7 +129,7 @@ CXX.fnLinkExe = $(call print.LINK,$(CXX),$(1),$(3),$(4),$(strip \
     $(CXX.opt.R) \
     $(CXX.opt.L) \
     $(CXX.opt.l) \
-    $(CXX.fnLinkExe.>>) $($(CC.inherit).CC.fnLinkExe.>>) \
+    $(CXX.fnLinkExe.>>) $($(CXX.inherit).CXX.fnLinkExe.>>) \
     ))
 
 ###############################################################################
@@ -146,7 +146,7 @@ CXX.fnLinkSo = $(call print.LINK,$(CXX),$(1),$(2),$(strip \
     $(CXX.opt.R) \
     $(CXX.opt.L) \
     $(CXX.opt.l) \
-    $(CXX.fnLinkSo.>>) $($(CC.inherit).CC.fnLinkSo.>>) \
+    $(CXX.fnLinkSo.>>) $($(CXX.inherit).CXX.fnLinkSo.>>) \
     ))
 
 ###############################################################################
