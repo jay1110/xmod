@@ -78,11 +78,11 @@ jobs:
         run: |
           # Clean previous build
           rm -rf build.osx64-release
-          # Build for arm64 by setting the architecture
-          PLATFORM=osx64 make release
+          # Build for arm64 using osx-arm64 platform
+          PLATFORM=osx-arm64 make release
           mkdir -p artifacts/macos/arm64
-          find build.osx64-release/${{ matrix.module }} -name "*.dylib" -exec cp {} artifacts/macos/arm64/ \; || true
-          find build.osx64-release/${{ matrix.module }} -name "*_mac" -exec cp {} artifacts/macos/arm64/ \; || true
+          find build.osx-arm64-release/${{ matrix.module }} -name "*.dylib" -exec cp {} artifacts/macos/arm64/ \; || true
+          find build.osx-arm64-release/${{ matrix.module }} -name "*_mac" -exec cp {} artifacts/macos/arm64/ \; || true
       
       - name: Create universal binaries
         run: |

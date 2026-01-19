@@ -179,19 +179,22 @@ To create a universal binary, you need to build for both architectures and combi
 # Build for x86_64
 PLATFORM=osx64 make release
 mkdir -p artifacts/x86_64
-cp build.osx64-release/cgame/*.dylib artifacts/x86_64/
-cp build.osx64-release/ui/*.dylib artifacts/x86_64/
-cp build.osx64-release/game/*.dylib artifacts/x86_64/
+cp build.osx64-release/cgame/*.dylib artifacts/x86_64/ 2>/dev/null || true
+cp build.osx64-release/ui/*.dylib artifacts/x86_64/ 2>/dev/null || true
+cp build.osx64-release/game/*.dylib artifacts/x86_64/ 2>/dev/null || true
 
 # Clean and build for arm64
 make clean
-# Note: Building for arm64 requires proper toolchain configuration
-# This is automatically handled in GitHub Actions
+PLATFORM=osx-arm64 make release
+mkdir -p artifacts/arm64
+cp build.osx-arm64-release/cgame/*.dylib artifacts/arm64/ 2>/dev/null || true
+cp build.osx-arm64-release/ui/*.dylib artifacts/arm64/ 2>/dev/null || true
+cp build.osx-arm64-release/game/*.dylib artifacts/arm64/ 2>/dev/null || true
 
 # Create universal binary using lipo
 lipo -create \
   artifacts/x86_64/cgame.mp.x86_64.dylib \
-  artifacts/arm64/cgame.mp.x86_64.dylib \
+  artifacts/arm64/cgame.mp.arm64.dylib \
   -output cgame.mp.universal.dylib
 
 # Verify the universal binary

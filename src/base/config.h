@@ -7,7 +7,7 @@
 #    include <base/linux/public.h>
 #elif defined( XMOD_MINGW ) || defined( XMOD_MINGW64 )
 #    include <base/mingw/public.h>
-#elif defined( XMOD_OSX ) || defined( XMOD_OSX64 )
+#elif defined( XMOD_OSX ) || defined( XMOD_OSX64 ) || defined( XMOD_OSX_ARM64 )
 #    include <base/osx/public.h>
 #elif defined( XMOD_WINDOWS ) || defined( XMOD_WINDOWS64 )
 #    include <base/windows/public.h>
