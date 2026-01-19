@@ -11,7 +11,7 @@
 #    include <base/osx/public.h>
 #elif defined( XMOD_WINDOWS ) || defined( XMOD_WINDOWS64 )
 #    include <base/windows/public.h>
-#elif defined( XMOD_ANDROID_ARM64 ) || defined( XMOD_ANDROID_X86_64 ) || defined( XMOD_ANDROID_X86 )
+#elif defined( XMOD_ANDROID_ARM64 ) || defined( XMOD_ANDROID_ARMV7A ) || defined( XMOD_ANDROID_X86_64 ) || defined( XMOD_ANDROID_X86 )
 #    include <base/linux/public.h>
 #else
 #    error "XMOD platform is not defined."
