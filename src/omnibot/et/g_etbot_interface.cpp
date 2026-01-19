@@ -1735,6 +1735,7 @@ public:
 				gentity_t *ent = &g_entities[pMsg->m_GameId];
 				// Validate entity before checking IsBot
 				if(ent->inuse && ent->client && IsBot(ent))
+				{
 					trap_DropClient(pMsg->m_GameId, "disconnected", 0);
 				}
 			}
