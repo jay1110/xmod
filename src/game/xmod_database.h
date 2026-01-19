@@ -24,6 +24,10 @@ struct UserData {
     std::string greeting;
     std::string xp_skills;
     bool muted;
+    time_t muteTime;
+    time_t muteExpiry;
+    std::string muteReason;
+    std::string muteAuthority;
 };
 
 struct BanData {
@@ -62,12 +66,15 @@ public:
     bool userExistsById(int id);
     bool getUserData(const std::string& guid, UserData& data);
     bool getUserDataById(int id, UserData& data);
+    bool getUserByGuid(const std::string& guid, UserData& data); // Alias for getUserData
     bool setLevel(int id, int level);
     bool updateLastSeen(int id, time_t lastSeen);
     bool updateName(int id, const std::string& name);
     bool addHwid(int id, const std::string& hwid);
     bool setXpSkills(int id, const std::string& xpSkills);
     bool setMuted(int id, bool muted);
+    bool setMuteData(int userId, bool muted, time_t muteTime, time_t muteExpiry, 
+                     const std::string& reason, const std::string& authority);
 
     // Ban operations
     bool banUser(const std::string& guid, const std::string& hwid, const std::string& ip,

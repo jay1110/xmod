@@ -28,10 +28,10 @@ Unban::doExecute( Context& txt )
 
     const string& id = txt._args[1];
     
-    if (xmod::g_database && xmod::g_database->isOpened()) {
+    if (::xmod::g_database && ::xmod::g_database->isOpened()) {
         // First try as numeric ban ID (this is what !banlist shows)
         int banId = atoi(id.c_str());
-        if (banId > 0 && xmod::g_database->unbanById(banId)) {
+        if (banId > 0 && ::xmod::g_database->unbanById(banId)) {
             Buffer buf;
             buf << _name << ": Ban ID " << xvalue( id ) << " removed.";
             printCpm( txt._client, buf, true );
@@ -39,7 +39,7 @@ Unban::doExecute( Context& txt )
         }
         
         // Then try to unban by GUID (for advanced users)
-        if (xmod::g_database->unbanUser(id)) {
+        if (::xmod::g_database->unbanUser(id)) {
             Buffer buf;
             buf << _name << ": User with GUID " << xvalue( id ) << " unbanned.";
             printCpm( txt._client, buf, true );

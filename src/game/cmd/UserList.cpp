@@ -25,13 +25,13 @@ UserList::~UserList()
 AbstractCommand::PostAction
 UserList::doExecute( Context& txt )
 {
-    if (!xmod::g_database || !xmod::g_database->isOpened()) {
+    if (!::xmod::g_database || !::xmod::g_database->isOpened()) {
         txt._ebuf << "Database not available.";
         return PA_ERROR;
     }
 
-    std::vector<xmod::UserData> users;
-    if (!xmod::g_database->getUserList(users) || users.empty()) {
+    std::vector<::xmod::UserData> users;
+    if (!::xmod::g_database->getUserList(users) || users.empty()) {
         txt._ebuf << "The user database is empty.";
         return PA_ERROR;
     }
@@ -91,8 +91,8 @@ UserList::doExecute( Context& txt )
     string tmp;
 
     uint32 num = 0;
-    for (std::vector<xmod::UserData>::const_iterator it = users.begin(); it != users.end(); ++it) {
-        const xmod::UserData& user = *it;
+    for (std::vector<::xmod::UserData>::const_iterator it = users.begin(); it != users.end(); ++it) {
+        const ::xmod::UserData& user = *it;
         
         ostringstream idStream;
         idStream << user.id;

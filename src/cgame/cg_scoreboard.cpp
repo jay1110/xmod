@@ -9,6 +9,43 @@ vec4_t clrUiBar = { .16f, .2f, .17f, .8f };
 
 /*
 =================
+CG_DrawFlag
+
+Draw a country flag at the specified position
+
+All flags are stored in one single image where they are aligned
+into a grid of 16x16 fields. Each flag has an id number starting
+with 0 at the top left corner and ending with 255 in the bottom right
+corner. Client's flag id is stored in the "u" field of configstrings.
+
+Returns qtrue if the flag was drawn
+=================
+*/
+static qboolean CG_DrawFlag(float x, float y, float fade, int clientNum) {
+	int client_flag = atoi(Info_ValueForKey(CG_ConfigString(clientNum + CS_PLAYERS), "u"));  // uci
+
+	if (client_flag >= 0 && client_flag < MAX_COUNTRY_NUM) {
+		const int flag_size = 32;  // dimensions of a single flag
+		const int all_flags = 512; // dimensions of the picture containing all flags
+
+		float alpha[4] = { 1.f, 1.f, 1.f, fade };
+		float x1       = (float)((client_flag * flag_size) % all_flags);
+		float y1       = (float)(floor((client_flag * flag_size) / all_flags) * flag_size);
+		float x2       = x1 + flag_size;
+		float y2       = y1 + flag_size;
+
+		trap_R_SetColor(alpha);
+
+		CG_DrawPicST(x, y, 14, 14, x1 / all_flags, y1 / all_flags, x2 / all_flags, y2 / all_flags, cgs.media.countryFlags);
+
+		trap_R_SetColor(NULL);
+		return qtrue;
+	}
+	return qfalse;
+}
+
+/*
+=================
 WM_DrawObjectives
 =================
 */
@@ -300,6 +337,15 @@ static void WM_DrawClientScore( int x, int y, score_t *score, float *color, floa
         }
 	}
 
+	// Country flag - draw for all players if enabled
+	if (cg_countryflags.integer && score->ping != -1 && score->ping != 999) {
+		if (CG_DrawFlag(tempx - 3, y + 1, fade, score->client)) {
+			offset += 14;
+			tempx += 14;
+			maxchars -= 2;
+		}
+	}
+
 	// Draw name
 	CG_DrawStringExt( int(tempx), y, ci->name, hcolor, qfalse, qfalse, SMALLCHAR_WIDTH, SMALLCHAR_HEIGHT, maxchars );
 	maxchars -= CG_DrawStrlen( ci->name );
@@ -484,6 +530,15 @@ static void WM_DrawClientScore_Small( int x, int y, score_t *score, float *color
         }
 	}
 
+	// Country flag - draw for all players if enabled
+	if (cg_countryflags.integer && score->ping != -1 && score->ping != 999) {
+		if (CG_DrawFlag(tempx + 1, y + 1, fade, score->client)) {
+			offset += 14;
+			tempx += 14;
+			maxchars -= 2;
+		}
+	}
+
 	// draw name
 	CG_DrawStringExt( int(tempx), y, ci->name, hcolor, qfalse, qfalse, MINICHAR_WIDTH, MINICHAR_HEIGHT, maxchars );
 
@@ -651,7 +706,7 @@ static int WM_TeamScoreboard( int x, int y, team_t team, float fade, int maxrows
 			}
 			stdDeviation = sqrt(total/numPings);
 		}
-		CG_Text_Paint_Ext( x, y, 0.2f, 0.2f, tclr, va( "AVERAGE PING: %.2fms ± %.2fms", mean, stdDeviation ), 0, 0, 0, &cgs.media.limboFont1 );
+		CG_Text_Paint_Ext( x, y, 0.2f, 0.2f, tclr, va( "AVERAGE PING: %.2fms ï¿½ %.2fms", mean, stdDeviation ), 0, 0, 0, &cgs.media.limboFont1 );
 	}
 
 	// draw header

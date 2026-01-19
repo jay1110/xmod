@@ -1,4 +1,5 @@
 #include <bgame/impl.h>
+#include <game/xmod_globals.h>
 
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -54,9 +55,9 @@ AdminLog::log( Client* actor, const vector<string>& args, bool denied )
         entry.slot = -1;
     }
     else {
-        User& user = *connectedUsers[ actor->slot ];
-        entry.guid = user.guid.c_str();
-        entry.name = user.name.c_str();
+        // Use session helpers for GUID and name
+        entry.guid = ::xmod::getClientGuid(actor->slot).c_str();
+        entry.name = ::xmod::getClientName(actor->slot).c_str();
         entry.slot = actor->slot;
     }
 

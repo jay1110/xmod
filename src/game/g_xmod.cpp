@@ -333,12 +333,15 @@ void G_PrivateMessage( gentity_t *ent )
 		return;
 
     int clientIndex = ent - g_entities;
-
-    User& user = *connectedUsers[clientIndex];
+    
+    // Get sender info using session helpers
+    int senderLevel = ::xmod::getClientLevel(clientIndex);
+    const std::string& senderNamex = ::xmod::getClientNamex(clientIndex);
+    const std::string& senderName = ::xmod::getClientName(clientIndex);
     Client& actor = g_clientObjects[clientIndex];
 
-	// Disallow when muted
-	if (user.muted)
+	// Disallow when muted - use session helper
+	if (::xmod::isClientMuted(clientIndex))
 		return;
 
 	// Get the arguments (this part sucks)
@@ -416,8 +419,7 @@ void G_PrivateMessage( gentity_t *ent )
             continue;
 
         // skip if no privilege
-        User& u = *connectedUsers[c.slot];
-        if (!u.hasPrivilege( priv::base::specChat ))
+        if (!::xmod::hasClientPrivilege(c.slot, priv::base::specChat))
             continue;
 
         admins.insert( c.slot );
@@ -436,11 +438,12 @@ void G_PrivateMessage( gentity_t *ent )
         const set<int>::iterator max = subscribers.end();
         for ( set<int>::iterator it = subscribers.begin(); it != max; it++ ) {
             Client& c = g_clientObjects[*it];
-            User& u = *connectedUsers[*it];
+            int recipientLevel = ::xmod::getClientLevel(*it);
+            const std::string& recipientNamex = ::xmod::getClientNamex(*it);
 
             // skip if pm-blocked and actor is not higher level
-            if (c.gclient.pers.pmblock && user.authLevel <= u.authLevel) {
-                ebuf << xvalue( u.namex ) << " is blocking private messages.";
+            if (c.gclient.pers.pmblock && senderLevel <= recipientLevel) {
+                ebuf << xvalue( recipientNamex ) << " is blocking private messages.";
                 cmd::printChat( &actor, ebuf );
                 continue;
             }
@@ -448,11 +451,11 @@ void G_PrivateMessage( gentity_t *ent )
 		    // Send message
             {
                 Buffer buf;
-                buf << xvalue( user.namex ) << " -> " << xvalue( u.namex ) << " (" << xvalue( nsubs ) << "): "
+                buf << xvalue( senderNamex ) << " -> " << xvalue( recipientNamex ) << " (" << xvalue( nsubs ) << "): "
                     << xcbold << message;
                 cmd::printPm( &c, buf, true );
 
-    		    CPx( c.slot, va( "cp \"^3Private message from ^7%s^3.\"", user.namex.c_str() ));
+    		    CPx( c.slot, va( "cp \"^3Private message from ^7%s^3.\"", senderNamex.c_str() ));
             }
 
             // bcc: self
@@ -460,7 +463,7 @@ void G_PrivateMessage( gentity_t *ent )
                 Buffer buf;
                 if (pmcount++)
                     bcc << '\n';
-                bcc << "PM -> " << xvalue( u.namex ) << ": " << message;
+                bcc << "PM -> " << xvalue( recipientNamex ) << ": " << message;
             }
         }
 
@@ -474,14 +477,14 @@ void G_PrivateMessage( gentity_t *ent )
             Client& c = g_clientObjects[*it];
 
             Buffer buf;
-            buf << xvalue( user.namex ) << " -> " << xvalue( args[1] ) << " (" << xvalue( nsubs ) << "): "
+            buf << xvalue( senderNamex ) << " -> " << xvalue( args[1] ) << " (" << xvalue( nsubs ) << "): "
                 << xcbold << message;
             cmd::printPm( &c, buf, false );
         }
     }
 
     // Also log the chat
-	G_LogPrintf( "pm: %s -> %s: %s\n", user.name.c_str(), args[1].c_str(), message.c_str() );
+	G_LogPrintf( "pm: %s -> %s: %s\n", senderName.c_str(), args[1].c_str(), message.c_str() );
 }
 
 /*
@@ -1823,22 +1826,19 @@ void G_UpdateUptime() {
 bool G_MutePlayer(gentity_t* ent, string muter, string reason)
 {
     int clientNum = ent - g_entities;
-    User& user = *connectedUsers[clientNum];
-
-    if (user.muted) {
+    
+    // Check if already muted using session helper
+    if (::xmod::isClientMuted(clientNum)) {
         return false;
     }
 
-    user.muted = true;
-    user.muteTime = time( NULL );
-    user.muteReason = reason;
-    user.muteAuthorityx = muter;
-    user.muteAuthority = SanitizeString(muter, false);
-    if (g_muteTime.integer) {
-        user.muteExpiry = time(NULL) + str::toSeconds( g_muteTime.string );
-    } else {
-        user.muteExpiry = 0;
-    }
+    // Set mute on both session and User
+    ::xmod::setClientMuted(clientNum, true);
+    
+    // Set additional mute info using global helper
+    time_t muteTime = time(NULL);
+    time_t muteExpiry = g_muteTime.integer ? muteTime + str::toSeconds(g_muteTime.string) : 0;
+    ::xmod::setClientMuteData(clientNum, muteTime, reason, SanitizeString(muter, false), muter, muteExpiry);
 
     // Sync to SQLite database
     if (xmod::g_database && xmod::g_database->isOpened() && 
@@ -1859,15 +1859,17 @@ bool G_MutePlayer(gentity_t* ent, string muter, string reason)
 bool G_UnmutePlayer(gentity_t* ent)
 {
     int clientNum = ent - g_entities;
-    User& user = *connectedUsers[clientNum];
-
-    if (!user.muted) {
+    
+    // Check if not muted using session helper
+    if (!::xmod::isClientMuted(clientNum)) {
         return false;
     }
 
-    user.muted = false;
-    user.muteTime = 0;
-    user.muteAuthorityx = user.muteAuthority = "";
+    // Set unmute on both session and User
+    ::xmod::setClientMuted(clientNum, false);
+    
+    // Clear additional mute info using global helper
+    ::xmod::clearClientMuteData(clientNum);
 
     // Sync to SQLite database
     if (xmod::g_database && xmod::g_database->isOpened() && 
@@ -1887,37 +1889,43 @@ bool G_UnmutePlayer(gentity_t* ent)
 
 void G_BanPlayer(gentity_t* ent, string banner, string reason, int duration)
 {
-    User* user = connectedUsers[ent-g_entities];
+    int clientNum = ent - g_entities;
     time_t expires = duration ? time(NULL) + duration : 0; // 0 is a permanent ban
     
-    string guid = user->guid;
-    string name = user->name;
+    // Get user info using session helpers
+    string guid = ::xmod::getClientGuid(clientNum);
+    string name = ::xmod::getClientName(clientNum);
     string hwid = "";  // Get HWID from authenticated session if available
-    string ip = user->ip;
+    string ip = ::xmod::getClientIp(clientNum);
+    
+    // Check if this is a fake GUID using global helper
+    bool isFakeGuid = ::xmod::isClientFakeGuid(clientNum);
     
     // If this is a fake GUID, we need to generate a permanent fake GUID
-    if (user->fakeguid) {
+    if (isFakeGuid) {
+        // Construct GUID - exactly 40 characters to match xmodguid format
+        // BANLOC(6) + timestamp(10) + random hex(24) = 40 chars
         stringstream guidstream;
-
-        // Construct GUID
-        guidstream << setfill('0') <<
-            "BANLOC" <<
-            setw(10) << time(NULL) <<
-            hex <<
-            setw(4) << rand() % 0xffff <<
-            setw(4) << rand() % 0x0fff <<
-            setw(4) << rand() % 0x3fff <<
-            setw(4) << rand() % 0xffff;
+        guidstream << "BANLOC"
+            << setw(10) << setfill('0') << dec << time(NULL)
+            << hex << setfill('0')
+            << setw(6) << ((rand() & 0xFFFFFF))   // 6 hex digits (000000-FFFFFF)
+            << setw(6) << ((rand() & 0xFFFFFF))   // 6 hex digits
+            << setw(6) << ((rand() & 0xFFFFFF))   // 6 hex digits
+            << setw(6) << ((rand() & 0xFFFFFF));  // 6 hex digits
         guid = guidstream.str();
 
-        // Check GUID
-        if (guid.length() > 32) {
-            guid.resize(32);
+        // Ensure exactly 40 characters (should be guaranteed by above)
+        if (guid.length() != 40) {
+            if (guid.length() > 40) {
+                guid.resize(40);
+            } else {
+                guid.append(40 - guid.length(), '0');
+            }
         }
     }
 
     // Get HWID from xmod session if available
-    int clientNum = ent - g_entities;
     if (xmod::g_sessions[clientNum] && xmod::g_sessions[clientNum]->isAuthenticated()) {
         hwid = xmod::g_sessions[clientNum]->getHwid();
     }

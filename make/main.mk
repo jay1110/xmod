@@ -28,6 +28,10 @@ endif
 ifeq ($(PROJECT.platformName),Windows)
     PROJECT.platspecific = win32
 endif
+# Android uses Linux platform-specific code
+ifeq ($(PROJECT.platformName),Android)
+    PROJECT.platspecific = linux
+endif
 
 ###############################################################################
 

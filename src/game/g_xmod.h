@@ -79,6 +79,9 @@ extern vmCvar_t	vote_minPercent;
 extern vmCvar_t g_muteTime;
 extern vmCvar_t g_antiwarp;
 
+// GeoIP Country Flags
+extern vmCvar_t g_countryflags;
+
 // Class specific cvars
 extern vmCvar_t	g_engineers;
 extern vmCvar_t	g_soldiers;

@@ -27,7 +27,8 @@ static bool validateSha1Hash(const std::string& hash) {
 
 Session::Session(Database* database) 
     : clientNum(-1), userId(-1), userLevel(0), sessionStartTime(0),
-      initialized(false), authenticated(false), db(database) {
+      initialized(false), authenticated(false), db(database),
+      muted(false), muteTime(0), muteExpiry(0), fakeguid(false), timestamp(0) {
 }
 
 Session::~Session() {
@@ -60,6 +61,21 @@ void Session::reset() {
     sessionStartTime = 0;
     initialized = false;
     authenticated = false;
+    
+    // Reset additional attributes
+    muted = false;
+    muteTime = 0;
+    muteExpiry = 0;
+    muteReason.clear();
+    muteAuthority.clear();
+    muteAuthorityx.clear();
+    fakeguid = false;
+    name.clear();
+    namex.clear();
+    mac.clear();
+    timestamp = 0;
+    greetingText.clear();
+    greetingAudio.clear();
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -162,14 +178,37 @@ bool Session::guidReceived(const std::string& hashedGuid, const std::string& has
     }
 
     // Sync user data from SQLite to runtime User object
+    // This maintains backward compatibility with legacy UserDB system
     if (authenticated && clientNum >= 0 && clientNum < MAX_CLIENTS) {
         if (connectedUsers[clientNum] && connectedUsers[clientNum] != &User::BAD) {
+            // Sync session data to User object
             connectedUsers[clientNum]->authLevel = userLevel;
             connectedUsers[clientNum]->muted = userData.muted;
+            connectedUsers[clientNum]->muteTime = userData.muteTime;
+            connectedUsers[clientNum]->muteExpiry = userData.muteExpiry;
+            connectedUsers[clientNum]->muteReason = userData.muteReason;
+            connectedUsers[clientNum]->muteAuthority = userData.muteAuthority;
+            
+            // Store session data locally for quick access
+            muted = userData.muted;
+            muteTime = userData.muteTime;
+            muteExpiry = userData.muteExpiry;
+            muteReason = userData.muteReason;
+            muteAuthority = userData.muteAuthority;
+            name = userData.name;
+            
+            // Get namex from gclient if available, otherwise use plain name
+            gclient_t* client = &level.clients[clientNum];
+            if (client && client->pers.netname[0]) {
+                namex = client->pers.netname;  // This includes color codes
+            } else {
+                namex = userData.name;
+            }
+            
             G_Printf("^2[SQLite] Synced user %d: authLevel=%d, muted=%d for client %d\n", 
                      userId, userLevel, userData.muted ? 1 : 0, clientNum);
         } else {
-            G_Printf("^3[SQLite] WARNING: connectedUsers[%d] is NULL or BAD, cannot sync authLevel\n", clientNum);
+            G_Printf("^3[SQLite] WARNING: connectedUsers[%d] is NULL or BAD, cannot sync data\n", clientNum);
         }
     }
 

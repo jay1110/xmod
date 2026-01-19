@@ -1,0 +1,3 @@
+# Android ARM64 Debug Build Configuration
+CXX.g = 1
+

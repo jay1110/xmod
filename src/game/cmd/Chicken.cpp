@@ -31,10 +31,11 @@ Chicken::doExecute( Context& txt )
 
     G_globalSound( "sound/xmod/chicken.wav" );
 
-    const User& user = *connectedUsers[target->slot];
+    // Phase 5: Use session-aware helper for player name
+    const std::string& namex = getPlayerNamex(target->slot);
     Buffer buf;
     buf << _name << ": "
-        << xcvalue << xnone( user.namex) << " is running around like a headless chicken!\n";
+        << xcvalue << xnone( namex) << " is running around like a headless chicken!\n";
     printCpm( txt._client, buf, true );
 
     return PA_NONE;

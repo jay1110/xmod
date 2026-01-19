@@ -1,4 +1,5 @@
 #include <bgame/impl.h>
+#include <game/xmod_globals.h>
 
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -90,8 +91,9 @@ AbstractCommand::isAliveError( const Client& target, Context& txt )
     if (target.gentity.health <= 0)
         return false;
 
-    const User& targetUser = *connectedUsers[target.slot];
-    txt._ebuf << xvalue( targetUser.namex) << " is alive.";
+    // Phase 4: Use session-aware helper for player name
+    const std::string& namex = getPlayerNamex(target.slot);
+    txt._ebuf << xvalue( namex ) << " is alive.";
     return true;
 }
 
@@ -111,8 +113,9 @@ AbstractCommand::isBotError( const Client& target, Context& txt )
     if (!(target.gentity.r.svFlags & SVF_BOT))
         return false;
 
-    const User& targetUser = *connectedUsers[target.slot];
-    txt._ebuf << xvalue( targetUser.namex ) << " is a bot.";
+    // Phase 4: Use session-aware helper for player name
+    const std::string& namex = getPlayerNamex(target.slot);
+    txt._ebuf << xvalue( namex ) << " is a bot.";
     return true;
 }
 
@@ -132,8 +135,9 @@ AbstractCommand::isDeadError( const Client& target, Context& txt )
     if (target.gentity.health > 0)
         return false;
 
-    const User& targetUser = *connectedUsers[target.slot];
-    txt._ebuf << xvalue( targetUser.namex) << " is dead.";
+    // Phase 4: Use session-aware helper for player name
+    const std::string& namex = getPlayerNamex(target.slot);
+    txt._ebuf << xvalue( namex ) << " is dead.";
     return true;
 }
 
@@ -145,7 +149,10 @@ AbstractCommand::isHigherLevel( const Client& target, const Client* actor )
     if (!actor)
         return false;
 
-    return (connectedUsers[actor->slot]->authLevel < connectedUsers[target.slot]->authLevel );
+    // Phase 4: Use session-aware helper for level comparison
+    int actorLevel = getPlayerLevel(actor->slot);
+    int targetLevel = getPlayerLevel(target.slot);
+    return (actorLevel < targetLevel);
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -153,7 +160,14 @@ AbstractCommand::isHigherLevel( const Client& target, const Client* actor )
 bool
 AbstractCommand::isHigherLevelError( const Client& target, Context& txt )
 {
-    return isHigherLevelError( *connectedUsers[target.slot], txt );
+    // Phase 4: Use session-aware helpers for level and name
+    int targetLevel = getPlayerLevel(target.slot);
+    if (targetLevel <= txt._user.authLevel)
+        return false;
+
+    const std::string& namex = getPlayerNamex(target.slot);
+    txt._ebuf << xvalue( namex ) << " has the same or higher level than you.";
+    return true;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -191,8 +205,9 @@ AbstractCommand::isNotOnTeamError( const Client& target, Context& txt )
     if (!isNotOnTeam( target ))
         return false;
 
-    const User& targetUser = *connectedUsers[target.slot];
-    txt._ebuf << xvalue( targetUser.namex ) << " is not on a team.";
+    // Phase 4: Use session-aware helper for player name
+    const std::string& namex = getPlayerNamex(target.slot);
+    txt._ebuf << xvalue( namex ) << " is not on a team.";
     return true;
 }
 
@@ -212,8 +227,9 @@ AbstractCommand::isPlayingDeadError( const Client& target, Context& txt )
     if (!(target.gclient.ps.eFlags & EF_PLAYDEAD))
         return false;
 
-    const User& targetUser = *connectedUsers[target.slot];
-    txt._ebuf << xvalue( targetUser.namex) << " is playing dead.";
+    // Phase 4: Use session-aware helper for player name
+    const std::string& namex = getPlayerNamex(target.slot);
+    txt._ebuf << xvalue( namex ) << " is playing dead.";
     return true;
 }
 
@@ -284,12 +300,14 @@ AbstractCommand::lookupPLAYER( const string& name, vector<Client*>& out, string&
     str::toLower( lname );
 
     // search connected users
+    // Phase 4: Prefer session data when available
     for (int i = 0; i < MAX_CLIENTS; i++) {
         Client& client = g_clientObjects[i];
         if (client.gclient.pers.connected != CON_CONNECTED)
             continue;
 
-        string cname = connectedUsers[i]->name;
+        // Get player name from session (already has User fallback built-in)
+        string cname = getPlayerName(i);
         str::toLower( cname );
         if (cname.find( lname ) != string::npos)
             out.push_back( &client );
@@ -354,7 +372,7 @@ AbstractCommand::lookupUSER( const string& id, Context& txt, string argName )
 
 AbstractCommand::Context::Context( Client* client, bool silent )
     : _client ( client )
-    , _user   ( client ? *connectedUsers[client->slot] : User::CONSOLE )
+    , _user   ( client ? ::xmod::getClientUser(client->slot) : User::CONSOLE )
     , _silent ( silent )
 {
 }
@@ -363,6 +381,92 @@ AbstractCommand::Context::Context( Client* client, bool silent )
 
 AbstractCommand::Context::~Context()
 {
+}
+
+///////////////////////////////////////////////////////////////////////////////
+
+// Phase 4: Session-aware helper methods
+// These provide safe access to session data with fallbacks to User data
+
+void*
+AbstractCommand::getSession( int clientNum )
+{
+    if (clientNum < 0 || clientNum >= MAX_CLIENTS)
+        return nullptr;
+    
+    return ::xmod::g_sessions[clientNum];
+}
+
+///////////////////////////////////////////////////////////////////////////////
+
+const std::string&
+AbstractCommand::getPlayerName( int clientNum )
+{
+    // Delegate to global helper
+    return ::xmod::getClientName(clientNum);
+}
+
+///////////////////////////////////////////////////////////////////////////////
+
+const std::string&
+AbstractCommand::getPlayerNamex( int clientNum )
+{
+    // Delegate to global helper
+    return ::xmod::getClientNamex(clientNum);
+}
+
+///////////////////////////////////////////////////////////////////////////////
+
+int
+AbstractCommand::getPlayerLevel( int clientNum )
+{
+    // Delegate to global helper
+    return ::xmod::getClientLevel(clientNum);
+}
+
+///////////////////////////////////////////////////////////////////////////////
+
+bool
+AbstractCommand::isPlayerMuted( int clientNum )
+{
+    // Delegate to global helper
+    return ::xmod::isClientMuted(clientNum);
+}
+
+///////////////////////////////////////////////////////////////////////////////
+
+const std::string&
+AbstractCommand::getPlayerGuid( int clientNum )
+{
+    // Delegate to global helper
+    return ::xmod::getClientGuid(clientNum);
+}
+
+///////////////////////////////////////////////////////////////////////////////
+
+const std::string&
+AbstractCommand::getPlayerIp( int clientNum )
+{
+    // Delegate to global helper
+    return ::xmod::getClientIp(clientNum);
+}
+
+///////////////////////////////////////////////////////////////////////////////
+
+const std::string&
+AbstractCommand::getPlayerMac( int clientNum )
+{
+    // Delegate to global helper
+    return ::xmod::getClientMac(clientNum);
+}
+
+///////////////////////////////////////////////////////////////////////////////
+
+bool
+AbstractCommand::isPlayerFakeGuid( int clientNum )
+{
+    // Delegate to global helper
+    return ::xmod::isClientFakeGuid(clientNum);
 }
 
 ///////////////////////////////////////////////////////////////////////////////

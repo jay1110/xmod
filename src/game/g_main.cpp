@@ -3,6 +3,7 @@
 #include <game/g_lua.h>
 #include <game/jxac/jxac_server.h>
 #include <game/xmod_globals.h>
+#include <game/g_geoip.h>
 
 level_locals_t	level;
 
@@ -247,6 +248,9 @@ vmCvar_t		vote_minPercent;
 vmCvar_t        g_muteTime;
 vmCvar_t        g_antiwarp;
 
+// GeoIP Country Flags
+vmCvar_t        g_countryflags;
+
 vmCvar_t        sv_maxRate;
 
 // Class specific
@@ -348,6 +352,7 @@ cvarTable_t		gameCvarTable[] = {
 	{ &g_vulnerableWeapons,	"g_vulnerableWeapons",	"0",		0 },
     { &g_muteTime,          "g_muteTime",           "0",        0 },
     { &g_antiwarp,          "g_antiwarp",           "1",        0 },
+    { &g_countryflags,      "g_countryflags",       "1",        CVAR_ARCHIVE | CVAR_SERVERINFO },
 
     { &sv_maxRate,          "sv_maxRate",           "25000",    CVAR_SYSTEMINFO | CVAR_ARCHIVE },
 
@@ -1826,6 +1831,9 @@ void G_InitGame( int levelTime, int randomSeed, int restart ) {
     adminLog.init();
     jxac::Server::init();  // Initialize JXAC server module
 
+    // Initialize GeoIP database for country flags
+    GeoIP_open();
+
     // Load users databases
 	levelDB.load();
 	// userDB.load( false );  // Disabled: Using xmod SQLite database instead of legacy user.db
@@ -2260,6 +2268,9 @@ void G_ShutdownGame( int restart ) {
     // userDB.purge();  // Disabled: Using xmod SQLite database instead of legacy user.db
 	// userDB.save();   // Disabled: Using xmod SQLite database instead of legacy user.db
     mapDB.save();
+
+    // Close GeoIP database
+    GeoIP_close();
 
     molotov::shutdown();
     process.shutdown();

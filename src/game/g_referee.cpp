@@ -5,6 +5,7 @@
 //
 
 #include <bgame/impl.h>
+#include <game/xmod_globals.h>
 
 
 //
@@ -390,7 +391,7 @@ void G_refMute_cmd(gentity_t *ent, qboolean mute)
 		return;
 	}
 
-	if(connectedUsers[pid]->muted == (bool)mute) {
+	if(::xmod::isClientMuted(pid) == (bool)mute) {
 		G_refPrintf(ent, "\"%s^*\" %s", player->client->pers.netname, mute ? "is already muted!" : "is not muted!" );	// CHRUKER: b047 - Removed unneeded linebreak
 		return;
 	}
@@ -551,7 +552,7 @@ void G_UnMuteClient()
 	cnum = G_refClientnumForName(NULL, cmd);
 
 	if (cnum != MAX_CLIENTS ) {
-		if( connectedUsers[cnum]->muted ) {
+		if( ::xmod::isClientMuted(cnum) ) {
             G_UnmutePlayer(g_entities + cnum);
 
             trap_SendServerCommand( cnum, va( "cpm \"^2You have been un-muted\"") );

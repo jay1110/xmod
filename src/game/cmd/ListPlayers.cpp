@@ -6,7 +6,8 @@ using namespace text;
 ///////////////////////////////////////////////////////////////////////////////
 
 namespace {
-    typedef map<int,User*> TeamMap;
+    // Store slot numbers instead of User* pointers
+    typedef map<int, int> TeamMap;  // key: slot, value: slot (for iteration ordering)
 
     struct Team {
         InlineText colSlot;
@@ -26,17 +27,19 @@ void outputRow( Buffer& buf, Team& left, Team& right )
 
         TeamMap::iterator it = left.members.begin();
         if (it != left.members.end()) {
+            int slot = it->first;
             output = true;
             buf << '\n'
-                << left.colSlot  ( it->first )
-                << left.colLevel ( it->second->authLevel )
-                << left.colName  ( str::etAlignLeft( it->second->namex, left.colName.width, tmp ));
+                << left.colSlot  ( slot )
+                << left.colLevel ( cmd::AbstractCommand::getPlayerLevel(slot) )
+                << left.colName  ( str::etAlignLeft( cmd::AbstractCommand::getPlayerNamex(slot), left.colName.width, tmp ));
 
             left.members.erase( it );
         }
 
         it = right.members.begin();
         if (it != right.members.end()) {
+            int slot = it->first;
             if (!output) {
                 buf << '\n'
                     << left.colSlot  ( "" )
@@ -44,15 +47,15 @@ void outputRow( Buffer& buf, Team& left, Team& right )
                     << left.colName  ( "" );
             }
             output = true;
-            buf << right.colSlot  ( it->first )
-                << right.colLevel ( it->second->authLevel )
-                << right.colName  ( str::etAlignLeft( it->second->namex, right.colName.width, tmp ));
+            buf << right.colSlot  ( slot )
+                << right.colLevel ( cmd::AbstractCommand::getPlayerLevel(slot) )
+                << right.colName  ( str::etAlignLeft( cmd::AbstractCommand::getPlayerNamex(slot), right.colName.width, tmp ));
 
             right.members.erase( it );
         }
         else if (output) {
             buf << right.colSlot  ( "" )
-                << right.colLevel ( "" )
+            << right.colLevel ( "" )
                 << right.colName  ( "" );
         }
 
@@ -142,7 +145,10 @@ ListPlayers::doExecute( Context& txt )
     for (int i = 0; i < level.numConnectedClients; i++ ) {
         const int slot = level.sortedClients[i];
         gentity_t& p = *(g_entities + slot);
-        User& user = *connectedUsers[slot];
+        
+        // Use session-aware helpers for player data
+        int playerLevel = getPlayerLevel(slot);
+        const std::string& playerNamex = getPlayerNamex(slot);
 
         Team* team;
         switch (p.client->sess.sessionTeam) {
@@ -161,18 +167,19 @@ ListPlayers::doExecute( Context& txt )
                 break;
         }
 
-        team->members[slot] = connectedUsers[slot];
+        // Store slot number instead of User pointer
+        team->members[slot] = slot;
 
         static const float lf10 = logf(10);
 
         if (team->colSlot.width < ((logf(slot) / lf10) + 1))
             team->colSlot.width = int((logf(slot) / lf10) + 1);
 
-        if (team->colLevel.width < ((logf(user.authLevel) / lf10) + 1))
-            team->colLevel.width = int((logf(user.authLevel) / lf10) + 1);
+        if (team->colLevel.width < ((logf(playerLevel) / lf10) + 1))
+            team->colLevel.width = int((logf(playerLevel) / lf10) + 1);
 
-        if (team->colName.width < int(str::etLength( user.namex )))
-            team->colName.width = int(str::etLength( user.namex ));
+        if (team->colName.width < int(str::etLength( playerNamex )))
+            team->colName.width = int(str::etLength( playerNamex ));
     }
 
     if (axis.colSlot.width < specsL.colSlot.width)

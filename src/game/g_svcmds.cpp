@@ -272,7 +272,7 @@ Xian - with g_enforcemaxlives enabled, this adds a client GUID to a list
 that prevents them from quitting and reconnecting
 =================
 */
-void AddMaxLivesGUID( char *str )
+void AddMaxLivesGUID( const char *str )
 {
 	if( numMaxLivesFilters == MAX_IPFILTERS ) {
 		G_Printf( "MaxLives GUID filter list is full\n" );

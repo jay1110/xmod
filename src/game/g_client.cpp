@@ -4,6 +4,7 @@
 #include <bgame/xm_auth_shared.h>
 #include <bgame/xm_sha1.h>
 #include <game/xmod_globals.h>
+#include <game/g_geoip.h>
 
 // g_client.c -- client functions that don't happen every frame
 
@@ -1665,8 +1666,8 @@ void ClientUserinfoChanged( int clientNum ) {
     mac = Info_ValueForKey(userinfo, "cl_mac");
     str::toLower( mac );
 
-	// Don't put up with bullshit
-	if (!user.mac.empty() && mac.empty()) {
+	// Don't put up with bullshit - but skip for bots (they don't have MACs)
+	if (!user.mac.empty() && mac.empty() && !(ent->r.svFlags & SVF_BOT)) {
 		ClientDisconnect(clientNum);
 	}
 
@@ -1803,7 +1804,7 @@ void ClientUserinfoChanged( int clientNum ) {
 
     // send over a subset of the userinfo keys so other clients can
     // print scoreboards, display models, and play custom sounds
-    s = va( "n\\%s\\t\\%i\\c\\%i\\r\\%i\\m\\%s\\s\\%s\\dn\\%s\\dr\\%i\\w\\%i\\lw\\%i\\sw\\%i\\mu\\%i\\ref\\%i\\sc\\%i",
+    s = va( "n\\%s\\t\\%i\\c\\%i\\r\\%i\\m\\%s\\s\\%s\\dn\\%s\\dr\\%i\\w\\%i\\lw\\%i\\sw\\%i\\mu\\%i\\ref\\%i\\sc\\%i\\u\\%i",
         client->pers.netname, 
         client->sess.sessionTeam, 
         client->sess.playerType, 
@@ -1815,9 +1816,10 @@ void ClientUserinfoChanged( int clientNum ) {
         client->sess.playerWeapon,
         client->sess.latchPlayerWeapon,
         client->sess.latchPlayerWeapon2,
-        connectedUsers[clientNum]->muted ? 1 : 0,
+        ::xmod::isClientMuted(clientNum) ? 1 : 0,
         client->sess.referee,
-        client->sess.shoutcaster
+        client->sess.shoutcaster,
+        client->sess.uci
     );
 
     trap_GetConfigstring( CS_PLAYERS + clientNum, oldname, sizeof( oldname ) );
@@ -1917,30 +1919,45 @@ ClientConnect( string& outmsg, int clientNum, qboolean firstTime, qboolean isBot
 	sv_pb_enabled = trap_Cvar_VariableIntegerValue( "sv_punkbuster" ) > 0 ? true : false;
 	cl_pb_enabled = atoi(Info_ValueForKey(userinfo, "cl_punkbuster")) > 0 ? true : false;
 
-	// Get GUID
-	guid = Info_ValueForKey(userinfo, "cl_guid");
+	// Get GUID - prefer authenticated GUID from xmod system
+	// This is now 40 characters (SHA1 hex) instead of 32 (old PB GUID)
+	if (!g_clientObjects[clientNum].authGuid.empty()) {
+		guid = g_clientObjects[clientNum].authGuid;
+	} else {
+		guid = Info_ValueForKey(userinfo, "cl_guid");
+	}
 
 	// Check GUID
     bool fakeguid = false;
-	if (guid.length() != 32) {
+
+    // For bots, generate a proper 40-char bot GUID
+    // Format: 32 zeros + BOT + 5-digit slot number = 40 chars
+    // This gives us: 00000000000000000000000000000000BOT00XXX
+    // Using clientNum (0-63) ensures only up to 64 bot entries in xmod.db
+    // Note: fakeguid is NOT set for bots so they get saved to xmod.db
+    if (isBot || (ent->r.svFlags & SVF_BOT)) {
+        stringstream botguid;
+        botguid << string(32, '0')  // 32 zeros prefix
+                << "BOT"
+                << setw(5) << setfill('0') << clientNum;  // 5-digit slot number (0-63)
+        guid = botguid.str().c_str();
+        // fakeguid = false - bots get saved to xmod.db with their fixed GUID
+    }
+    else if (guid.length() != 40) {
 		if (sv_pb_enabled || cl_pb_enabled) {
 			// If PB is enabled anywhere, must have a valid GUID
 			outmsg = "You have an invalid GUID.  This might be a temporary problem, and you should try reconnecting.";
  			return true;
 		} else {
-			// Generate a fake local GUID (must be exactly 32 characters)
+			// Generate a fake local GUID (must be exactly 40 characters)
+			// PENDING(7) + clientNum(2) + padding(31) = 40 chars
 			stringstream newguid;
-			newguid << "CLIENT" << setw(2) << setfill('0') << clientNum 
-			        << setw(24) << 0;  // setfill already set above
+			newguid << "PENDING" << setw(2) << setfill('0') << clientNum 
+			        << string(31, '0');  // Add 31 zeros for padding
 			guid = newguid.str().c_str();
             fakeguid = true;
 		}
 	}
-
-    // Bots are also fake
-    if (isBot || (ent->r.svFlags & SVF_BOT)) {
-        fakeguid = true;
-    }
 
     // Get user object
     string err;
@@ -2064,15 +2081,21 @@ ClientConnect( string& outmsg, int clientNum, qboolean firstTime, qboolean isBot
 				if( clientNum == clientNum2 )
 					continue;
 
-				trap_GetUserinfo( clientNum2, userinfo2, sizeof( userinfo2 ));
-				value = Info_ValueForKey( userinfo2, "cl_guid" );
+				// Use xmod session GUID if available (40 chars), otherwise fall back to cl_guid
+				std::string otherGuid;
+				if (xmod::g_sessions[clientNum2] && xmod::g_sessions[clientNum2]->isInitialized()) {
+					otherGuid = xmod::g_sessions[clientNum2]->getGuid();
+				} else {
+					trap_GetUserinfo( clientNum2, userinfo2, sizeof( userinfo2 ));
+					otherGuid = Info_ValueForKey( userinfo2, "cl_guid" );
+				}
 
 				// Do not compare if no guid here
-				if( !value.length() )
+				if( !otherGuid.length() )
 					continue;
 
 				// Drop client if using duplicate GUID.
-				if( !Q_stricmp( guid.c_str(), value.c_str() )) { 
+				if( !Q_stricmp( guid.c_str(), otherGuid.c_str() )) { 
 	            	ostringstream msg;
 					msg	<< "Duplicate GUID already in use by client " << clientNum2
 						<< ", disconnecting: client " << clientNum << "\n";
@@ -2104,9 +2127,26 @@ ClientConnect( string& outmsg, int clientNum, qboolean firstTime, qboolean isBot
     user.ip = Info_ValueForKey( userinfo, "ip" );
     G_StripIPPort( user.ip );
 
+    // GeoIP country lookup for country flags
+    if (gidb != NULL && g_countryflags.integer) {
+        if (!Q_stricmp(user.ip.c_str(), "localhost")) {
+            client->sess.uci = 254; // Localhost
+        } else {
+            unsigned long ipnum = GeoIP_addr_to_num(user.ip.c_str());
+            client->sess.uci = GeoIP_seek_record(gidb, ipnum);
+        }
+    } else {
+        client->sess.uci = 255; // Unknown
+    }
+
     // MAC
-    user.mac = Info_ValueForKey(userinfo, "cl_mac");
-    str::toLower( user.mac );
+    // Bots get a fixed MAC address of 00-00-00-00-00-00
+    if (isBot || (ent->r.svFlags & SVF_BOT)) {
+        user.mac = "00-00-00-00-00-00";
+    } else {
+        user.mac = Info_ValueForKey(userinfo, "cl_mac");
+        str::toLower( user.mac );
+    }
 
     // index user after updating values
     userDB.index( user );
@@ -2137,6 +2177,20 @@ ClientConnect( string& outmsg, int clientNum, qboolean firstTime, qboolean isBot
 
 		ent->r.svFlags |= SVF_BOT;
 		ent->inuse = qtrue;
+
+		// Auto-authenticate bots since they can't respond to guid_request
+		// This prevents authentication timeouts and related issues
+		clientObject.authenticated = true;
+		clientObject.authWarningShown = false;
+		// Use the bot's cl_guid (e.g., OMNIBOT04...) as their authGuid
+		clientObject.authGuid = guid;
+	} else if (ent->r.svFlags & SVF_BOT) {
+		// PERSISTENT bot on map_restart: isBot=false but SVF_BOT flag is set
+		// Auto-authenticate these bots too since they can't respond to guid_request
+		// Without this, bots would lose authentication after map_restart and fail auth checks
+		clientObject.authenticated = true;
+		clientObject.authWarningShown = false;
+		clientObject.authGuid = guid;
 	} else if( firstTime ) {
 		// force into spectator
 		client->sess.sessionTeam = TEAM_SPECTATOR;
@@ -2150,13 +2204,19 @@ ClientConnect( string& outmsg, int clientNum, qboolean firstTime, qboolean isBot
 	// get and distribute relevant parameters
 	G_LogPrintf( "ClientConnect: %i\n", clientNum );
 	G_UpdateCharacter( client );
-	
-	// Use actual bot status from SVF_BOT flag, not the isBot parameter
-	// On map_restart, persistent bots reconnect via ClientConnect with isBot=false
-	// but still have SVF_BOT set. We must tell Omnibot they are still bots.
-	qboolean actuallyBot = (ent->r.svFlags & SVF_BOT) ? qtrue : qfalse;
-	Bot_Event_ClientConnected(clientNum, actuallyBot);
-	
+	// For NEW bots (isBot=true), delay Bot_Event_ClientConnected until after team/class 
+	// is set in AddBot. This prevents Omnibot from seeing the bot in TEAM_SPECTATOR state 
+	// before the team is properly configured.
+	// For PERSISTENT bots on map_restart, isBot=false but SVF_BOT is set. We must pass
+	// the actual bot status to Omnibot so it correctly registers them as bots.
+	// Without this fix, bots would be registered as human players after map_restart
+	// and would not move (their AI would not be started).
+	if (!isBot) {
+		// Pass actual bot status from SVF_BOT flag, not the isBot parameter
+		// isBot is only true for NEW bots from AddBot, but SVF_BOT persists across map_restart
+		qboolean actuallyBot = (ent->r.svFlags & SVF_BOT) ? qtrue : qfalse;
+		Bot_Event_ClientConnected(clientNum, actuallyBot);
+	}
 	ClientUserinfoChanged( clientNum );
 
 	// don't do the "xxx connected" messages if they were carried over from previous level
@@ -2219,6 +2279,196 @@ ClientConnect( string& outmsg, int clientNum, qboolean firstTime, qboolean isBot
 	}
 
 	return false;
+}
+
+int G_ComputeMaxLives(gclient_t *cl, int maxRespawns)
+{
+	float scaled = (float)(maxRespawns - 1) * (1.0f - ((float)(level.time - level.startTime) / (g_timelimit.value * 60000.0f)));
+	int val = (int)scaled;
+
+	// rain - #102 - don't scale of the timelimit is 0
+	if (g_timelimit.value == 0.0) {
+		return maxRespawns - 1;
+	}
+
+	val += ((scaled - (float)val) < 0.5f) ? 0 : 1;
+	return(val);
+}
+
+/*
+===========
+ClientBegin
+
+Called when a client has finished connecting, and is ready
+to be placed into the level. This will happen every level load,
+and on transition between teams, but doesn't happen on respawns
+============
+*/
+void ClientBegin( int clientNum )
+{
+	gentity_t	*ent;
+	gclient_t	*client;
+	int			flags;
+	int			spawn_count, lives_left;		// DHM - Nerve
+
+	ent = g_entities + clientNum;
+
+	client = level.clients + clientNum;
+
+	if ( ent->r.linked ) {
+		trap_UnlinkEntity( ent );
+	}
+
+	G_InitGentity( ent );
+	ent->touch = 0;
+	ent->pain = 0;
+	ent->client = client;
+
+	client->pers.connected = CON_CONNECTED;
+	client->pers.teamState.state = TEAM_BEGIN;
+
+	// save eflags around this, because changing teams will
+	// cause this to happen with a valid entity, and we
+	// want to make sure the teleport bit is set right
+	// so the viewpoint doesn't interpolate through the
+	// world to the new position
+	// DHM - Nerve :: Also save PERS_SPAWN_COUNT, so that CG_Respawn happens
+	spawn_count = client->ps.persistant[PERS_SPAWN_COUNT];
+	//bani - proper fix for #328
+	if( client->ps.persistant[PERS_RESPAWNS_LEFT] > 0 ) {
+		lives_left = client->ps.persistant[PERS_RESPAWNS_LEFT] - 1;
+	} else {
+		lives_left = client->ps.persistant[PERS_RESPAWNS_LEFT];
+	}
+	flags = client->ps.eFlags;
+	memset( &client->ps, 0, sizeof( client->ps ) );
+	client->ps.eFlags = flags;
+	client->ps.persistant[PERS_SPAWN_COUNT] = spawn_count;
+	client->ps.persistant[PERS_RESPAWNS_LEFT] = lives_left;
+
+
+	client->pers.complaintClient = -1;
+	client->pers.complaintEndTime = -1;
+
+	//Omni-bot
+	client->sess.botSuicide = qfalse;
+	client->sess.botPush = (ent->r.svFlags & SVF_BOT) ? qtrue : qfalse;
+
+	// Jaybird - shrubbot shortcuts
+	Q_strncpyz(client->pers.lastammo, "nobody", sizeof(client->pers.lastammo));
+	Q_strncpyz(client->pers.lastkilled, "nobody", sizeof(client->pers.lastkilled));
+	Q_strncpyz(client->pers.lasthealth, "nobody", sizeof(client->pers.lasthealth));
+	Q_strncpyz(client->pers.lastkill, "nobody", sizeof(client->pers.lastkill));
+	Q_strncpyz(client->pers.lastrevive, "nobody", sizeof(client->pers.lastrevive));
+
+	// locate ent at a spawn point
+	ClientSpawn( ent, qfalse );
+
+	// Xian -- Changed below for team independant maxlives
+	if( g_gametype.integer != GT_WOLF_LMS ) {
+		if( ( client->sess.sessionTeam == TEAM_AXIS || client->sess.sessionTeam == TEAM_ALLIES ) ) {
+
+			if( !client->maxlivescalced ) {
+				if(g_maxlives.integer > 0) {
+					client->ps.persistant[PERS_RESPAWNS_LEFT] = G_ComputeMaxLives(client, g_maxlives.integer);
+				} else {
+					client->ps.persistant[PERS_RESPAWNS_LEFT] = -1;
+				}
+
+				if( g_axismaxlives.integer > 0 || g_alliedmaxlives.integer > 0 ) {
+					if(client->sess.sessionTeam == TEAM_AXIS) {
+						client->ps.persistant[PERS_RESPAWNS_LEFT] = G_ComputeMaxLives(client, g_axismaxlives.integer);
+					} else if(client->sess.sessionTeam == TEAM_ALLIES) {
+						client->ps.persistant[PERS_RESPAWNS_LEFT] = G_ComputeMaxLives(client, g_alliedmaxlives.integer);
+					} else {
+						client->ps.persistant[PERS_RESPAWNS_LEFT] = -1;
+					}
+				}
+
+				client->maxlivescalced = qtrue;
+			} else {
+				if( g_axismaxlives.integer > 0 || g_alliedmaxlives.integer > 0 ) {
+					if( client->sess.sessionTeam == TEAM_AXIS ) {
+						if( client->ps.persistant[ PERS_RESPAWNS_LEFT ] > g_axismaxlives.integer ) {
+							client->ps.persistant[ PERS_RESPAWNS_LEFT ] = g_axismaxlives.integer;
+						}
+					} else if( client->sess.sessionTeam == TEAM_ALLIES ) {
+						if( client->ps.persistant[ PERS_RESPAWNS_LEFT ] > g_alliedmaxlives.integer ) {
+							client->ps.persistant[ PERS_RESPAWNS_LEFT ] = g_alliedmaxlives.integer;
+						}
+					}
+				}
+			}
+		}
+	}
+
+
+	// DHM - Nerve :: Start players in limbo mode if they change teams during the match
+	if(client->sess.sessionTeam != TEAM_SPECTATOR && (level.time - level.startTime > FRAMETIME * GAME_INIT_FRAMES) ) {
+		ent->health = 0;
+		ent->r.contents = CONTENTS_CORPSE;
+
+		client->ps.pm_type = PM_DEAD;
+		client->ps.stats[STAT_HEALTH] = 0;
+
+		if( g_gametype.integer != GT_WOLF_LMS ) {
+			if( g_maxlives.integer > 0 ) {
+				client->ps.persistant[PERS_RESPAWNS_LEFT]++;
+			}
+		}
+
+		limbo(ent, qfalse);
+	}
+
+	if(client->sess.sessionTeam != TEAM_SPECTATOR) {
+		trap_SendServerCommand( -1, va("print \"[lof]%s" S_COLOR_WHITE " [lon]entered the game\n\"", client->pers.netname) );
+	}
+
+	G_LogPrintf( "ClientBegin: %i\n", clientNum );
+
+	// Send guid_request to client for xmod authentication
+	// Skip for bots - they don't have the xmod client module to respond
+	// Only send if client is NOT already authenticated - prevents re-auth on team change,
+	// respawn, or when spectated player disconnects
+	if (!(ent->r.svFlags & SVF_BOT) && !g_clientObjects[clientNum].authenticated) {
+		G_LogPrintf("Sending guid_request to client %d (%s)\n", clientNum, client->pers.netname);
+		trap_SendServerCommand(clientNum, "guid_request");
+	}
+
+	// Xian - Check for maxlives enforcement
+	if( g_gametype.integer != GT_WOLF_LMS ) {
+		if ( g_enforcemaxlives.integer == 1 && (g_maxlives.integer > 0 || g_axismaxlives.integer > 0 || g_alliedmaxlives.integer > 0)) {
+			char *value;
+			char userinfo[MAX_INFO_STRING];
+			trap_GetUserinfo( clientNum, userinfo, sizeof( userinfo ) );
+			// Use authenticated xmod GUID (40 chars) instead of cl_guid (32 chars)
+			const char* guidForMaxLives = g_clientObjects[clientNum].authGuid.empty() 
+				? Info_ValueForKey ( userinfo, "cl_guid" )
+				: g_clientObjects[clientNum].authGuid.c_str();
+			G_LogPrintf( "EnforceMaxLives-GUID: %s\n", guidForMaxLives );
+			AddMaxLivesGUID( guidForMaxLives );
+
+			value = Info_ValueForKey (userinfo, "ip");
+			G_LogPrintf( "EnforceMaxLives-IP: %s\n", value );
+			AddMaxLivesBan( value );
+		}
+	}
+	// End Xian
+
+	// count current clients and rank for scoreboard
+	CalculateRanks();
+
+	// No surface determined yet.
+	ent->surfaceFlags = 0;
+
+	// OSP
+	G_smvUpdateClientCSList(ent);
+	// OSP
+
+	g_clientObjects[clientNum].notifyBegin();
+
+	// Call Lua et_ClientBegin callback
+	G_LuaHook_ClientBegin(clientNum);
 }
 
 gentity_t *SelectSpawnPointFromList( char *list, vec3_t spawn_origin, vec3_t spawn_angles )
@@ -2368,7 +2618,21 @@ void ClientSpawn( gentity_t *ent, qboolean revived )
 	}
 
     Client& clientObject = g_clientObjects[index];
+	
+	// Save authentication state before reset - authentication should persist across spawns
+	// This prevents re-authentication on every team change, respawn, or spec target disconnect
+	bool savedAuthenticated = clientObject.authenticated;
+	bool savedAuthWarningShown = clientObject.authWarningShown;
+	string savedAuthGuid = clientObject.authGuid;
+	string savedAuthHwid = clientObject.authHwid;
+	
 	clientObject.reset();
+	
+	// Restore authentication state
+	clientObject.authenticated = savedAuthenticated;
+	clientObject.authWarningShown = savedAuthWarningShown;
+	clientObject.authGuid = savedAuthGuid;
+	clientObject.authHwid = savedAuthHwid;
 
 	client->maxlivescalced = client->maxlivescalced;
 

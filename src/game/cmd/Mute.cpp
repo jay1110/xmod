@@ -29,17 +29,24 @@ Mute::doExecute( Context& txt )
     if (lookupPLAYER( txt._args[1], txt, target ))
         return PA_ERROR;
 
-    User& user = *connectedUsers[target->slot];
-    if (user == txt._user) {
-        txt._ebuf << "You cannot mute yourself.";
-        return PA_ERROR;
+    // Use session-aware helpers for player data
+    const std::string& targetNamex = getPlayerNamex(target->slot);
+    
+    // Self-mute check using GUID comparison (only if user is a client, not console)
+    if (txt._client) {
+        const std::string& targetGuid = getPlayerGuid(target->slot);
+        const std::string& userGuid = getPlayerGuid(txt._client->slot);
+        if (!targetGuid.empty() && !userGuid.empty() && targetGuid == userGuid) {
+            txt._ebuf << "You cannot mute yourself.";
+            return PA_ERROR;
+        }
     }
 
     if (isHigherLevelError( *target, txt ))
         return PA_ERROR;
 
     // bail if already muted
-    if (user.muted) {
+    if (isPlayerMuted(target->slot)) {
         txt._ebuf << "Player is already muted.";
         return PA_ERROR;
     }
@@ -56,7 +63,7 @@ Mute::doExecute( Context& txt )
     trap_SendServerCommand( target->slot, "cp \"^xYou've been muted.\n\"" );
 
     Buffer buf;
-    buf << _name << ": " << xvalue( user.namex ) << " was muted.";
+    buf << _name << ": " << xvalue( targetNamex ) << " was muted.";
     printCpm( txt._client, buf, true );
 
     return PA_NONE;
