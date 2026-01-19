@@ -2,6 +2,7 @@
 #include <omnibot/et/g_etbot_interface.h>
 #include <game/g_lua.h>
 #include <bgame/xm_auth_shared.h>
+#include <bgame/xm_sha1.h>
 #include <game/xmod_globals.h>
 #include <game/g_geoip.h>
 
@@ -2183,6 +2184,13 @@ ClientConnect( string& outmsg, int clientNum, qboolean firstTime, qboolean isBot
 		clientObject.authWarningShown = false;
 		// Use the bot's cl_guid (e.g., OMNIBOT04...) as their authGuid
 		clientObject.authGuid = guid;
+	} else if (ent->r.svFlags & SVF_BOT) {
+		// PERSISTENT bot on map_restart: isBot=false but SVF_BOT flag is set
+		// Auto-authenticate these bots too since they can't respond to guid_request
+		// Without this, bots would lose authentication after map_restart and fail auth checks
+		clientObject.authenticated = true;
+		clientObject.authWarningShown = false;
+		clientObject.authGuid = guid;
 	} else if( firstTime ) {
 		// force into spectator
 		client->sess.sessionTeam = TEAM_SPECTATOR;
@@ -2221,10 +2229,44 @@ ClientConnect( string& outmsg, int clientNum, qboolean firstTime, qboolean isBot
 	// Jaybird - announce admin level entry.
 	clientObject.notifyConnecting( firstTime );
 
-	// Initialize xmod session if available (IP is stored for later use)
-	if (!isBot && xmod::g_database && xmod::g_sessions[clientNum]) {
+	// Initialize xmod session if available
+	if (xmod::g_database && xmod::g_database->isOpened() && xmod::g_sessions[clientNum]) {
 		string ip = Info_ValueForKey( userinfo, "ip" );
 		xmod::g_sessions[clientNum]->init(clientNum, ip);
+		
+		// For bots: store them in the database immediately since they can't authenticate via cgame
+		if (isBot || (ent->r.svFlags & SVF_BOT)) {
+			// Generate a unique bot GUID using SHA1 hash of bot name + identifier
+			// This ensures each bot has a consistent, unique GUID
+			std::string botIdentifier = "XMOD_BOT_" + std::string(client->pers.netname);
+			std::string botGuid = xm_sha1::hashString(botIdentifier);
+			
+			// Generate unique HWID for this bot based on slot
+			std::string botHwidSource = "XMOD_BOT_HWID_" + std::string(client->pers.netname) + "_SLOT" + std::to_string(clientNum);
+			std::string botHwid = xm_sha1::hashString(botHwidSource);
+			
+			G_Printf("[SQLite] Registering bot %d (%s) with GUID: %.8s...\n", 
+			         clientNum, client->pers.netname, botGuid.c_str());
+			
+			// Check if bot exists in database, if not create entry
+			xmod::UserData userData;
+			if (!xmod::g_database->getUserData(botGuid, userData)) {
+				// Create new bot entry
+				if (xmod::g_database->addUser(botGuid, botHwid, client->pers.netname)) {
+					G_Printf("[SQLite] Bot %d (%s) stored in database as NEW user\n", 
+					         clientNum, client->pers.netname);
+				} else {
+					G_Printf("[SQLite] Failed to store bot %d (%s) in database\n", 
+					         clientNum, client->pers.netname);
+				}
+			} else {
+				// Bot already exists, update last seen
+				xmod::g_database->updateLastSeen(userData.id, time(NULL));
+				xmod::g_database->updateName(userData.id, client->pers.netname);
+				G_Printf("[SQLite] Bot %d (%s) exists in database (ID=%d)\n", 
+				         clientNum, client->pers.netname, userData.id);
+			}
+		}
 	}
 
 	// Call Lua et_ClientConnect callback
@@ -2386,7 +2428,9 @@ void ClientBegin( int clientNum )
 
 	// Send guid_request to client for xmod authentication
 	// Skip for bots - they don't have the xmod client module to respond
-	if (!(ent->r.svFlags & SVF_BOT)) {
+	// Only send if client is NOT already authenticated - prevents re-auth on team change,
+	// respawn, or when spectated player disconnects
+	if (!(ent->r.svFlags & SVF_BOT) && !g_clientObjects[clientNum].authenticated) {
 		G_LogPrintf("Sending guid_request to client %d (%s)\n", clientNum, client->pers.netname);
 		trap_SendServerCommand(clientNum, "guid_request");
 	}
@@ -2574,7 +2618,21 @@ void ClientSpawn( gentity_t *ent, qboolean revived )
 	}
 
     Client& clientObject = g_clientObjects[index];
+	
+	// Save authentication state before reset - authentication should persist across spawns
+	// This prevents re-authentication on every team change, respawn, or spec target disconnect
+	bool savedAuthenticated = clientObject.authenticated;
+	bool savedAuthWarningShown = clientObject.authWarningShown;
+	string savedAuthGuid = clientObject.authGuid;
+	string savedAuthHwid = clientObject.authHwid;
+	
 	clientObject.reset();
+	
+	// Restore authentication state
+	clientObject.authenticated = savedAuthenticated;
+	clientObject.authWarningShown = savedAuthWarningShown;
+	clientObject.authGuid = savedAuthGuid;
+	clientObject.authHwid = savedAuthHwid;
 
 	client->maxlivescalced = client->maxlivescalced;
 

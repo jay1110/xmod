@@ -1,5 +1,7 @@
 #include <bgame/impl.h>
 #include <omnibot/et/g_etbot_interface.h>
+#include <game/xmod_globals.h>
+#include <sstream>
 
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -779,9 +781,28 @@ Client::xpBackup()
     if (user.fakeguid || !g_xpSave.integer)
         return;
 
-    for (int i = 0; i < SK_NUM_SKILLS; i++)
-        user.xpSkills[i] = gclient.sess.skillpoints[i];
+    // Save XP to xmod.db only (not legacy user.db)
+    if (xmod::g_database && xmod::g_database->isOpened()) {
+        // Copy current XP to array
+        float currentXp[SK_NUM_SKILLS];
+        for (int i = 0; i < SK_NUM_SKILLS; i++) {
+            currentXp[i] = gclient.sess.skillpoints[i];
+        }
+        
+        // Encode XP skills using same format as legacy user.db (base64 + scramble + CRC)
+        std::string encodedXp = User::encodeXpSkills(currentXp, user.guid);
 
+        // Find user in xmod.db by GUID and save XP
+        xmod::UserData userData;
+        if (xmod::g_database->getUserData(user.guid, userData)) {
+            xmod::g_database->setXpSkills(userData.id, encodedXp);
+            xmod::g_database->updateLastSeen(userData.id, time(NULL));
+            G_DPrintf("[SQLite] XP saved for user %d (%s): %s\n", 
+                     userData.id, user.name.c_str(), encodedXp.c_str());
+        }
+    }
+    
+    // Update timestamp in user object (for timeout tracking)
     user.timestamp = time( NULL );
 }
 
@@ -842,23 +863,53 @@ Client::xpRestore()
 
     const int timeout = str::toSeconds( g_xpSaveTimeout.string );
 
-    if (timeout <= 0 || time(NULL) - user.timestamp < timeout) {
-        // Set up total XP
-        gclient.ps.stats[STAT_XP] = 0;
-
-        // Restore individual XP levels
-        for (int i = 0; i < SK_NUM_SKILLS; i++) {
-            gclient.sess.skillpoints[i] = user.xpSkills[i];
-            gclient.ps.stats[STAT_XP] += int( user.xpSkills[i] );
+    // Restore from xmod.db only (no fallback to legacy user.db)
+    time_t lastSeen = 0;
+    bool restored = false;
+    
+    if (xmod::g_database && xmod::g_database->isOpened()) {
+        xmod::UserData userData;
+        if (xmod::g_database->getUserData(user.guid, userData)) {
+            if (!userData.xp_skills.empty()) {
+                // Decode XP skills using same format as legacy user.db (base64 + scramble + CRC)
+                float xpValues[SK_NUM_SKILLS] = {0};
+                
+                if (User::decodeXpSkills(userData.xp_skills, user.guid, xpValues)) {
+                    // Use xmod.db timestamp if available
+                    lastSeen = userData.lastSeen;
+                    
+                    // Check timeout
+                    if (timeout <= 0 || time(NULL) - lastSeen < timeout) {
+                        // Set up total XP
+                        gclient.ps.stats[STAT_XP] = 0;
+                        
+                        // Restore individual XP levels
+                        for (int i = 0; i < SK_NUM_SKILLS; i++) {
+                            gclient.sess.skillpoints[i] = xpValues[i];
+                            gclient.ps.stats[STAT_XP] += static_cast<int>(xpValues[i]);
+                        }
+                        
+                        restored = true;
+                        G_DPrintf("[SQLite] XP restored for user %d from xmod.db (encoded)\n", userData.id);
+                    }
+                }
+            }
         }
+    }
 
-        // Get Rank
-        G_CalcRank( &gclient );
+    if (!restored) {
+        // No XP to restore or timeout exceeded
+        return;
+    }
 
-        BG_PlayerStateToEntityState( &gclient.ps, &gentity.s, level.time, qtrue );
+    // Get Rank
+    G_CalcRank( &gclient );
 
-        // Jaybird - also give the client some information
-        struct tm* currentTime = localtime(&user.timestamp);
+    BG_PlayerStateToEntityState( &gclient.ps, &gentity.s, level.time, qtrue );
+
+    // Notify client of XP restoration
+    if (lastSeen > 0) {
+        struct tm* currentTime = localtime(&lastSeen);
         char timestamp[32]; 
         strftime( timestamp, sizeof(timestamp), "%c", currentTime );
         CPx( slot, va( "chat \"^3Your XP has been restored from %s\" -1 0 4", timestamp ));

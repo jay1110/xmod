@@ -662,6 +662,51 @@ User::xpReset()
 
 ///////////////////////////////////////////////////////////////////////////////
 
+std::string
+User::encodeXpSkills(const float* xpSkills, const std::string& guid)
+{
+    unsigned long crc = base64::crc32( guid.c_str(), guid.length() );
+    
+    char data[ SK_NUM_SKILLS * sizeof(float) + sizeof(crc) ];
+    memcpy( data, xpSkills, SK_NUM_SKILLS * sizeof(float) );
+    memcpy( data + SK_NUM_SKILLS * sizeof(float), &crc, sizeof(crc) );
+    
+    scramble( data, sizeof(data) );
+    
+    char enc[ sizeof(data) * 4 / 3 + 5 ]; // extra 1 for string-term
+    base64::encode( (const unsigned char*)data, sizeof(data), enc, sizeof(enc) );
+    
+    return std::string(enc);
+}
+
+///////////////////////////////////////////////////////////////////////////////
+
+bool
+User::decodeXpSkills(const std::string& encoded, const std::string& guid, float* xpSkills)
+{
+    if (encoded.empty())
+        return false;
+        
+    unsigned long crc = base64::crc32( guid.c_str(), guid.length() );
+    char buf[ SK_NUM_SKILLS * sizeof(float) + sizeof(crc) + 1]; // for some reason base64_decode requires +1
+    
+    // size must match exactly in order to continue XP decoding
+    int nbytes = base64::decode( (const unsigned char*)encoded.c_str(), (unsigned char*)buf, sizeof(buf) );
+    if ( nbytes == sizeof(buf)-1 ) {
+        scramble( buf, sizeof(buf)-1 );
+        
+        unsigned long sig = *(unsigned long*)(buf + SK_NUM_SKILLS * sizeof(float));
+        if (sig == crc) {
+            memcpy( xpSkills, buf, SK_NUM_SKILLS * sizeof(float) );
+            return true;
+        }
+    }
+    
+    return false;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+
 User User::BAD;
 User User::DEFAULT;
 User User::CONSOLE( true );
