@@ -877,9 +877,9 @@ Client::xpRestore()
                 std::istringstream xpStream(userData.xp_skills);
                 float xpValues[SK_NUM_SKILLS] = {0};
                 int skillIdx = 0;
-                int value;
+                float value;
                 while (xpStream >> value && skillIdx < SK_NUM_SKILLS) {
-                    xpValues[skillIdx++] = static_cast<float>(value);
+                    xpValues[skillIdx++] = value;
                 }
                 
                 // Use xmod.db timestamp if available
@@ -910,17 +910,18 @@ Client::xpRestore()
 
     // Fallback to legacy user.db if xmod.db restore failed
     if (!restoredFromXmod) {
-        if (timeout <= 0 || time(NULL) - user.timestamp < timeout) {
-            // Set up total XP
-            gclient.ps.stats[STAT_XP] = 0;
+        if (timeout > 0 && time(NULL) - user.timestamp >= timeout) {
+            // Timeout exceeded, skip restore
+            return;
+        }
+        
+        // Set up total XP
+        gclient.ps.stats[STAT_XP] = 0;
 
-            // Restore individual XP levels
-            for (int i = 0; i < SK_NUM_SKILLS; i++) {
-                gclient.sess.skillpoints[i] = user.xpSkills[i];
-                gclient.ps.stats[STAT_XP] += int( user.xpSkills[i] );
-            }
-        } else {
-            return; // Timeout exceeded and no xmod data
+        // Restore individual XP levels
+        for (int i = 0; i < SK_NUM_SKILLS; i++) {
+            gclient.sess.skillpoints[i] = user.xpSkills[i];
+            gclient.ps.stats[STAT_XP] += int( user.xpSkills[i] );
         }
     }
 
