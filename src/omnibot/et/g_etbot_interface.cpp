@@ -1561,6 +1561,11 @@ public:
 		}
 
 		OB_GETMSG(Msg_Addbot);
+		if (!pMsg)
+		{
+			PrintError("Could not add bot: missing addbot message.");
+			return -1;
+		}
 
 		// cs: find a usable slot. this should avoid and game / engine sync problems related to CS_FREE
 		gentity_t* clEnt = NULL;
@@ -1622,6 +1627,28 @@ public:
 			// Without this, the bot stays in CON_CONNECTING state and the engine
 			// will disconnect it after ~250ms (zombie cleanup timeout)
 			ClientBegin(num);
+
+			// Respect requested team/class so bots don't get kicked back to limbo
+			int team = pMsg->m_Team;
+			if (team != ET_TEAM_AXIS && team != ET_TEAM_ALLIES)
+			{
+				team = RANDOM_TEAM_IF_NO_TEAM;
+			}
+
+			int cls = pMsg->m_Class;
+			if (cls <= ET_CLASS_NULL || cls >= ET_CLASS_MAX)
+			{
+				cls = RANDOM_CLASS_IF_NO_CLASS;
+			}
+
+			if (ChangeTeam(num, team, NULL) != Success)
+			{
+				PrintError(va("Could not set bot team for %s (%d).", pMsg->m_Name, num));
+			}
+			if (ChangeClass(num, cls, NULL) != Success)
+			{
+				PrintError(va("Could not set bot class for %s (%d).", pMsg->m_Name, num));
+			}
 		}
 		// bad hack to prevent unhandled errors being returned as successful connections
 		return bot && bot->inuse ? num : -1;
