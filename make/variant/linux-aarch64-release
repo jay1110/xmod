@@ -1,5 +1,10 @@
 CXX.O = 1
+# Use cross-compiler strip when cross-compiling, otherwise native strip
+ifeq ($(CROSS_COMPILE),1)
+CXX.fnStrip = aarch64-linux-gnu-strip $(1)
+else
 CXX.fnStrip = strip $(1)
+endif
 
 CXX.libstdcxx.DEPS = $(BUILD/)libstdc++.a
 CXX.static         = 1
