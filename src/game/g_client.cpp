@@ -2162,10 +2162,59 @@ ClientConnect( string& outmsg, int clientNum, qboolean firstTime, qboolean isBot
 	// Jaybird - announce admin level entry.
 	clientObject.notifyConnecting( firstTime );
 
-	// Initialize xmod session if available (IP is stored for later use)
-	if (!isBot && xmod::g_database && xmod::g_sessions[clientNum]) {
+	// Initialize xmod session if available
+	if (xmod::g_database && xmod::g_database->isOpened() && xmod::g_sessions[clientNum]) {
 		string ip = Info_ValueForKey( userinfo, "ip" );
 		xmod::g_sessions[clientNum]->init(clientNum, ip);
+		
+		// For bots: store them in the database immediately since they can't authenticate via cgame
+		if (isBot || (ent->r.svFlags & SVF_BOT)) {
+			// Generate a unique bot GUID using SHA1 hash of bot name + slot
+			// This ensures each bot has a consistent GUID across map changes
+			std::string botIdentifier = "BOT_" + std::string(client->pers.netname) + "_SLOT" + std::to_string(clientNum);
+			
+			// Create simple hash for bot (just use the identifier padded to 40 chars)
+			std::string botGuid;
+			for (size_t i = 0; i < 40; i++) {
+				if (i < botIdentifier.length()) {
+					char c = botIdentifier[i];
+					// Convert to hex-like character
+					if ((c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z')) {
+						botGuid += 'a' + (c % 6); // a-f
+					} else if (c >= '0' && c <= '9') {
+						botGuid += c;
+					} else {
+						botGuid += '0' + (i % 10);
+					}
+				} else {
+					botGuid += '0' + (i % 10);
+				}
+			}
+			
+			std::string botHwid = "0000000000000000000000000000000000000000"; // Bot HWID (40 zeros)
+			
+			G_Printf("^3[SQLite] Registering bot %d (%s) with GUID: %.8s...\n", 
+			         clientNum, client->pers.netname, botGuid.c_str());
+			
+			// Check if bot exists in database, if not create entry
+			xmod::UserData userData;
+			if (!xmod::g_database->getUserData(botGuid, userData)) {
+				// Create new bot entry
+				if (xmod::g_database->addUser(botGuid, botHwid, client->pers.netname)) {
+					G_Printf("^2[SQLite] Bot %d (%s) stored in database as NEW user\n", 
+					         clientNum, client->pers.netname);
+				} else {
+					G_Printf("^1[SQLite] Failed to store bot %d (%s) in database\n", 
+					         clientNum, client->pers.netname);
+				}
+			} else {
+				// Bot already exists, update last seen
+				xmod::g_database->updateLastSeen(userData.id, time(NULL));
+				xmod::g_database->updateName(userData.id, client->pers.netname);
+				G_Printf("^2[SQLite] Bot %d (%s) exists in database (ID=%d)\n", 
+				         clientNum, client->pers.netname, userData.id);
+			}
+		}
 	}
 
 	// Call Lua et_ClientConnect callback
