@@ -155,12 +155,22 @@ bool AntiTamper::checkDebugger() {
     static bool debuggerDetected = false;
     
     if ( !ptraceChecked ) {
+#ifdef __APPLE__
+        // macOS ptrace expects caddr_t (char*) for the third argument
+        if ( ptrace( PTRACE_TRACEME, 0, (char*)1, 0 ) == -1 ) {
+            debuggerDetected = true;
+        } else {
+            // Detach immediately
+            ptrace( PTRACE_DETACH, 0, (char*)1, 0 );
+        }
+#else
         if ( ptrace( PTRACE_TRACEME, 0, 1, 0 ) == -1 ) {
             debuggerDetected = true;
         } else {
             // Detach immediately
             ptrace( PTRACE_DETACH, 0, 1, 0 );
         }
+#endif
         ptraceChecked = true;
     }
     
