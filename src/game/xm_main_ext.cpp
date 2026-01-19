@@ -36,13 +36,25 @@ qboolean OnClientCommand(int clientNum, const char* cmd) {
 
 	// Handle authenticate command - this is the xmodguid authentication
 	if (Q_stricmp(cmd, "authenticate") == 0) {
+		// Validate client number
+		if (clientNum < 0 || clientNum >= MAX_CLIENTS) {
+			return qtrue; // Invalid client, but command handled
+		}
+
+		gentity_t* ent = &g_entities[clientNum];
+		
+		// Skip authentication for bots - they don't run cgame and shouldn't send this
+		if (ent->r.svFlags & SVF_BOT) {
+			G_LogPrintf("[Auth] Client %d: authenticate command from bot - ignoring\n", clientNum);
+			return qtrue;
+		}
+
 		char guid[64];
 		char hwid[64];
 		trap_Argv(1, guid, sizeof(guid));
 		trap_Argv(2, hwid, sizeof(hwid));
 
 		// Get client name if available
-		gentity_t* ent = &g_entities[clientNum];
 		const char* clientName = (ent->client) ? ent->client->pers.netname : "connecting";
 
 		G_LogPrintf("[Auth] Client %d (%s): authenticate received\n", clientNum, clientName);
