@@ -1,5 +1,7 @@
 #include <bgame/impl.h>
 #include <omnibot/et/g_etbot_interface.h>
+#include <game/xmod_globals.h>
+#include <sstream>
 
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -779,10 +781,31 @@ Client::xpBackup()
     if (user.fakeguid || !g_xpSave.integer)
         return;
 
+    // Save to legacy user.db
     for (int i = 0; i < SK_NUM_SKILLS; i++)
         user.xpSkills[i] = gclient.sess.skillpoints[i];
 
     user.timestamp = time( NULL );
+
+    // Also save to xmod.db if available
+    if (xmod::g_database && xmod::g_database->isOpened()) {
+        // Build XP skills string in format "skill0 skill1 skill2 skill3 skill4 skill5 skill6"
+        std::ostringstream xpStream;
+        for (int i = 0; i < SK_NUM_SKILLS; i++) {
+            if (i > 0) xpStream << " ";
+            xpStream << static_cast<int>(gclient.sess.skillpoints[i]);
+        }
+        std::string xpStr = xpStream.str();
+
+        // Find user in xmod.db by GUID and save XP
+        xmod::UserData userData;
+        if (xmod::g_database->getUserData(user.guid, userData)) {
+            xmod::g_database->setXpSkills(userData.id, xpStr);
+            xmod::g_database->updateLastSeen(userData.id, time(NULL));
+            G_DPrintf("[SQLite] XP saved for user %d (%s): %s\n", 
+                     userData.id, user.name.c_str(), xpStr.c_str());
+        }
+    }
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -842,27 +865,75 @@ Client::xpRestore()
 
     const int timeout = str::toSeconds( g_xpSaveTimeout.string );
 
-    if (timeout <= 0 || time(NULL) - user.timestamp < timeout) {
-        // Set up total XP
-        gclient.ps.stats[STAT_XP] = 0;
-
-        // Restore individual XP levels
-        for (int i = 0; i < SK_NUM_SKILLS; i++) {
-            gclient.sess.skillpoints[i] = user.xpSkills[i];
-            gclient.ps.stats[STAT_XP] += int( user.xpSkills[i] );
+    // Try to restore from xmod.db first
+    bool restoredFromXmod = false;
+    time_t lastSeen = user.timestamp;
+    
+    if (xmod::g_database && xmod::g_database->isOpened()) {
+        xmod::UserData userData;
+        if (xmod::g_database->getUserData(user.guid, userData)) {
+            if (!userData.xp_skills.empty()) {
+                // Parse XP skills from string "skill0 skill1 skill2 skill3 skill4 skill5 skill6"
+                std::istringstream xpStream(userData.xp_skills);
+                float xpValues[SK_NUM_SKILLS] = {0};
+                int skillIdx = 0;
+                int value;
+                while (xpStream >> value && skillIdx < SK_NUM_SKILLS) {
+                    xpValues[skillIdx++] = static_cast<float>(value);
+                }
+                
+                // Use xmod.db timestamp if available
+                if (userData.lastSeen > 0) {
+                    lastSeen = userData.lastSeen;
+                }
+                
+                // Check timeout
+                if (timeout <= 0 || time(NULL) - lastSeen < timeout) {
+                    // Set up total XP
+                    gclient.ps.stats[STAT_XP] = 0;
+                    
+                    // Restore individual XP levels
+                    for (int i = 0; i < SK_NUM_SKILLS; i++) {
+                        gclient.sess.skillpoints[i] = xpValues[i];
+                        gclient.ps.stats[STAT_XP] += static_cast<int>(xpValues[i]);
+                        // Also update legacy user object for compatibility
+                        user.xpSkills[i] = xpValues[i];
+                    }
+                    
+                    restoredFromXmod = true;
+                    G_DPrintf("[SQLite] XP restored for user %d from xmod.db: %s\n", 
+                             userData.id, userData.xp_skills.c_str());
+                }
+            }
         }
-
-        // Get Rank
-        G_CalcRank( &gclient );
-
-        BG_PlayerStateToEntityState( &gclient.ps, &gentity.s, level.time, qtrue );
-
-        // Jaybird - also give the client some information
-        struct tm* currentTime = localtime(&user.timestamp);
-        char timestamp[32]; 
-        strftime( timestamp, sizeof(timestamp), "%c", currentTime );
-        CPx( slot, va( "chat \"^3Your XP has been restored from %s\" -1 0 4", timestamp ));
     }
+
+    // Fallback to legacy user.db if xmod.db restore failed
+    if (!restoredFromXmod) {
+        if (timeout <= 0 || time(NULL) - user.timestamp < timeout) {
+            // Set up total XP
+            gclient.ps.stats[STAT_XP] = 0;
+
+            // Restore individual XP levels
+            for (int i = 0; i < SK_NUM_SKILLS; i++) {
+                gclient.sess.skillpoints[i] = user.xpSkills[i];
+                gclient.ps.stats[STAT_XP] += int( user.xpSkills[i] );
+            }
+        } else {
+            return; // Timeout exceeded and no xmod data
+        }
+    }
+
+    // Get Rank
+    G_CalcRank( &gclient );
+
+    BG_PlayerStateToEntityState( &gclient.ps, &gentity.s, level.time, qtrue );
+
+    // Jaybird - also give the client some information
+    struct tm* currentTime = localtime(&lastSeen);
+    char timestamp[32]; 
+    strftime( timestamp, sizeof(timestamp), "%c", currentTime );
+    CPx( slot, va( "chat \"^3Your XP has been restored from %s\" -1 0 4", timestamp ));
 }
 
 ///////////////////////////////////////////////////////////////////////////////
