@@ -15,6 +15,10 @@
 #include <net/if.h>
 #include <netinet/in.h>
 #include <string.h>
+#ifdef __APPLE__
+#include <ifaddrs.h>
+#include <net/if_dl.h>
+#endif
 #endif
 
 #include <sstream>
@@ -114,13 +118,47 @@ std::string collectHwidWindows() {
     return ss.str();
 }
 #else
-std::string collectHwidLinux() {
+std::string collectHwidUnix() {
     std::stringstream ss;
+    bool found = false;
     
-    // Try to get MAC address from common interface names
+#ifdef __APPLE__
+    // macOS implementation using getifaddrs and AF_LINK
+    struct ifaddrs *ifap, *ifaptr;
+    if (getifaddrs(&ifap) == 0) {
+        for (ifaptr = ifap; ifaptr != NULL && !found; ifaptr = ifaptr->ifa_next) {
+            if (ifaptr->ifa_addr != NULL && ifaptr->ifa_addr->sa_family == AF_LINK) {
+                // Check common interface names
+                const char* name = ifaptr->ifa_name;
+                if (strcmp(name, "en0") == 0 || strcmp(name, "en1") == 0 || 
+                    strcmp(name, "eth0") == 0 || strcmp(name, "wlan0") == 0) {
+                    
+                    struct sockaddr_dl* sdl = static_cast<struct sockaddr_dl*>(static_cast<void*>(ifaptr->ifa_addr));
+                    unsigned char* mac = reinterpret_cast<unsigned char*>(LLADDR(sdl));
+                    
+                    // Check if MAC is not all zeros
+                    bool allZeros = true;
+                    for (int i = 0; i < 6; i++) {
+                        if (mac[i] != 0) {
+                            allZeros = false;
+                            break;
+                        }
+                    }
+                    if (!allZeros) {
+                        for (int i = 0; i < 6; i++) {
+                            ss << (int)mac[i];
+                        }
+                        found = true;
+                    }
+                }
+            }
+        }
+        freeifaddrs(ifap);
+    }
+#else
+    // Linux implementation using ioctl and SIOCGIFHWADDR
     const char* interfaces[] = {"eth0", "enp0s3", "ens33", "wlan0", "wlp2s0", NULL};
     int sock = socket(AF_INET, SOCK_DGRAM, 0);
-    bool found = false;
     
     if (sock >= 0) {
         for (int idx = 0; interfaces[idx] != NULL && !found; idx++) {
@@ -129,7 +167,7 @@ std::string collectHwidLinux() {
             strncpy(ifr.ifr_name, interfaces[idx], IFNAMSIZ - 1);
             
             if (ioctl(sock, SIOCGIFHWADDR, &ifr) == 0) {
-                unsigned char* mac = (unsigned char*)ifr.ifr_hwaddr.sa_data;
+                unsigned char* mac = reinterpret_cast<unsigned char*>(ifr.ifr_hwaddr.sa_data);
                 // Check if MAC is not all zeros
                 bool allZeros = true;
                 for (int i = 0; i < 6; i++) {
@@ -148,6 +186,7 @@ std::string collectHwidLinux() {
         }
         close(sock);
     }
+#endif
     
     // Fallback to hostname if MAC address not found
     if (!found) {
@@ -156,7 +195,7 @@ std::string collectHwidLinux() {
             ss << hostname;
         } else {
             // Ultimate fallback - use a fixed identifier
-            ss << "xmod-linux-client";
+            ss << "xmod-unix-client";
         }
     }
     
@@ -194,7 +233,7 @@ std::string getHwid() {
 #ifdef _WIN32
     g_hwid = collectHwidWindows();
 #else
-    g_hwid = collectHwidLinux();
+    g_hwid = collectHwidUnix();
 #endif
     
     CG_Printf("[Auth] HWID collected: %s\n", g_hwid.c_str());
