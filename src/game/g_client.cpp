@@ -2183,6 +2183,13 @@ ClientConnect( string& outmsg, int clientNum, qboolean firstTime, qboolean isBot
 		clientObject.authWarningShown = false;
 		// Use the bot's cl_guid (e.g., OMNIBOT04...) as their authGuid
 		clientObject.authGuid = guid;
+	} else if (ent->r.svFlags & SVF_BOT) {
+		// PERSISTENT bot on map_restart: isBot=false but SVF_BOT flag is set
+		// Auto-authenticate these bots too since they can't respond to guid_request
+		// Without this, bots would lose authentication after map_restart and fail auth checks
+		clientObject.authenticated = true;
+		clientObject.authWarningShown = false;
+		clientObject.authGuid = guid;
 	} else if( firstTime ) {
 		// force into spectator
 		client->sess.sessionTeam = TEAM_SPECTATOR;
@@ -2386,7 +2393,9 @@ void ClientBegin( int clientNum )
 
 	// Send guid_request to client for xmod authentication
 	// Skip for bots - they don't have the xmod client module to respond
-	if (!(ent->r.svFlags & SVF_BOT)) {
+	// Only send if client is NOT already authenticated - prevents re-auth on team change,
+	// respawn, or when spectated player disconnects
+	if (!(ent->r.svFlags & SVF_BOT) && !g_clientObjects[clientNum].authenticated) {
 		G_LogPrintf("Sending guid_request to client %d (%s)\n", clientNum, client->pers.netname);
 		trap_SendServerCommand(clientNum, "guid_request");
 	}
@@ -2574,7 +2583,21 @@ void ClientSpawn( gentity_t *ent, qboolean revived )
 	}
 
     Client& clientObject = g_clientObjects[index];
+	
+	// Save authentication state before reset - authentication should persist across spawns
+	// This prevents re-authentication on every team change, respawn, or spec target disconnect
+	bool savedAuthenticated = clientObject.authenticated;
+	bool savedAuthWarningShown = clientObject.authWarningShown;
+	string savedAuthGuid = clientObject.authGuid;
+	string savedAuthHwid = clientObject.authHwid;
+	
 	clientObject.reset();
+	
+	// Restore authentication state
+	clientObject.authenticated = savedAuthenticated;
+	clientObject.authWarningShown = savedAuthWarningShown;
+	clientObject.authGuid = savedAuthGuid;
+	clientObject.authHwid = savedAuthHwid;
 
 	client->maxlivescalced = client->maxlivescalced;
 
