@@ -34,8 +34,8 @@ jobs:
       
       - name: Build ${{ matrix.module }} for ARM64
         run: |
-          # Use the existing linux-aarch64 platform configuration
-          PLATFORM=linux-aarch64 make release
+          # Use the existing linux-aarch64 platform configuration with cross-compilation
+          PLATFORM=linux-aarch64 CROSS_COMPILE=1 make release
       
       - name: Organize artifacts
         run: |
@@ -133,6 +133,7 @@ jobs:
       - uses: actions/checkout@v4
       
       - name: Setup Android NDK
+        id: setup-ndk
         uses: nttld/setup-ndk@v1
         with:
           ndk-version: r26c
