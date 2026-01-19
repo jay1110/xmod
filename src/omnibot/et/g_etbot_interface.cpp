@@ -1623,32 +1623,80 @@ public:
 		}
 		else
 		{
-			// Call ClientBegin to complete the bot connection
-			// Without this, the bot stays in CON_CONNECTING state and the engine
-			// will disconnect it after ~250ms (zombie cleanup timeout)
+			// Set up bot's team and class BEFORE calling ClientBegin to avoid
+			// double ClientBegin calls (ChangeTeam -> SetTeam -> ClientBegin).
+			// This ensures the bot is in a consistent state when omnibot processes it.
+			
+			gclient_t* client = bot->client;
+			
+			// Determine target team
+			int targetTeam = pMsg->m_Team;
+			if (targetTeam != ET_TEAM_AXIS && targetTeam != ET_TEAM_ALLIES)
+			{
+				// Pick team with fewer players
+				if (TeamCount(num, TEAM_ALLIES) <= TeamCount(num, TEAM_AXIS))
+					targetTeam = ET_TEAM_ALLIES;
+				else
+					targetTeam = ET_TEAM_AXIS;
+			}
+			
+			// Determine target class
+			int targetClass = pMsg->m_Class;
+			if (targetClass <= ET_CLASS_NULL || targetClass >= ET_CLASS_MAX)
+			{
+				// Pick a class based on team needs
+				team_t gameTeam = (targetTeam == ET_TEAM_AXIS) ? TEAM_AXIS : TEAM_ALLIES;
+				int engineers = CountPlayerClass(gameTeam, PC_ENGINEER, num);
+				int medics = CountPlayerClass(gameTeam, PC_MEDIC, num);
+				int fieldops = CountPlayerClass(gameTeam, PC_FIELDOPS, num);
+				int soldiers = CountPlayerClass(gameTeam, PC_SOLDIER, num);
+				int covops = CountPlayerClass(gameTeam, PC_COVERTOPS, num);
+				
+				if (OMNIBOT_MIN_ENG > 0 && engineers == 0)
+					targetClass = ET_CLASS_ENGINEER;
+				else if (OMNIBOT_MIN_MED > 0 && medics == 0)
+					targetClass = ET_CLASS_MEDIC;
+				else if (OMNIBOT_MIN_FOP > 0 && fieldops == 0)
+					targetClass = ET_CLASS_FIELDOPS;
+				else if (OMNIBOT_MIN_SOL > 0 && soldiers == 0)
+					targetClass = ET_CLASS_SOLDIER;
+				else if (OMNIBOT_MIN_COP > 0 && covops == 0)
+					targetClass = ET_CLASS_COVERTOPS;
+				else if (engineers < OMNIBOT_MIN_ENG)
+					targetClass = ET_CLASS_ENGINEER;
+				else if (medics < OMNIBOT_MIN_MED)
+					targetClass = ET_CLASS_MEDIC;
+				else if (fieldops < OMNIBOT_MIN_FOP)
+					targetClass = ET_CLASS_FIELDOPS;
+				else if (soldiers < OMNIBOT_MIN_SOL)
+					targetClass = ET_CLASS_SOLDIER;
+				else if (covops < OMNIBOT_MIN_COP)
+					targetClass = ET_CLASS_COVERTOPS;
+				else
+					targetClass = Bot_PlayerClassGameToBot(rand() % NUM_PLAYER_CLASSES);
+			}
+			
+			// Convert to game types and set session data directly
+			team_t gameTeam = (targetTeam == ET_TEAM_AXIS) ? TEAM_AXIS : TEAM_ALLIES;
+			int gameClass = playerClassBotToGame(targetClass);
+			
+			client->sess.sessionTeam = gameTeam;
+			client->sess.latchPlayerType = gameClass;
+			client->sess.playerType = gameClass;
+			
+			// Set weapons for the class
+			client->sess.latchPlayerWeapon = _weaponBotToGame(_choosePriWeap(bot, targetClass, targetTeam));
+			client->sess.latchPlayerWeapon2 = _weaponBotToGame(_chooseSecWeap(bot, targetClass, targetTeam));
+			
+			// Verify weapons are allowed
+			if(G_IsWeaponDisabled(bot, (weapon_t)client->sess.latchPlayerWeapon, qtrue))
+				client->sess.latchPlayerWeapon = 0;
+			if(G_IsWeaponDisabled(bot, (weapon_t)client->sess.latchPlayerWeapon2, qtrue))
+				client->sess.latchPlayerWeapon2 = 0;
+			
+			// Now call ClientBegin once with all data properly set
+			// This completes the connection and spawns the bot
 			ClientBegin(num);
-
-			// Respect requested team/class so bots don't get kicked back to limbo
-			int team = pMsg->m_Team;
-			if (team != ET_TEAM_AXIS && team != ET_TEAM_ALLIES)
-			{
-				team = RANDOM_TEAM_IF_NO_TEAM;
-			}
-
-			int cls = pMsg->m_Class;
-			if (cls <= ET_CLASS_NULL || cls >= ET_CLASS_MAX)
-			{
-				cls = RANDOM_CLASS_IF_NO_CLASS;
-			}
-
-			if (ChangeTeam(num, team, NULL) != Success)
-			{
-				PrintError(va("Could not set bot team for %s (%d).", pMsg->m_Name, num));
-			}
-			if (ChangeClass(num, cls, NULL) != Success)
-			{
-				PrintError(va("Could not set bot class for %s (%d).", pMsg->m_Name, num));
-			}
 		}
 		// bad hack to prevent unhandled errors being returned as successful connections
 		return bot && bot->inuse ? num : -1;
