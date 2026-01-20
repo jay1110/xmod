@@ -46,3 +46,36 @@ $(BUILD/)make/project.mk: $(PROJECT/)project/info.py $(PROJECT/)project/info.db
 	$(call print.HEADER,GENERATING,$@)
 	@mkdir -p $(dir $@)
 	@$< -mk $(PROJECT/)project/info.db > $@
+
+###############################################################################
+# CLion Integration: Convenience targets for building specific platform/variant
+# combinations. These don't change the default behavior - GitHub Actions still
+# uses 'PLATFORM=linux64 make release' as before.
+###############################################################################
+
+.PHONY: linux-release linux-debug linux64-release linux64-debug
+.PHONY: mingw-release mingw-debug mingw64-release mingw64-debug
+
+linux-release:
+	$(MAKE) PLATFORM=linux VARIANT=release pkg
+
+linux-debug:
+	$(MAKE) PLATFORM=linux VARIANT=debug pkg
+
+linux64-release:
+	$(MAKE) PLATFORM=linux64 VARIANT=release pkg
+
+linux64-debug:
+	$(MAKE) PLATFORM=linux64 VARIANT=debug pkg
+
+mingw-release:
+	$(MAKE) PLATFORM=mingw VARIANT=release pkg
+
+mingw-debug:
+	$(MAKE) PLATFORM=mingw VARIANT=debug pkg
+
+mingw64-release:
+	$(MAKE) PLATFORM=mingw64 VARIANT=release pkg
+
+mingw64-debug:
+	$(MAKE) PLATFORM=mingw64 VARIANT=debug pkg
