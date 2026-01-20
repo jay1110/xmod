@@ -66,9 +66,20 @@ UserInfo::doUser( Buffer& buf, const User& user, InlineText& cA, InlineText& cB 
     else
         buf << '\n' << cA( "level" ) << cB( lev.level ) << " (" << xvalue( lev.namex ) << ')';
 
-        buf << '\n' << cA( "GUID"        ) << cB( user.guid )
-            << " (USERID: " << xvalue( user.guid.length() == 32 ? user.guid.substr( 24 ) : "" ) << ')'
-        << '\n' << cA( "IP"          ) << cB( user.ip )
+    buf << '\n' << cA( "XMODGUID" ) << cB( user.guid )
+        << " (USERID: " << xvalue( user.guid.length() == 40 ? user.guid.substr( 32 ) : "" ) << ')';
+
+    // For bots, also show cl_guid (32-char format used in userinfo)
+    // Bot GUID format: 00000000000000000000000000000000BOT00XXX (40 chars)
+    // Bot cl_guid:     000000000000000000000000BOT00XXX (32 chars)
+    if (user.guid.length() == 40 && user.guid.substr(32, 3) == "BOT") {
+        // Extract the BOT identifier part (last 8 chars: BOT00XXX)
+        string botId = user.guid.substr(32);  // "BOT00XXX"
+        string clguid = string(24, '0') + botId;  // "000000000000000000000000BOT00XXX"
+        buf << '\n' << cA( "cl_guid" ) << cB( clguid );
+    }
+
+    buf << '\n' << cA( "IP"          ) << cB( user.ip )
         << '\n' << cA( "MAC"         ) << cB( user.mac )
         << '\n' << cA( "timestamp"   ) << cB( ftime )
         << '\n' << cA( "greet-text"  ) << cB( user.greetingText.empty() ? "none" : user.greetingText )

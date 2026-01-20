@@ -3,6 +3,7 @@
 
 #include <bgame/impl.h>
 #include <cgame/jxac/jxac_client.h>
+#include <cgame/xm_client_auth.h>
 
 //========================
 extern 	pmove_t		cg_pmove;
@@ -1754,6 +1755,9 @@ void CG_DrawActiveFrame( int serverTime, stereoFrame_t stereoView, qboolean demo
 
 	// JXAC: Run frame update for client anticheat
 	jxac::Client::frame();
+
+	// Auth: Run frame update for authentication
+	xm_client_auth::frame();
 
 	DEBUGTIME
 

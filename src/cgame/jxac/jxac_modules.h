@@ -3,8 +3,11 @@
 
 namespace jxac {
 
-// Scan loaded modules and send to server
+// Scan loaded modules and queue for sending
 void scanAndSendModules();
+
+// Process module queue (call each frame)
+void processModuleQueue();
 
 } // namespace jxac
 

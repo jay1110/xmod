@@ -34,9 +34,10 @@ ResetXp::doExecute( Context& txt )
 
     target->xpReset();
 
-    const User& targetUser = *connectedUsers[target->slot];
+    // Phase 5: Use session-aware helper for player name
+    const std::string& targetNamex = getPlayerNamex(target->slot);
     Buffer buf;
-    buf << _name << ": " << xvalue( targetUser.namex ) << "'s XP has been reset.";
+    buf << _name << ": " << xvalue( targetNamex ) << "'s XP has been reset.";
 
     printCpm( txt._client, buf, true );
     return PA_NONE;

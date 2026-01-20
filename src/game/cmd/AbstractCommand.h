@@ -25,7 +25,7 @@ public:
 
         Buffer        _ebuf;    // error buffer if needed
         Client* const _client;  // null when server-console or client
-        User&         _user;    // User::CONSOLE or client's user
+        const User&   _user;    // User::CONSOLE or client's user
         Args          _args;    // command-line arguments
         const bool    _silent;  // silent command processing is desired
     };
@@ -72,6 +72,20 @@ protected:
     static bool   lookupPLAYER ( const string&, Context&, Client*&, string = "PLAYER" );
     static bool   lookupPLAYER ( const string&, Context&, vector<Client*>&, string = "PLAYER" );
     static User&  lookupUSER   ( const string&, Context&, string = "USER" );
+
+public:
+    // Session-aware helpers (Phase 4 migration)
+    // Public so utility functions outside the class can use them
+    // Uses global namespace ::xmod:: since this header is included within namespace cmd
+    static void* getSession( int clientNum );  // Returns ::xmod::Session* (use static_cast in cpp)
+    static const std::string& getPlayerName( int clientNum );
+    static const std::string& getPlayerNamex( int clientNum );
+    static int getPlayerLevel( int clientNum );
+    static bool isPlayerMuted( int clientNum );
+    static const std::string& getPlayerGuid( int clientNum );
+    static const std::string& getPlayerIp( int clientNum );
+    static const std::string& getPlayerMac( int clientNum );
+    static bool isPlayerFakeGuid( int clientNum );
 
 public:
     static InlineText _ovalue;

@@ -695,6 +695,9 @@ typedef struct {
 	// OSP
 
 	qboolean	versionOK;
+
+	// GeoIP country index for country flags
+	int			uci;		// User Country Index (0-255)
 } clientSession_t;
 
 //
@@ -1582,7 +1585,7 @@ void G_ProcessIPBans(void);
 bool G_FilterIPBanPacket( const char* );
 bool G_FilterMaxLivesPacket( const char* );
 bool G_FilterMaxLivesIPPacket( const char* );
-void AddMaxLivesGUID( char *str );
+void AddMaxLivesGUID( const char *str );
 void AddMaxLivesBan( const char *str );
 void ClearMaxLivesBans();
 void AddIPBan( const char *str );

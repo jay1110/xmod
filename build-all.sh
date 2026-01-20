@@ -84,6 +84,12 @@ clean_all() {
         "build.mingw-debug"
         "build.mingw64-release"
         "build.mingw64-debug"
+        "build.android-arm64-release"
+        "build.android-arm64-debug"
+        "build.android-x86_64-release"
+        "build.android-x86_64-debug"
+        "build.android-x86-release"
+        "build.android-x86-debug"
         "build-final-release"
         "build-final-debug"
     )
@@ -110,6 +116,141 @@ get_build_dir() {
     local PLATFORM="$1"
     echo "build.${PLATFORM}-${VARIANT}"
 }
+
+# Export guard variable to prevent recursive calling of build-all.sh
+export XMOD_BUILD_SCRIPT=1
+
+# Platform availability checks
+check_linux32_available() {
+    # Try to compile a simple 32-bit test - this is the most reliable check
+    local tmpfile=$(mktemp)
+    echo "int main(){return 0;}" | g++ -m32 -x c++ - -o "$tmpfile" 2>/dev/null
+    local result=$?
+    rm -f "$tmpfile"
+    return $result
+}
+
+check_linux64_available() {
+    # 64-bit native should always work on 64-bit system
+    local tmpfile=$(mktemp)
+    echo "int main(){return 0;}" | g++ -m64 -x c++ - -o "$tmpfile" 2>/dev/null
+    local result=$?
+    rm -f "$tmpfile"
+    return $result
+}
+
+check_mingw32_available() {
+    which i686-w64-mingw32-g++ >/dev/null 2>&1
+    return $?
+}
+
+check_mingw64_available() {
+    which x86_64-w64-mingw32-g++ >/dev/null 2>&1
+    return $?
+}
+
+check_android_arm64_available() {
+    local ndk="${NDK_ROOT:-$ANDROID_NDK_HOME}"
+    [ -n "$ndk" ] && [ -x "$ndk/toolchains/llvm/prebuilt/linux-x86_64/bin/aarch64-linux-android21-clang++" ]
+    return $?
+}
+
+check_android_x86_64_available() {
+    local ndk="${NDK_ROOT:-$ANDROID_NDK_HOME}"
+    [ -n "$ndk" ] && [ -x "$ndk/toolchains/llvm/prebuilt/linux-x86_64/bin/x86_64-linux-android21-clang++" ]
+    return $?
+}
+
+check_android_x86_available() {
+    local ndk="${NDK_ROOT:-$ANDROID_NDK_HOME}"
+    [ -n "$ndk" ] && [ -x "$ndk/toolchains/llvm/prebuilt/linux-x86_64/bin/i686-linux-android21-clang++" ]
+    return $?
+}
+
+# Detect available platforms
+AVAILABLE_PLATFORMS=""
+MISSING_PLATFORMS=""
+
+echo "=== Checking platform availability ==="
+
+if check_linux64_available; then
+    AVAILABLE_PLATFORMS="$AVAILABLE_PLATFORMS linux64"
+    echo "  [OK] Linux 64-bit"
+else
+    MISSING_PLATFORMS="$MISSING_PLATFORMS linux64"
+    echo "  [--] Linux 64-bit (g++ not working)"
+fi
+
+if check_linux32_available; then
+    AVAILABLE_PLATFORMS="$AVAILABLE_PLATFORMS linux"
+    echo "  [OK] Linux 32-bit"
+else
+    MISSING_PLATFORMS="$MISSING_PLATFORMS linux"
+    echo "  [--] Linux 32-bit (install: sudo apt install gcc-multilib g++-multilib)"
+fi
+
+if check_mingw64_available; then
+    AVAILABLE_PLATFORMS="$AVAILABLE_PLATFORMS mingw64"
+    echo "  [OK] Windows 64-bit (MinGW)"
+else
+    MISSING_PLATFORMS="$MISSING_PLATFORMS mingw64"
+    echo "  [--] Windows 64-bit (install: sudo apt install g++-mingw-w64-x86-64)"
+fi
+
+if check_mingw32_available; then
+    AVAILABLE_PLATFORMS="$AVAILABLE_PLATFORMS mingw"
+    echo "  [OK] Windows 32-bit (MinGW)"
+else
+    MISSING_PLATFORMS="$MISSING_PLATFORMS mingw"
+    echo "  [--] Windows 32-bit (install: sudo apt install g++-mingw-w64-i686)"
+fi
+
+if check_android_arm64_available; then
+    AVAILABLE_PLATFORMS="$AVAILABLE_PLATFORMS android-arm64"
+    echo "  [OK] Android ARM64 (arm64-v8a)"
+else
+    MISSING_PLATFORMS="$MISSING_PLATFORMS android-arm64"
+    echo "  [--] Android ARM64 (set NDK_ROOT or ANDROID_NDK_HOME)"
+fi
+
+if check_android_x86_64_available; then
+    AVAILABLE_PLATFORMS="$AVAILABLE_PLATFORMS android-x86_64"
+    echo "  [OK] Android x86_64"
+else
+    MISSING_PLATFORMS="$MISSING_PLATFORMS android-x86_64"
+    echo "  [--] Android x86_64 (set NDK_ROOT or ANDROID_NDK_HOME)"
+fi
+
+if check_android_x86_available; then
+    AVAILABLE_PLATFORMS="$AVAILABLE_PLATFORMS android-x86"
+    echo "  [OK] Android x86"
+else
+    MISSING_PLATFORMS="$MISSING_PLATFORMS android-x86"
+    echo "  [--] Android x86 (set NDK_ROOT or ANDROID_NDK_HOME)"
+fi
+
+echo ""
+
+if [ -z "$AVAILABLE_PLATFORMS" ]; then
+    echo "ERROR: No platforms available to build!"
+    echo "Please install at least one of the required toolchains."
+    exit 1
+fi
+
+if [ -n "$MISSING_PLATFORMS" ]; then
+    echo "WARNING: Some platforms are not available:$MISSING_PLATFORMS"
+    echo "Building only available platforms:$AVAILABLE_PLATFORMS"
+    echo ""
+fi
+
+# Ensure the per-platform project metadata exists before invoking pkg targets
+ensure_project_mk() {
+    local PLATFORM="$1"
+    local BUILD_DIR=$(get_build_dir "$PLATFORM")
+    local PROJECT_MK="${BUILD_DIR}/make/project.mk"
+    echo "Ensuring ${PROJECT_MK} exists..."
+    make PLATFORM="$PLATFORM" VARIANT="$VARIANT" "$PROJECT_MK"
+}
 # Function to build a platform using 'make pkg' to get all processed files
 build_platform() {
     local PLATFORM="$1"
@@ -123,6 +264,8 @@ build_platform() {
         echo "Cleaning $BUILD_DIR..."
         rm -rf "$BUILD_DIR"
     fi
+    # Make sure project metadata is generated so pkg targets are available
+    ensure_project_mk "$PLATFORM"
     # Clean pkg targets to ensure they get rebuilt
     make PLATFORM="$PLATFORM" VARIANT="$VARIANT" pkg.clean 2>/dev/null || true
     # Build everything including pkg
@@ -134,12 +277,32 @@ build_platform() {
 echo "========================================"
 echo "=== Phase 1: Building all platforms ==="
 echo "========================================"
-build_platform "linux"   "Linux 32-bit"
-build_platform "linux64" "Linux 64-bit"
-build_platform "mingw"   "Windows 32-bit"
-build_platform "mingw64" "Windows 64-bit"
+
+# Track which platforms were successfully built
+BUILT_PLATFORMS=""
+
+for platform in $AVAILABLE_PLATFORMS; do
+    case "$platform" in
+        linux)         build_platform "linux"         "Linux 32-bit"        && BUILT_PLATFORMS="$BUILT_PLATFORMS linux" ;;
+        linux64)       build_platform "linux64"       "Linux 64-bit"        && BUILT_PLATFORMS="$BUILT_PLATFORMS linux64" ;;
+        mingw)         build_platform "mingw"         "Windows 32-bit"      && BUILT_PLATFORMS="$BUILT_PLATFORMS mingw" ;;
+        mingw64)       build_platform "mingw64"       "Windows 64-bit"      && BUILT_PLATFORMS="$BUILT_PLATFORMS mingw64" ;;
+        android-arm64) build_platform "android-arm64" "Android ARM64"       && BUILT_PLATFORMS="$BUILT_PLATFORMS android-arm64" ;;
+        android-x86_64) build_platform "android-x86_64" "Android x86_64"    && BUILT_PLATFORMS="$BUILT_PLATFORMS android-x86_64" ;;
+        android-x86)   build_platform "android-x86"   "Android x86"         && BUILT_PLATFORMS="$BUILT_PLATFORMS android-x86" ;;
+    esac
+done
+
+# Determine reference build (prefer linux64, fallback to first available)
+if echo "$BUILT_PLATFORMS" | grep -q "linux64"; then
+    REFERENCE_BUILD=$(get_build_dir "linux64")
+else
+    # Use first available platform
+    FIRST_PLATFORM=$(echo $BUILT_PLATFORMS | awk '{print $1}')
+    REFERENCE_BUILD=$(get_build_dir "$FIRST_PLATFORM")
+fi
+
 # Get project info from generated make file (after first build)
-REFERENCE_BUILD=$(get_build_dir "linux64")
 PROJECT_MK="$REFERENCE_BUILD/make/project.mk"
 if [ ! -f "$PROJECT_MK" ]; then
     echo "ERROR: Could not find $PROJECT_MK"
@@ -200,10 +363,15 @@ collect_binaries() {
         fi
     done
 }
-collect_binaries "linux"   ".so"
-collect_binaries "linux64" ".so"
-collect_binaries "mingw"   ".dll"
-collect_binaries "mingw64" ".dll"
+# Only collect binaries from platforms that were built
+for platform in $BUILT_PLATFORMS; do
+    case "$platform" in
+        linux|linux64) collect_binaries "$platform" ".so" ;;
+        mingw|mingw64) collect_binaries "$platform" ".dll" ;;
+        android-arm64|android-x86_64|android-x86) collect_binaries "$platform" ".so" ;;
+    esac
+done
+
 echo "========================================"
 echo "=== Phase 4: Collecting pkg files ==="
 echo "========================================"

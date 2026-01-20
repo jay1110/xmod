@@ -30,7 +30,14 @@ MODULES += doc/book
 
 ###############################################################################
 
-all::
+# Default goal depends on whether PLATFORM is set or not
+# If PLATFORM is set, default to pkg (build single platform)
+# If PLATFORM is not set, default to build-all (multi-platform via script)
+ifdef PLATFORM
+.DEFAULT_GOAL := pkg
+else
+.DEFAULT_GOAL := build-all
+endif
 
 ###############################################################################
 

@@ -26,7 +26,7 @@ Seen::doExecute( Context& txt )
     if (txt._args.size() != 2)
         return PA_USAGE;
 
-    if (!xmod::g_database || !xmod::g_database->isOpened()) {
+    if (!::xmod::g_database || !::xmod::g_database->isOpened()) {
         txt._ebuf << "Database not available.";
         return PA_ERROR;
     }
@@ -41,8 +41,8 @@ Seen::doExecute( Context& txt )
         return PA_ERROR;
     }
 
-    std::vector<xmod::UserData> users;
-    if (!xmod::g_database->searchUsersByName(name, users) || users.empty()) {
+    std::vector<::xmod::UserData> users;
+    if (!::xmod::g_database->searchUsersByName(name, users) || users.empty()) {
         Buffer buf;
         buf << _name << ": No match found.";
         printChat( txt._client, buf );
@@ -53,7 +53,7 @@ Seen::doExecute( Context& txt )
     static const int maxOutput = 4;
     int outputCount = 0;
 
-    for (std::vector<xmod::UserData>::const_iterator it = users.begin(); it != users.end(); ++it) {
+    for (std::vector<::xmod::UserData>::const_iterator it = users.begin(); it != users.end(); ++it) {
         if (++outputCount > maxOutput)
             break;
 
@@ -61,14 +61,14 @@ Seen::doExecute( Context& txt )
             buf << '\n';
         buf << _name << ": ";
 
-        const xmod::UserData& user = *it;
+        const ::xmod::UserData& user = *it;
         
         // Check if user is currently online by matching GUID
         bool isOnline = false;
         for (int i = 0; i < level.numConnectedClients; i++) {
             int slot = level.sortedClients[i];
-            if (xmod::g_sessions[slot] && xmod::g_sessions[slot]->isAuthenticated()) {
-                if (xmod::g_sessions[slot]->getGuid() == user.guid) {
+            if (::xmod::g_sessions[slot] && ::xmod::g_sessions[slot]->isAuthenticated()) {
+                if (::xmod::g_sessions[slot]->getGuid() == user.guid) {
                     isOnline = true;
                     break;
                 }

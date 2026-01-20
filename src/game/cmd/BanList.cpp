@@ -25,13 +25,13 @@ BanList::~BanList()
 AbstractCommand::PostAction
 BanList::doExecute( Context& txt )
 {
-    if (!xmod::g_database || !xmod::g_database->isOpened()) {
+    if (!::xmod::g_database || !::xmod::g_database->isOpened()) {
         txt._ebuf << "Database not available.";
         return PA_ERROR;
     }
 
-    std::vector<xmod::BanData> bans;
-    if (!xmod::g_database->getBanList(bans) || bans.empty()) {
+    std::vector<::xmod::BanData> bans;
+    if (!::xmod::g_database->getBanList(bans) || bans.empty()) {
         txt._ebuf << "There are no banned users.";
         return PA_ERROR;
     }
@@ -97,8 +97,8 @@ BanList::doExecute( Context& txt )
     uint32 numExpired = 0;
     uint32 num = 0;
     
-    for (std::vector<xmod::BanData>::const_iterator it = bans.begin(); it != bans.end(); ++it) {
-        const xmod::BanData& ban = *it;
+    for (std::vector<::xmod::BanData>::const_iterator it = bans.begin(); it != bans.end(); ++it) {
+        const ::xmod::BanData& ban = *it;
         
         // Generate ID from ban ID or GUID
         ostringstream idStream;

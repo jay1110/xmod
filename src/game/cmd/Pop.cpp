@@ -60,8 +60,9 @@ Pop::doExecute( Context& txt )
                 return PA_ERROR;
 
            if (ent->client->ps.eFlags & EF_HEADSHOT) {
-               const User& u = *connectedUsers[c.slot];
-               txt._ebuf << xvalue( u.namex ) << " has no helmet.";
+               // Phase 5: Use session-aware helper for player name
+               const std::string& namex = getPlayerNamex(c.slot);
+               txt._ebuf << xvalue( namex ) << " has no helmet.";
                return PA_ERROR;
            }
         }
@@ -85,8 +86,9 @@ Pop::doExecute( Context& txt )
     Buffer buf;
     buf << _name << ": ";
     if (single) {
-       const User& u = *connectedUsers[single->slot];
-       buf << xvalue( u.namex ) << " was pop'd.";
+       // Phase 5: Use session-aware helper for player name
+       const std::string& namex = getPlayerNamex(single->slot);
+       buf << xvalue( namex ) << " was pop'd.";
     }
     else {
        buf << xvalue( num ) << " player" << (num == 1 ? "" : "s") << " pop'd.";

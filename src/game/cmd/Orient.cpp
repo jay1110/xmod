@@ -36,9 +36,10 @@ Orient::doExecute( Context& txt )
         return PA_ERROR;
 
     // bail if not disoriented
-    const User& targetUser = *connectedUsers[target->slot];
+    // Phase 5: Use session-aware helper for player name
+    const std::string& targetNamex = getPlayerNamex(target->slot);
     if (!target->gclient.sess.disoriented[1]) {
-        txt._ebuf << xvalue( targetUser.namex ) << " is not disoriented.";
+        txt._ebuf << xvalue( targetNamex ) << " is not disoriented.";
         return PA_ERROR;
     }
 
@@ -46,7 +47,7 @@ Orient::doExecute( Context& txt )
     target->gclient.sess.disoriented[1] = qfalse;
 
     Buffer buf;
-    buf << _name << ": " << xvalue( targetUser.namex ) << " is re-oriented.";
+    buf << _name << ": " << xvalue( targetNamex ) << " is re-oriented.";
     printCpm( txt._client, buf, true );
 
     return PA_NONE;

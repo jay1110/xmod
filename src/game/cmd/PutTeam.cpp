@@ -54,10 +54,11 @@ PutTeam::doExecute( Context& txt )
         return PA_USAGE;
     }
     
-    const User& targetUser = *connectedUsers[target->slot];
+    // Use session-aware helper for player data
+    const std::string& targetNamex = getPlayerNamex(target->slot);
     gentity_t* const targetEnt = &target->gentity;
     if (targetEnt->client->sess.sessionTeam == team) {
-        txt._ebuf << xvalue( targetUser.namex ) << " is already on " << str::toString( team );
+        txt._ebuf << xvalue( targetNamex ) << " is already on " << str::toString( team );
         return PA_ERROR;
     }
 
@@ -67,7 +68,7 @@ PutTeam::doExecute( Context& txt )
     }
 
     Buffer buf;
-    buf << _name << ": " << xvalue( targetUser.namex ) << " moved to " << str::toString( team );
+    buf << _name << ": " << xvalue( targetNamex ) << " moved to " << str::toString( team );
 
     printCpm( txt._client, buf, true );
     return PA_NONE;

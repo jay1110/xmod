@@ -33,8 +33,8 @@ UserDB::checkBan( string guid, string ip, string mac, User*& subject, string& de
     const time_t now = time( NULL );
     BanStatus status = BAN_NONE;
 
-    // GUID
-    if (guid.length() == 32) {
+    // GUID (now 40 characters for xmodguid)
+    if (guid.length() == 40) {
         string err;
         User &user = fetchByKey( guid, err );
 
@@ -165,12 +165,12 @@ UserDB::fetchByID( const string& id, string& err )
         err = "must be at least 8 chars long";
         return User::BAD;
     }
-    if (idlen > 32) {
-        err = "exceeds maximum of 32 chars";
+    if (idlen > 40) {
+        err = "exceeds maximum of 40 chars";
         return User::BAD;
     }
 
-    const string::size_type foundpos = 32 - idlen;
+    const string::size_type foundpos = 40 - idlen;
 
     string lid = id;
     str::toLower( lid );
@@ -204,8 +204,8 @@ UserDB::fetchByID( const string& id, string& err )
 User&
 UserDB::fetchByKey( const string& guid, string& err, bool create )
 {
-    if (guid.length() != 32) {
-        err = "length must be 32 chars";
+    if (guid.length() != 40) {
+        err = "length must be 40 chars";
         return User::BAD;
     }
 

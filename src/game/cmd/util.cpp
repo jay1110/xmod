@@ -1,4 +1,5 @@
 #include <bgame/impl.h>
+#include <game/xmod_globals.h>
 
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -94,7 +95,17 @@ commandForName( const string& name )
 bool
 entityHasPermission( const gentity_t* ent, const Privilege& priv )
 {
-    return (ent ? connectedUsers[ ent-g_entities ]->hasPrivilege( priv ) : true);
+    if (!ent)
+        return true;
+    
+    int slot = ent - g_entities;
+    
+    // Use global helper for privilege check
+    if (slot >= 0 && slot < MAX_CLIENTS) {
+        return ::xmod::hasClientPrivilege(slot, priv);
+    }
+    
+    return true;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -102,7 +113,13 @@ entityHasPermission( const gentity_t* ent, const Privilege& priv )
 int
 levelForEntity( const gentity_t* ent )
 {
-    return (ent->client ? connectedUsers[ ent-g_entities ]->authLevel : 0);
+    if (!ent || !ent->client)
+        return 0;
+    
+    int slot = ent - g_entities;
+    
+    // Use session-aware helper
+    return AbstractCommand::getPlayerLevel(slot);
 }
 
 ///////////////////////////////////////////////////////////////////////////////

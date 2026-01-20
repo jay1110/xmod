@@ -23,6 +23,9 @@ void Bot_Event_EntityCreated(gentity_t *pEnt);
 
 bool IsBot(gentity_t *e)
 {
+	// Safety check: ensure entity pointer is valid before accessing
+	if(!e || !e->inuse)
+		return false;
 	return e->r.svFlags & SVF_BOT ? true : false;
 }
 
@@ -1561,6 +1564,11 @@ public:
 		}
 
 		OB_GETMSG(Msg_Addbot);
+		if (!pMsg)
+		{
+			PrintError("Could not add bot: missing addbot message.");
+			return -1;
+		}
 
 		// cs: find a usable slot. this should avoid and game / engine sync problems related to CS_FREE
 		gentity_t* clEnt = NULL;
@@ -1593,8 +1601,14 @@ public:
 
 		char userinfo[MAX_INFO_STRING] = {0};
 
+		// Bot cl_guid: 24 zeros + BOT + 5 digit slot number = 32 chars total
+		// Format: 000000000000000000000000BOT00XXX
+		// Using num (slot 0-63) ensures only up to 64 bot entries in xmod.db
+		// This matches the user's expected format and allows proper display in !finger
 		std::stringstream guid;
-		guid << "OMNIBOT" << std::setw(2) << std::setfill('0') << num << std::right << std::setw(23) << "";
+		guid << std::string(24, '0')  // 24 zeros prefix
+		     << "BOT"
+		     << std::setw(5) << std::setfill('0') << num;  // 5-digit slot number (0-63)
 
 		gentity_t* bot = &g_entities[num];
 
@@ -1612,6 +1626,101 @@ public:
 			PrintError(va("Could not connect bot: %s", connectErrMsg.c_str()));
 			num = -1;
 		}
+		else
+		{
+			// Set up bot's team and class BEFORE calling ClientBegin to avoid
+			// double ClientBegin calls (ChangeTeam -> SetTeam -> ClientBegin).
+			// This ensures the bot is in a consistent state when omnibot processes it.
+			
+			gclient_t* client = bot->client;
+			
+			// Determine target team
+			int targetTeam = pMsg->m_Team;
+			if (targetTeam != ET_TEAM_AXIS && targetTeam != ET_TEAM_ALLIES)
+			{
+				// Pick team with fewer players
+				if (TeamCount(num, TEAM_ALLIES) <= TeamCount(num, TEAM_AXIS))
+					targetTeam = ET_TEAM_ALLIES;
+				else
+					targetTeam = ET_TEAM_AXIS;
+			}
+			
+			// Determine target class
+			int targetClass = pMsg->m_Class;
+			if (targetClass <= ET_CLASS_NULL || targetClass >= ET_CLASS_MAX)
+			{
+				// Pick a class based on team needs
+				team_t gameTeam = (targetTeam == ET_TEAM_AXIS) ? TEAM_AXIS : TEAM_ALLIES;
+				int engineers = CountPlayerClass(gameTeam, PC_ENGINEER, num);
+				int medics = CountPlayerClass(gameTeam, PC_MEDIC, num);
+				int fieldops = CountPlayerClass(gameTeam, PC_FIELDOPS, num);
+				int soldiers = CountPlayerClass(gameTeam, PC_SOLDIER, num);
+				int covops = CountPlayerClass(gameTeam, PC_COVERTOPS, num);
+				
+				if (OMNIBOT_MIN_ENG > 0 && engineers == 0)
+					targetClass = ET_CLASS_ENGINEER;
+				else if (OMNIBOT_MIN_MED > 0 && medics == 0)
+					targetClass = ET_CLASS_MEDIC;
+				else if (OMNIBOT_MIN_FOP > 0 && fieldops == 0)
+					targetClass = ET_CLASS_FIELDOPS;
+				else if (OMNIBOT_MIN_SOL > 0 && soldiers == 0)
+					targetClass = ET_CLASS_SOLDIER;
+				else if (OMNIBOT_MIN_COP > 0 && covops == 0)
+					targetClass = ET_CLASS_COVERTOPS;
+				else if (engineers < OMNIBOT_MIN_ENG)
+					targetClass = ET_CLASS_ENGINEER;
+				else if (medics < OMNIBOT_MIN_MED)
+					targetClass = ET_CLASS_MEDIC;
+				else if (fieldops < OMNIBOT_MIN_FOP)
+					targetClass = ET_CLASS_FIELDOPS;
+				else if (soldiers < OMNIBOT_MIN_SOL)
+					targetClass = ET_CLASS_SOLDIER;
+				else if (covops < OMNIBOT_MIN_COP)
+					targetClass = ET_CLASS_COVERTOPS;
+				else
+					targetClass = Bot_PlayerClassGameToBot(rand() % NUM_PLAYER_CLASSES);
+			}
+			
+			// Convert to game types and set session data directly
+			team_t gameTeam = (targetTeam == ET_TEAM_AXIS) ? TEAM_AXIS : TEAM_ALLIES;
+			int gameClass = playerClassBotToGame(targetClass);
+			
+			client->sess.sessionTeam = gameTeam;
+			client->sess.latchPlayerType = gameClass;
+			client->sess.playerType = gameClass;
+			
+			// Set weapons for the class
+			client->sess.latchPlayerWeapon = _weaponBotToGame(_choosePriWeap(bot, targetClass, targetTeam));
+			client->sess.latchPlayerWeapon2 = _weaponBotToGame(_chooseSecWeap(bot, targetClass, targetTeam));
+			
+			// Verify weapons are allowed
+			if(G_IsWeaponDisabled(bot, (weapon_t)client->sess.latchPlayerWeapon, qtrue))
+				client->sess.latchPlayerWeapon = 0;
+			if(G_IsWeaponDisabled(bot, (weapon_t)client->sess.latchPlayerWeapon2, qtrue))
+				client->sess.latchPlayerWeapon2 = 0;
+			
+			// Now call ClientBegin with all session data properly set.
+			// This completes the connection and spawns the bot.
+			ClientBegin(num);
+			
+			// Process the bot entity registration immediately.
+			// G_InitGentity (called by ClientBegin) queued the entity via Bot_Queue_EntityCreated,
+			// but we need to register it NOW before Bot_Event_ClientConnected is called.
+			// Otherwise Omnibot receives GAME_CLIENTCONNECTED before GAME_ENTITYCREATED
+			// which can cause it to access an unregistered entity.
+			if(m_EntityHandles[num].m_NewEntity && bot->inuse)
+			{
+				m_EntityHandles[num].m_NewEntity = false;
+				Bot_Event_EntityCreated(bot);
+			}
+			
+			// Notify Omnibot about the bot connection AFTER ClientBegin has completed
+			// AND the entity has been registered. This is critical because:
+			// 1. ClientBegin zeros out client->ps and may put the bot in limbo
+			// 2. Omnibot's CheckServerSettings needs to see the bot in a consistent state
+			// 3. The bot entity must be registered before Omnibot starts processing it
+			Bot_Event_ClientConnected(num, qtrue);
+		}
 		// bad hack to prevent unhandled errors being returned as successful connections
 		return bot && bot->inuse ? num : -1;
 	}
@@ -1624,8 +1733,11 @@ public:
 			if(pMsg->m_GameId >= 0 && pMsg->m_GameId < MAX_CLIENTS)
 			{
 				gentity_t *ent = &g_entities[pMsg->m_GameId];
-				if(IsBot(ent))
+				// Validate entity before checking IsBot
+				if(ent->inuse && ent->client && IsBot(ent))
+				{
 					trap_DropClient(pMsg->m_GameId, "disconnected", 0);
+				}
 			}
 		}
 		else
