@@ -3,9 +3,8 @@
 
 #include <bgame/impl.h> // For CS settings/retrieval
 
-// Aspect ratio constants for widescreen support
+// Aspect ratio constant for widescreen support
 #define RATIO43     (4.0f / 3.0f)   // 4:3 aspect ratio (1.333...)
-#define RPRATIO43   (3.0f / 4.0f)   // Reciprocal of 4:3 (0.75)
 
 #define SCROLL_TIME_START					500
 #define SCROLL_TIME_ADJUST				150
@@ -74,7 +73,7 @@ static qboolean Menu_OverActiveItem(menuDef_t *menu, float x, float y);
 	#if defined(__x86_64__) || defined(_M_X64) || defined(__amd64__) || defined(XMOD_LINUX64) || defined(XMOD_WINDOWS64)
 		#define MEM_POOL_SIZE  (4096 * 1024)
 	#else
-		#define MEM_POOL_SIZE  (2048 * 1024)	// Arnout: was 1024, increased for larger menus
+		#define MEM_POOL_SIZE  (2048 * 1024)	// was 1536 (Arnout: was 1024), increased for larger menus
 	#endif
 #endif
 
