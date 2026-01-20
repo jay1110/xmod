@@ -224,6 +224,10 @@ HINSTANCE Omnibot_LL(const char *file)
 	return hndl;
 }
 
+// On macOS, omnibot/osx/loader.cpp provides stub implementations
+// of Omnibot_LoadLibrary and Omnibot_FreeLibrary
+#ifndef __APPLE__
+
 eomnibot_error Omnibot_LoadLibrary(int version, const char *lib, const char *path)
 {
 	eomnibot_error r = BOT_ERROR_NONE;
@@ -241,16 +245,12 @@ eomnibot_error Omnibot_LoadLibrary(int version, const char *lib, const char *pat
 		g_BotLibrary = Omnibot_LL(OB_VA("%s" SUFFIX ".dll", lib));
 
 #else
-#ifdef __APPLE__
-#define SUFFIX "_mac"
-#else
 #ifdef __x86_64__
 #define SUFFIX ".x86_64"
 #elif defined __aarch64__
 #define SUFFIX ".aarch64"
 #else	
 #define SUFFIX
-#endif
 #endif
 	g_BotLibrary = Omnibot_LL(OB_VA("%s/%s" SUFFIX ".so", path ? path : ".", lib));
 	if(!g_BotLibrary)
@@ -318,6 +318,7 @@ void Omnibot_FreeLibrary()
 	g_IsOmnibotLoaded = false;
 }
 
+#endif // __APPLE__
 
 #endif // GAMEDLL
 
