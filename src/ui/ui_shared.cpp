@@ -3,6 +3,10 @@
 
 #include <bgame/impl.h> // For CS settings/retrieval
 
+// Aspect ratio constants for widescreen support
+#define RATIO43     (4.0f / 3.0f)   // 4:3 aspect ratio (1.333...)
+#define RPRATIO43   (3.0f / 4.0f)   // Reciprocal of 4:3 (0.75)
+
 #define SCROLL_TIME_START					500
 #define SCROLL_TIME_ADJUST				150
 #define SCROLL_TIME_ADJUSTOFFSET	40
@@ -59,10 +63,19 @@ itemDef_t *Menu_SetPrevCursorItem(menuDef_t *menu);
 itemDef_t *Menu_SetNextCursorItem(menuDef_t *menu);
 static qboolean Menu_OverActiveItem(menuDef_t *menu, float x, float y);
 
+// Memory pool sizes - 64-bit architectures need more memory
 #ifdef CGAME
-#define MEM_POOL_SIZE  128 * 1024
+	#if defined(__x86_64__) || defined(_M_X64) || defined(__amd64__) || defined(XMOD_LINUX64) || defined(XMOD_WINDOWS64)
+		#define MEM_POOL_SIZE  (256 * 1024)
+	#else
+		#define MEM_POOL_SIZE  (128 * 1024)
+	#endif
 #else
-#define MEM_POOL_SIZE  1536 * 1024	// Arnout: was 1024
+	#if defined(__x86_64__) || defined(_M_X64) || defined(__amd64__) || defined(XMOD_LINUX64) || defined(XMOD_WINDOWS64)
+		#define MEM_POOL_SIZE  (4096 * 1024)
+	#else
+		#define MEM_POOL_SIZE  (2048 * 1024)	// Arnout: was 1024, increased for larger menus
+	#endif
 #endif
 
 static char		memoryPool[MEM_POOL_SIZE];
@@ -4599,11 +4612,19 @@ qboolean Item_Bind_HandleKey(itemDef_t *item, int key, qboolean down) {
 
 
 void AdjustFrom640(float *x, float *y, float *w, float *h) {
-	//*x = *x * DC->scale + DC->bias;
+	// Scale from 640x480 virtual screen to actual resolution
 	*x *= DC->xscale;
 	*y *= DC->yscale;
 	*w *= DC->xscale;
 	*h *= DC->yscale;
+
+	// Apply aspect ratio correction for widescreen displays
+	// This prevents UI from being stretched on 16:9, 16:10, etc. resolutions
+	if (DC->glconfig.windowAspect > RATIO43) {
+		float aspectCorrection = RATIO43 / DC->glconfig.windowAspect;
+		*x *= aspectCorrection;
+		*w *= aspectCorrection;
+	}
 }
 
 void Item_Model_Paint(itemDef_t *item) {
