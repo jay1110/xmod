@@ -744,13 +744,12 @@ qboolean IsVisible(int flags) {
 qboolean Rect_ContainsPoint(rectDef_t *rect, float x, float y) {
 	if (rect) {
 		// Correction for widescreen cursor coordinates
-		// The cursor x position needs to be scaled to match the UI element positions
+		// Only X-axis needs adjustment because widescreen stretching is horizontal only
+		// The cursor x position is scaled to match the UI element positions
 		// that have been adjusted for widescreen in AdjustFrom640()
-		float wideX = Cui_WideX(x);
-		float wideRectX = Cui_WideX(rect->x);
-		float wideRectW = Cui_WideX(rect->x + rect->w);
+		x = Cui_WideX(x);
 		
-		if (wideX >= wideRectX && wideX < wideRectW && y >= rect->y && y < rect->y + rect->h) {
+		if (x >= Cui_WideX(rect->x) && x < Cui_WideX(rect->x + rect->w) && y >= rect->y && y < rect->y + rect->h) {
 			return qtrue;
 		}
 	}
