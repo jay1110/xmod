@@ -71,8 +71,8 @@ jobs:
         run: |
           PLATFORM=osx64 make release
           mkdir -p artifacts/macos/x86_64
-          find build.osx64-release/${{ matrix.module }} -name "*.dylib" -exec cp {} artifacts/macos/x86_64/ \; || true
-          find build.osx64-release/${{ matrix.module }} -name "*_mac" -exec cp {} artifacts/macos/x86_64/ \; || true
+          # Copy the actual binary files (not the ZIP archives)
+          find build.osx64-release/${{ matrix.module }} -name "*.binary" -exec cp {} artifacts/macos/x86_64/ \; || true
       
       - name: Build ${{ matrix.module }} for arm64
         run: |
@@ -81,27 +81,63 @@ jobs:
           # Build for arm64 using osx-arm64 platform
           PLATFORM=osx-arm64 make release
           mkdir -p artifacts/macos/arm64
-          find build.osx-arm64-release/${{ matrix.module }} -name "*.dylib" -exec cp {} artifacts/macos/arm64/ \; || true
-          find build.osx-arm64-release/${{ matrix.module }} -name "*_mac" -exec cp {} artifacts/macos/arm64/ \; || true
+          # Copy the actual binary files (not the ZIP archives)
+          find build.osx-arm64-release/${{ matrix.module }} -name "*.binary" -exec cp {} artifacts/macos/arm64/ \; || true
       
       - name: Create universal binaries
         run: |
           mkdir -p artifacts/macos/universal
           
-          # Process all built binaries
-          for x86_file in artifacts/macos/x86_64/*; do
+          # Process all built .binary files and create universal binaries
+          for x86_file in artifacts/macos/x86_64/*.binary; do
             if [ -f "$x86_file" ]; then
               filename=$(basename "$x86_file")
+              # Remove .binary extension to get the base name (e.g., ui_mac)
+              basename_no_ext="${filename%.binary}"
               arm64_file="artifacts/macos/arm64/$filename"
-              universal_file="artifacts/macos/universal/$filename"
+              universal_binary="artifacts/macos/universal/$filename"
               
               if [ -f "$arm64_file" ]; then
                 echo "Creating universal binary for $filename"
-                lipo -create "$x86_file" "$arm64_file" -output "$universal_file"
+                lipo -create "$x86_file" "$arm64_file" -output "$universal_binary"
               else
                 echo "Warning: ARM64 version not found for $filename, using x86_64 only"
-                cp "$x86_file" "$universal_file"
+                cp "$x86_file" "$universal_binary"
               fi
+              
+              # Create the macOS bundle structure and ZIP it
+              bundle_dir="artifacts/macos/universal/${basename_no_ext}.bundle"
+              mkdir -p "${bundle_dir}/Contents/MacOS"
+              
+              # Create Info.plist
+              cat > "${bundle_dir}/Contents/Info.plist" << EOF
+          <?xml version="1.0" encoding="UTF-8"?>
+          <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+          <plist version="1.0">
+          <dict>
+            <key>CFBundleDevelopmentRegion</key>
+            <string>English</string>
+            <key>CFBundleExecutable</key>
+            <string>${basename_no_ext}</string>
+            <key>CFBundleInfoDictionaryVersion</key>
+            <string>6.0</string>
+            <key>CFBundleName</key>
+            <string>${basename_no_ext}</string>
+            <key>CFBundlePackageType</key>
+            <string>BNDL</string>
+          </dict>
+          </plist>
+          EOF
+              
+              # Copy the universal binary into the bundle
+              cp "$universal_binary" "${bundle_dir}/Contents/MacOS/${basename_no_ext}"
+              
+              # Create the ZIP archive (without .binary extension), using same format as build system
+              (cd artifacts/macos/universal && zip -rq - "${basename_no_ext}.bundle") > "artifacts/macos/universal/${basename_no_ext}"
+              
+              # Clean up - remove bundle dir and .binary file, keep only the ZIP
+              rm -rf "${bundle_dir}"
+              rm -f "$universal_binary"
             fi
           done
           
