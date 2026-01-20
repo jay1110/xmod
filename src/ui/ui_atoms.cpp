@@ -8,6 +8,9 @@
 
 #include <bgame/impl.h>
 
+// Aspect ratio constants for widescreen support
+#define RATIO43     (4.0f / 3.0f)   // 4:3 aspect ratio (1.333...)
+
 uiStatic_t		uis;
 qboolean		m_entersound;		// after a frame, so caching won't disrupt the sound
 
@@ -242,19 +245,19 @@ Adjusted for resolution and screen aspect ratio
 ================
 */
 void UI_AdjustFrom640( float *x, float *y, float *w, float *h ) {
-	// expect valid pointers
-#if 0
-	*x = *x * uiInfo.uiDC.scale + uiInfo.uiDC.bias;
-	*y *= uiInfo.uiDC.scale;
-	*w *= uiInfo.uiDC.scale;
-	*h *= uiInfo.uiDC.scale;
-#endif
-
+	// Scale from 640x480 virtual screen to actual resolution
 	*x *= uiInfo.uiDC.xscale;
 	*y *= uiInfo.uiDC.yscale;
 	*w *= uiInfo.uiDC.xscale;
 	*h *= uiInfo.uiDC.yscale;
 
+	// Apply aspect ratio correction for widescreen displays
+	// This prevents UI from being stretched on 16:9, 16:10, etc. resolutions
+	if (uiInfo.uiDC.glconfig.windowAspect > RATIO43) {
+		float aspectCorrection = RATIO43 / uiInfo.uiDC.glconfig.windowAspect;
+		*x *= aspectCorrection;
+		*w *= aspectCorrection;
+	}
 }
 
 void UI_DrawNamedPic( float x, float y, float width, float height, const char *picname ) {
