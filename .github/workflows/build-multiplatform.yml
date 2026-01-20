@@ -15,6 +15,96 @@ permissions:
   contents: write
 
 jobs:
+  build-linux64:
+    name: Build Linux 64-bit
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y build-essential python3 zip m4
+      
+      - name: Ensure scripts are executable
+        run: chmod +x project/info.py
+      
+      - name: Build Linux 64-bit
+        run: PLATFORM=linux64 make release
+      
+      - name: Upload Linux 64-bit artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: xmod-linux64
+          path: |
+            build.linux64-release/game/qagame.mp.x86_64.so
+            build.linux64-release/cgame/cgame.mp.x86_64.so
+            build.linux64-release/ui/ui.mp.x86_64.so
+
+  build-linux32:
+    name: Build Linux 32-bit
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y build-essential python3 gcc-multilib g++-multilib zip m4
+      
+      - name: Ensure scripts are executable
+        run: chmod +x project/info.py
+      
+      - name: Build Linux 32-bit
+        run: PLATFORM=linux make release
+      
+      - name: Upload Linux 32-bit artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: xmod-linux32
+          path: |
+            build.linux-release/game/qagame.mp.i386.so
+            build.linux-release/cgame/cgame.mp.i386.so
+            build.linux-release/ui/ui.mp.i386.so
+
+  build-windows:
+    name: Build Windows 32-bit and 64-bit
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y build-essential python3 mingw-w64 zip m4
+      
+      - name: Ensure scripts are executable
+        run: chmod +x project/info.py
+      
+      - name: Build Windows 32-bit
+        run: PLATFORM=mingw make release
+      
+      - name: Build Windows 64-bit
+        run: PLATFORM=mingw64 make release
+      
+      - name: Upload Windows 32-bit artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: xmod-windows32
+          path: |
+            build.mingw-release/game/qagame_mp_x86.dll
+            build.mingw-release/cgame/cgame_mp_x86.dll
+            build.mingw-release/ui/ui_mp_x86.dll
+      
+      - name: Upload Windows 64-bit artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: xmod-windows64
+          path: |
+            build.mingw64-release/game/qagame_mp_x64.dll
+            build.mingw64-release/cgame/cgame_mp_x64.dll
+            build.mingw64-release/ui/ui_mp_x64.dll
+
   build-linux-arm64:
     name: Build Linux ARM64 (aarch64)
     runs-on: ubuntu-latest
@@ -206,9 +296,8 @@ jobs:
 
   create-release-package:
     name: Create Release Package
-    needs: [build-linux-arm64, build-macos, build-android]
+    needs: [build-linux64, build-linux32, build-windows, build-linux-arm64, build-macos, build-android]
     runs-on: ubuntu-latest
-    if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop')
     steps:
       - uses: actions/checkout@v4
       
@@ -221,39 +310,69 @@ jobs:
         run: |
           mkdir -p release/xmod-multiplatform
           
+          # Debug: Show artifact structure
+          echo "=== Downloaded artifact structure ==="
+          find artifacts -type f
+          
+          # Helper function to copy files and report status
+          copy_platform_files() {
+            local src_pattern="$1"
+            local dest_dir="$2"
+            local platform_name="$3"
+            
+            mkdir -p "$dest_dir"
+            local count=$(find artifacts -path "$src_pattern" -type f 2>/dev/null | wc -l)
+            if [ "$count" -gt 0 ]; then
+              find artifacts -path "$src_pattern" -type f -exec cp {} "$dest_dir/" \;
+              echo "✓ $platform_name: copied $count file(s)"
+            else
+              echo "⚠ $platform_name: no files found matching $src_pattern"
+            fi
+          }
+          
+          echo ""
+          echo "=== Copying platform files ==="
+          
+          # === Windows 32-bit ===
+          copy_platform_files "*/xmod-windows32/*.dll" "release/xmod-multiplatform/windows-x86" "Windows 32-bit"
+          
+          # === Windows 64-bit ===
+          copy_platform_files "*/xmod-windows64/*.dll" "release/xmod-multiplatform/windows-x64" "Windows 64-bit"
+          
+          # === Linux 32-bit ===
+          copy_platform_files "*/xmod-linux32/*.so" "release/xmod-multiplatform/linux-x86" "Linux 32-bit"
+          
+          # === Linux 64-bit ===
+          copy_platform_files "*/xmod-linux64/*.so" "release/xmod-multiplatform/linux-x64" "Linux 64-bit"
+          
           # === Linux ARM64 ===
-          mkdir -p release/xmod-multiplatform/linux-arm64
-          find artifacts -path "*/xmod-linux-arm64-*/*.so" -exec cp {} release/xmod-multiplatform/linux-arm64/ \;
+          copy_platform_files "*/xmod-linux-arm64-*/*.so" "release/xmod-multiplatform/linux-arm64" "Linux ARM64"
           
           # === macOS Universal ===
-          mkdir -p release/xmod-multiplatform/macos
-          find artifacts -path "*/xmod-macos-*/*" -type f -exec cp {} release/xmod-multiplatform/macos/ \;
+          copy_platform_files "*/xmod-macos-*/*" "release/xmod-multiplatform/macos" "macOS Universal"
           
           # === Android ===
-          mkdir -p release/xmod-multiplatform/android/arm64-v8a
-          mkdir -p release/xmod-multiplatform/android/armeabi-v7a
-          mkdir -p release/xmod-multiplatform/android/x86
-          mkdir -p release/xmod-multiplatform/android/x86_64
+          copy_platform_files "*/xmod-android-arm64-v8a-*/*.so" "release/xmod-multiplatform/android/arm64-v8a" "Android arm64-v8a"
+          copy_platform_files "*/xmod-android-armeabi-v7a-*/*.so" "release/xmod-multiplatform/android/armeabi-v7a" "Android armeabi-v7a"
+          copy_platform_files "*/xmod-android-x86-*/*.so" "release/xmod-multiplatform/android/x86" "Android x86"
+          copy_platform_files "*/xmod-android-x86_64-*/*.so" "release/xmod-multiplatform/android/x86_64" "Android x86_64"
           
-          find artifacts -path "*/xmod-android-arm64-v8a-*/*.so" -exec cp {} release/xmod-multiplatform/android/arm64-v8a/ \;
-          find artifacts -path "*/xmod-android-armeabi-v7a-*/*.so" -exec cp {} release/xmod-multiplatform/android/armeabi-v7a/ \;
-          find artifacts -path "*/xmod-android-x86-*/*.so" -exec cp {} release/xmod-multiplatform/android/x86/ \;
-          find artifacts -path "*/xmod-android-x86_64-*/*.so" -exec cp {} release/xmod-multiplatform/android/x86_64/ \;
-          
-          # Show what we have
+          # Show final structure
+          echo ""
           echo "=== Release package structure ==="
           tree release/ || find release/ -type f
           
-          # Create tarball
+          # Create ZIP file
           cd release
-          tar czf xmod-multiplatform-${{ github.sha }}.tar.gz xmod-multiplatform/
+          zip -r xmod-multiplatform-${{ github.sha }}.zip xmod-multiplatform/
           
-          echo "=== Tarball created ==="
-          ls -lh xmod-multiplatform-*.tar.gz
+          echo ""
+          echo "=== ZIP created ==="
+          ls -lh xmod-multiplatform-*.zip
       
       - name: Upload release package
         uses: actions/upload-artifact@v4
         with:
           name: xmod-multiplatform-release
-          path: release/xmod-multiplatform-*.tar.gz
+          path: release/xmod-multiplatform-*.zip
           if-no-files-found: error
