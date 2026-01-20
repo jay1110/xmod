@@ -28,8 +28,8 @@ endif
 ifeq ($(PROJECT.platformName),Windows)
     PROJECT.platspecific = win32
 endif
-# Android uses Linux platform-specific code
-ifeq ($(PROJECT.platformName),Android)
+# Android platforms use POSIX-compatible (linux) code
+ifneq (,$(findstring android,$(PROJECT.platformNamef)))
     PROJECT.platspecific = linux
 endif
 

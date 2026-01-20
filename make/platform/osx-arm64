@@ -50,12 +50,12 @@ CXX.ldopts.so = -bundle -undefined dynamic_lookup
 
 ###############################################################################
 
-CXX.D     = XMOD_OSX64
+CXX.D     = XMOD_OSX_ARM64
 CXX.I     = $(BUILD/) $(PROJECT/)src $(PROJECT/)pak
 CXX.L     =
 CXX.R     =
 CXX.U     =
-CXX.arch  = x86_64
+CXX.arch  = arm64
 CXX.fwork =
 CXX.l     =
 
@@ -157,7 +157,7 @@ endef
 
 ###############################################################################
 
-SPECIALS.name  = osx64
+SPECIALS.name  = osx-arm64
 SPECIALS.build = build
 SPECIALS.base  = $(PROJECT.packageBase)-$(SPECIALS.name)
 SPECIALS.base/ = $(BUILD/)$(SPECIALS.base)/

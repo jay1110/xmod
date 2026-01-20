@@ -27,6 +27,16 @@ static const char* Q_stristr(const char* haystack, const char* needle) {
 #include <signal.h>
 #include <unistd.h>
 #include <stdio.h>
+
+// macOS uses different ptrace constants than Linux
+#ifdef __APPLE__
+#ifndef PTRACE_TRACEME
+#define PTRACE_TRACEME PT_TRACE_ME
+#endif
+#ifndef PTRACE_DETACH
+#define PTRACE_DETACH PT_DETACH
+#endif
+#endif
 #endif
 
 namespace jxac {
@@ -145,12 +155,22 @@ bool AntiTamper::checkDebugger() {
     static bool debuggerDetected = false;
     
     if ( !ptraceChecked ) {
+#ifdef __APPLE__
+        // macOS ptrace expects caddr_t (char*) for the third argument
+        if ( ptrace( PTRACE_TRACEME, 0, (char*)1, 0 ) == -1 ) {
+            debuggerDetected = true;
+        } else {
+            // Detach immediately
+            ptrace( PTRACE_DETACH, 0, (char*)1, 0 );
+        }
+#else
         if ( ptrace( PTRACE_TRACEME, 0, 1, 0 ) == -1 ) {
             debuggerDetected = true;
         } else {
             // Detach immediately
             ptrace( PTRACE_DETACH, 0, 1, 0 );
         }
+#endif
         ptraceChecked = true;
     }
     

@@ -1,0 +1,259 @@
+name: Build Multi-Platform
+
+on:
+  push:
+    branches:
+      - main
+      - develop
+  pull_request:
+    branches:
+      - main
+      - develop
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build-linux-arm64:
+    name: Build Linux ARM64 (aarch64)
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        module: [cgame, ui, game]
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Install ARM64 cross-compiler
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y build-essential gcc-aarch64-linux-gnu g++-aarch64-linux-gnu python3 zip m4
+      
+      - name: Ensure scripts are executable
+        run: chmod +x project/info.py
+      
+      - name: Build ${{ matrix.module }} for ARM64
+        run: |
+          # Use the existing linux-aarch64 platform configuration with cross-compilation
+          PLATFORM=linux-aarch64 CROSS_COMPILE=1 make release
+      
+      - name: Organize artifacts
+        run: |
+          mkdir -p artifacts/linux-arm64
+          # Find and copy the built .so files
+          find build.linux-aarch64-release/${{ matrix.module }} -name "*.so" -exec cp {} artifacts/linux-arm64/ \;
+          ls -la artifacts/linux-arm64/
+      
+      - name: Upload Linux ARM64 artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: xmod-linux-arm64-${{ matrix.module }}
+          path: artifacts/linux-arm64/*.so
+          if-no-files-found: error
+
+  build-macos:
+    name: Build macOS Universal Binaries
+    runs-on: macos-latest
+    strategy:
+      matrix:
+        module: [cgame, ui, game]
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Install dependencies
+        run: |
+          brew install python3 zip
+      
+      - name: Ensure scripts are executable
+        run: chmod +x project/info.py
+      
+      - name: Build ${{ matrix.module }} for x86_64
+        run: |
+          PLATFORM=osx64 make release
+          mkdir -p artifacts/macos/x86_64
+          # Copy the actual binary files (not the ZIP archives)
+          find build.osx64-release/${{ matrix.module }} -name "*.binary" -exec cp {} artifacts/macos/x86_64/ \; || true
+      
+      - name: Build ${{ matrix.module }} for arm64
+        run: |
+          # Clean previous build
+          rm -rf build.osx64-release
+          # Build for arm64 using osx-arm64 platform
+          PLATFORM=osx-arm64 make release
+          mkdir -p artifacts/macos/arm64
+          # Copy the actual binary files (not the ZIP archives)
+          find build.osx-arm64-release/${{ matrix.module }} -name "*.binary" -exec cp {} artifacts/macos/arm64/ \; || true
+      
+      - name: Create universal binaries
+        run: |
+          mkdir -p artifacts/macos/universal
+          
+          # Process all built .binary files and create universal binaries
+          for x86_file in artifacts/macos/x86_64/*.binary; do
+            if [ -f "$x86_file" ]; then
+              filename=$(basename "$x86_file")
+              # Remove .binary extension to get the base name (e.g., ui_mac)
+              basename_no_ext="${filename%.binary}"
+              arm64_file="artifacts/macos/arm64/$filename"
+              universal_binary="artifacts/macos/universal/$filename"
+              
+              if [ -f "$arm64_file" ]; then
+                echo "Creating universal binary for $filename"
+                lipo -create "$x86_file" "$arm64_file" -output "$universal_binary"
+              else
+                echo "Warning: ARM64 version not found for $filename, using x86_64 only"
+                cp "$x86_file" "$universal_binary"
+              fi
+              
+              # Create the macOS bundle structure and ZIP it
+              bundle_dir="artifacts/macos/universal/${basename_no_ext}.bundle"
+              mkdir -p "${bundle_dir}/Contents/MacOS"
+              
+              # Create Info.plist
+              cat > "${bundle_dir}/Contents/Info.plist" << EOF
+          <?xml version="1.0" encoding="UTF-8"?>
+          <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+          <plist version="1.0">
+          <dict>
+            <key>CFBundleDevelopmentRegion</key>
+            <string>English</string>
+            <key>CFBundleExecutable</key>
+            <string>${basename_no_ext}</string>
+            <key>CFBundleInfoDictionaryVersion</key>
+            <string>6.0</string>
+            <key>CFBundleName</key>
+            <string>${basename_no_ext}</string>
+            <key>CFBundlePackageType</key>
+            <string>BNDL</string>
+          </dict>
+          </plist>
+          EOF
+              
+              # Copy the universal binary into the bundle
+              cp "$universal_binary" "${bundle_dir}/Contents/MacOS/${basename_no_ext}"
+              
+              # Create the ZIP archive (without .binary extension), using same format as build system
+              (cd artifacts/macos/universal && zip -rq - "${basename_no_ext}.bundle") > "artifacts/macos/universal/${basename_no_ext}"
+              
+              # Clean up - remove bundle dir and .binary file, keep only the ZIP
+              rm -rf "${bundle_dir}"
+              rm -f "$universal_binary"
+            fi
+          done
+          
+          ls -la artifacts/macos/universal/
+      
+      - name: Upload macOS artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: xmod-macos-${{ matrix.module }}
+          path: artifacts/macos/universal/*
+          if-no-files-found: warn
+
+  build-android:
+    name: Build Android ${{ matrix.abi }}
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        abi: 
+          - name: arm64-v8a
+            platform: android-arm64
+          - name: armeabi-v7a
+            platform: android-armv7a
+          - name: x86
+            platform: android-x86
+          - name: x86_64
+            platform: android-x86_64
+        module: [cgame, ui, game]
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Setup Android NDK
+        id: setup-ndk
+        uses: nttld/setup-ndk@v1
+        with:
+          ndk-version: r26c
+          add-to-path: true
+      
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y build-essential python3 zip m4
+      
+      - name: Ensure scripts are executable
+        run: chmod +x project/info.py
+      
+      - name: Build ${{ matrix.module }} for Android ${{ matrix.abi.name }}
+        env:
+          ANDROID_NDK_HOME: ${{ steps.setup-ndk.outputs.ndk-path }}
+        run: |
+          echo "NDK Path: $ANDROID_NDK_HOME"
+          PLATFORM=${{ matrix.abi.platform }} make release
+      
+      - name: Organize artifacts
+        run: |
+          mkdir -p artifacts/android/${{ matrix.abi.name }}
+          # Find and copy the built .so files
+          find build.${{ matrix.abi.platform }}-release/${{ matrix.module }} -name "*.so" -exec cp {} artifacts/android/${{ matrix.abi.name }}/ \;
+          ls -la artifacts/android/${{ matrix.abi.name }}/
+      
+      - name: Upload Android artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: xmod-android-${{ matrix.abi.name }}-${{ matrix.module }}
+          path: artifacts/android/${{ matrix.abi.name }}/*.so
+          if-no-files-found: error
+
+  create-release-package:
+    name: Create Release Package
+    needs: [build-linux-arm64, build-macos, build-android]
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop')
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+      
+      - name: Create unified release package
+        run: |
+          mkdir -p release/xmod-multiplatform
+          
+          # === Linux ARM64 ===
+          mkdir -p release/xmod-multiplatform/linux-arm64
+          find artifacts -path "*/xmod-linux-arm64-*/*.so" -exec cp {} release/xmod-multiplatform/linux-arm64/ \;
+          
+          # === macOS Universal ===
+          mkdir -p release/xmod-multiplatform/macos
+          find artifacts -path "*/xmod-macos-*/*" -type f -exec cp {} release/xmod-multiplatform/macos/ \;
+          
+          # === Android ===
+          mkdir -p release/xmod-multiplatform/android/arm64-v8a
+          mkdir -p release/xmod-multiplatform/android/armeabi-v7a
+          mkdir -p release/xmod-multiplatform/android/x86
+          mkdir -p release/xmod-multiplatform/android/x86_64
+          
+          find artifacts -path "*/xmod-android-arm64-v8a-*/*.so" -exec cp {} release/xmod-multiplatform/android/arm64-v8a/ \;
+          find artifacts -path "*/xmod-android-armeabi-v7a-*/*.so" -exec cp {} release/xmod-multiplatform/android/armeabi-v7a/ \;
+          find artifacts -path "*/xmod-android-x86-*/*.so" -exec cp {} release/xmod-multiplatform/android/x86/ \;
+          find artifacts -path "*/xmod-android-x86_64-*/*.so" -exec cp {} release/xmod-multiplatform/android/x86_64/ \;
+          
+          # Show what we have
+          echo "=== Release package structure ==="
+          tree release/ || find release/ -type f
+          
+          # Create tarball
+          cd release
+          tar czf xmod-multiplatform-${{ github.sha }}.tar.gz xmod-multiplatform/
+          
+          echo "=== Tarball created ==="
+          ls -lh xmod-multiplatform-*.tar.gz
+      
+      - name: Upload release package
+        uses: actions/upload-artifact@v4
+        with:
+          name: xmod-multiplatform-release
+          path: release/xmod-multiplatform-*.tar.gz
+          if-no-files-found: error
