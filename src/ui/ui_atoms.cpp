@@ -254,10 +254,13 @@ void UI_AdjustFrom640( float *x, float *y, float *w, float *h ) {
 
 	// Apply aspect ratio correction for widescreen displays
 	// This prevents UI from being stretched on 16:9, 16:10, etc. resolutions
+	// and centers the content horizontally using the bias offset
 	if (uiInfo.uiDC.glconfig.windowAspect > RATIO43) {
 		float aspectCorrection = RATIO43 / uiInfo.uiDC.glconfig.windowAspect;
 		*x *= aspectCorrection;
 		*w *= aspectCorrection;
+		// Add bias to center the scaled content horizontally
+		*x += uiInfo.uiDC.bias;
 	}
 }
 

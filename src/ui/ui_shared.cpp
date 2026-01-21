@@ -745,8 +745,8 @@ qboolean Rect_ContainsPoint(rectDef_t *rect, float x, float y) {
 	if (rect) {
 		// Correction for widescreen cursor coordinates
 		// Only X-axis needs adjustment because widescreen stretching is horizontal only
-		// The cursor x position is scaled to match the UI element positions
-		// that have been adjusted for widescreen in AdjustFrom640()
+		// Both cursor position and rect coordinates are scaled using Cui_WideX to match
+		// (this is in virtual 640x480 space, not screen pixels)
 		x = Cui_WideX(x);
 		
 		if (x >= Cui_WideX(rect->x) && x < Cui_WideX(rect->x + rect->w) && y >= rect->y && y < rect->y + rect->h) {
@@ -4640,10 +4640,13 @@ void AdjustFrom640(float *x, float *y, float *w, float *h) {
 
 	// Apply aspect ratio correction for widescreen displays
 	// This prevents UI from being stretched on 16:9, 16:10, etc. resolutions
+	// and centers the content horizontally using the bias offset
 	if (DC->glconfig.windowAspect > RATIO43) {
 		float aspectCorrection = RATIO43 / DC->glconfig.windowAspect;
 		*x *= aspectCorrection;
 		*w *= aspectCorrection;
+		// Add bias to center the scaled content horizontally
+		*x += DC->bias;
 	}
 }
 
