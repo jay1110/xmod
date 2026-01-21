@@ -2885,6 +2885,8 @@ void CG_Init( int serverMessageNum, int serverCommandSequence, int clientNum, qb
 	// adr43 = windowAspect / RATIO43 - used for WideX coordinate expansion
 	cgs.r43da = RATIO43 / cgs.glconfig.windowAspect;
 	cgs.adr43 = cgs.glconfig.windowAspect / RATIO43;
+	// wideXoffset = horizontal offset for centering elements on widescreen
+	cgs.wideXoffset = Ccg_WideXoffset();
 
 	// RF, init the anim scripting
 	cgs.animScriptData.soundIndex = CG_SoundScriptPrecache;

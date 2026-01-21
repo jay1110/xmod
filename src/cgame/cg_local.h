@@ -1970,6 +1970,7 @@ typedef struct {
 	// Widescreen aspect ratio values (from ETLegacy)
 	float			r43da;				// RATIO43 / windowAspect - used in AdjustFrom640
 	float			adr43;				// windowAspect / RATIO43 - used in WideX functions
+	float			wideXoffset;		// cached result of Ccg_WideXoffset() for drawing
 
 	int				serverCommandSequence;	// reliable command stream counter
 	int				processedSnapshotNum;// the number of snapshots cgame has requested
