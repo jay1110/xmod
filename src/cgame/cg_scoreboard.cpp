@@ -873,14 +873,17 @@ qboolean CG_DrawScoreboard( void ) {
 	int		x = 0, y = 0, x_right;
 	float	fade;
 	float	*fadeColor;
+	int		width;  // scoreboard width based on 640 virtual screen
 
-	x = SCREEN_X_OFFSET + 20;
+	// ETLegacy approach: use fixed 640-based positions, then offset for widescreen
+	x = 20;
 	y = 10;
-
-	// ETLegacy widescreen offset
+	x_right = 640 - x - (INFO_TOTAL_WIDTH - 5);
+	width = 640 - 2 * x + 5;
+	
+	// Add widescreen offset to both x positions
 	x += cgs.wideXoffset;
-
-	x_right = SCREEN_WIDTH - x - (INFO_TOTAL_WIDTH - 5) + cgs.wideXoffset;
+	x_right += cgs.wideXoffset;
 
 	// don't draw anything if the menu or console is up
 	if ( cg_paused.integer ) {
@@ -912,7 +915,7 @@ qboolean CG_DrawScoreboard( void ) {
  		fade = fadeColor[3];
 	}
 
-	y = WM_DrawObjectives( x, y, SCREEN_WIDTH - 2*x + 5, fade );
+	y = WM_DrawObjectives( x, y, width, fade );
 
 	if ( cgs.gametype == GT_WOLF_STOPWATCH && ( cg.snap->ps.pm_type == PM_INTERMISSION ) ) {
 		y = WM_DrawInfoLine( x, 155, fade );

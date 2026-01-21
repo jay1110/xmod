@@ -1784,8 +1784,8 @@ void CG_Debriefing_MouseEvent( int x, int y ) {
 	cgs.cursorX += x;
 	if( cgs.cursorX < 0 ) {
 		cgs.cursorX = 0;
-	} else if( cgs.cursorX > 640 ) {
-		cgs.cursorX = 640;
+	} else if( cgs.cursorX > (int)Ccg_WideX(640) ) {
+		cgs.cursorX = (int)Ccg_WideX(640);
 	}
 
 	cgs.cursorY += y;
