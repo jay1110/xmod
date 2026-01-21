@@ -291,11 +291,11 @@ void CG_DrawConnectScreen( qboolean interactive, qboolean forcerefresh ) {
 		CG_DrawRect_FixedBorder( 8, 23, 230, 216, 1, colorMdGrey );*/
 
 		y = 322;
-		CG_Text_Paint_Centred_Ext( 540, y, 0.22f, 0.22f, clr3, XMOD_titlex, 0, 0, 0, &bg_loadscreenfont1 );
+		CG_Text_Paint_Centred_Ext( 540 + cgs.wideXoffset, y, 0.22f, 0.22f, clr3, XMOD_titlex, 0, 0, 0, &bg_loadscreenfont1 );
 		
 		y = 340;
 		str = Info_ValueForKey( buffer, "sv_hostname" );
-		CG_Text_Paint_Centred_Ext( 540, y, 0.2f, 0.2f, colorWhite, str && *str ? str : "ETHost", 0, 26, 0, &bg_loadscreenfont2 );
+		CG_Text_Paint_Centred_Ext( 540 + cgs.wideXoffset, y, 0.2f, 0.2f, colorWhite, str && *str ? str : "ETHost", 0, 26, 0, &bg_loadscreenfont2 );
 		
 		
 		y += 14;
@@ -305,7 +305,7 @@ void CG_DrawConnectScreen( qboolean interactive, qboolean forcerefresh ) {
 				break;
 			}
 
-			CG_Text_Paint_Centred_Ext( 540, y, 0.2f, 0.2f, colorWhite, str, 0, 26, 0, &bg_loadscreenfont2 );
+			CG_Text_Paint_Centred_Ext( 540 + cgs.wideXoffset, y, 0.2f, 0.2f, colorWhite, str, 0, 26, 0, &bg_loadscreenfont2 );
 
 			y += 10;
 		}
@@ -314,7 +314,7 @@ void CG_DrawConnectScreen( qboolean interactive, qboolean forcerefresh ) {
 
 		str = Info_ValueForKey( buffer, "g_friendlyfire" );
 		if( str && *str && atoi( str ) ) {
-			x = 461;
+			x = 461 + cgs.wideXoffset;
 			CG_DrawPic( x, y, 16, 16, bg_filter_ff );
 		}
 
@@ -336,31 +336,31 @@ void CG_DrawConnectScreen( qboolean interactive, qboolean forcerefresh ) {
 		}
 
 		if( enabled ) {
-			x = 489;
+			x = 489 + cgs.wideXoffset;
 			CG_DrawPic( x, y, 16, 16, bg_filter_lv );
 		}
 		
 		str = Info_ValueForKey( buffer, "sv_punkbuster" );
 		if( str && *str && atoi( str ) ) {
-			x = 518;
+			x = 518 + cgs.wideXoffset;
 			CG_DrawPic( x, y, 16, 16, bg_filter_pb );
 		}
 
 		str = Info_ValueForKey( buffer, "g_heavyWeaponRestriction" );
 		if( str && *str && atoi( str ) != 100 ) {
-			x = 546;
+			x = 546 + cgs.wideXoffset;
 			CG_DrawPic( x, y, 16, 16, bg_filter_hw );
 		}
 
 		str = Info_ValueForKey( buffer, "g_antilag" );
 		if( str && *str && atoi( str ) ) {
-			x = 575;
+			x = 575 + cgs.wideXoffset;
 			CG_DrawPic( x, y, 16, 16, bg_filter_al );
 		}
 
 		str = Info_ValueForKey( buffer, "g_balancedteams" );
 		if( str && *str && atoi( str ) ) {
-			x = 604;
+			x = 604 + cgs.wideXoffset;
 			CG_DrawPic( x, y, 16, 16, bg_filter_bt );
 		}
 	}

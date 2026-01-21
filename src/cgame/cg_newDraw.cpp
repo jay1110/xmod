@@ -721,6 +721,9 @@ void CG_OwnerDraw(float x, float y, float w, float h, float text_x, float text_y
 }
 
 void CG_MouseEvent(int x, int y) {
+	// Widescreen cursor bounds: use expanded width for proper limbopanel/debriefing interaction
+	int maxCursorX = (int)Ccg_WideX(640);
+	
 	switch( cgs.eventHandling ) {
 		case CGAME_EVENT_SPEAKEREDITOR:
 		case CGAME_EVENT_GAMEVIEW:
@@ -729,8 +732,8 @@ void CG_MouseEvent(int x, int y) {
 			cgs.cursorX += x;
 			if( cgs.cursorX < 0 ) {
 				cgs.cursorX = 0;
-			} else if( cgs.cursorX > 640 ) {
-				cgs.cursorX = 640;
+			} else if( cgs.cursorX > maxCursorX ) {
+				cgs.cursorX = maxCursorX;
 			}
 
 			cgs.cursorY += y;
@@ -749,8 +752,8 @@ void CG_MouseEvent(int x, int y) {
 			cgs.cursorX += x;
 			if( cgs.cursorX < 0 ) {
 				cgs.cursorX = 0;
-			} else if( cgs.cursorX > 640 ) {
-				cgs.cursorX = 640;
+			} else if( cgs.cursorX > maxCursorX ) {
+				cgs.cursorX = maxCursorX;
 			}
 
 			cgs.cursorY += y;
