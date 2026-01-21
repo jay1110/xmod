@@ -118,7 +118,8 @@ void CG_AdjustFrom640( float *x, float *y, float *w, float *h ) {
 	*h *= cgs.screenYScale;
 	
 	// Adjust x-coordinate and width for widescreen aspect ratio (ETLegacy approach)
-	if (!Ccg_Is43Screen()) {
+	// Skip if screen width is restricted (used for limbo, loadpanel, debriefing panels)
+	if (!CG_IsScreenWidthRestricted() && !Ccg_Is43Screen()) {
 		*x *= cgs.r43da;    // * ((4/3) / aspectratio)
 		*w *= cgs.r43da;    // * ((4/3) / aspectratio)
 	}
