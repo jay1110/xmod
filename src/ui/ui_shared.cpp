@@ -50,7 +50,7 @@ static float Cui_WideX(float x) {
  * This is used to offset elements that need to be centered on widescreen displays.
  * @return The x-offset needed to center content horizontally
  */
-static float Cui_WideXoffset(void) {
+float Cui_WideXoffset(void) {
 	if (DC == NULL) {
 		return 0.0f;
 	}
@@ -7703,6 +7703,16 @@ void BG_PanelButtonsSetup( panel_button_t** buttons ) {
 		if( button->shaderNormal ) {
 			button->hShaderNormal = trap_R_RegisterShaderNoMip( button->shaderNormal );
 		}			
+	}
+}
+
+// Add widescreen offset to panel button x coordinates (ETLegacy)
+void C_PanelButtonsSetup( panel_button_t** buttons, float xoffset ) {
+	panel_button_t* button;
+
+	for( ; *buttons; buttons++ ) {
+		button = (*buttons);
+		button->rect.x += xoffset;
 	}
 }
 

@@ -1218,6 +1218,9 @@ void CG_ChatPanel_Setup( void ) {
 	BG_PanelButtonsSetup( chatPanelButtons );
 	BG_PanelButtonsSetup( teamDebriefPanelButtons );
 	BG_PanelButtonsSetup( debriefPanelButtons );
+	C_PanelButtonsSetup( chatPanelButtons, cgs.wideXoffset );  // widescreen offset
+	C_PanelButtonsSetup( teamDebriefPanelButtons, cgs.wideXoffset );
+	C_PanelButtonsSetup( debriefPanelButtons, cgs.wideXoffset );
 }
 
 void CG_Debriefing_Startup( void ) {

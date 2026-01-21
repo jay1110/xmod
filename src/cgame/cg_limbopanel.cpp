@@ -2544,6 +2544,7 @@ void CG_LimboPanel_Setup( void ) {
 
 void CG_LimboPanel_Init( void ) {
 	BG_PanelButtonsSetup( limboPanelButtons );
+	C_PanelButtonsSetup( limboPanelButtons, cgs.wideXoffset );  // widescreen offset
 }
 
 qboolean CG_LimboPanel_Draw( void ) {
