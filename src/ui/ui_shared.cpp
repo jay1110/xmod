@@ -3,8 +3,9 @@
 
 #include <bgame/impl.h> // For CS settings/retrieval
 
-// Aspect ratio constant for widescreen support
+// Aspect ratio constants for widescreen support
 #define RATIO43     (4.0f / 3.0f)   // 4:3 aspect ratio (1.333...)
+#define RPRATIO43   (1.0f / RATIO43) // Reciprocal of 4:3 (0.75)
 
 #define SCROLL_TIME_START					500
 #define SCROLL_TIME_ADJUST				150
@@ -29,6 +30,20 @@ static void *captureData = NULL;
 static itemDef_t *itemCapture = NULL;   // item that has the mouse captured ( if any )
 
 displayContextDef_t *DC = NULL;
+
+/**
+ * @brief Convert an x-coordinate for use with the current aspect ratio.
+ * (if the current aspect ratio is 4:3, then leave the x-coordinate unchanged)
+ * This is used to properly handle cursor coordinates on widescreen displays.
+ * @param[in] x The x-coordinate in 640x480 virtual screen space
+ * @return The x-coordinate adjusted for the current aspect ratio
+ */
+static float Cui_WideX(float x) {
+	if (DC == NULL) {
+		return x;
+	}
+	return (DC->glconfig.windowAspect <= RATIO43) ? x : x * (DC->glconfig.windowAspect * RPRATIO43);
+}
 
 qboolean g_waitingForKey = qfalse;
 qboolean g_editingField = qfalse;
@@ -728,7 +743,13 @@ qboolean IsVisible(int flags) {
 
 qboolean Rect_ContainsPoint(rectDef_t *rect, float x, float y) {
 	if (rect) {
-		if (x > rect->x && x < rect->x + rect->w && y > rect->y && y < rect->y + rect->h) {
+		// Correction for widescreen cursor coordinates
+		// Only X-axis needs adjustment because widescreen stretching is horizontal only
+		// The cursor x position is scaled to match the UI element positions
+		// that have been adjusted for widescreen in AdjustFrom640()
+		x = Cui_WideX(x);
+		
+		if (x >= Cui_WideX(rect->x) && x < Cui_WideX(rect->x + rect->w) && y >= rect->y && y < rect->y + rect->h) {
 			return qtrue;
 		}
 	}

@@ -10,6 +10,7 @@
 
 // Aspect ratio constants for widescreen support
 #define RATIO43     (4.0f / 3.0f)   // 4:3 aspect ratio (1.333...)
+#define RPRATIO43   (1.0f / RATIO43) // Reciprocal of 4:3 (0.75)
 
 uiStatic_t		uis;
 qboolean		m_entersound;		// after a frame, so caching won't disrupt the sound
