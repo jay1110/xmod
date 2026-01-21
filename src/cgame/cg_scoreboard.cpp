@@ -130,15 +130,15 @@ int WM_DrawObjectives( int x, int y, int width, float fade ) {
 		y += SMALLCHAR_HEIGHT * ( ( rows - 2 ) / 2 );
 
 		if ( flagshader ) {
-			CG_DrawPic( 100, 10, 210, 136, trap_R_RegisterShaderNoMip( flagshader ) );
-			CG_DrawPic( 325, 10, 210, 136, trap_R_RegisterShaderNoMip( flagshader ) );
+			CG_DrawPic( 100 + cgs.wideXoffset, 10, 210, 136, trap_R_RegisterShaderNoMip( flagshader ) );
+			CG_DrawPic( 325 + cgs.wideXoffset, 10, 210, 136, trap_R_RegisterShaderNoMip( flagshader ) );
 		}
 
 		if ( shader )
-			CG_DrawPic( 229, 10, 182, 136, trap_R_RegisterShaderNoMip( shader ) );
+			CG_DrawPic( 229 + cgs.wideXoffset, 10, 182, 136, trap_R_RegisterShaderNoMip( shader ) );
 		if ( nameshader ) {
-			CG_DrawPic( 140, 50, 127, 64, trap_R_RegisterShaderNoMip( nameshader ) );
-			CG_DrawPic( 365, 50, 127, 64, trap_R_RegisterShaderNoMip( "ui/assets/portraits/text_win.tga" ) );
+			CG_DrawPic( 140 + cgs.wideXoffset, 50, 127, 64, trap_R_RegisterShaderNoMip( nameshader ) );
+			CG_DrawPic( 365 + cgs.wideXoffset, 50, 127, 64, trap_R_RegisterShaderNoMip( "ui/assets/portraits/text_win.tga" ) );
 		}
 		return y;
 	}
@@ -192,7 +192,7 @@ int WM_DrawObjectives( int x, int y, int width, float fade ) {
 				seconds -= tens * 10;
 
 				s = va( "%s %2.0f:%i%i", CG_TranslateString( "REINFORCE TIME:" ), (float)mins, tens, seconds );
-				CG_Text_Paint_Ext( 640 - 20 - CG_Text_Width_Ext( s, 0.25f, 0, &cgs.media.limboFont1 ), y + 13, 0.25f, 0.25f, tclr, s, 0, 0, 0, &cgs.media.limboFont1 );
+				CG_Text_Paint_Ext( SCREEN_WIDTH - 20 - CG_Text_Width_Ext( s, 0.25f, 0, &cgs.media.limboFont1 ) + cgs.wideXoffset, y + 13, 0.25f, 0.25f, tclr, s, 0, 0, 0, &cgs.media.limboFont1 );
 			}
 		}
 
@@ -877,7 +877,10 @@ qboolean CG_DrawScoreboard( void ) {
 	x = SCREEN_X_OFFSET + 20;
 	y = 10;
 
-	x_right = SCREEN_WIDTH - x - (INFO_TOTAL_WIDTH - 5);
+	// ETLegacy widescreen offset
+	x += cgs.wideXoffset;
+
+	x_right = SCREEN_WIDTH - x - (INFO_TOTAL_WIDTH - 5) + cgs.wideXoffset;
 
 	// don't draw anything if the menu or console is up
 	if ( cg_paused.integer ) {

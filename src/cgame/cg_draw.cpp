@@ -5277,6 +5277,9 @@ void CG_DrawActive( stereoFrame_t stereoView ) {
  		w = LIMBO_3D_W;
  		h = LIMBO_3D_H;
 
+		// the limbopanel is horizontally centered (ETLegacy widescreen)
+		x += cgs.wideXoffset;
+
 		CG_RestrictScreenWidth(true);
  		CG_AdjustFrom640( &x, &y, &w, &h );
 		CG_RestrictScreenWidth(false);
@@ -5287,6 +5290,11 @@ void CG_DrawActive( stereoFrame_t stereoView ) {
  		cg.refdef_current->height = int(h);
 
  		CG_Letterbox( (LIMBO_3D_W/(float)640)*100, (LIMBO_3D_H/(float)480)*100, qfalse );
+
+		// the limbopanel objective camera is always rendered at a 4:3 aspectratio (ETLegacy)
+		if( !Ccg_Is43Screen() ) {
+			cg.refdef_current->width = int( cg.refdef_current->width * cgs.r43da );
+		}
 	}
 
 	CG_ShakeCamera();		// NERVE - SMF
