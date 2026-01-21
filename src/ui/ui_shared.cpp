@@ -45,18 +45,6 @@ static float Cui_WideX(float x) {
 	return (DC->glconfig.windowAspect <= RATIO43) ? x : x * (DC->glconfig.windowAspect * RPRATIO43);
 }
 
-/**
- * @brief The horizontal center offset in virtual 640x480 screen space for widescreen
- * This is the pixel difference at the center of a 4:3 screen vs. the current aspect ratio
- * @return The horizontal offset to center content on widescreen displays
- */
-static float Cui_WideXoffset(void) {
-	if (DC == NULL) {
-		return 0.0f;
-	}
-	return (DC->glconfig.windowAspect <= RATIO43) ? 0.0f : ((640.0f * (DC->glconfig.windowAspect * RPRATIO43)) - 640.0f) * 0.5f;
-}
-
 qboolean g_waitingForKey = qfalse;
 qboolean g_editingField = qfalse;
 
@@ -756,17 +744,12 @@ qboolean IsVisible(int flags) {
 qboolean Rect_ContainsPoint(rectDef_t *rect, float x, float y) {
 	if (rect) {
 		// Correction for widescreen cursor coordinates
-		// The cursor x position needs to be offset and scaled to match the UI element positions
-		// that have been adjusted for widescreen in AdjustFrom640()
-		// We apply the wide offset first, then scale with Cui_WideX
-		float wideOffset = Cui_WideXoffset();
-		x = Cui_WideX(x) - wideOffset;
+		// Only X-axis needs adjustment because widescreen stretching is horizontal only
+		// Both cursor position and rect coordinates are scaled using Cui_WideX to match
+		// (this is in virtual 640x480 space, not screen pixels)
+		x = Cui_WideX(x);
 		
-		// Compare against scaled element coordinates (also offset by wideOffset)
-		float rectX = Cui_WideX(rect->x) - wideOffset;
-		float rectW = Cui_WideX(rect->w);
-		
-		if (x >= rectX && x < rectX + rectW && y >= rect->y && y < rect->y + rect->h) {
+		if (x >= Cui_WideX(rect->x) && x < Cui_WideX(rect->x + rect->w) && y >= rect->y && y < rect->y + rect->h) {
 			return qtrue;
 		}
 	}
