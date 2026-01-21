@@ -216,6 +216,9 @@ static void CG_CalcVrect (void) {
  		w = LIMBO_3D_W;
  		h = LIMBO_3D_H;
 
+		// the limbopanel is horizontally centered (ETLegacy widescreen)
+		x += cgs.wideXoffset;
+
  		CG_AdjustFrom640( &x, &y, &w, &h );
 
  		cg.refdef.x      = int( x );
@@ -224,6 +227,12 @@ static void CG_CalcVrect (void) {
  		cg.refdef.height = int( h );
 
 		CG_Letterbox( (LIMBO_3D_W/640.f)*100, (LIMBO_3D_H/480.f)*100, qfalse );
+
+		// the limbopanel objective camera is always rendered at a 4:3 aspectratio (ETLegacy)
+		if( !Ccg_Is43Screen() ) {
+			cg.refdef.width = int( cg.refdef.width * cgs.r43da );
+		}
+
 		return;
 	}
 

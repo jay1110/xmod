@@ -2544,6 +2544,7 @@ void CG_LimboPanel_Setup( void ) {
 
 void CG_LimboPanel_Init( void ) {
 	BG_PanelButtonsSetup( limboPanelButtons );
+	C_PanelButtonsSetup( limboPanelButtons, cgs.wideXoffset );  // widescreen offset
 }
 
 qboolean CG_LimboPanel_Draw( void ) {
@@ -2561,7 +2562,7 @@ qboolean CG_LimboPanel_Draw( void ) {
 
 	if( cg.limboEndCinematicTime > cg.time ) {
 		//%	CG_DrawPic( LIMBO_3D_X, LIMBO_3D_Y, LIMBO_3D_W, LIMBO_3D_H, cgs.media.limboRadioBroadcast );
-		CG_DrawPic( LIMBO_3D_X + 4, LIMBO_3D_Y - 8, LIMBO_3D_W - 8, LIMBO_3D_W - 8, cgs.media.limboRadioBroadcast );
+		CG_DrawPic( LIMBO_3D_X + 4 + cgs.wideXoffset, LIMBO_3D_Y - 8, LIMBO_3D_W - 8, LIMBO_3D_W - 8, cgs.media.limboRadioBroadcast );
 	}
 
 	BG_PanelButtonsRender( limboPanelButtons );

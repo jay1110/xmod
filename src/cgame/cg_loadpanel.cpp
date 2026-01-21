@@ -258,6 +258,7 @@ void CG_DrawConnectScreen( qboolean interactive, qboolean forcerefresh ) {
 		bg_mappic =		0;
 
 		BG_PanelButtonsSetup( loadpanelButtons );
+		C_PanelButtonsSetup( loadpanelButtons, cgs.wideXoffset );  // widescreen offset
 
 		bg_loadscreeninited = qtrue;
 	}

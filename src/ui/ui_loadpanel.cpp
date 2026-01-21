@@ -146,6 +146,7 @@ void UI_DrawLoadPanel( qboolean forcerefresh, qboolean ownerdraw, qboolean uihac
 		trap_R_RegisterFont( "courbd", 30, &bg_loadscreenfont2 );
 
 		BG_PanelButtonsSetup( loadpanelButtons );
+		C_PanelButtonsSetup( loadpanelButtons, Cui_WideXoffset() );  // widescreen offset
 
 		bg_loadscreeninited = qtrue;
 	}
