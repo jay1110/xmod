@@ -45,6 +45,18 @@ static float Cui_WideX(float x) {
 	return (DC->glconfig.windowAspect <= RATIO43) ? x : x * (DC->glconfig.windowAspect * RPRATIO43);
 }
 
+/**
+ * @brief The horizontal center offset in virtual 640x480 screen space for widescreen
+ * This is the pixel difference at the center of a 4:3 screen vs. the current aspect ratio
+ * @return The horizontal offset to center content on widescreen displays
+ */
+static float Cui_WideXoffset(void) {
+	if (DC == NULL) {
+		return 0.0f;
+	}
+	return (DC->glconfig.windowAspect <= RATIO43) ? 0.0f : ((640.0f * (DC->glconfig.windowAspect * RPRATIO43)) - 640.0f) * 0.5f;
+}
+
 qboolean g_waitingForKey = qfalse;
 qboolean g_editingField = qfalse;
 
@@ -744,12 +756,17 @@ qboolean IsVisible(int flags) {
 qboolean Rect_ContainsPoint(rectDef_t *rect, float x, float y) {
 	if (rect) {
 		// Correction for widescreen cursor coordinates
-		// Only X-axis needs adjustment because widescreen stretching is horizontal only
-		// The cursor x position is scaled to match the UI element positions
+		// The cursor x position needs to be offset and scaled to match the UI element positions
 		// that have been adjusted for widescreen in AdjustFrom640()
-		x = Cui_WideX(x);
+		// We apply the wide offset first, then scale with Cui_WideX
+		float wideOffset = Cui_WideXoffset();
+		x = Cui_WideX(x) - wideOffset;
 		
-		if (x >= Cui_WideX(rect->x) && x < Cui_WideX(rect->x + rect->w) && y >= rect->y && y < rect->y + rect->h) {
+		// Compare against scaled element coordinates (also offset by wideOffset)
+		float rectX = Cui_WideX(rect->x) - wideOffset;
+		float rectW = Cui_WideX(rect->w);
+		
+		if (x >= rectX && x < rectX + rectW && y >= rect->y && y < rect->y + rect->h) {
 			return qtrue;
 		}
 	}
@@ -4640,10 +4657,13 @@ void AdjustFrom640(float *x, float *y, float *w, float *h) {
 
 	// Apply aspect ratio correction for widescreen displays
 	// This prevents UI from being stretched on 16:9, 16:10, etc. resolutions
+	// and centers the content horizontally using the bias offset
 	if (DC->glconfig.windowAspect > RATIO43) {
 		float aspectCorrection = RATIO43 / DC->glconfig.windowAspect;
 		*x *= aspectCorrection;
 		*w *= aspectCorrection;
+		// Add bias to center the scaled content horizontally
+		*x += DC->bias;
 	}
 }
 
