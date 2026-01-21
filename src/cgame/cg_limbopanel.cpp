@@ -2552,6 +2552,16 @@ qboolean CG_LimboPanel_Draw( void ) {
 	panel_button_t* hilight;
 //	panel_button_t** buttons = limboPanelButtons;
 
+	// Draw widescreen side bars (like ETLegacy approach for connect screen)
+	if( cgs.glconfig.windowAspect != RATIO43 ) {
+		float xoffset = Ccg_WideXoffset() * cgs.screenXScale;
+		if( !cgs.media.backTileShader ) {
+			cgs.media.backTileShader = trap_R_RegisterShaderNoMip( "gfx/2d/backtile" );
+		}
+		trap_R_DrawStretchPic( 0, 0, xoffset, cgs.glconfig.vidHeight, 0, 0, 1, 1, cgs.media.backTileShader );  // left side
+		trap_R_DrawStretchPic( cgs.glconfig.vidWidth - xoffset, 0, xoffset, cgs.glconfig.vidHeight, 0, 0, 1, 1, cgs.media.backTileShader );  // right side
+	}
+
 	CG_RestrictScreenWidth(true);
 
 	hilight = BG_PanelButtonsGetHighlightButton( limboPanelButtons );

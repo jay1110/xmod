@@ -107,7 +107,9 @@ bool CG_IsScreenWidthRestricted()
 ================
 CG_AdjustFrom640
 
-Adjusted for resolution and screen aspect ratio (ETLegacy approach)
+Adjusted for resolution
+Note: xmod uses dynamic SCREEN_WIDTH that already accounts for aspect ratio,
+so we don't need additional r43da scaling like ETLegacy does.
 ================
 */
 void CG_AdjustFrom640( float *x, float *y, float *w, float *h ) {
@@ -116,13 +118,6 @@ void CG_AdjustFrom640( float *x, float *y, float *w, float *h ) {
 	*y *= cgs.screenYScale;
 	*w *= cgs.screenXScale;
 	*h *= cgs.screenYScale;
-	
-	// Adjust x-coordinate and width for widescreen aspect ratio (ETLegacy approach)
-	// Skip if screen width is restricted (used for limbo, loadpanel, debriefing panels)
-	if (!CG_IsScreenWidthRestricted() && !Ccg_Is43Screen()) {
-		*x *= cgs.r43da;    // * ((4/3) / aspectratio)
-		*w *= cgs.r43da;    // * ((4/3) / aspectratio)
-	}
 }
 
 /*
