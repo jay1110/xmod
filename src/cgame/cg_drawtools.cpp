@@ -5,6 +5,44 @@
 static bool customScreenWidth = false;
 
 /*
+================
+Ccg_Is43Screen
+
+Returns true if the screen is 4:3 or narrower aspect ratio
+================
+*/
+qboolean Ccg_Is43Screen(void) {
+	if (cgs.glconfig.windowAspect <= RATIO43) {
+		return qtrue;
+	}
+	return qfalse;
+}
+
+/*
+================
+Ccg_WideX
+
+Convert an x-coordinate for use with the current aspect ratio.
+If 4:3 screen, returns x unchanged.
+For widescreen, expands x coordinate appropriately.
+================
+*/
+float Ccg_WideX(float x) {
+	return Ccg_Is43Screen() ? x : x * cgs.adr43;  // * (aspectratio / (4/3))
+}
+
+/*
+================
+Ccg_WideXoffset
+
+Returns the horizontal offset needed to center content on widescreen displays.
+================
+*/
+float Ccg_WideXoffset(void) {
+	return Ccg_Is43Screen() ? 0.0f : ((640.0f * cgs.adr43) - 640.0f) * 0.5f;
+}
+
+/*
 ==================
 CG_LerpColor2
 
@@ -69,38 +107,21 @@ bool CG_IsScreenWidthRestricted()
 ================
 CG_AdjustFrom640
 
-Adjusted for resolution and screen aspect ratio
+Adjusted for resolution and screen aspect ratio (ETLegacy approach)
 ================
 */
 void CG_AdjustFrom640( float *x, float *y, float *w, float *h ) {
-#if 0
-	// adjust for wide screens
-	if ( cgs.glconfig.vidWidth * 480 > cgs.glconfig.vidHeight * 640 ) {
-		*x += 0.5 * ( cgs.glconfig.vidWidth - ( cgs.glconfig.vidHeight * 640 / 480 ) );
-	}
-#endif
-
-/*	if ( (cg.showGameView) && cg.refdef_current->width ) {
-		float xscale = ( ( cg.refdef_current->width / cgs.screenXScale ) / 640.f );
-		float yscale = ( ( cg.refdef_current->height / cgs.screenYScale ) / 480.f );
-
-		(*x) = (*x) * xscale + ( cg.refdef_current->x / cgs.screenXScale );
-		(*y) = (*y) * yscale + ( cg.refdef_current->y / cgs.screenYScale );
-		(*w) *= xscale;
-		(*h) *= yscale;
-	}*/
-
-	if (CG_IsScreenWidthRestricted()) {
-		float scale = (float)cgs.glconfig.vidWidth / 640.f;
-		*x *= scale;
-		*w *= scale;
-}
-	else {
-		*x *= cgs.screenXScale;
-		*w *= cgs.screenXScale;
-	}
+	// Scale for screen sizes
+	*x *= cgs.screenXScale;
 	*y *= cgs.screenYScale;
+	*w *= cgs.screenXScale;
 	*h *= cgs.screenYScale;
+	
+	// Adjust x-coordinate and width for widescreen aspect ratio (ETLegacy approach)
+	if (!Ccg_Is43Screen()) {
+		*x *= cgs.r43da;    // * ((4/3) / aspectratio)
+		*w *= cgs.r43da;    // * ((4/3) / aspectratio)
+	}
 }
 
 /*

@@ -1952,6 +1952,10 @@ typedef struct oidInfo_s {
 #define NUM_ENDGAME_AWARDS 14
 
 
+// Aspect ratio constants for widescreen support (from ETLegacy)
+#define RATIO43     (4.0f / 3.0f)   // 4:3 aspect ratio (1.333...)
+#define RPRATIO43   (1.0f / RATIO43) // Reciprocal of 4:3 (0.75)
+
 // The client game static (cgs) structure hold everything
 // loaded or calculated from the gamestate.  It will NOT
 // be cleared when a tournement restart is done, allowing
@@ -1962,6 +1966,10 @@ typedef struct {
 	float			screenXScale;		// derived from glconfig
 	float			screenYScale;
 	float			screenXBias;
+	
+	// Widescreen aspect ratio values (from ETLegacy)
+	float			r43da;				// RATIO43 / windowAspect - used in AdjustFrom640
+	float			adr43;				// windowAspect / RATIO43 - used in WideX functions
 
 	int				serverCommandSequence;	// reliable command stream counter
 	int				processedSnapshotNum;// the number of snapshots cgame has requested
@@ -2480,6 +2488,11 @@ void CG_Letterbox( float xsize, float ysize, qboolean center );
 //
 // cg_drawtools.c
 //
+// Widescreen helper functions (from ETLegacy)
+qboolean Ccg_Is43Screen(void);
+float Ccg_WideX(float x);
+float Ccg_WideXoffset(void);
+
 void CG_RestrictScreenWidth(bool restrict);
 bool CG_IsScreenWidthRestricted();
 void CG_LerpColor2(vec4_t color1, vec4_t color2, vec4_t result, float factor);

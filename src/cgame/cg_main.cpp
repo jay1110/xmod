@@ -2790,6 +2790,7 @@ void CG_LoadHudMenu() {
 	
 	cgDC.xscale = cgs.screenXScale;
 	cgDC.yscale = cgs.screenYScale;
+	cgDC.bias = 0;  // Bias is calculated separately per ETLegacy approach
 
 	Init_Display(&cgDC);
 
@@ -2878,6 +2879,12 @@ void CG_Init( int serverMessageNum, int serverCommandSequence, int clientNum, qb
 	trap_GetGlconfig( &cgs.glconfig );
 	cgs.screenYScale = cgs.glconfig.vidHeight / 480.0;
 	cgs.screenXScale = cgs.glconfig.vidWidth / (float)SCREEN_WIDTH;
+	
+	// Initialize widescreen aspect ratio values (ETLegacy approach)
+	// r43da = RATIO43 / windowAspect - used for scaling in AdjustFrom640
+	// adr43 = windowAspect / RATIO43 - used for WideX coordinate expansion
+	cgs.r43da = RATIO43 / cgs.glconfig.windowAspect;
+	cgs.adr43 = cgs.glconfig.windowAspect / RATIO43;
 
 	// RF, init the anim scripting
 	cgs.animScriptData.soundIndex = CG_SoundScriptPrecache;
