@@ -54,7 +54,13 @@ static float Cui_WideXoffset(void) {
 	if (DC == NULL) {
 		return 0.0f;
 	}
-	return (DC->glconfig.windowAspect <= RATIO43) ? 0.0f : ((640.0f * (DC->glconfig.windowAspect * RPRATIO43)) - 640.0f) * 0.5f;
+	if (DC->glconfig.windowAspect <= RATIO43) {
+		return 0.0f;
+	}
+	// Calculate the expanded width in 640-space for the current aspect ratio
+	// and return half the difference as the centering offset
+	float wideWidth = 640.0f * (DC->glconfig.windowAspect * RPRATIO43);
+	return (wideWidth - 640.0f) * 0.5f;
 }
 
 /**
@@ -65,7 +71,7 @@ void Cui_WideRect(rectDef_t *rect) {
 	if (DC == NULL) {
 		return;
 	}
-	
+
 	rect->x *= DC->xscale;
 	rect->y *= DC->yscale;
 	rect->w *= DC->xscale;
