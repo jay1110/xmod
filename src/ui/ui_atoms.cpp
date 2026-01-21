@@ -243,6 +243,7 @@ void UI_Shutdown( void ) {
 UI_AdjustFrom640
 
 Adjusted for resolution and screen aspect ratio
+Following ETLegacy's approach: scale and apply aspect correction but don't center
 ================
 */
 void UI_AdjustFrom640( float *x, float *y, float *w, float *h ) {
@@ -254,13 +255,10 @@ void UI_AdjustFrom640( float *x, float *y, float *w, float *h ) {
 
 	// Apply aspect ratio correction for widescreen displays
 	// This prevents UI from being stretched on 16:9, 16:10, etc. resolutions
-	// and centers the content horizontally using the bias offset
+	// Note: ETLegacy does NOT center content here - that's done elsewhere if needed
 	if (uiInfo.uiDC.glconfig.windowAspect > RATIO43) {
-		float aspectCorrection = RATIO43 / uiInfo.uiDC.glconfig.windowAspect;
-		*x *= aspectCorrection;
-		*w *= aspectCorrection;
-		// Add bias to center the scaled content horizontally
-		*x += uiInfo.uiDC.bias;
+		*x *= RATIO43 / uiInfo.uiDC.glconfig.windowAspect;
+		*w *= RATIO43 / uiInfo.uiDC.glconfig.windowAspect;
 	}
 }
 

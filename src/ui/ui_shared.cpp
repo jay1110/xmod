@@ -45,6 +45,38 @@ static float Cui_WideX(float x) {
 	return (DC->glconfig.windowAspect <= RATIO43) ? x : x * (DC->glconfig.windowAspect * RPRATIO43);
 }
 
+/**
+ * @brief The horizontal center of screen pixel-difference of a 4:3 ratio vs. the current aspect ratio
+ * This is used to offset elements that need to be centered on widescreen displays.
+ * @return The x-offset needed to center content horizontally
+ */
+static float Cui_WideXoffset(void) {
+	if (DC == NULL) {
+		return 0.0f;
+	}
+	return (DC->glconfig.windowAspect <= RATIO43) ? 0.0f : ((640.0f * (DC->glconfig.windowAspect * RPRATIO43)) - 640.0f) * 0.5f;
+}
+
+/**
+ * @brief Convert rectangle-coordinates for use with the current aspect ratio.
+ * @param[out] rect The rectangle to adjust
+ */
+void Cui_WideRect(rectDef_t *rect) {
+	if (DC == NULL) {
+		return;
+	}
+	
+	rect->x *= DC->xscale;
+	rect->y *= DC->yscale;
+	rect->w *= DC->xscale;
+	rect->h *= DC->yscale;
+
+	if (DC->glconfig.windowAspect > RATIO43) {
+		rect->x *= RATIO43 / DC->glconfig.windowAspect;
+		rect->w *= RATIO43 / DC->glconfig.windowAspect;
+	}
+}
+
 qboolean g_waitingForKey = qfalse;
 qboolean g_editingField = qfalse;
 
@@ -4640,13 +4672,10 @@ void AdjustFrom640(float *x, float *y, float *w, float *h) {
 
 	// Apply aspect ratio correction for widescreen displays
 	// This prevents UI from being stretched on 16:9, 16:10, etc. resolutions
-	// and centers the content horizontally using the bias offset
+	// Note: ETLegacy does NOT center content here - that's done elsewhere if needed
 	if (DC->glconfig.windowAspect > RATIO43) {
-		float aspectCorrection = RATIO43 / DC->glconfig.windowAspect;
-		*x *= aspectCorrection;
-		*w *= aspectCorrection;
-		// Add bias to center the scaled content horizontally
-		*x += DC->bias;
+		*x *= RATIO43 / DC->glconfig.windowAspect;
+		*w *= RATIO43 / DC->glconfig.windowAspect;
 	}
 }
 
