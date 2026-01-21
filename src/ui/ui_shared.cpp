@@ -7443,6 +7443,16 @@ qboolean PC_Rect_Parse(int handle, rectDef_t *r) {
 panel_button_t* bg_focusButton;
 
 qboolean BG_RectContainsPoint(float x, float y, float w, float h, float px, float py) {
+	// Apply widescreen coordinate transformation for cursor hit testing
+	// This ensures buttons are clickable at the correct positions on widescreen displays
+	if (DC && DC->glconfig.windowAspect > RATIO43) {
+		// Transform cursor x coordinate for widescreen
+		px = px * (DC->glconfig.windowAspect * RPRATIO43);
+		// Transform rect x and w coordinates for widescreen
+		x = x * (DC->glconfig.windowAspect * RPRATIO43);
+		w = w * (DC->glconfig.windowAspect * RPRATIO43);
+	}
+	
 	if(px > x && px < x + w && py > y && py < y + h) {
 		return qtrue;
 	}
