@@ -734,8 +734,8 @@ void Menu_UpdatePosition(menuDef_t *menu) {
 	y = menu->window.rect.y;
 
 	r = &menu->window.rect;
-	fullscreenMenu = (r->x == 0.f && r->y == 0.f && r->w == 640.f && r->h == 480.f);
-	centered = (r->x == 16.f && r->w == 608.f);
+	fullscreenMenu = (r->x == 0.f && r->y == 0.f && r->w == 640.f && r->h == 480.f) ? qtrue : qfalse;
+	centered = (r->x == 16.f && r->w == 608.f) ? qtrue : qfalse;
 
 	// add offset to centered windows (standard menu size is 16,16,608,456)
 	if (centered) {
@@ -745,7 +745,7 @@ void Menu_UpdatePosition(menuDef_t *menu) {
 	for (i = 0; i < menu->itemCount; i++) {
 		itemName = menu->items[i]->window.name;
 		r = &menu->items[i]->window.rectClient;
-		fullscreenItem = (r->x == 0.f && r->y == 0.f && r->w == 640.f && r->h == 480.f);
+		fullscreenItem = (r->x == 0.f && r->y == 0.f && r->w == 640.f && r->h == 480.f) ? qtrue : qfalse;
 
 		// exclude background clouds as fullscreen item from Cui_WideRect(r) and adjust rect width
 		if (itemName && !Q_stricmp(itemName, "clouds")) {
