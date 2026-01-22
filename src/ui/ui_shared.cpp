@@ -38,7 +38,7 @@ displayContextDef_t *DC = NULL;
  * @param[in] x The x-coordinate in 640x480 virtual screen space
  * @return The x-coordinate adjusted for the current aspect ratio
  */
-static float Cui_WideX(float x) {
+float Cui_WideX(float x) {
 	if (DC == NULL) {
 		return x;
 	}
@@ -719,6 +719,12 @@ void Item_UpdatePosition(itemDef_t *item) {
 void Menu_UpdatePosition(menuDef_t *menu) {
 	int i;
 	float x, y;
+	float xoffset = Cui_WideXoffset();
+	rectDef_t *r;
+	qboolean fullscreenItem = qfalse;
+	qboolean fullscreenMenu = qfalse;
+	qboolean centered = qfalse;
+	const char *itemName = NULL;
 	
 	if (menu == NULL) {
 		return;
@@ -727,12 +733,31 @@ void Menu_UpdatePosition(menuDef_t *menu) {
 	x = menu->window.rect.x;
 	y = menu->window.rect.y;
 
-    /*if (menu->window.border != 0) {
-		x += menu->window.borderSize;
-		y += menu->window.borderSize;
-	}*/
-	
+	r = &menu->window.rect;
+	fullscreenMenu = (r->x == 0.f && r->y == 0.f && r->w == 640.f && r->h == 480.f);
+	centered = (r->x == 16.f && r->w == 608.f);
+
+	// add offset to centered windows (standard menu size is 16,16,608,456)
+	if (centered) {
+		menu->window.rect.x = menu->window.rect.x + xoffset;
+	}
+
 	for (i = 0; i < menu->itemCount; i++) {
+		itemName = menu->items[i]->window.name;
+		r = &menu->items[i]->window.rectClient;
+		fullscreenItem = (r->x == 0.f && r->y == 0.f && r->w == 640.f && r->h == 480.f);
+
+		// exclude background clouds as fullscreen item from Cui_WideRect(r) and adjust rect width
+		if (itemName && !Q_stricmp(itemName, "clouds")) {
+			r->w = r->w + 2 * xoffset;
+		}
+		else {
+			// all other fullscreen items get aspect correction
+			if (fullscreenItem) {
+				Cui_WideRect(r);
+			}
+		}
+
 		Item_SetScreenCoords(menu->items[i], x, y);
 	}
 }
