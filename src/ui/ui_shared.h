@@ -587,6 +587,7 @@ qboolean BG_PanelButton_EditClick( panel_button_t* button, int key );
 qboolean BG_PanelButtonsKeyEvent( int key, qboolean down, panel_button_t** buttons );
 void BG_PanelButtonsSetup( panel_button_t** buttons );
 void C_PanelButtonsSetup( panel_button_t** buttons, float xoffset );  // widescreen offset for panel buttons
+float Cui_WideX( float x );  // convert x-coordinate for current aspect ratio
 float Cui_WideXoffset( void );  // widescreen horizontal centering offset
 void BG_PanelButtonsRender( panel_button_t** buttons );
 void BG_PanelButtonsRender_Text( panel_button_t* button );
