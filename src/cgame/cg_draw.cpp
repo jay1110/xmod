@@ -851,10 +851,6 @@ static void CG_DrawUpperRight( void ) {
 ===========================================================================================
 */
 
-#define CHATLOC_X 155
-#define CHATLOC_Y 478
-#define CHATLOC_TEXT_X (CHATLOC_X + 0.25f * TINYCHAR_WIDTH)
-
 /*
 =================
 CG_DrawTeamInfo
@@ -868,8 +864,18 @@ static void CG_DrawTeamInfo( void ) {
 	float	alphapercent;
 	float	lineHeight = 9.f;
 
-	int chatWidth = SCREEN_WIDTH - CHATLOC_X - 100 + 10;
- 
+	// Dynamic chat positioning for different resolutions and aspect ratios
+	// Position chat in lower left with proper spacing
+	float chatLocX = 10.0f;  // Left margin from screen edge
+	float chatLocY = SCREEN_HEIGHT - 2.0f;  // Bottom position
+	float chatLocTextX = chatLocX + 0.25f * TINYCHAR_WIDTH;
+
+	// Calculate chat width based on screen width, leaving appropriate margins
+	// For 4:3 (640 width): ~430px wide
+	// For 16:9 (853 width): ~643px wide
+	// For 16:10 (768 width): ~558px wide
+	int chatWidth = static_cast<int>(SCREEN_WIDTH * 0.67f);
+
 	if( cg_teamChatHeight.integer < TEAMCHAT_HEIGHT ) {
 		chatHeight = cg_teamChatHeight.integer;
 	} else {
@@ -923,7 +929,7 @@ static void CG_DrawTeamInfo( void ) {
 			hcolor[3] = 0.33f * alphapercent;
 
 			trap_R_SetColor( hcolor );
-			CG_DrawPic( CHATLOC_X + cgs.wideXoffset, CHATLOC_Y - (cgs.teamChatPos - i)*lineHeight, chatWidth, lineHeight, cgs.media.teamStatusBar );
+			CG_DrawPic( chatLocX + cgs.wideXoffset, chatLocY - (cgs.teamChatPos - i)*lineHeight, chatWidth, lineHeight, cgs.media.teamStatusBar );
 
 			hcolor[0] = hcolor[1] = hcolor[2] = 1.0;
 			hcolor[3] = alphapercent;
@@ -931,10 +937,10 @@ static void CG_DrawTeamInfo( void ) {
 
             // Jaybird - team flags/icons
             if (cgs.teamChatMsgIcons[i % chatHeight] >= 0) {
-                CG_DrawPic( CHATLOC_X + cgs.wideXoffset, CHATLOC_Y + 1 - (cgs.teamChatPos - i)*lineHeight, 10, 8, cgs.teamChatMsgIcons[i % chatHeight]);
+                CG_DrawPic( chatLocX + cgs.wideXoffset, chatLocY + 1 - (cgs.teamChatPos - i)*lineHeight, 10, 8, cgs.teamChatMsgIcons[i % chatHeight]);
             }
 
-			CG_Text_Paint_Ext( CHATLOC_TEXT_X + 10 + cgs.wideXoffset, CHATLOC_Y - (cgs.teamChatPos - i - 1) * lineHeight - 1, 0.2f, 0.2f, hcolor, cgs.teamChatMsgs[i % chatHeight], 0, 0, 0, &cgs.media.limboFont2 );
+			CG_Text_Paint_Ext( chatLocTextX + 10 + cgs.wideXoffset, chatLocY - (cgs.teamChatPos - i - 1) * lineHeight - 1, 0.2f, 0.2f, hcolor, cgs.teamChatMsgs[i % chatHeight], 0, 0, 0, &cgs.media.limboFont2 );
 		}
 	}
 }
