@@ -923,7 +923,7 @@ static void CG_DrawTeamInfo( void ) {
 			hcolor[3] = 0.33f * alphapercent;
 
 			trap_R_SetColor( hcolor );
-			CG_DrawPic( CHATLOC_X, CHATLOC_Y - (cgs.teamChatPos - i)*lineHeight, chatWidth, lineHeight, cgs.media.teamStatusBar );
+			CG_DrawPic( CHATLOC_X + cgs.wideXoffset, CHATLOC_Y - (cgs.teamChatPos - i)*lineHeight, chatWidth, lineHeight, cgs.media.teamStatusBar );
 
 			hcolor[0] = hcolor[1] = hcolor[2] = 1.0;
 			hcolor[3] = alphapercent;
@@ -931,10 +931,10 @@ static void CG_DrawTeamInfo( void ) {
 
             // Jaybird - team flags/icons
             if (cgs.teamChatMsgIcons[i % chatHeight] >= 0) {
-                CG_DrawPic( CHATLOC_X, CHATLOC_Y + 1 - (cgs.teamChatPos - i)*lineHeight, 10, 8, cgs.teamChatMsgIcons[i % chatHeight]);
+                CG_DrawPic( CHATLOC_X + cgs.wideXoffset, CHATLOC_Y + 1 - (cgs.teamChatPos - i)*lineHeight, 10, 8, cgs.teamChatMsgIcons[i % chatHeight]);
             }
 
-			CG_Text_Paint_Ext( CHATLOC_TEXT_X + 10, CHATLOC_Y - (cgs.teamChatPos - i - 1) * lineHeight - 1, 0.2f, 0.2f, hcolor, cgs.teamChatMsgs[i % chatHeight], 0, 0, 0, &cgs.media.limboFont2 );
+			CG_Text_Paint_Ext( CHATLOC_TEXT_X + 10 + cgs.wideXoffset, CHATLOC_Y - (cgs.teamChatPos - i - 1) * lineHeight - 1, 0.2f, 0.2f, hcolor, cgs.teamChatMsgs[i % chatHeight], 0, 0, 0, &cgs.media.limboFont2 );
 		}
 	}
 }

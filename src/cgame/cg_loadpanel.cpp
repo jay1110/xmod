@@ -366,6 +366,8 @@ void CG_DrawConnectScreen( qboolean interactive, qboolean forcerefresh ) {
 	}
 
 	if( *cgs.rawmapname ) {
+		float x;
+		
 		if( !bg_mappic ) {
 			bg_mappic = DC->registerShaderNoMip( va( "levelshots/%s", cgs.rawmapname ) );
 
@@ -374,13 +376,16 @@ void CG_DrawConnectScreen( qboolean interactive, qboolean forcerefresh ) {
 			}
 		}
 
+		x = 16 + cgs.wideXoffset + 1;
 		trap_R_SetColor( colorBlack );
-		CG_DrawPic( 16+1, 2+1, 192, 144, bg_mappic );
+		CG_DrawPic( x, 2+1, 192, 144, bg_mappic );
 
 		trap_R_SetColor( NULL );
-		CG_DrawPic( 16, 2, 192, 144, bg_mappic );
+		x = 16 + cgs.wideXoffset;
+		CG_DrawPic( x, 2, 192, 144, bg_mappic );
 
-		CG_DrawPic( 16+80, 2+6, 20, 20, bg_pin );
+		x = 16 + cgs.wideXoffset + 80;
+		CG_DrawPic( x, 2+6, 20, 20, bg_pin );
 	}
 
 	if( forcerefresh ) {
