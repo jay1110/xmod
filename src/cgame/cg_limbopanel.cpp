@@ -2003,10 +2003,11 @@ void CG_LimboPanel_WeaponPanel_DrawWeapon( rectDef_t* rect, weapon_t weap, qbool
 }
 
 #define BRDRSIZE 4
-void CG_DrawBorder( float x, float y, float w, float h, qboolean fill, qboolean drawMouseOver ) {
-	vec4_t clrBack = { 0.1f, 0.1f, 0.1f, 1.f };
-	vec4_t clrBack2 = { 0.2f, 0.2f, 0.2f, 1.f };
 
+static vec4_t clrBackBorder = { 0.1f, 0.1f, 0.1f, 1.f };
+static vec4_t clrBackBorder2 = { 0.2f, 0.2f, 0.2f, 1.f };
+
+void CG_DrawBorder( float x, float y, float w, float h, qboolean fill, qboolean drawMouseOver ) {
 	// top / bottom
 	CG_DrawPic( x, y - BRDRSIZE, w, BRDRSIZE, cgs.media.limboWeaponCardSurroundH );
 	CG_DrawPicST( x, y + h, w, BRDRSIZE, 0.f, 1.f, 1.f, 0.f, cgs.media.limboWeaponCardSurroundH );
@@ -2029,12 +2030,12 @@ void CG_DrawBorder( float x, float y, float w, float h, qboolean fill, qboolean 
 			rect.h = h;			
 
 			if( BG_CursorInRect( &rect ) ) {
-				CG_FillRect( x, y, w, h, clrBack2 );
+				CG_FillRect( x, y, w, h, clrBackBorder2 );
 			} else {
-				CG_FillRect( x, y, w, h, clrBack );
+				CG_FillRect( x, y, w, h, clrBackBorder );
 			}
 		} else {
-			CG_FillRect( x, y, w, h, clrBack );
+			CG_FillRect( x, y, w, h, clrBackBorder );
 		}
 	}
 }
