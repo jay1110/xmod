@@ -869,13 +869,13 @@ static void CG_DrawTeamInfo( void ) {
 	float chatLocX = 10.0f;  // Left margin from screen edge
 	float chatLocY = SCREEN_HEIGHT - 2.0f;  // Bottom position
 	float chatLocTextX = chatLocX + 0.25f * TINYCHAR_WIDTH;
-	
+
 	// Calculate chat width based on screen width, leaving appropriate margins
 	// For 4:3 (640 width): ~430px wide
-	// For 16:9 (853 width): ~643px wide  
+	// For 16:9 (853 width): ~643px wide
 	// For 16:10 (768 width): ~558px wide
 	int chatWidth = static_cast<int>(SCREEN_WIDTH * 0.67f);
- 
+
 	if( cg_teamChatHeight.integer < TEAMCHAT_HEIGHT ) {
 		chatHeight = cg_teamChatHeight.integer;
 	} else {
