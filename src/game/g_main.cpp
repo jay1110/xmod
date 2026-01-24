@@ -5,6 +5,9 @@
 #include <game/xmod_globals.h>
 #include <game/g_geoip.h>
 
+// Forward declaration for Bot_Event_EntityCreated (defined in g_etbot_interface.cpp)
+void Bot_Event_EntityCreated(gentity_t *pEnt);
+
 level_locals_t	level;
 
 typedef struct {
@@ -633,20 +636,39 @@ vmMain( int command, int arg0, int arg1, int arg2, int arg3, int arg4, int arg5,
 		if (!Bot_Interface_Init())
 			G_Printf(S_COLOR_RED "Unable to Initialize Omni-Bot.^7\n");
 		else {
-			// Force bot re-spawn after game restart (warmup end, map_restart)
-			// Iterate over all connected bots and respawn them
+			// Re-register bots with Omni-bot after game restart (warmup end, map_restart)
+			// This ensures proper event synchronization: EntityCreated -> ClientConnected -> respawn
+			// Without this, Omni-bot's entity handles become out of sync with the game state
 			for (int i = 0; i < level.maxclients; i++) {
 				gentity_t *ent = &g_entities[i];
 				if (ent->inuse && ent->client && IsBot(ent) &&
-					ent->client->pers.connected == CON_CONNECTED &&
-					(ent->client->sess.sessionTeam == TEAM_AXIS || 
-					 ent->client->sess.sessionTeam == TEAM_ALLIES)) {
-					respawn(ent);
+					ent->client->pers.connected == CON_CONNECTED) {
+					// Register entity handle with Omni-bot (GAME_ENTITYCREATED event)
+					Bot_Event_EntityCreated(ent);
+					
+					// Notify Omni-bot about client connection (GAME_CLIENTCONNECTED event)
+					Bot_Event_ClientConnected(i, qtrue);
+					
+					// Now respawn the bot if on a valid team
+					if (ent->client->sess.sessionTeam == TEAM_AXIS || 
+					    ent->client->sess.sessionTeam == TEAM_ALLIES) {
+						respawn(ent);
+					}
 				}
 			}
 		}
 		return 0;
 	case GAME_SHUTDOWN:
+		// Disconnect all bots from Omni-bot BEFORE shutting down the game
+		// This ensures clean state transition during warmup end / map restart
+		if (IsOmnibotLoaded()) {
+			for (int i = 0; i < level.maxclients; i++) {
+				gentity_t *ent = &g_entities[i];
+				if (ent->inuse && ent->client && IsBot(ent)) {
+					Bot_Event_ClientDisConnected(i);
+				}
+			}
+		}
 		if (!Bot_Interface_Shutdown())
 			G_Printf(S_COLOR_RED "Error shutting down Omni-Bot.^7\n");
 		G_ShutdownGame( arg0 );
