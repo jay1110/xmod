@@ -1,5 +1,6 @@
 #include <bgame/impl.h>
 #include <omnibot/et/g_etbot_interface.h>
+#include <omnibot/common/BotExports.h>
 #include <game/g_lua.h>
 #include <game/jxac/jxac_server.h>
 #include <game/xmod_globals.h>
