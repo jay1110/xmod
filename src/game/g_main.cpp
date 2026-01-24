@@ -635,8 +635,7 @@ vmMain( int command, int arg0, int arg1, int arg2, int arg3, int arg4, int arg5,
 		else {
 			// Force bot re-spawn after game restart (warmup end, map_restart)
 			// Iterate over all connected bots and respawn them
-			int maxClients = level.maxclients < MAX_CLIENTS ? level.maxclients : MAX_CLIENTS;
-			for (int i = 0; i < maxClients; i++) {
+			for (int i = 0; i < level.maxclients; i++) {
 				gentity_t *ent = &g_entities[i];
 				if (ent->inuse && ent->client && IsBot(ent) &&
 					ent->client->pers.connected == CON_CONNECTED &&
