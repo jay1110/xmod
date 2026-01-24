@@ -865,8 +865,9 @@ static void CG_DrawTeamInfo( void ) {
 	float	lineHeight = 9.f;
 
 	// Dynamic chat positioning for different resolutions and aspect ratios
-	// Position chat in lower left with proper spacing
-	float chatLocX = 10.0f;  // Left margin from screen edge
+	// Position chat in the space between widescreen borders and centered UI elements
+	// Uses a small fraction of wideXoffset to create a natural gutter
+	float chatLocX = 20.0f + (cgs.wideXoffset * 0.15f);
 	float chatLocY = SCREEN_HEIGHT - 2.0f;  // Bottom position
 	float chatLocTextX = chatLocX + 0.25f * TINYCHAR_WIDTH;
 
