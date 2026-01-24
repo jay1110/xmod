@@ -33,6 +33,8 @@ int Bot_Interface_Shutdown();
 
 void Bot_Interface_Update();
 
+bool IsBot(gentity_t *e);
+
 void Bot_Interface_ConsoleCommand();
 
 qboolean Bot_Util_AllowPush(int weaponId);
