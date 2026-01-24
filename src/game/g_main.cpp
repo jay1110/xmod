@@ -632,6 +632,19 @@ vmMain( int command, int arg0, int arg1, int arg2, int arg3, int arg4, int arg5,
 		G_InitGame( arg0, arg1, arg2 );
 		if (!Bot_Interface_Init())
 			G_Printf(S_COLOR_RED "Unable to Initialize Omni-Bot.^7\n");
+		else {
+			// Force bot re-spawn after game restart (warmup end, map_restart)
+			// Iterate over all connected bots and respawn them
+			for (int i = 0; i < level.maxclients; i++) {
+				gentity_t *ent = &g_entities[i];
+				if (ent->inuse && ent->client && IsBot(ent) &&
+					ent->client->pers.connected == CON_CONNECTED &&
+					(ent->client->sess.sessionTeam == TEAM_AXIS || 
+					 ent->client->sess.sessionTeam == TEAM_ALLIES)) {
+					respawn(ent);
+				}
+			}
+		}
 		return 0;
 	case GAME_SHUTDOWN:
 		if (!Bot_Interface_Shutdown())
