@@ -189,13 +189,10 @@ bool Session::guidReceived(const std::string& hashedGuid, const std::string& has
             trap_GetUserinfo(clientNum, userinfo, sizeof(userinfo));
             
             // Get MAC address from userinfo
-            std::string macAddr = Info_ValueForKey(userinfo, "cl_mac");
-            if (!macAddr.empty()) {
+            mac = Info_ValueForKey(userinfo, "cl_mac");
+            if (!mac.empty()) {
                 // Convert to lowercase for consistency
-                for (size_t i = 0; i < macAddr.length(); i++) {
-                    macAddr[i] = tolower(macAddr[i]);
-                }
-                mac = macAddr;
+                str::toLower(mac);
             }
             
             // Store session data locally for quick access
