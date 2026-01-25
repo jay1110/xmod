@@ -2451,6 +2451,27 @@ void ClientBegin( int clientNum )
 		G_LogPrintf("Sending guid_request to client %d (%s)\n", clientNum, client->pers.netname);
 		trap_SendServerCommand(clientNum, "guid_request");
 	}
+	// Re-initialize xmod session for already-authenticated clients after map restart
+	// During map restart, sessions are recreated empty but g_clientObjects authentication
+	// state is preserved. We need to restore the session with the preserved auth data.
+	else if (g_clientObjects[clientNum].authenticated && 
+	         !g_clientObjects[clientNum].authGuid.empty() &&
+	         xmod::g_sessions[clientNum] && 
+	         !xmod::g_sessions[clientNum]->isAuthenticated()) {
+		// Get IP from userinfo
+		char userinfo[MAX_INFO_STRING];
+		trap_GetUserinfo(clientNum, userinfo, sizeof(userinfo));
+		std::string ip = Info_ValueForKey(userinfo, "ip");
+		
+		// Initialize session and restore authentication
+		xmod::g_sessions[clientNum]->init(clientNum, ip);
+		xmod::g_sessions[clientNum]->onGuidReceived(
+			g_clientObjects[clientNum].authGuid,
+			g_clientObjects[clientNum].authHwid
+		);
+		G_LogPrintf("[Auth] Restored session for client %d (%s) after map restart\n", 
+		            clientNum, client->pers.netname);
+	}
 
 	// Xian - Check for maxlives enforcement
 	if( g_gametype.integer != GT_WOLF_LMS ) {
