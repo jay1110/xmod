@@ -2461,7 +2461,7 @@ void ClientBegin( int clientNum )
 		// Get IP from userinfo
 		char userinfo[MAX_INFO_STRING];
 		trap_GetUserinfo(clientNum, userinfo, sizeof(userinfo));
-		std::string ip = Info_ValueForKey(userinfo, "ip");
+		string ip = Info_ValueForKey(userinfo, "ip");
 		
 		// Initialize session and restore authentication
 		xmod::g_sessions[clientNum]->init(clientNum, ip);
