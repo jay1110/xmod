@@ -654,14 +654,16 @@ vmMain( int command, int arg0, int arg1, int arg2, int arg3, int arg4, int arg5,
 					ent->health = ent->client->ps.stats[STAT_HEALTH];
 					ent->r.contents = CONTENTS_BODY;
 					
-					// DEBUG: Log bot state before respawn (TODO: Remove after verification)
-					G_Printf("[BOT_DEBUG] Client %d (%s): sessionTeam=%d pm_flags=0x%x pm_type=%d contents=%d health=%d\n",
-					         i, ent->client->pers.netname,
-					         ent->client->sess.sessionTeam,
-					         ent->client->ps.pm_flags,
-					         ent->client->ps.pm_type,
-					         ent->r.contents,
-					         ent->health);
+					// DEBUG: Log bot state before respawn (guarded by g_developer)
+					if (g_developer.integer) {
+						G_Printf("[BOT_DEBUG] Client %d (%s): sessionTeam=%d pm_flags=0x%x pm_type=%d contents=%d health=%d\n",
+						         i, ent->client->pers.netname,
+						         ent->client->sess.sessionTeam,
+						         ent->client->ps.pm_flags,
+						         ent->client->ps.pm_type,
+						         ent->r.contents,
+						         ent->health);
+					}
 					
 					// SAFEGUARD: Restore team if sessionTeam is not AXIS/ALLIES
 					// This handles the case where warmup->playing transition drops bots to spectator
@@ -669,10 +671,12 @@ vmMain( int command, int arg0, int arg1, int arg2, int arg3, int arg4, int arg5,
 					    ent->client->sess.sessionTeam != TEAM_ALLIES) {
 						// Use PickTeam to assign a balanced team
 						team_t newTeam = PickTeam(i);
+						const char* teamName = (newTeam == TEAM_AXIS) ? "AXIS" : 
+						                       (newTeam == TEAM_ALLIES) ? "ALLIES" : "UNKNOWN";
 						G_Printf("[BOT_FIX] Bot %s had invalid team %d, assigning to %s\n",
 						         ent->client->pers.netname,
 						         ent->client->sess.sessionTeam,
-						         newTeam == TEAM_AXIS ? "AXIS" : "ALLIES");
+						         teamName);
 						ent->client->sess.sessionTeam = newTeam;
 					}
 					
