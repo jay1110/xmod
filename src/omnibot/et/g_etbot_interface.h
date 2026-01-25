@@ -49,6 +49,7 @@ int Bot_TeamGameToBot(int team);
 int Bot_PlayerClassGameToBot(int playerClass);
 
 void Bot_Queue_EntityCreated(gentity_t *pEnt);
+void Bot_Queue_ClientConnected(int clientNum, qboolean isBot);
 void Bot_Event_EntityDeleted(gentity_t *pEnt);
 
 //////////////////////////////////////////////////////////////////////////

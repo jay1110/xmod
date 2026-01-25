@@ -39,6 +39,7 @@ struct BotEntity
 	obint16	m_HandleSerial;
 	bool	m_NewEntity : 1;
 	bool	m_Used : 1;
+	bool	m_NewClient : 1;  // Deferred client connection notification
 };
 
 BotEntity		m_EntityHandles[MAX_GENTITIES];
@@ -1705,7 +1706,7 @@ public:
 			
 			// Process the bot entity registration immediately.
 			// G_InitGentity (called by ClientBegin) queued the entity via Bot_Queue_EntityCreated,
-			// but we need to register it NOW before Bot_Event_ClientConnected is called.
+			// but we need to register it NOW before Bot_Queue_ClientConnected is called.
 			// Otherwise Omnibot receives GAME_CLIENTCONNECTED before GAME_ENTITYCREATED
 			// which can cause it to access an unregistered entity.
 			if(m_EntityHandles[num].m_NewEntity && bot->inuse)
@@ -1714,12 +1715,12 @@ public:
 				Bot_Event_EntityCreated(bot);
 			}
 			
-			// Notify Omnibot about the bot connection AFTER ClientBegin has completed
-			// AND the entity has been registered. This is critical because:
-			// 1. ClientBegin zeros out client->ps and may put the bot in limbo
-			// 2. Omnibot's CheckServerSettings needs to see the bot in a consistent state
-			// 3. The bot entity must be registered before Omnibot starts processing it
-			Bot_Event_ClientConnected(num, qtrue);
+			// CRITICAL FIX: Queue the client connection notification instead of sending immediately.
+			// This defers the notification until the next Bot_Interface_Update() call.
+			// This prevents crash in Omnibot's CheckServerSettings which can be triggered by
+			// pfnUpdate() on the SAME frame if bot addbot is executed mid-frame.
+			// By deferring, we ensure the bot is in a fully stable state before Omnibot processes it.
+			Bot_Queue_ClientConnected(num, qtrue);
 		}
 		// bad hack to prevent unhandled errors being returned as successful connections
 		return bot && bot->inuse ? num : -1;
@@ -5108,6 +5109,7 @@ void Bot_Interface_InitHandles()
 		m_EntityHandles[i].m_HandleSerial = 1;
 		m_EntityHandles[i].m_NewEntity = false;
 		m_EntityHandles[i].m_Used = false;
+		m_EntityHandles[i].m_NewClient = false;
 	}
 }
 
@@ -5298,6 +5300,30 @@ void Bot_Interface_Update()
 				}
 			}
 		}
+		
+		//////////////////////////////////////////////////////////////////////////
+		// Register any pending client connections.
+		// This is deferred to ensure clients are in a stable state before Omni-bot processes them.
+		// Without this, Omni-bot's CheckServerSettings can crash trying to access incomplete client data.
+		for(int i = 0; i < MAX_CLIENTS; ++i)
+		{
+			if(m_EntityHandles[i].m_NewClient && g_entities[i].inuse && g_entities[i].client)
+			{
+				// Verify client is still connected before notifying Omni-bot
+				if(g_entities[i].client->pers.connected == CON_CONNECTED)
+				{
+					m_EntityHandles[i].m_NewClient = false;
+					qboolean isBot = (g_entities[i].r.svFlags & SVF_BOT) ? qtrue : qfalse;
+					Bot_Event_ClientConnected(i, isBot);
+				}
+				else
+				{
+					// Client disconnected before notification could be sent, clear the flag
+					m_EntityHandles[i].m_NewClient = false;
+				}
+			}
+		}
+		
 		SendDeferredGoals();
 		//////////////////////////////////////////////////////////////////////////
 		// Call the libraries update.
@@ -5903,6 +5929,18 @@ void Bot_Queue_EntityCreated(gentity_t *pEnt)
 	if(pEnt)
 		m_EntityHandles[pEnt - g_entities].m_NewEntity = true;
 }
+
+void Bot_Queue_ClientConnected(int clientNum, qboolean isBot)
+{
+	if(clientNum >= 0 && clientNum < MAX_GENTITIES)
+	{
+		m_EntityHandles[clientNum].m_NewClient = true;
+		// Store bot status in the entity's SVF_BOT flag to preserve across deferred call
+		if(isBot)
+			g_entities[clientNum].r.svFlags |= SVF_BOT;
+	}
+}
+
 void Bot_Event_EntityDeleted(gentity_t *pEnt)
 {
 	if(pEnt)
@@ -5915,6 +5953,7 @@ void Bot_Event_EntityDeleted(gentity_t *pEnt)
 		}
 		m_EntityHandles[iEntNum].m_Used = false;
 		m_EntityHandles[iEntNum].m_NewEntity = false;
+		m_EntityHandles[iEntNum].m_NewClient = false;
 		while(++m_EntityHandles[iEntNum].m_HandleSerial==0) {}
 	}
 	for(int i = 0; i < MAX_SMOKEGREN_CACHE; ++i)

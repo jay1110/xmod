@@ -2204,9 +2204,8 @@ ClientConnect( string& outmsg, int clientNum, qboolean firstTime, qboolean isBot
 	// get and distribute relevant parameters
 	G_LogPrintf( "ClientConnect: %i\n", clientNum );
 	G_UpdateCharacter( client );
-	// For NEW bots (isBot=true), delay Bot_Event_ClientConnected until after team/class 
-	// is set in AddBot. This prevents Omnibot from seeing the bot in TEAM_SPECTATOR state 
-	// before the team is properly configured.
+	// For NEW bots (isBot=true), Bot_Event_ClientConnected is deferred via Bot_Queue_ClientConnected
+	// in AddBot. This prevents Omnibot from processing the bot before it's fully initialized.
 	// For PERSISTENT bots on map_restart, isBot=false but SVF_BOT is set. We must pass
 	// the actual bot status to Omnibot so it correctly registers them as bots.
 	// Without this fix, bots would be registered as human players after map_restart
