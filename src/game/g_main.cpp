@@ -654,13 +654,49 @@ vmMain( int command, int arg0, int arg1, int arg2, int arg3, int arg4, int arg5,
 					ent->health = ent->client->ps.stats[STAT_HEALTH];
 					ent->r.contents = CONTENTS_BODY;
 					
+					// DEBUG: Log bot state before respawn (guarded by g_developer)
+					if (g_developer.integer) {
+						G_Printf("[BOT_DEBUG] Client %d (%s): sessionTeam=%d pm_flags=0x%x pm_type=%d contents=%d health=%d\n",
+						         i, ent->client->pers.netname,
+						         ent->client->sess.sessionTeam,
+						         ent->client->ps.pm_flags,
+						         ent->client->ps.pm_type,
+						         ent->r.contents,
+						         ent->health);
+					}
+					
+					// SAFEGUARD: Restore team if sessionTeam is not AXIS/ALLIES
+					// This handles the case where warmup->playing transition drops bots to spectator
+					if (ent->client->sess.sessionTeam != TEAM_AXIS && 
+					    ent->client->sess.sessionTeam != TEAM_ALLIES) {
+						// Use PickTeam to assign a balanced team
+						team_t newTeam = PickTeam(i);
+						
+						// Verify PickTeam returned a valid team before assignment
+						if (newTeam == TEAM_AXIS || newTeam == TEAM_ALLIES) {
+							const char* teamName = (newTeam == TEAM_AXIS) ? "AXIS" : "ALLIES";
+							G_Printf("[BOT_FIX] Bot %s had invalid team %d, assigning to %s\n",
+							         ent->client->pers.netname,
+							         ent->client->sess.sessionTeam,
+							         teamName);
+							ent->client->sess.sessionTeam = newTeam;
+						} else {
+							// Fallback: if PickTeam somehow returns invalid, default to AXIS
+							G_Printf("[BOT_FIX] Bot %s had invalid team %d, PickTeam returned %d, defaulting to AXIS\n",
+							         ent->client->pers.netname,
+							         ent->client->sess.sessionTeam,
+							         newTeam);
+							ent->client->sess.sessionTeam = TEAM_AXIS;
+						}
+					}
+					
 					// Register entity handle with Omni-bot (GAME_ENTITYCREATED event)
 					Bot_Event_EntityCreated(ent);
 					
 					// Notify Omni-bot about client connection (GAME_CLIENTCONNECTED event)
 					Bot_Event_ClientConnected(i, qtrue);
 					
-					// Now respawn the bot if on a valid team
+					// Now respawn the bot (should always succeed now that team is guaranteed valid)
 					if (ent->client->sess.sessionTeam == TEAM_AXIS || 
 					    ent->client->sess.sessionTeam == TEAM_ALLIES) {
 						respawn(ent);
