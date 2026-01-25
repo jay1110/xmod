@@ -79,28 +79,9 @@ void initXmod() {
         }
     }
     
-    // Check if we should migrate from legacy userDB
-    // Only migrate if legacy userDB has users and SQLite is empty or has few users
+    // Legacy userDB migration is no longer supported (removed)
+    // All user data is now managed through SQLite xmod.db database
     if (g_database && g_database->isOpened()) {
-        int sqliteUserCount = g_database->getUserCount();
-        int legacyUserCount = (int)userDB.mapGUID.size();
-        
-        if (legacyUserCount > 0) {
-            G_Printf("^3[SQLite] Found %d users in legacy userDB\n", legacyUserCount);
-            
-            if (sqliteUserCount == 0) {
-                G_Printf("^3[SQLite] SQLite database is empty, performing migration...\n");
-                g_database->importFromLegacyUserDB();
-            } else if (sqliteUserCount < legacyUserCount) {
-                G_Printf("^3[SQLite] SQLite has %d users, legacy has %d. Consider running !dbmigrate to sync.\n", 
-                         sqliteUserCount, legacyUserCount);
-            } else {
-                G_Printf("^2[SQLite] Database already populated with %d users\n", sqliteUserCount);
-            }
-        } else {
-            G_Printf("^2[SQLite] No legacy users to migrate\n");
-        }
-        
         G_Printf("xmod SQLite database initialized successfully\n");
     } else {
         G_Printf("^3[SQLite] Database unavailable, sessions will operate without persistence\n");

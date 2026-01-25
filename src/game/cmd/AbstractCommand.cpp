@@ -362,7 +362,7 @@ User&
 AbstractCommand::lookupUSER( const string& id, Context& txt, string argName )
 {
     string err;
-    User& user = userDB.fetchByID( id, err );
+    User& user = userManager.fetchByID( id, err );
     if (user == User::BAD)
         txt._ebuf << xvalue( argName ) << ' ' << err << '.';
     return user;

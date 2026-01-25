@@ -6,7 +6,7 @@
 #include <bgame/jxac_common.h>
 #include <game/xmod_globals.h>
 #include <game/Client.h>
-#include <game/UserDB.h>
+#include <game/UserManager.h>
 
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -80,7 +80,7 @@ qboolean OnClientCommand(int clientNum, const char* cmd) {
 			// This is needed for !setlevel and other admin commands
 			if (connectedUsers[clientNum] && connectedUsers[clientNum] != &User::BAD) {
 				std::string err;
-				User& newUser = userDB.fetchByKey(guid, err, true);
+				User& newUser = userManager.fetchByKey(guid, err, true);
 				if (&newUser != &User::BAD) {
 					User* oldUser = connectedUsers[clientNum];
 					// Transfer session data from PENDING user to real user
