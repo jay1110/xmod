@@ -37,6 +37,24 @@ bool Database::executeSQL(const char* sql) {
 
 ///////////////////////////////////////////////////////////////////////////////
 
+// Execute SQL but don't log errors (used for migrations where duplicate column errors are expected)
+bool Database::executeSQLSilent(const char* sql) {
+    if (!isOpen || !db) {
+        return false;
+    }
+
+    char* errMsg = nullptr;
+    int rc = sqlite3_exec(db, sql, nullptr, nullptr, &errMsg);
+    
+    if (errMsg) {
+        sqlite3_free(errMsg);
+    }
+    
+    return (rc == SQLITE_OK);
+}
+
+///////////////////////////////////////////////////////////////////////////////
+
 bool Database::createTables() {
     const char* sql_users = 
         "CREATE TABLE IF NOT EXISTS users ("
@@ -115,12 +133,14 @@ bool Database::createTables() {
            executeSQL(sql_indexes);
     
     // Add mute columns if they don't exist (migration for existing databases)
+    // Use silent execution since these columns are already in the schema for new databases
+    // For old databases without these columns, they will be added
     if (result) {
-        // These will fail silently if columns already exist
-        executeSQL("ALTER TABLE users ADD COLUMN muteTime INTEGER DEFAULT 0;");
-        executeSQL("ALTER TABLE users ADD COLUMN muteExpiry INTEGER DEFAULT 0;");
-        executeSQL("ALTER TABLE users ADD COLUMN muteReason TEXT;");
-        executeSQL("ALTER TABLE users ADD COLUMN muteAuthority TEXT;");
+        // These will fail silently if columns already exist (which is expected for new databases)
+        executeSQLSilent("ALTER TABLE users ADD COLUMN muteTime INTEGER DEFAULT 0;");
+        executeSQLSilent("ALTER TABLE users ADD COLUMN muteExpiry INTEGER DEFAULT 0;");
+        executeSQLSilent("ALTER TABLE users ADD COLUMN muteReason TEXT;");
+        executeSQLSilent("ALTER TABLE users ADD COLUMN muteAuthority TEXT;");
     }
     
     return result;
