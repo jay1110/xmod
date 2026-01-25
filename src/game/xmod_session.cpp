@@ -134,6 +134,7 @@ bool Session::guidReceived(const std::string& hashedGuid, const std::string& has
         userId = userData.id;
         userLevel = userData.level;
         authenticated = true;
+        fakeguid = false;
 
         // Update last seen
         db->updateLastSeen(userId, time(nullptr));
@@ -166,6 +167,7 @@ bool Session::guidReceived(const std::string& hashedGuid, const std::string& has
                 userId = userData.id;
                 userLevel = userData.level;
                 authenticated = true;
+                fakeguid = false;
                 G_Printf("^2[SQLite] SUCCESS: New user created (ID=%d, level=%d)\n", userId, userLevel);
             } else {
                 G_Printf("^1[SQLite] ERROR: Failed to retrieve newly created user\n");
@@ -188,6 +190,7 @@ bool Session::guidReceived(const std::string& hashedGuid, const std::string& has
             connectedUsers[clientNum]->muteExpiry = userData.muteExpiry;
             connectedUsers[clientNum]->muteReason = userData.muteReason;
             connectedUsers[clientNum]->muteAuthority = userData.muteAuthority;
+            connectedUsers[clientNum]->fakeguid = fakeguid;
             
             // Store session data locally for quick access
             muted = userData.muted;

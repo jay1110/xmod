@@ -48,7 +48,9 @@ SetLevel::doExecute( Context& txt )
     const std::string& targetNamex = getPlayerNamex(target->slot);
     
     // bail if fake GUID
-    if (isPlayerFakeGuid(target->slot)) {
+    // Allow if session is authenticated, even if legacy flag says fakeguid
+    if (isPlayerFakeGuid(target->slot) && 
+        !(::xmod::g_sessions[target->slot] && ::xmod::g_sessions[target->slot]->isAuthenticated())) {
         txt._ebuf << xvalue( targetNamex ) << " has no GUID.";
         return PA_ERROR;
     }
