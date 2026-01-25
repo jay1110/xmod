@@ -49,6 +49,7 @@ private:
     bool isOpen;
 
     bool executeSQL(const char* sql);
+    bool executeSQLSilent(const char* sql);
     bool createTables();
 
 public:
