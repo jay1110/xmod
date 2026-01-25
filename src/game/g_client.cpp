@@ -1831,6 +1831,28 @@ void ClientUserinfoChanged( int clientNum ) {
 
     // No need to index - SQLite database is the source of truth
 
+    // Re-sync session data to User object to ensure authenticated state takes precedence
+    // This prevents userinfo updates from overwriting authoritative authentication data
+    if (::xmod::g_sessions[clientNum] && ::xmod::g_sessions[clientNum]->isAuthenticated()) {
+        if (connectedUsers[clientNum] && connectedUsers[clientNum] != &User::BAD) {
+            // Ensure authenticated user's critical data is preserved
+            connectedUsers[clientNum]->authLevel = ::xmod::g_sessions[clientNum]->getUserLevel();
+            connectedUsers[clientNum]->fakeguid = ::xmod::g_sessions[clientNum]->isFakeGuid();
+            
+            // Update User object with current userinfo data (name, mac)
+            connectedUsers[clientNum]->namex = client->pers.netname;
+            connectedUsers[clientNum]->name = user.name;  // Already cleaned by line 1773
+            
+            // Update MAC if changed
+            if (!mac.empty() && connectedUsers[clientNum]->mac != mac) {
+                connectedUsers[clientNum]->mac = mac;
+                if (::xmod::g_sessions[clientNum]->isInitialized()) {
+                    ::xmod::g_sessions[clientNum]->setMac(mac);
+                }
+            }
+        }
+    }
+
     // Call Lua et_ClientUserinfoChanged callback
     G_LuaHook_ClientUserinfoChanged(clientNum);
 }

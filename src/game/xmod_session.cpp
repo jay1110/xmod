@@ -183,14 +183,20 @@ bool Session::guidReceived(const std::string& hashedGuid, const std::string& has
     // This maintains backward compatibility with legacy UserDB system
     if (authenticated && clientNum >= 0 && clientNum < MAX_CLIENTS) {
         if (connectedUsers[clientNum] && connectedUsers[clientNum] != &User::BAD) {
-            // Sync session data to User object
-            connectedUsers[clientNum]->authLevel = userLevel;
-            connectedUsers[clientNum]->muted = userData.muted;
-            connectedUsers[clientNum]->muteTime = userData.muteTime;
-            connectedUsers[clientNum]->muteExpiry = userData.muteExpiry;
-            connectedUsers[clientNum]->muteReason = userData.muteReason;
-            connectedUsers[clientNum]->muteAuthority = userData.muteAuthority;
-            connectedUsers[clientNum]->fakeguid = fakeguid;
+            // Get current client info to sync MAC address and name
+            gclient_t* client = &level.clients[clientNum];
+            char userinfo[MAX_INFO_STRING];
+            trap_GetUserinfo(clientNum, userinfo, sizeof(userinfo));
+            
+            // Get MAC address from userinfo
+            std::string macAddr = Info_ValueForKey(userinfo, "cl_mac");
+            if (!macAddr.empty()) {
+                // Convert to lowercase for consistency
+                for (size_t i = 0; i < macAddr.length(); i++) {
+                    macAddr[i] = tolower(macAddr[i]);
+                }
+                mac = macAddr;
+            }
             
             // Store session data locally for quick access
             muted = userData.muted;
@@ -201,15 +207,29 @@ bool Session::guidReceived(const std::string& hashedGuid, const std::string& has
             name = userData.name;
             
             // Get namex from gclient if available, otherwise use plain name
-            gclient_t* client = &level.clients[clientNum];
             if (client && client->pers.netname[0]) {
                 namex = client->pers.netname;  // This includes color codes
             } else {
                 namex = userData.name;
             }
             
-            G_Printf("^2[SQLite] Synced user %d: authLevel=%d, muted=%d for client %d\n", 
-                     userId, userLevel, userData.muted ? 1 : 0, clientNum);
+            // Sync session data to User object
+            connectedUsers[clientNum]->authLevel = userLevel;
+            connectedUsers[clientNum]->muted = userData.muted;
+            connectedUsers[clientNum]->muteTime = userData.muteTime;
+            connectedUsers[clientNum]->muteExpiry = userData.muteExpiry;
+            connectedUsers[clientNum]->muteReason = userData.muteReason;
+            connectedUsers[clientNum]->muteAuthority = userData.muteAuthority;
+            connectedUsers[clientNum]->fakeguid = fakeguid;
+            
+            // Sync critical fields that were previously missing
+            connectedUsers[clientNum]->ip = ip;
+            connectedUsers[clientNum]->mac = mac;
+            connectedUsers[clientNum]->name = name;
+            connectedUsers[clientNum]->namex = namex;
+            
+            G_Printf("^2[SQLite] Synced user %d: authLevel=%d, muted=%d, ip=%s, mac=%s for client %d\n", 
+                     userId, userLevel, userData.muted ? 1 : 0, ip.c_str(), mac.substr(0, 8).c_str(), clientNum);
         } else {
             G_Printf("^3[SQLite] WARNING: connectedUsers[%d] is NULL or BAD, cannot sync data\n", clientNum);
         }
