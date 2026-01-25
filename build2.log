@@ -1,0 +1,18 @@
+/usr/bin/g++ -pipe -Wall -Winvalid-pch -Wno-write-strings -fmessage-length=0 -m64 -fno-exceptions -fno-rtti -fno-strict-aliasing -fPIC -O3 -march=x86-64 -ffast-math -DXMOD_LINUX64 -DGAMEDLL -I./build.linux64-release/game -I./src/sqlite3 -I./build.linux64-release/ -I./src -I./pak -c src/game/UserManager.cpp -o build.linux64-release/game/game/UserManager.o
+src/game/UserManager.cpp: In member function ‘User& UserManager::fetchByKey(const std::string&, std::string&, bool)’:
+src/game/UserManager.cpp:41:10: error: ‘std::string User::_guid’ is private within this context
+   41 |     user._guid = key;      // assign correct key
+      |          ^~~~~
+In file included from ./src/game/g_local.h:2687,
+                 from src/bgame/impl.h:9:
+./src/game/User.h:22:12: note: declared private here
+   22 | 
+      |            ^    
+src/game/UserManager.cpp: In member function ‘void UserManager::remove(User&)’:
+src/game/UserManager.cpp:51:24: error: ‘std::string User::_guid’ is private within this context
+   51 |     _mapGUID.erase(obj._guid);
+      |                        ^~~~~
+./src/game/User.h:22:12: note: declared private here
+   22 | 
+      |            ^    
+make: *** [src/game.rules:12: build.linux64-release/game/game/UserManager.o] Error 1

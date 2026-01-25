@@ -1,0 +1,1145 @@
+=== GENERATING: build.linux64-release/make/pkg.in.defs
+=== GENERATING: build.linux64-release/make/pak.in.defs
+mkdir -p build.linux64-release/base/
+mkdir -p build.linux64-release/base/base64/
+mkdir -p build.linux64-release/base/lua/
+mkdir -p build.linux64-release/base/public.h.gch/
+mkdir -p build.linux64-release/base/str/
+mkdir -p build.linux64-release/base/text/
+mkdir -p build.linux64-release/cgame/
+mkdir -p build.linux64-release/cgame/bgame/
+mkdir -p build.linux64-release/cgame/bgame/cvar/
+mkdir -p build.linux64-release/cgame/bgame/impl.h.gch/
+mkdir -p build.linux64-release/cgame/bgame/linux/
+mkdir -p build.linux64-release/cgame/bgame/str/
+mkdir -p build.linux64-release/cgame/cgame/
+mkdir -p build.linux64-release/cgame/cgame/cvar/
+mkdir -p build.linux64-release/cgame/cgame/jxac/
+mkdir -p build.linux64-release/cgame/cgame/linux/
+mkdir -p build.linux64-release/cgame/ui/
+mkdir -p build.linux64-release/doc/en/
+mkdir -p build.linux64-release/doc/en/figures/
+mkdir -p build.linux64-release/doc/en/html/
+mkdir -p build.linux64-release/doc/en/images/
+mkdir -p build.linux64-release/doc/en/styles/
+mkdir -p build.linux64-release/final/pak/
+mkdir -p build.linux64-release/final/xmod-2.0.0/
+mkdir -p build.linux64-release/final/xmod-2.0.0/doc/
+mkdir -p build.linux64-release/game/bgame/cvar/
+mkdir -p build.linux64-release/game/bgame/linux/
+mkdir -p build.linux64-release/game/bgame/str/
+mkdir -p build.linux64-release/game/game/
+mkdir -p build.linux64-release/game/game/cmd/
+mkdir -p build.linux64-release/game/game/cvar/
+mkdir -p build.linux64-release/game/game/jxac/
+mkdir -p build.linux64-release/game/game/str/
+mkdir -p build.linux64-release/game/omnibot/common/
+mkdir -p build.linux64-release/game/omnibot/et/
+mkdir -p build.linux64-release/lua/
+mkdir -p build.linux64-release/m4/
+mkdir -p build.linux64-release/pak/
+mkdir -p build.linux64-release/pak/animations/
+mkdir -p build.linux64-release/pak/animations/human/base/
+mkdir -p build.linux64-release/pak/animations/scripts/
+mkdir -p build.linux64-release/pak/characters/temperate/allied/
+mkdir -p build.linux64-release/pak/characters/temperate/axis/
+mkdir -p build.linux64-release/pak/fonts/
+mkdir -p build.linux64-release/pak/gfx/flags/
+mkdir -p build.linux64-release/pak/gfx/hud/fireteam/
+mkdir -p build.linux64-release/pak/gfx/hud/gamestate/
+mkdir -p build.linux64-release/pak/gfx/limbo/
+mkdir -p build.linux64-release/pak/icons/
+mkdir -p build.linux64-release/pak/maps/
+mkdir -p build.linux64-release/pak/models/gibs/
+mkdir -p build.linux64-release/pak/models/multiplayer/adrenaline_share/
+mkdir -p build.linux64-release/pak/models/multiplayer/knife/
+mkdir -p build.linux64-release/pak/models/multiplayer/landmine/
+mkdir -p build.linux64-release/pak/models/multiplayer/landmine_bbetty/
+mkdir -p build.linux64-release/pak/models/multiplayer/landmine_pgas/
+mkdir -p build.linux64-release/pak/models/multiplayer/molotov/
+mkdir -p build.linux64-release/pak/models/multiplayer/poison/
+mkdir -p build.linux64-release/pak/models/multiplayer/poison_gas/
+mkdir -p build.linux64-release/pak/models/multiplayer/tripmine/
+mkdir -p build.linux64-release/pak/models/players/temperate/common/
+mkdir -p build.linux64-release/pak/models/polygons/
+mkdir -p build.linux64-release/pak/models/weapons2/m97/
+mkdir -p build.linux64-release/pak/models/weapons2/shells/
+mkdir -p build.linux64-release/pak/models/weapons2/sten/
+mkdir -p build.linux64-release/pak/models/weapons2/tripmine/
+mkdir -p build.linux64-release/pak/scripts/
+mkdir -p build.linux64-release/pak/sound/hitsounds/
+mkdir -p build.linux64-release/pak/sound/killingspree/
+mkdir -p build.linux64-release/pak/sound/multikill/
+mkdir -p build.linux64-release/pak/sound/osp/
+mkdir -p build.linux64-release/pak/sound/poison_gas/
+mkdir -p build.linux64-release/pak/sound/weapons/landmine/
+mkdir -p build.linux64-release/pak/sound/weapons/m97/
+mkdir -p build.linux64-release/pak/sound/weapons/misc/
+mkdir -p build.linux64-release/pak/sound/weapons/molotov/
+mkdir -p build.linux64-release/pak/sound/xmod/
+mkdir -p build.linux64-release/pak/sprites/
+mkdir -p build.linux64-release/pak/ui/
+mkdir -p build.linux64-release/pak/ui/assets/
+mkdir -p build.linux64-release/pak/watermark/
+mkdir -p build.linux64-release/pak/weapons/
+mkdir -p build.linux64-release/sqlite3/
+mkdir -p build.linux64-release/ui/
+mkdir -p build.linux64-release/ui/bgame/
+mkdir -p build.linux64-release/ui/bgame/cvar/
+mkdir -p build.linux64-release/ui/bgame/impl.h.gch/
+mkdir -p build.linux64-release/ui/bgame/linux/
+mkdir -p build.linux64-release/ui/ui/
+mkdir -p build.linux64-release/ui/ui/cvar/
+mkdir -p build.linux64-release/xmod-2.0.0/
+mkdir -p build.linux64-release/xmod-2.0.0/jxac/
+mkdir -p build.linux64-release/xmod-2.0.0/linux/
+mkdir -p build.linux64-release/xmod-2.0.0/mapscripts/
+=== GENERATING: build.linux64-release/m4/project.m4
+/usr/bin/g++ -pipe -Wall -Winvalid-pch -Wno-write-strings -fmessage-length=0 -m64 -fno-exceptions -fno-rtti -fno-strict-aliasing -fPIC -O3 -march=x86-64 -ffast-math -DXMOD_LINUX64 -DLUA_USE_LINUX -I./build.linux64-release/ -I./src -I./pak -c src/lua/lapi.c -o build.linux64-release/lua/lapi.o
+/usr/bin/g++ -pipe -Wall -Winvalid-pch -Wno-write-strings -fmessage-length=0 -m64 -fno-exceptions -fno-rtti -fno-strict-aliasing -fPIC -O3 -march=x86-64 -ffast-math -DXMOD_LINUX64 -DLUA_USE_LINUX -I./build.linux64-release/ -I./src -I./pak -c src/lua/lcode.c -o build.linux64-release/lua/lcode.o
+/usr/bin/g++ -pipe -Wall -Winvalid-pch -Wno-write-strings -fmessage-length=0 -m64 -fno-exceptions -fno-rtti -fno-strict-aliasing -fPIC -O3 -march=x86-64 -ffast-math -DXMOD_LINUX64 -DLUA_USE_LINUX -I./build.linux64-release/ -I./src -I./pak -c src/lua/lctype.c -o build.linux64-release/lua/lctype.o
+/usr/bin/g++ -pipe -Wall -Winvalid-pch -Wno-write-strings -fmessage-length=0 -m64 -fno-exceptions -fno-rtti -fno-strict-aliasing -fPIC -O3 -march=x86-64 -ffast-math -DXMOD_LINUX64 -DLUA_USE_LINUX -I./build.linux64-release/ -I./src -I./pak -c src/lua/ldebug.c -o build.linux64-release/lua/ldebug.o
+/usr/bin/g++ -pipe -Wall -Winvalid-pch -Wno-write-strings -fmessage-length=0 -m64 -fno-exceptions -fno-rtti -fno-strict-aliasing -fPIC -O3 -march=x86-64 -ffast-math -DXMOD_LINUX64 -DLUA_USE_LINUX -I./build.linux64-release/ -I./src -I./pak -c src/lua/ldo.c -o build.linux64-release/lua/ldo.o
+/usr/bin/g++ -pipe -Wall -Winvalid-pch -Wno-write-strings -fmessage-length=0 -m64 -fno-exceptions -fno-rtti -fno-strict-aliasing -fPIC -O3 -march=x86-64 -ffast-math -DXMOD_LINUX64 -DLUA_USE_LINUX -I./build.linux64-release/ -I./src -I./pak -c src/lua/ldump.c -o build.linux64-release/lua/ldump.o
+/usr/bin/g++ -pipe -Wall -Winvalid-pch -Wno-write-strings -fmessage-length=0 -m64 -fno-exceptions -fno-rtti -fno-strict-aliasing -fPIC -O3 -march=x86-64 -ffast-math -DXMOD_LINUX64 -DLUA_USE_LINUX -I./build.linux64-release/ -I./src -I./pak -c src/lua/lfunc.c -o build.linux64-release/lua/lfunc.o
+/usr/bin/g++ -pipe -Wall -Winvalid-pch -Wno-write-strings -fmessage-length=0 -m64 -fno-exceptions -fno-rtti -fno-strict-aliasing -fPIC -O3 -march=x86-64 -ffast-math -DXMOD_LINUX64 -DLUA_USE_LINUX -I./build.linux64-release/ -I./src -I./pak -c src/lua/lgc.c -o build.linux64-release/lua/lgc.o
+/usr/bin/g++ -pipe -Wall -Winvalid-pch -Wno-write-strings -fmessage-length=0 -m64 -fno-exceptions -fno-rtti -fno-strict-aliasing -fPIC -O3 -march=x86-64 -ffast-math -DXMOD_LINUX64 -DLUA_USE_LINUX -I./build.linux64-release/ -I./src -I./pak -c src/lua/llex.c -o build.linux64-release/lua/llex.o
+/usr/bin/g++ -pipe -Wall -Winvalid-pch -Wno-write-strings -fmessage-length=0 -m64 -fno-exceptions -fno-rtti -fno-strict-aliasing -fPIC -O3 -march=x86-64 -ffast-math -DXMOD_LINUX64 -DLUA_USE_LINUX -I./build.linux64-release/ -I./src -I./pak -c src/lua/lmem.c -o build.linux64-release/lua/lmem.o
+/usr/bin/g++ -pipe -Wall -Winvalid-pch -Wno-write-strings -fmessage-length=0 -m64 -fno-exceptions -fno-rtti -fno-strict-aliasing -fPIC -O3 -march=x86-64 -ffast-math -DXMOD_LINUX64 -DLUA_USE_LINUX -I./build.linux64-release/ -I./src -I./pak -c src/lua/lobject.c -o build.linux64-release/lua/lobject.o
+/usr/bin/g++ -pipe -Wall -Winvalid-pch -Wno-write-strings -fmessage-length=0 -m64 -fno-exceptions -fno-rtti -fno-strict-aliasing -fPIC -O3 -march=x86-64 -ffast-math -DXMOD_LINUX64 -DLUA_USE_LINUX -I./build.linux64-release/ -I./src -I./pak -c src/lua/lopcodes.c -o build.linux64-release/lua/lopcodes.o
+/usr/bin/g++ -pipe -Wall -Winvalid-pch -Wno-write-strings -fmessage-length=0 -m64 -fno-exceptions -fno-rtti -fno-strict-aliasing -fPIC -O3 -march=x86-64 -ffast-math -DXMOD_LINUX64 -DLUA_USE_LINUX -I./build.linux64-release/ -I./src -I./pak -c src/lua/lparser.c -o build.linux64-release/lua/lparser.o
+/usr/bin/g++ -pipe -Wall -Winvalid-pch -Wno-write-strings -fmessage-length=0 -m64 -fno-exceptions -fno-rtti -fno-strict-aliasing -fPIC -O3 -march=x86-64 -ffast-math -DXMOD_LINUX64 -DLUA_USE_LINUX -I./build.linux64-release/ -I./src -I./pak -c src/lua/lstate.c -o build.linux64-release/lua/lstate.o
+/usr/bin/g++ -pipe -Wall -Winvalid-pch -Wno-write-strings -fmessage-length=0 -m64 -fno-exceptions -fno-rtti -fno-strict-aliasing -fPIC -O3 -march=x86-64 -ffast-math -DXMOD_LINUX64 -DLUA_USE_LINUX -I./build.linux64-release/ -I./src -I./pak -c src/lua/lstring.c -o build.linux64-release/lua/lstring.o
+/usr/bin/g++ -pipe -Wall -Winvalid-pch -Wno-write-strings -fmessage-length=0 -m64 -fno-exceptions -fno-rtti -fno-strict-aliasing -fPIC -O3 -march=x86-64 -ffast-math -DXMOD_LINUX64 -DLUA_USE_LINUX -I./build.linux64-release/ -I./src -I./pak -c src/lua/ltable.c -o build.linux64-release/lua/ltable.o
+/usr/bin/g++ -pipe -Wall -Winvalid-pch -Wno-write-strings -fmessage-length=0 -m64 -fno-exceptions -fno-rtti -fno-strict-aliasing -fPIC -O3 -march=x86-64 -ffast-math -DXMOD_LINUX64 -DLUA_USE_LINUX -I./build.linux64-release/ -I./src -I./pak -c src/lua/ltm.c -o build.linux64-release/lua/ltm.o
+/usr/bin/g++ -pipe -Wall -Winvalid-pch -Wno-write-strings -fmessage-length=0 -m64 -fno-exceptions -fno-rtti -fno-strict-aliasing -fPIC -O3 -march=x86-64 -ffast-math -DXMOD_LINUX64 -DLUA_USE_LINUX -I./build.linux64-release/ -I./src -I./pak -c src/lua/lundump.c -o build.linux64-release/lua/lundump.o
+/usr/bin/g++ -pipe -Wall -Winvalid-pch -Wno-write-strings -fmessage-length=0 -m64 -fno-exceptions -fno-rtti -fno-strict-aliasing -fPIC -O3 -march=x86-64 -ffast-math -DXMOD_LINUX64 -DLUA_USE_LINUX -I./build.linux64-release/ -I./src -I./pak -c src/lua/lvm.c -o build.linux64-release/lua/lvm.o
+/usr/bin/g++ -pipe -Wall -Winvalid-pch -Wno-write-strings -fmessage-length=0 -m64 -fno-exceptions -fno-rtti -fno-strict-aliasing -fPIC -O3 -march=x86-64 -ffast-math -DXMOD_LINUX64 -DLUA_USE_LINUX -I./build.linux64-release/ -I./src -I./pak -c src/lua/lzio.c -o build.linux64-release/lua/lzio.o
+/usr/bin/g++ -pipe -Wall -Winvalid-pch -Wno-write-strings -fmessage-length=0 -m64 -fno-exceptions -fno-rtti -fno-strict-aliasing -fPIC -O3 -march=x86-64 -ffast-math -DXMOD_LINUX64 -DLUA_USE_LINUX -I./build.linux64-release/ -I./src -I./pak -c src/lua/lauxlib.c -o build.linux64-release/lua/lauxlib.o
+/usr/bin/g++ -pipe -Wall -Winvalid-pch -Wno-write-strings -fmessage-length=0 -m64 -fno-exceptions -fno-rtti -fno-strict-aliasing -fPIC -O3 -march=x86-64 -ffast-math -DXMOD_LINUX64 -DLUA_USE_LINUX -I./build.linux64-release/ -I./src -I./pak -c src/lua/lbaselib.c -o build.linux64-release/lua/lbaselib.o
+/usr/bin/g++ -pipe -Wall -Winvalid-pch -Wno-write-strings -fmessage-length=0 -m64 -fno-exceptions -fno-rtti -fno-strict-aliasing -fPIC -O3 -march=x86-64 -ffast-math -DXMOD_LINUX64 -DLUA_USE_LINUX -I./build.linux64-release/ -I./src -I./pak -c src/lua/lcorolib.c -o build.linux64-release/lua/lcorolib.o
+/usr/bin/g++ -pipe -Wall -Winvalid-pch -Wno-write-strings -fmessage-length=0 -m64 -fno-exceptions -fno-rtti -fno-strict-aliasing -fPIC -O3 -march=x86-64 -ffast-math -DXMOD_LINUX64 -DLUA_USE_LINUX -I./build.linux64-release/ -I./src -I./pak -c src/lua/ldblib.c -o build.linux64-release/lua/ldblib.o
+/usr/bin/g++ -pipe -Wall -Winvalid-pch -Wno-write-strings -fmessage-length=0 -m64 -fno-exceptions -fno-rtti -fno-strict-aliasing -fPIC -O3 -march=x86-64 -ffast-math -DXMOD_LINUX64 -DLUA_USE_LINUX -I./build.linux64-release/ -I./src -I./pak -c src/lua/liolib.c -o build.linux64-release/lua/liolib.o
+/usr/bin/g++ -pipe -Wall -Winvalid-pch -Wno-write-strings -fmessage-length=0 -m64 -fno-exceptions -fno-rtti -fno-strict-aliasing -fPIC -O3 -march=x86-64 -ffast-math -DXMOD_LINUX64 -DLUA_USE_LINUX -I./build.linux64-release/ -I./src -I./pak -c src/lua/lmathlib.c -o build.linux64-release/lua/lmathlib.o
+/usr/bin/g++ -pipe -Wall -Winvalid-pch -Wno-write-strings -fmessage-length=0 -m64 -fno-exceptions -fno-rtti -fno-strict-aliasing -fPIC -O3 -march=x86-64 -ffast-math -DXMOD_LINUX64 -DLUA_USE_LINUX -I./build.linux64-release/ -I./src -I./pak -c src/lua/loslib.c -o build.linux64-release/lua/loslib.o
+/usr/bin/g++ -pipe -Wall -Winvalid-pch -Wno-write-strings -fmessage-length=0 -m64 -fno-exceptions -fno-rtti -fno-strict-aliasing -fPIC -O3 -march=x86-64 -ffast-math -DXMOD_LINUX64 -DLUA_USE_LINUX -I./build.linux64-release/ -I./src -I./pak -c src/lua/ltablib.c -o build.linux64-release/lua/ltablib.o
+/usr/bin/g++ -pipe -Wall -Winvalid-pch -Wno-write-strings -fmessage-length=0 -m64 -fno-exceptions -fno-rtti -fno-strict-aliasing -fPIC -O3 -march=x86-64 -ffast-math -DXMOD_LINUX64 -DLUA_USE_LINUX -I./build.linux64-release/ -I./src -I./pak -c src/lua/lstrlib.c -o build.linux64-release/lua/lstrlib.o
+/usr/bin/g++ -pipe -Wall -Winvalid-pch -Wno-write-strings -fmessage-length=0 -m64 -fno-exceptions -fno-rtti -fno-strict-aliasing -fPIC -O3 -march=x86-64 -ffast-math -DXMOD_LINUX64 -DLUA_USE_LINUX -I./build.linux64-release/ -I./src -I./pak -c src/lua/lutf8lib.c -o build.linux64-release/lua/lutf8lib.o
+/usr/bin/g++ -pipe -Wall -Winvalid-pch -Wno-write-strings -fmessage-length=0 -m64 -fno-exceptions -fno-rtti -fno-strict-aliasing -fPIC -O3 -march=x86-64 -ffast-math -DXMOD_LINUX64 -DLUA_USE_LINUX -I./build.linux64-release/ -I./src -I./pak -c src/lua/loadlib.c -o build.linux64-release/lua/loadlib.o
+/usr/bin/g++ -pipe -Wall -Winvalid-pch -Wno-write-strings -fmessage-length=0 -m64 -fno-exceptions -fno-rtti -fno-strict-aliasing -fPIC -O3 -march=x86-64 -ffast-math -DXMOD_LINUX64 -DLUA_USE_LINUX -I./build.linux64-release/ -I./src -I./pak -c src/lua/linit.c -o build.linux64-release/lua/linit.o
+/usr/bin/ar cq build.linux64-release/lua/liblua.a build.linux64-release/lua/lapi.o build.linux64-release/lua/lcode.o build.linux64-release/lua/lctype.o build.linux64-release/lua/ldebug.o build.linux64-release/lua/ldo.o build.linux64-release/lua/ldump.o build.linux64-release/lua/lfunc.o build.linux64-release/lua/lgc.o build.linux64-release/lua/llex.o build.linux64-release/lua/lmem.o build.linux64-release/lua/lobject.o build.linux64-release/lua/lopcodes.o build.linux64-release/lua/lparser.o build.linux64-release/lua/lstate.o build.linux64-release/lua/lstring.o build.linux64-release/lua/ltable.o build.linux64-release/lua/ltm.o build.linux64-release/lua/lundump.o build.linux64-release/lua/lvm.o build.linux64-release/lua/lzio.o build.linux64-release/lua/lauxlib.o build.linux64-release/lua/lbaselib.o build.linux64-release/lua/lcorolib.o build.linux64-release/lua/ldblib.o build.linux64-release/lua/liolib.o build.linux64-release/lua/lmathlib.o build.linux64-release/lua/loslib.o build.linux64-release/lua/ltablib.o build.linux64-release/lua/lstrlib.o build.linux64-release/lua/lutf8lib.o build.linux64-release/lua/loadlib.o build.linux64-release/lua/linit.o
+/usr/bin/g++ -pipe -m64 -fPIC -O3 -march=x86-64 -ffast-math -DSQLITE_THREADSAFE=0 -DSQLITE_OMIT_LOAD_EXTENSION -x c -c src/sqlite3/sqlite3.c -o build.linux64-release/sqlite3/sqlite3.o
+/usr/bin/ar cq build.linux64-release/sqlite3/libsqlite3.a build.linux64-release/sqlite3/sqlite3.o
+=== GENERATING: build.linux64-release/base/project.h
+/usr/bin/g++ -pipe -Wall -Winvalid-pch -Wno-write-strings -fmessage-length=0 -m64 -fno-exceptions -fno-rtti -fno-strict-aliasing -fPIC -O3 -march=x86-64 -ffast-math -DXMOD_LINUX64 -I./build.linux64-release/ -I./src -I./pak -c src/base/public.h -o build.linux64-release/base/public.h.gch/default
+In file included from src/base/public.h:27:
+./build.linux64-release/base/project.h:30: warning: "XMOD_LINUX64" redefined
+   30 | #define XMOD_LINUX64
+      | 
+<command-line>: note: this is the location of the previous definition
+/usr/bin/g++ -pipe -Wall -Winvalid-pch -Wno-write-strings -fmessage-length=0 -m64 -fno-exceptions -fno-rtti -fno-strict-aliasing -fPIC -O3 -march=x86-64 -ffast-math -DXMOD_LINUX64 -I./build.linux64-release/ -I./src -I./pak -c src/base/base64/cksum.cpp -o build.linux64-release/base/base64/cksum.o
+/usr/bin/g++ -pipe -Wall -Winvalid-pch -Wno-write-strings -fmessage-length=0 -m64 -fno-exceptions -fno-rtti -fno-strict-aliasing -fPIC -O3 -march=x86-64 -ffast-math -DXMOD_LINUX64 -I./build.linux64-release/ -I./src -I./pak -c src/base/base64/util.cpp -o build.linux64-release/base/base64/util.o
+/usr/bin/g++ -pipe -Wall -Winvalid-pch -Wno-write-strings -fmessage-length=0 -m64 -fno-exceptions -fno-rtti -fno-strict-aliasing -fPIC -O3 -march=x86-64 -ffast-math -DXMOD_LINUX64 -I./build.linux64-release/ -I./src -I./pak -c src/base/lua/LuaContext.cpp -o build.linux64-release/base/lua/LuaContext.o
+/usr/bin/g++ -pipe -Wall -Winvalid-pch -Wno-write-strings -fmessage-length=0 -m64 -fno-exceptions -fno-rtti -fno-strict-aliasing -fPIC -O3 -march=x86-64 -ffast-math -DXMOD_LINUX64 -I./build.linux64-release/ -I./src -I./pak -c src/base/str/util.cpp -o build.linux64-release/base/str/util.o
+/usr/bin/g++ -pipe -Wall -Winvalid-pch -Wno-write-strings -fmessage-length=0 -m64 -fno-exceptions -fno-rtti -fno-strict-aliasing -fPIC -O3 -march=x86-64 -ffast-math -DXMOD_LINUX64 -I./build.linux64-release/ -I./src -I./pak -c src/base/text/AbstractDevice.cpp -o build.linux64-release/base/text/AbstractDevice.o
+/usr/bin/g++ -pipe -Wall -Winvalid-pch -Wno-write-strings -fmessage-length=0 -m64 -fno-exceptions -fno-rtti -fno-strict-aliasing -fPIC -O3 -march=x86-64 -ffast-math -DXMOD_LINUX64 -I./build.linux64-release/ -I./src -I./pak -c src/base/text/Buffer.cpp -o build.linux64-release/base/text/Buffer.o
+/usr/bin/g++ -pipe -Wall -Winvalid-pch -Wno-write-strings -fmessage-length=0 -m64 -fno-exceptions -fno-rtti -fno-strict-aliasing -fPIC -O3 -march=x86-64 -ffast-math -DXMOD_LINUX64 -I./build.linux64-release/ -I./src -I./pak -c src/base/text/ETDevice.cpp -o build.linux64-release/base/text/ETDevice.o
+/usr/bin/g++ -pipe -Wall -Winvalid-pch -Wno-write-strings -fmessage-length=0 -m64 -fno-exceptions -fno-rtti -fno-strict-aliasing -fPIC -O3 -march=x86-64 -ffast-math -DXMOD_LINUX64 -I./build.linux64-release/ -I./src -I./pak -c src/base/text/InlineText.cpp -o build.linux64-release/base/text/InlineText.o
+/usr/bin/g++ -pipe -Wall -Winvalid-pch -Wno-write-strings -fmessage-length=0 -m64 -fno-exceptions -fno-rtti -fno-strict-aliasing -fPIC -O3 -march=x86-64 -ffast-math -DXMOD_LINUX64 -I./build.linux64-release/ -I./src -I./pak -c src/base/text/Manipulator.cpp -o build.linux64-release/base/text/Manipulator.o
+/usr/bin/g++ -pipe -Wall -Winvalid-pch -Wno-write-strings -fmessage-length=0 -m64 -fno-exceptions -fno-rtti -fno-strict-aliasing -fPIC -O3 -march=x86-64 -ffast-math -DXMOD_LINUX64 -I./build.linux64-release/ -I./src -I./pak -c src/base/text/TerminalDevice.cpp -o build.linux64-release/base/text/TerminalDevice.o
+/usr/bin/ar cq build.linux64-release/base/libbase.a build.linux64-release/base/base64/cksum.o build.linux64-release/base/base64/util.o build.linux64-release/base/lua/LuaContext.o build.linux64-release/base/str/util.o build.linux64-release/base/text/AbstractDevice.o build.linux64-release/base/text/Buffer.o build.linux64-release/base/text/ETDevice.o build.linux64-release/base/text/InlineText.o build.linux64-release/base/text/Manipulator.o build.linux64-release/base/text/TerminalDevice.o
+/usr/bin/g++ -pipe -Wall -Winvalid-pch -Wno-write-strings -fmessage-length=0 -m64 -fno-exceptions -fno-rtti -fno-strict-aliasing -fPIC -O3 -march=x86-64 -ffast-math -DXMOD_LINUX64 -DCGAMEDLL -I./build.linux64-release/cgame -I./build.linux64-release/ -I./src -I./pak -c src/bgame/impl.h -o build.linux64-release/cgame/bgame/impl.h.gch/default
+In file included from ./src/base/public.h:27,
+                 from ./src/cgame/cg_local.h:17,
+                 from src/bgame/impl.h:7:
+./build.linux64-release/base/project.h:30: warning: "XMOD_LINUX64" redefined
+   30 | #define XMOD_LINUX64
+      | 
+<command-line>: note: this is the location of the previous definition
+./src/cgame/cg_local.h:57: warning: "CHAR_WIDTH" redefined
+   57 | #define CHAR_WIDTH                      32
+      | 
+In file included from /usr/lib/gcc/x86_64-linux-gnu/13/include/limits.h:205,
+                 from /usr/lib/gcc/x86_64-linux-gnu/13/include/syslimits.h:7,
+                 from /usr/lib/gcc/x86_64-linux-gnu/13/include/limits.h:34,
+                 from ./src/lua/luaconf.h:11,
+                 from ./src/lua/lua.h:16,
+                 from ./src/base/lua/public.h:4,
+                 from ./src/base/public.h:36:
+/usr/include/limits.h:147: note: this is the location of the previous definition
+  147 | #  define CHAR_WIDTH 8
+      | 
+/usr/bin/g++ -pipe -Wall -Winvalid-pch -Wno-write-strings -fmessage-length=0 -m64 -fno-exceptions -fno-rtti -fno-strict-aliasing -fPIC -O3 -march=x86-64 -ffast-math -DXMOD_LINUX64 -DCGAMEDLL -I./build.linux64-release/cgame -I./build.linux64-release/ -I./src -I./pak -c src/bgame/Engine.cpp -o build.linux64-release/cgame/bgame/Engine.o
+/usr/bin/g++ -pipe -Wall -Winvalid-pch -Wno-write-strings -fmessage-length=0 -m64 -fno-exceptions -fno-rtti -fno-strict-aliasing -fPIC -O3 -march=x86-64 -ffast-math -DXMOD_LINUX64 -DCGAMEDLL -I./build.linux64-release/cgame -I./build.linux64-release/ -I./src -I./pak -c src/bgame/Process.cpp -o build.linux64-release/cgame/bgame/Process.o
+/usr/bin/g++ -pipe -Wall -Winvalid-pch -Wno-write-strings -fmessage-length=0 -m64 -fno-exceptions -fno-rtti -fno-strict-aliasing -fPIC -O3 -march=x86-64 -ffast-math -DXMOD_LINUX64 -DCGAMEDLL -I./build.linux64-release/cgame -I./build.linux64-release/ -I./src -I./pak -c src/bgame/SampledStat.cpp -o build.linux64-release/cgame/bgame/SampledStat.o
+/usr/bin/g++ -pipe -Wall -Winvalid-pch -Wno-write-strings -fmessage-length=0 -m64 -fno-exceptions -fno-rtti -fno-strict-aliasing -fPIC -O3 -march=x86-64 -ffast-math -DXMOD_LINUX64 -DCGAMEDLL -I./build.linux64-release/cgame -I./build.linux64-release/ -I./src -I./pak -c src/bgame/bg_animation.cpp -o build.linux64-release/cgame/bgame/bg_animation.o
+src/bgame/bg_animation.cpp: In function ‘void BG_ParseConditionBits(char**, animStringItem_t*, int, int*)’:
+src/bgame/bg_animation.cpp:581:35: warning: ‘sizeof’ on array function parameter ‘result’ will return size of ‘int*’ [-Wsizeof-array-argument]
+  581 |         memset( result, 0, sizeof(result) );
+      |                                  ~^~~~~~~
+src/bgame/bg_animation.cpp:570:95: note: declared here
+  570 | void BG_ParseConditionBits( char **text_pp, animStringItem_t *stringTable, int condIndex, int result[2] )
+      |                                                                                           ~~~~^~~~~~~~~
+src/bgame/bg_animation.cpp:581:28: warning: argument to ‘sizeof’ in ‘void* memset(void*, int, size_t)’ call is the same expression as the destination; did you mean to dereference it? [-Wsizeof-pointer-memaccess]
+  581 |         memset( result, 0, sizeof(result) );
+      |                            ^~~~~~~~~~~~~~
+src/bgame/bg_animation.cpp: In function ‘void BG_ParseCommands(char**, animScriptItem_t*, animModelInfo_t*, animScriptData_t*)’:
+src/bgame/bg_animation.cpp:774:45: warning: argument to ‘sizeof’ in ‘void* memset(void*, int, size_t)’ call is the same expression as the destination; did you mean to dereference it? [-Wsizeof-pointer-memaccess]
+  774 |                         memset( command, 0, sizeof(command) );
+      |                                             ^~~~~~~~~~~~~~~
+/usr/bin/g++ -pipe -Wall -Winvalid-pch -Wno-write-strings -fmessage-length=0 -m64 -fno-exceptions -fno-rtti -fno-strict-aliasing -fPIC -O3 -march=x86-64 -ffast-math -DXMOD_LINUX64 -DCGAMEDLL -I./build.linux64-release/cgame -I./build.linux64-release/ -I./src -I./pak -c src/bgame/bg_animgroup.cpp -o build.linux64-release/cgame/bgame/bg_animgroup.o
+/usr/bin/g++ -pipe -Wall -Winvalid-pch -Wno-write-strings -fmessage-length=0 -m64 -fno-exceptions -fno-rtti -fno-strict-aliasing -fPIC -O3 -march=x86-64 -ffast-math -DXMOD_LINUX64 -DCGAMEDLL -I./build.linux64-release/cgame -I./build.linux64-release/ -I./src -I./pak -c src/bgame/bg_attack2.cpp -o build.linux64-release/cgame/bgame/bg_attack2.o
+/usr/bin/g++ -pipe -Wall -Winvalid-pch -Wno-write-strings -fmessage-length=0 -m64 -fno-exceptions -fno-rtti -fno-strict-aliasing -fPIC -O3 -march=x86-64 -ffast-math -DXMOD_LINUX64 -DCGAMEDLL -I./build.linux64-release/cgame -I./build.linux64-release/ -I./src -I./pak -c src/bgame/bg_character.cpp -o build.linux64-release/cgame/bgame/bg_character.o
+/usr/bin/g++ -pipe -Wall -Winvalid-pch -Wno-write-strings -fmessage-length=0 -m64 -fno-exceptions -fno-rtti -fno-strict-aliasing -fPIC -O3 -march=x86-64 -ffast-math -DXMOD_LINUX64 -DCGAMEDLL -I./build.linux64-release/cgame -I./build.linux64-release/ -I./src -I./pak -c src/bgame/bg_classes.cpp -o build.linux64-release/cgame/bgame/bg_classes.o
+/usr/bin/g++ -pipe -Wall -Winvalid-pch -Wno-write-strings -fmessage-length=0 -m64 -fno-exceptions -fno-rtti -fno-strict-aliasing -fPIC -O3 -march=x86-64 -ffast-math -DXMOD_LINUX64 -DCGAMEDLL -I./build.linux64-release/cgame -I./build.linux64-release/ -I./src -I./pak -c src/bgame/bg_misc.cpp -o build.linux64-release/cgame/bgame/bg_misc.o
+/usr/bin/g++ -pipe -Wall -Winvalid-pch -Wno-write-strings -fmessage-length=0 -m64 -fno-exceptions -fno-rtti -fno-strict-aliasing -fPIC -O3 -march=x86-64 -ffast-math -DXMOD_LINUX64 -DCGAMEDLL -I./build.linux64-release/cgame -I./build.linux64-release/ -I./src -I./pak -c src/bgame/bg_molotov.cpp -o build.linux64-release/cgame/bgame/bg_molotov.o
+/usr/bin/g++ -pipe -Wall -Winvalid-pch -Wno-write-strings -fmessage-length=0 -m64 -fno-exceptions -fno-rtti -fno-strict-aliasing -fPIC -O3 -march=x86-64 -ffast-math -DXMOD_LINUX64 -DCGAMEDLL -I./build.linux64-release/cgame -I./build.linux64-release/ -I./src -I./pak -c src/bgame/bg_pmove.cpp -o build.linux64-release/cgame/bgame/bg_pmove.o
+src/bgame/bg_pmove.cpp: In function ‘void PM_StartWeaponAnim(int)’:
+src/bgame/bg_pmove.cpp:221:5: warning: this ‘if’ clause does not guard... [-Wmisleading-indentation]
+  221 |     if (pm->ps->eFlags & EF_PLAYDEAD)
+      |     ^~
+src/bgame/bg_pmove.cpp:224:9: note: ...this statement, but the latter is misleadingly indented as if it were guarded by the ‘if’
+  224 |         if ( pm->pmext->weapAnimTimer > 0 )
+      |         ^~
+src/bgame/bg_pmove.cpp: In function ‘qboolean PM_CheckProne()’:
+src/bgame/bg_pmove.cpp:1022:5: warning: this ‘if’ clause does not guard... [-Wmisleading-indentation]
+ 1022 |     if (cvars::bg_proneDelay.ivalue > 0)
+      |     ^~
+src/bgame/bg_pmove.cpp:1025:9: note: ...this statement, but the latter is misleadingly indented as if it were guarded by the ‘if’
+ 1025 |         if( !(pm->ps->eFlags & EF_PRONE) ) {
+      |         ^~
+src/bgame/bg_pmove.cpp: In function ‘void PM_Weapon()’:
+src/bgame/bg_pmove.cpp:4741:23: warning: variable ‘bckmove_knockback’ set but not used [-Wunused-but-set-variable]
+ 4741 |                 float bckmove_knockback = 0.f;
+      |                       ^~~~~~~~~~~~~~~~~
+/usr/bin/g++ -pipe -Wall -Winvalid-pch -Wno-write-strings -fmessage-length=0 -m64 -fno-exceptions -fno-rtti -fno-strict-aliasing -fPIC -O3 -march=x86-64 -ffast-math -DXMOD_LINUX64 -DCGAMEDLL -I./build.linux64-release/cgame -I./build.linux64-release/ -I./src -I./pak -c src/bgame/bg_slidemove.cpp -o build.linux64-release/cgame/bgame/bg_slidemove.o
+/usr/bin/g++ -pipe -Wall -Winvalid-pch -Wno-write-strings -fmessage-length=0 -m64 -fno-exceptions -fno-rtti -fno-strict-aliasing -fPIC -O3 -march=x86-64 -ffast-math -DXMOD_LINUX64 -DCGAMEDLL -I./build.linux64-release/cgame -I./build.linux64-release/ -I./src -I./pak -c src/bgame/bg_sscript.cpp -o build.linux64-release/cgame/bgame/bg_sscript.o
+/usr/bin/g++ -pipe -Wall -Winvalid-pch -Wno-write-strings -fmessage-length=0 -m64 -fno-exceptions -fno-rtti -fno-strict-aliasing -fPIC -O3 -march=x86-64 -ffast-math -DXMOD_LINUX64 -DCGAMEDLL -I./build.linux64-release/cgame -I./build.linux64-release/ -I./src -I./pak -c src/bgame/bg_stats.cpp -o build.linux64-release/cgame/bgame/bg_stats.o
+/usr/bin/g++ -pipe -Wall -Winvalid-pch -Wno-write-strings -fmessage-length=0 -m64 -fno-exceptions -fno-rtti -fno-strict-aliasing -fPIC -O3 -march=x86-64 -ffast-math -DXMOD_LINUX64 -DCGAMEDLL -I./build.linux64-release/cgame -I./build.linux64-release/ -I./src -I./pak -c src/bgame/bg_tracemap.cpp -o build.linux64-release/cgame/bgame/bg_tracemap.o
+/usr/bin/g++ -pipe -Wall -Winvalid-pch -Wno-write-strings -fmessage-length=0 -m64 -fno-exceptions -fno-rtti -fno-strict-aliasing -fPIC -O3 -march=x86-64 -ffast-math -DXMOD_LINUX64 -DCGAMEDLL -I./build.linux64-release/cgame -I./build.linux64-release/ -I./src -I./pak -c src/bgame/bg_xmod.cpp -o build.linux64-release/cgame/bgame/bg_xmod.o
+/usr/bin/g++ -pipe -Wall -Winvalid-pch -Wno-write-strings -fmessage-length=0 -m64 -fno-exceptions -fno-rtti -fno-strict-aliasing -fPIC -O3 -march=x86-64 -ffast-math -DXMOD_LINUX64 -DCGAMEDLL -I./build.linux64-release/cgame -I./build.linux64-release/ -I./src -I./pak -c src/bgame/cvar/Cvar.cpp -o build.linux64-release/cgame/bgame/cvar/Cvar.o
+/usr/bin/g++ -pipe -Wall -Winvalid-pch -Wno-write-strings -fmessage-length=0 -m64 -fno-exceptions -fno-rtti -fno-strict-aliasing -fPIC -O3 -march=x86-64 -ffast-math -DXMOD_LINUX64 -DCGAMEDLL -I./build.linux64-release/cgame -I./build.linux64-release/ -I./src -I./pak -c src/bgame/linux/Process.cpp -o build.linux64-release/cgame/bgame/linux/Process.o
+In file included from ./src/base/public.h:27,
+                 from ./src/cgame/cg_local.h:17,
+                 from src/bgame/linux/Process.cpp:2:
+./build.linux64-release/base/project.h:30: warning: "XMOD_LINUX64" redefined
+   30 | #define XMOD_LINUX64
+      | 
+<command-line>: note: this is the location of the previous definition
+./src/cgame/cg_local.h:57: warning: "CHAR_WIDTH" redefined
+   57 | #define CHAR_WIDTH                      32
+      | 
+In file included from /usr/lib/gcc/x86_64-linux-gnu/13/include/limits.h:205,
+                 from /usr/lib/gcc/x86_64-linux-gnu/13/include/syslimits.h:7,
+                 from /usr/lib/gcc/x86_64-linux-gnu/13/include/limits.h:34,
+                 from ./src/lua/luaconf.h:11,
+                 from ./src/lua/lua.h:16,
+                 from ./src/base/lua/public.h:4,
+                 from ./src/base/public.h:36:
+/usr/include/limits.h:147: note: this is the location of the previous definition
+  147 | #  define CHAR_WIDTH 8
+      | 
+/usr/bin/g++ -pipe -Wall -Winvalid-pch -Wno-write-strings -fmessage-length=0 -m64 -fno-exceptions -fno-rtti -fno-strict-aliasing -fPIC -O3 -march=x86-64 -ffast-math -DXMOD_LINUX64 -DCGAMEDLL -I./build.linux64-release/cgame -I./build.linux64-release/ -I./src -I./pak -c src/bgame/linux/bg_cpu.cpp -o build.linux64-release/cgame/bgame/linux/bg_cpu.o
+In file included from ./src/base/public.h:27,
+                 from ./src/cgame/cg_local.h:17,
+                 from src/bgame/linux/bg_cpu.cpp:2:
+./build.linux64-release/base/project.h:30: warning: "XMOD_LINUX64" redefined
+   30 | #define XMOD_LINUX64
+      | 
+<command-line>: note: this is the location of the previous definition
+./src/cgame/cg_local.h:57: warning: "CHAR_WIDTH" redefined
+   57 | #define CHAR_WIDTH                      32
+      | 
+In file included from /usr/lib/gcc/x86_64-linux-gnu/13/include/limits.h:205,
+                 from /usr/lib/gcc/x86_64-linux-gnu/13/include/syslimits.h:7,
+                 from /usr/lib/gcc/x86_64-linux-gnu/13/include/limits.h:34,
+                 from ./src/lua/luaconf.h:11,
+                 from ./src/lua/lua.h:16,
+                 from ./src/base/lua/public.h:4,
+                 from ./src/base/public.h:36:
+/usr/include/limits.h:147: note: this is the location of the previous definition
+  147 | #  define CHAR_WIDTH 8
+      | 
+src/bgame/linux/bg_cpu.cpp: In function ‘void BG_cpuUpdate()’:
+src/bgame/linux/bg_cpu.cpp:85:36: warning: ‘char* __builtin_strncpy(char*, const char*, long unsigned int)’ output may be truncated copying 31 bytes from a string of length 63 [-Wstringop-truncation]
+   85 |                             strncpy( cpuModel, tokenValue, cpuModelSize-1 );
+      |                                    ^
+/usr/bin/g++ -pipe -Wall -Winvalid-pch -Wno-write-strings -fmessage-length=0 -m64 -fno-exceptions -fno-rtti -fno-strict-aliasing -fPIC -O3 -march=x86-64 -ffast-math -DXMOD_LINUX64 -DCGAMEDLL -I./build.linux64-release/cgame -I./build.linux64-release/ -I./src -I./pak -c src/bgame/q_math.cpp -o build.linux64-release/cgame/bgame/q_math.o
+/usr/bin/g++ -pipe -Wall -Winvalid-pch -Wno-write-strings -fmessage-length=0 -m64 -fno-exceptions -fno-rtti -fno-strict-aliasing -fPIC -O3 -march=x86-64 -ffast-math -DXMOD_LINUX64 -DCGAMEDLL -I./build.linux64-release/cgame -I./build.linux64-release/ -I./src -I./pak -c src/bgame/q_shared.cpp -o build.linux64-release/cgame/bgame/q_shared.o
+src/bgame/q_shared.cpp: In function ‘qboolean COM_BitCheck(const int*, int)’:
+src/bgame/q_shared.cpp:133:25: warning: ‘sizeof’ on array function parameter ‘array’ will return size of ‘const int*’ [-Wsizeof-array-argument]
+  133 |         if (i >= sizeof(array)) return qfalse;
+      |                        ~^~~~~~
+src/bgame/q_shared.cpp:120:34: note: declared here
+  120 | qboolean COM_BitCheck( const int array[], int bitNum ) {
+      |                        ~~~~~~~~~~^~~~~~~
+src/bgame/q_shared.cpp: In function ‘void COM_BitSet(int*, int)’:
+src/bgame/q_shared.cpp:158:24: warning: ‘sizeof’ on array function parameter ‘array’ will return size of ‘int*’ [-Wsizeof-array-argument]
+  158 |         if(i >= sizeof(array)) return;
+      |                       ~^~~~~~
+src/bgame/q_shared.cpp:145:22: note: declared here
+  145 | void COM_BitSet( int array[], int bitNum ) {
+      |                  ~~~~^~~~~~~
+src/bgame/q_shared.cpp: In function ‘void COM_BitClear(int*, int)’:
+src/bgame/q_shared.cpp:183:24: warning: ‘sizeof’ on array function parameter ‘array’ will return size of ‘int*’ [-Wsizeof-array-argument]
+  183 |         if(i >= sizeof(array)) return;
+      |                       ~^~~~~~
+src/bgame/q_shared.cpp:170:24: note: declared here
+  170 | void COM_BitClear( int array[], int bitNum ) {
+      |                    ~~~~^~~~~~~
+src/bgame/q_shared.cpp: In function ‘int COM_Compress(char*)’:
+src/bgame/q_shared.cpp:432:16: warning: variable ‘pc’ set but not used [-Wunused-but-set-variable]
+  432 |         int c, pc, size;
+      |                ^~
+/usr/bin/g++ -pipe -Wall -Winvalid-pch -Wno-write-strings -fmessage-length=0 -m64 -fno-exceptions -fno-rtti -fno-strict-aliasing -fPIC -O3 -march=x86-64 -ffast-math -DXMOD_LINUX64 -DCGAMEDLL -I./build.linux64-release/cgame -I./build.linux64-release/ -I./src -I./pak -c src/bgame/str/PairDump.cpp -o build.linux64-release/cgame/bgame/str/PairDump.o
+/usr/bin/g++ -pipe -Wall -Winvalid-pch -Wno-write-strings -fmessage-length=0 -m64 -fno-exceptions -fno-rtti -fno-strict-aliasing -fPIC -O3 -march=x86-64 -ffast-math -DXMOD_LINUX64 -DCGAMEDLL -I./build.linux64-release/cgame -I./build.linux64-release/ -I./src -I./pak -c src/bgame/str/util.cpp -o build.linux64-release/cgame/bgame/str/util.o
+/usr/bin/g++ -pipe -Wall -Winvalid-pch -Wno-write-strings -fmessage-length=0 -m64 -fno-exceptions -fno-rtti -fno-strict-aliasing -fPIC -O3 -march=x86-64 -ffast-math -DXMOD_LINUX64 -DCGAMEDLL -I./build.linux64-release/cgame -I./build.linux64-release/ -I./src -I./pak -c src/cgame/CBulletVolume.cpp -o build.linux64-release/cgame/cgame/CBulletVolume.o
+/usr/bin/g++ -pipe -Wall -Winvalid-pch -Wno-write-strings -fmessage-length=0 -m64 -fno-exceptions -fno-rtti -fno-strict-aliasing -fPIC -O3 -march=x86-64 -ffast-math -DXMOD_LINUX64 -DCGAMEDLL -I./build.linux64-release/cgame -I./build.linux64-release/ -I./src -I./pak -c src/cgame/CHitVolume.cpp -o build.linux64-release/cgame/cgame/CHitVolume.o
+/usr/bin/g++ -pipe -Wall -Winvalid-pch -Wno-write-strings -fmessage-length=0 -m64 -fno-exceptions -fno-rtti -fno-strict-aliasing -fPIC -O3 -march=x86-64 -ffast-math -DXMOD_LINUX64 -DCGAMEDLL -I./build.linux64-release/cgame -I./build.linux64-release/ -I./src -I./pak -c src/cgame/Console.cpp -o build.linux64-release/cgame/cgame/Console.o
+/usr/bin/g++ -pipe -Wall -Winvalid-pch -Wno-write-strings -fmessage-length=0 -m64 -fno-exceptions -fno-rtti -fno-strict-aliasing -fPIC -O3 -march=x86-64 -ffast-math -DXMOD_LINUX64 -DCGAMEDLL -I./build.linux64-release/cgame -I./build.linux64-release/ -I./src -I./pak -c src/cgame/Engine.cpp -o build.linux64-release/cgame/cgame/Engine.o
+/usr/bin/g++ -pipe -Wall -Winvalid-pch -Wno-write-strings -fmessage-length=0 -m64 -fno-exceptions -fno-rtti -fno-strict-aliasing -fPIC -O3 -march=x86-64 -ffast-math -DXMOD_LINUX64 -DCGAMEDLL -I./build.linux64-release/cgame -I./build.linux64-release/ -I./src -I./pak -c src/cgame/Font.cpp -o build.linux64-release/cgame/cgame/Font.o
+/usr/bin/g++ -pipe -Wall -Winvalid-pch -Wno-write-strings -fmessage-length=0 -m64 -fno-exceptions -fno-rtti -fno-strict-aliasing -fPIC -O3 -march=x86-64 -ffast-math -DXMOD_LINUX64 -DCGAMEDLL -I./build.linux64-release/cgame -I./build.linux64-release/ -I./src -I./pak -c src/cgame/Location.cpp -o build.linux64-release/cgame/cgame/Location.o
+/usr/bin/g++ -pipe -Wall -Winvalid-pch -Wno-write-strings -fmessage-length=0 -m64 -fno-exceptions -fno-rtti -fno-strict-aliasing -fPIC -O3 -march=x86-64 -ffast-math -DXMOD_LINUX64 -DCGAMEDLL -I./build.linux64-release/cgame -I./build.linux64-release/ -I./src -I./pak -c src/cgame/LocationDB.cpp -o build.linux64-release/cgame/cgame/LocationDB.o
+/usr/bin/g++ -pipe -Wall -Winvalid-pch -Wno-write-strings -fmessage-length=0 -m64 -fno-exceptions -fno-rtti -fno-strict-aliasing -fPIC -O3 -march=x86-64 -ffast-math -DXMOD_LINUX64 -DCGAMEDLL -I./build.linux64-release/cgame -I./build.linux64-release/ -I./src -I./pak -c src/cgame/cg_atmospheric.cpp -o build.linux64-release/cgame/cgame/cg_atmospheric.o
+src/cgame/cg_atmospheric.cpp: In function ‘void CG_RainParticleRender(cg_atmosphericParticle_t*)’:
+src/cgame/cg_atmospheric.cpp:334:30: warning: variable ‘frac’ set but not used [-Wunused-but-set-variable]
+  334 |         float           len, frac, dist;
+      |                              ^~~~
+src/cgame/cg_atmospheric.cpp: In function ‘void CG_SnowParticleRender(cg_atmosphericParticle_t*)’:
+src/cgame/cg_atmospheric.cpp:528:30: warning: variable ‘frac’ set but not used [-Wunused-but-set-variable]
+  528 |         float           len, frac, sinTumbling, cosTumbling, particleWidth, dist;
+      |                              ^~~~
+/usr/bin/g++ -pipe -Wall -Winvalid-pch -Wno-write-strings -fmessage-length=0 -m64 -fno-exceptions -fno-rtti -fno-strict-aliasing -fPIC -O3 -march=x86-64 -ffast-math -DXMOD_LINUX64 -DCGAMEDLL -I./build.linux64-release/cgame -I./build.linux64-release/ -I./src -I./pak -c src/cgame/cg_character.cpp -o build.linux64-release/cgame/cgame/cg_character.o
+src/cgame/cg_character.cpp: In function ‘void CG_CalcMoveSpeeds(bg_character_t*)’:
+src/cgame/cg_character.cpp:147:41: warning: variable ‘lastLow’ set but not used [-Wunused-but-set-variable]
+  147 |         int                             lastLow, low;
+      |                                         ^~~~~~~
+src/cgame/cg_character.cpp: In function ‘qboolean CG_CheckForExistingAnimModelInfo(const char*, const char*, animModelInfo_t**)’:
+src/cgame/cg_character.cpp:281:44: warning: argument to ‘sizeof’ in ‘void* memset(void*, int, size_t)’ call is the same expression as the destination; did you mean to dereference it? [-Wsizeof-pointer-memaccess]
+  281 |                 memset( *animModelInfo, 0, sizeof(*animModelInfo) );
+      |                                            ^~~~~~~~~~~~~~~~~~~~~~
+/usr/bin/g++ -pipe -Wall -Winvalid-pch -Wno-write-strings -fmessage-length=0 -m64 -fno-exceptions -fno-rtti -fno-strict-aliasing -fPIC -O3 -march=x86-64 -ffast-math -DXMOD_LINUX64 -DCGAMEDLL -I./build.linux64-release/cgame -I./build.linux64-release/ -I./src -I./pak -c src/cgame/cg_commandmap.cpp -o build.linux64-release/cgame/cgame/cg_commandmap.o
+src/cgame/cg_commandmap.cpp: In function ‘void CG_DrawAutoMap()’:
+src/cgame/cg_commandmap.cpp:1611:5: warning: this ‘if’ clause does not guard... [-Wmisleading-indentation]
+ 1611 |     if (cg_althud.integer)
+      |     ^~
+src/cgame/cg_commandmap.cpp:1614:9: note: ...this statement, but the latter is misleadingly indented as if it were guarded by the ‘if’
+ 1614 |         mapScissor.tl[0] = mapScissor.tl[1] = 0;
+      |         ^~~~~~~~~~
+/usr/bin/g++ -pipe -Wall -Winvalid-pch -Wno-write-strings -fmessage-length=0 -m64 -fno-exceptions -fno-rtti -fno-strict-aliasing -fPIC -O3 -march=x86-64 -ffast-math -DXMOD_LINUX64 -DCGAMEDLL -I./build.linux64-release/cgame -I./build.linux64-release/ -I./src -I./pak -c src/cgame/cg_consolecmds.cpp -o build.linux64-release/cgame/cgame/cg_consolecmds.o
+/usr/bin/g++ -pipe -Wall -Winvalid-pch -Wno-write-strings -fmessage-length=0 -m64 -fno-exceptions -fno-rtti -fno-strict-aliasing -fPIC -O3 -march=x86-64 -ffast-math -DXMOD_LINUX64 -DCGAMEDLL -I./build.linux64-release/cgame -I./build.linux64-release/ -I./src -I./pak -c src/cgame/cg_debriefing.cpp -o build.linux64-release/cgame/cgame/cg_debriefing.o
+src/cgame/cg_debriefing.cpp: In function ‘void CG_Debriefing_ChatBox_Draw(panel_button_t*)’:
+src/cgame/cg_debriefing.cpp:1151:16: warning: variable ‘h’ set but not used [-Wunused-but-set-variable]
+ 1151 |         int w, h;
+      |                ^
+/usr/bin/g++ -pipe -Wall -Winvalid-pch -Wno-write-strings -fmessage-length=0 -m64 -fno-exceptions -fno-rtti -fno-strict-aliasing -fPIC -O3 -march=x86-64 -ffast-math -DXMOD_LINUX64 -DCGAMEDLL -I./build.linux64-release/cgame -I./build.linux64-release/ -I./src -I./pak -c src/cgame/cg_draw.cpp -o build.linux64-release/cgame/cgame/cg_draw.o
+src/cgame/cg_draw.cpp: In function ‘int CG_DrawFieldWidth(int, int, int, int, int, int)’:
+src/cgame/cg_draw.cpp:182:25: warning: variable ‘frame’ set but not used [-Wunused-but-set-variable]
+  182 |         int             frame;
+      |                         ^~~~~
+src/cgame/cg_draw.cpp: In function ‘float CG_DrawClock(float)’:
+src/cgame/cg_draw.cpp:709:5: warning: this ‘else’ clause does not guard... [-Wmisleading-indentation]
+  709 |     else
+      |     ^~~~
+src/cgame/cg_draw.cpp:712:9: note: ...this statement, but the latter is misleadingly indented as if it were guarded by the ‘else’
+  712 |         w = CG_Text_Width_Ext( s, 0.19f, 0, &cgs.media.limboFont1 );
+      |         ^
+src/cgame/cg_draw.cpp: In function ‘float CG_DrawTimer(float)’:
+src/cgame/cg_draw.cpp:729:5: warning: this ‘if’ clause does not guard... [-Wmisleading-indentation]
+  729 |     if (cgs.gamestate != GS_PLAYING)
+      |     ^~
+src/cgame/cg_draw.cpp:732:9: note: ...this statement, but the latter is misleadingly indented as if it were guarded by the ‘if’
+  732 |         char            *s;
+      |         ^~~~
+src/cgame/cg_draw.cpp: In function ‘void CG_DrawTeamInfo()’:
+src/cgame/cg_draw.cpp:864:16: warning: variable ‘h’ set but not used [-Wunused-but-set-variable]
+  864 |         int w, h;
+      |                ^
+src/cgame/cg_draw.cpp: In function ‘void CG_DrawNotify()’:
+src/cgame/cg_draw.cpp:971:16: warning: variable ‘h’ set but not used [-Wunused-but-set-variable]
+  971 |         int w, h;
+      |                ^
+src/cgame/cg_draw.cpp: In function ‘void CG_DrawKillSpreeMessages()’:
+src/cgame/cg_draw.cpp:1392:53: warning: the address of ‘cg_t::ksPlayer’ will never be NULL [-Waddress]
+ 1392 |         if ( !cg.ksPrintTime || !cg.ksNumber || !cg.ksPlayer || !cg.ksMessage ) {
+      |                                                  ~~~^~~~~~~~
+In file included from src/bgame/impl.h:7:
+./src/cgame/cg_local.h:911:25: note: ‘cg_t::ksPlayer’ declared here
+  911 |         char            ksPlayer[MAX_NAME_LENGTH];
+      |                         ^~~~~~~~
+src/cgame/cg_draw.cpp:1392:69: warning: the address of ‘cg_t::ksMessage’ will never be NULL [-Waddress]
+ 1392 |         if ( !cg.ksPrintTime || !cg.ksNumber || !cg.ksPlayer || !cg.ksMessage ) {
+      |                                                                  ~~~^~~~~~~~~
+./src/cgame/cg_local.h:913:25: note: ‘cg_t::ksMessage’ declared here
+  913 |         char            ksMessage[150];
+      |                         ^~~~~~~~~
+src/cgame/cg_draw.cpp: In function ‘void CG_DrawSpectatorMessage()’:
+src/cgame/cg_draw.cpp:3259:15: warning: variable ‘x’ set but not used [-Wunused-but-set-variable]
+ 3259 |         float x, y;
+      |               ^
+src/cgame/cg_draw.cpp: In function ‘qboolean CG_DrawFollow()’:
+src/cgame/cg_draw.cpp:3407:48: warning: format not a string literal and no format arguments [-Wformat-security]
+ 3407 |                                         sprintf(deploytime, CG_TranslateString("^7No more deployments this round"));
+      |                                         ~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+src/cgame/cg_draw.cpp: In function ‘void CG_DrawObjectiveInfo()’:
+src/cgame/cg_draw.cpp:3859:33: warning: variable ‘h’ set but not used [-Wunused-but-set-variable]
+ 3859 |         int             x, y, w,h;
+      |                                 ^
+src/cgame/cg_draw.cpp: In function ‘void CG_DrawWeapRecharge(rectDef_t*)’:
+src/cgame/cg_draw.cpp:4527:33: warning: variable ‘weap’ set but not used [-Wunused-but-set-variable]
+ 4527 |         int                     weap, flags;
+      |                                 ^~~~
+src/cgame/cg_draw.cpp: In function ‘void CG_DrawPlayerStatus()’:
+src/cgame/cg_draw.cpp:4615:41: warning: variable ‘weap’ set but not used [-Wunused-but-set-variable]
+ 4615 |         int                             weap;
+      |                                         ^~~~
+src/cgame/cg_draw.cpp:4616:26: warning: variable ‘ps’ set but not used [-Wunused-but-set-variable]
+ 4616 |         playerState_t   *ps;
+      |                          ^~
+/usr/bin/g++ -pipe -Wall -Winvalid-pch -Wno-write-strings -fmessage-length=0 -m64 -fno-exceptions -fno-rtti -fno-strict-aliasing -fPIC -O3 -march=x86-64 -ffast-math -DXMOD_LINUX64 -DCGAMEDLL -I./build.linux64-release/cgame -I./build.linux64-release/ -I./src -I./pak -c src/cgame/cg_drawtools.cpp -o build.linux64-release/cgame/cgame/cg_drawtools.o
+/usr/bin/g++ -pipe -Wall -Winvalid-pch -Wno-write-strings -fmessage-length=0 -m64 -fno-exceptions -fno-rtti -fno-strict-aliasing -fPIC -O3 -march=x86-64 -ffast-math -DXMOD_LINUX64 -DCGAMEDLL -I./build.linux64-release/cgame -I./build.linux64-release/ -I./src -I./pak -c src/cgame/cg_effects.cpp -o build.linux64-release/cgame/cgame/cg_effects.o
+src/cgame/cg_effects.cpp: In function ‘void CG_Bleed(vec_t*, int)’:
+src/cgame/cg_effects.cpp:311:20: warning: variable ‘cent’ set but not used [-Wunused-but-set-variable]
+  311 |         centity_t *cent;
+      |                    ^~~~
+src/cgame/cg_effects.cpp: In function ‘void CG_LoseHat(centity_t*, vec_t*)’:
+src/cgame/cg_effects.cpp:455:41: warning: variable ‘tagIndex’ set but not used [-Wunused-but-set-variable]
+  455 |         int                             tagIndex;
+      |                                         ^~~~~~~~
+src/cgame/cg_effects.cpp: In function ‘void CG_GibPlayer(centity_t*, vec_t*, vec_t*)’:
+src/cgame/cg_effects.cpp:576:26: warning: variable ‘character’ set but not used [-Wunused-but-set-variable]
+  576 |         bg_character_t  *character;
+      |                          ^~~~~~~~~
+src/cgame/cg_effects.cpp: In function ‘void CG_Spotlight(centity_t*, float*, vec_t*, vec_t*, int, float, int, float, int)’:
+src/cgame/cg_effects.cpp:915:15: warning: variable ‘alpha’ set but not used [-Wunused-but-set-variable]
+  915 |         float alpha;
+      |               ^~~~~
+/usr/bin/g++ -pipe -Wall -Winvalid-pch -Wno-write-strings -fmessage-length=0 -m64 -fno-exceptions -fno-rtti -fno-strict-aliasing -fPIC -O3 -march=x86-64 -ffast-math -DXMOD_LINUX64 -DCGAMEDLL -I./build.linux64-release/cgame -I./build.linux64-release/ -I./src -I./pak -c src/cgame/cg_ents.cpp -o build.linux64-release/cgame/cgame/cg_ents.o
+src/cgame/cg_ents.cpp: In function ‘void CG_AddLightstyle(centity_t*)’:
+src/cgame/cg_ents.cpp:121:19: warning: the address of ‘centity_s::dl_stylestring’ will never be NULL [-Waddress]
+  121 |         if(!cent->dl_stylestring)
+      |             ~~~~~~^~~~~~~~~~~~~~
+In file included from src/bgame/impl.h:7:
+./src/cgame/cg_local.h:337:33: note: ‘centity_s::dl_stylestring’ declared here
+  337 |         char                    dl_stylestring[64];
+      |                                 ^~~~~~~~~~~~~~
+src/cgame/cg_ents.cpp:117:25: warning: variable ‘offsetwhole’ set but not used [-Wunused-but-set-variable]
+  117 |         int             offsetwhole;
+      |                         ^~~~~~~~~~~
+src/cgame/cg_ents.cpp: In function ‘qboolean CG_AddEntityToTag(centity_t*)’:
+src/cgame/cg_ents.cpp:2724:34: warning: variable ‘sParent’ set but not used [-Wunused-but-set-variable]
+ 2724 |         entityState_t           *sParent;
+      |                                  ^~~~~~~
+/usr/bin/g++ -pipe -Wall -Winvalid-pch -Wno-write-strings -fmessage-length=0 -m64 -fno-exceptions -fno-rtti -fno-strict-aliasing -fPIC -O3 -march=x86-64 -ffast-math -DXMOD_LINUX64 -DCGAMEDLL -I./build.linux64-release/cgame -I./build.linux64-release/ -I./src -I./pak -c src/cgame/cg_event.cpp -o build.linux64-release/cgame/cgame/cg_event.o
+src/cgame/cg_event.cpp: In function ‘void CG_Effect(centity_t*, vec_t*, vec_t*)’:
+src/cgame/cg_event.cpp:1410:41: warning: variable ‘mass’ set but not used [-Wunused-but-set-variable]
+ 1410 |         int                             mass;
+      |                                         ^~~~
+src/cgame/cg_event.cpp: In function ‘void CG_ShardJunk(centity_t*, vec_t*, vec_t*)’:
+src/cgame/cg_event.cpp:1691:41: warning: variable ‘type’ set but not used [-Wunused-but-set-variable]
+ 1691 |         int                             type;
+      |                                         ^~~~
+src/cgame/cg_event.cpp: In function ‘void CG_Debris(centity_t*, vec_t*, vec_t*)’:
+src/cgame/cg_event.cpp:1743:41: warning: variable ‘type’ set but not used [-Wunused-but-set-variable]
+ 1743 |         int                             type;
+      |                                         ^~~~
+/usr/bin/g++ -pipe -Wall -Winvalid-pch -Wno-write-strings -fmessage-length=0 -m64 -fno-exceptions -fno-rtti -fno-strict-aliasing -fPIC -O3 -march=x86-64 -ffast-math -DXMOD_LINUX64 -DCGAMEDLL -I./build.linux64-release/cgame -I./build.linux64-release/ -I./src -I./pak -c src/cgame/cg_fireteamoverlay.cpp -o build.linux64-release/cgame/cgame/cg_fireteamoverlay.o
+src/cgame/cg_fireteamoverlay.cpp: In function ‘void CG_ParseFireteams()’:
+src/cgame/cg_fireteamoverlay.cpp:86:18: warning: variable ‘onFireteam2’ set but not used [-Wunused-but-set-variable]
+   86 |         qboolean onFireteam2;
+      |                  ^~~~~~~~~~~
+src/cgame/cg_fireteamoverlay.cpp:87:18: warning: variable ‘isLeader2’ set but not used [-Wunused-but-set-variable]
+   87 |         qboolean isLeader2;
+      |                  ^~~~~~~~~
+src/cgame/cg_fireteamoverlay.cpp: In function ‘void CG_DrawFireTeamOverlay(rectDef_t*)’:
+src/cgame/cg_fireteamoverlay.cpp:415:9: warning: this ‘if’ clause does not guard... [-Wmisleading-indentation]
+  415 |         if (cg_locationJustify.integer == 1)
+      |         ^~
+src/cgame/cg_fireteamoverlay.cpp:418:17: note: ...this statement, but the latter is misleadingly indented as if it were guarded by the ‘if’
+  418 |                 CG_Text_Paint_Ext( x, y + FT_BAR_HEIGHT,  .2f, .2f, tclr, s.c_str(), 0, 0, ITEM_TEXTSTYLE_SHADOWED, &cgs.media.limboFont2 );
+      |                 ^~~~~~~~~~~~~~~~~
+/usr/bin/g++ -pipe -Wall -Winvalid-pch -Wno-write-strings -fmessage-length=0 -m64 -fno-exceptions -fno-rtti -fno-strict-aliasing -fPIC -O3 -march=x86-64 -ffast-math -DXMOD_LINUX64 -DCGAMEDLL -I./build.linux64-release/cgame -I./build.linux64-release/ -I./src -I./pak -c src/cgame/cg_fireteams.cpp -o build.linux64-release/cgame/cgame/cg_fireteams.o
+/usr/bin/g++ -pipe -Wall -Winvalid-pch -Wno-write-strings -fmessage-length=0 -m64 -fno-exceptions -fno-rtti -fno-strict-aliasing -fPIC -O3 -march=x86-64 -ffast-math -DXMOD_LINUX64 -DCGAMEDLL -I./build.linux64-release/cgame -I./build.linux64-release/ -I./src -I./pak -c src/cgame/cg_flamethrower.cpp -o build.linux64-release/cgame/cgame/cg_flamethrower.o
+src/cgame/cg_flamethrower.cpp: In function ‘void CG_MoveFlameChunk(flameChunk_t*)’:
+src/cgame/cg_flamethrower.cpp:555:25: warning: variable ‘jiggleCount’ set but not used [-Wunused-but-set-variable]
+  555 |         int             jiggleCount;
+      |                         ^~~~~~~~~~~
+src/cgame/cg_flamethrower.cpp: In function ‘void CG_AddFlameToScene(flameChunk_t*)’:
+src/cgame/cg_flamethrower.cpp:785:33: warning: variable ‘firing’ set but not used [-Wunused-but-set-variable]
+  785 |         qboolean isClientFlame, firing;
+      |                                 ^~~~~~
+/usr/bin/g++ -pipe -Wall -Winvalid-pch -Wno-write-strings -fmessage-length=0 -m64 -fno-exceptions -fno-rtti -fno-strict-aliasing -fPIC -O3 -march=x86-64 -ffast-math -DXMOD_LINUX64 -DCGAMEDLL -I./build.linux64-release/cgame -I./build.linux64-release/ -I./src -I./pak -c src/cgame/cg_info.cpp -o build.linux64-release/cgame/cgame/cg_info.o
+/usr/bin/g++ -pipe -Wall -Winvalid-pch -Wno-write-strings -fmessage-length=0 -m64 -fno-exceptions -fno-rtti -fno-strict-aliasing -fPIC -O3 -march=x86-64 -ffast-math -DXMOD_LINUX64 -DCGAMEDLL -I./build.linux64-release/cgame -I./build.linux64-release/ -I./src -I./pak -c src/cgame/cg_limbopanel.cpp -o build.linux64-release/cgame/cgame/cg_limbopanel.o
+src/cgame/cg_limbopanel.cpp: In function ‘qboolean CG_LimboPanel_ClassButton_KeyDown(panel_button_t*, int)’:
+src/cgame/cg_limbopanel.cpp:1315:5: warning: this ‘if’ clause does not guard... [-Wmisleading-indentation]
+ 1315 |     if (CG_IsClassDisabled(button->data[1]))
+      |     ^~
+src/cgame/cg_limbopanel.cpp:1318:9: note: ...this statement, but the latter is misleadingly indented as if it were guarded by the ‘if’
+ 1318 |         if( key == K_MOUSE1 ) {
+      |         ^~
+src/cgame/cg_limbopanel.cpp: In function ‘void CG_LimboPanel_Setup()’:
+src/cgame/cg_limbopanel.cpp:2471:27: warning: variable ‘classinfo’ set but not used [-Wunused-but-set-variable]
+ 2471 |         bg_playerclass_t *classinfo;
+      |                           ^~~~~~~~~
+/usr/bin/g++ -pipe -Wall -Winvalid-pch -Wno-write-strings -fmessage-length=0 -m64 -fno-exceptions -fno-rtti -fno-strict-aliasing -fPIC -O3 -march=x86-64 -ffast-math -DXMOD_LINUX64 -DCGAMEDLL -I./build.linux64-release/cgame -I./build.linux64-release/ -I./src -I./pak -c src/cgame/cg_loadpanel.cpp -o build.linux64-release/cgame/cgame/cg_loadpanel.o
+/usr/bin/g++ -pipe -Wall -Winvalid-pch -Wno-write-strings -fmessage-length=0 -m64 -fno-exceptions -fno-rtti -fno-strict-aliasing -fPIC -O3 -march=x86-64 -ffast-math -DXMOD_LINUX64 -DCGAMEDLL -I./build.linux64-release/cgame -I./build.linux64-release/ -I./src -I./pak -c src/cgame/cg_localents.cpp -o build.linux64-release/cgame/cgame/cg_localents.o
+src/cgame/cg_localents.cpp: In function ‘void CG_BloodTrail(localEntity_t*)’:
+src/cgame/cg_localents.cpp:132:18: warning: variable ‘cent’ set but not used [-Wunused-but-set-variable]
+  132 | centity_t       *cent;
+      |                  ^~~~
+src/cgame/cg_localents.cpp: In function ‘void CG_AddFragment(localEntity_t*)’:
+src/cgame/cg_localents.cpp:391:33: warning: variable ‘t’ set but not used [-Wunused-but-set-variable]
+  391 |                 int             t;
+      |                                 ^
+src/cgame/cg_localents.cpp:418:33: warning: variable ‘t’ set but not used [-Wunused-but-set-variable]
+  418 |                 int             t;
+      |                                 ^
+/usr/bin/g++ -pipe -Wall -Winvalid-pch -Wno-write-strings -fmessage-length=0 -m64 -fno-exceptions -fno-rtti -fno-strict-aliasing -fPIC -O3 -march=x86-64 -ffast-math -DXMOD_LINUX64 -DCGAMEDLL -I./build.linux64-release/cgame -I./build.linux64-release/ -I./src -I./pak -c src/cgame/cg_main.cpp -o build.linux64-release/cgame/cgame/cg_main.o
+src/cgame/cg_main.cpp: In function ‘intptr_t vmMain(int, int, int, int, int, int, int, int, int, int, int, int, int)’:
+src/cgame/cg_main.cpp:76:41: warning: cast to pointer from integer of different size [-Wint-to-pointer-cast]
+   76 |                 return CG_GetTag( arg0, (char *)arg1, (orientation_t *)arg2 );
+      |                                         ^~~~~~~~~~~~
+src/cgame/cg_main.cpp:76:55: warning: cast to pointer from integer of different size [-Wint-to-pointer-cast]
+   76 |                 return CG_GetTag( arg0, (char *)arg1, (orientation_t *)arg2 );
+      |                                                       ^~~~~~~~~~~~~~~~~~~~~
+src/cgame/cg_main.cpp: In function ‘void CG_RegisterSounds()’:
+src/cgame/cg_main.cpp:1411:5: warning: this ‘for’ clause does not guard... [-Wmisleading-indentation]
+ 1411 |     for (int i = 0; i < 5; i++)
+      |     ^~~
+src/cgame/cg_main.cpp:1415:9: note: ...this statement, but the latter is misleadingly indented as if it were guarded by the ‘for’
+ 1415 |         trap_S_RegisterSound( "sound/weapons/artillery/artillery_fly_1.wav", qfalse );
+      |         ^~~~~~~~~~~~~~~~~~~~
+/usr/bin/g++ -pipe -Wall -Winvalid-pch -Wno-write-strings -fmessage-length=0 -m64 -fno-exceptions -fno-rtti -fno-strict-aliasing -fPIC -O3 -march=x86-64 -ffast-math -DXMOD_LINUX64 -DCGAMEDLL -I./build.linux64-release/cgame -I./build.linux64-release/ -I./src -I./pak -c src/cgame/cg_marks.cpp -o build.linux64-release/cgame/cgame/cg_marks.o
+/usr/bin/g++ -pipe -Wall -Winvalid-pch -Wno-write-strings -fmessage-length=0 -m64 -fno-exceptions -fno-rtti -fno-strict-aliasing -fPIC -O3 -march=x86-64 -ffast-math -DXMOD_LINUX64 -DCGAMEDLL -I./build.linux64-release/cgame -I./build.linux64-release/ -I./src -I./pak -c src/cgame/cg_missionbriefing.cpp -o build.linux64-release/cgame/cgame/cg_missionbriefing.o
+/usr/bin/g++ -pipe -Wall -Winvalid-pch -Wno-write-strings -fmessage-length=0 -m64 -fno-exceptions -fno-rtti -fno-strict-aliasing -fPIC -O3 -march=x86-64 -ffast-math -DXMOD_LINUX64 -DCGAMEDLL -I./build.linux64-release/cgame -I./build.linux64-release/ -I./src -I./pak -c src/cgame/cg_molotov.cpp -o build.linux64-release/cgame/cgame/cg_molotov.o
+/usr/bin/g++ -pipe -Wall -Winvalid-pch -Wno-write-strings -fmessage-length=0 -m64 -fno-exceptions -fno-rtti -fno-strict-aliasing -fPIC -O3 -march=x86-64 -ffast-math -DXMOD_LINUX64 -DCGAMEDLL -I./build.linux64-release/cgame -I./build.linux64-release/ -I./src -I./pak -c src/cgame/cg_multiview.cpp -o build.linux64-release/cgame/cgame/cg_multiview.o
+/usr/bin/g++ -pipe -Wall -Winvalid-pch -Wno-write-strings -fmessage-length=0 -m64 -fno-exceptions -fno-rtti -fno-strict-aliasing -fPIC -O3 -march=x86-64 -ffast-math -DXMOD_LINUX64 -DCGAMEDLL -I./build.linux64-release/cgame -I./build.linux64-release/ -I./src -I./pak -c src/cgame/cg_newDraw.cpp -o build.linux64-release/cgame/cgame/cg_newDraw.o
+src/cgame/cg_newDraw.cpp: In function ‘void CG_OwnerDraw(float, float, float, float, float, float, int, int, int, float, float, vec_t*, qhandle_t, int)’:
+src/cgame/cg_newDraw.cpp:711:19: warning: variable ‘rect’ set but not used [-Wunused-but-set-variable]
+  711 |         rectDef_t rect;
+      |                   ^~~~
+src/cgame/cg_newDraw.cpp: In function ‘void CG_MouseEvent(int, int)’:
+src/cgame/cg_newDraw.cpp:728:17: warning: case value ‘2’ not in enumerated type ‘qboolean’ [-Wswitch]
+  728 |                 case CGAME_EVENT_SPEAKEREDITOR:
+      |                 ^~~~
+src/cgame/cg_newDraw.cpp:730:17: warning: case value ‘3’ not in enumerated type ‘qboolean’ [-Wswitch]
+  730 |                 case CGAME_EVENT_CAMPAIGNBREIFING:
+      |                 ^~~~
+src/cgame/cg_newDraw.cpp:751:17: warning: case value ‘4’ not in enumerated type ‘qboolean’ [-Wswitch]
+  751 |                 case CGAME_EVENT_DEMO:
+      |                 ^~~~
+src/cgame/cg_newDraw.cpp:731:17: warning: case value ‘5’ not in enumerated type ‘qboolean’ [-Wswitch]
+  731 |                 case CGAME_EVENT_FIRETEAMMSG:
+      |                 ^~~~
+src/cgame/cg_newDraw.cpp: In function ‘void CG_KeyEvent(int, qboolean)’:
+src/cgame/cg_newDraw.cpp:897:17: warning: case value ‘2’ not in enumerated type ‘qboolean’ [-Wswitch]
+  897 |                 case CGAME_EVENT_SPEAKEREDITOR:
+      |                 ^~~~
+src/cgame/cg_newDraw.cpp:885:17: warning: case value ‘3’ not in enumerated type ‘qboolean’ [-Wswitch]
+  885 |                 case CGAME_EVENT_CAMPAIGNBREIFING:
+      |                 ^~~~
+src/cgame/cg_newDraw.cpp:881:17: warning: case value ‘4’ not in enumerated type ‘qboolean’ [-Wswitch]
+  881 |                 case CGAME_EVENT_DEMO:
+      |                 ^~~~
+src/cgame/cg_newDraw.cpp:889:17: warning: case value ‘5’ not in enumerated type ‘qboolean’ [-Wswitch]
+  889 |                 case CGAME_EVENT_FIRETEAMMSG:
+      |                 ^~~~
+/usr/bin/g++ -pipe -Wall -Winvalid-pch -Wno-write-strings -fmessage-length=0 -m64 -fno-exceptions -fno-rtti -fno-strict-aliasing -fPIC -O3 -march=x86-64 -ffast-math -DXMOD_LINUX64 -DCGAMEDLL -I./build.linux64-release/cgame -I./build.linux64-release/ -I./src -I./pak -c src/cgame/cg_particles.cpp -o build.linux64-release/cgame/cgame/cg_particles.o
+src/cgame/cg_particles.cpp: In function ‘void CG_AddParticles()’:
+src/cgame/cg_particles.cpp:849:41: warning: variable ‘color’ set but not used [-Wunused-but-set-variable]
+  849 |         int                             color;
+      |                                         ^~~~~
+src/cgame/cg_particles.cpp:851:41: warning: variable ‘type’ set but not used [-Wunused-but-set-variable]
+  851 |         int                             type;
+      |                                         ^~~~
+/usr/bin/g++ -pipe -Wall -Winvalid-pch -Wno-write-strings -fmessage-length=0 -m64 -fno-exceptions -fno-rtti -fno-strict-aliasing -fPIC -O3 -march=x86-64 -ffast-math -DXMOD_LINUX64 -DCGAMEDLL -I./build.linux64-release/cgame -I./build.linux64-release/ -I./src -I./pak -c src/cgame/cg_players.cpp -o build.linux64-release/cgame/cgame/cg_players.o
+src/cgame/cg_players.cpp: In function ‘void CG_SetLerpFrameAnimationRate(centity_t*, clientInfo_t*, lerpFrame_t*, int)’:
+src/cgame/cg_players.cpp:509:61: warning: variable ‘oldAnimTime’ set but not used [-Wunused-but-set-variable]
+  509 |         int                             transitionMin = -1, oldAnimTime, oldAnimNum;
+      |                                                             ^~~~~~~~~~~
+src/cgame/cg_players.cpp: In function ‘void CG_RunLerpFrameRate(clientInfo_t*, lerpFrame_t*, int, centity_t*, int)’:
+src/cgame/cg_players.cpp:592:13: warning: variable ‘snapTime’ set but not used [-Wunused-but-set-variable]
+  592 |         int snapTime, snapPosTime;
+      |             ^~~~~~~~
+src/cgame/cg_players.cpp: In function ‘void CG_SwingAngles(float, float, float, float, float*, qboolean*)’:
+src/cgame/cg_players.cpp:909:23: warning: variable ‘centerAngle’ set but not used [-Wunused-but-set-variable]
+  909 |                 float centerAngle;
+      |                       ^~~~~~~~~~~
+src/cgame/cg_players.cpp: In function ‘void CG_PlayerAngles(centity_t*, vec_t (*)[3], vec_t (*)[3], vec_t (*)[3])’:
+src/cgame/cg_players.cpp:1032:50: warning: variable ‘torsoSet’ set but not used [-Wunused-but-set-variable]
+ 1032 |         int                             legsSet, torsoSet;
+      |                                                  ^~~~~~~~
+/usr/bin/g++ -pipe -Wall -Winvalid-pch -Wno-write-strings -fmessage-length=0 -m64 -fno-exceptions -fno-rtti -fno-strict-aliasing -fPIC -O3 -march=x86-64 -ffast-math -DXMOD_LINUX64 -DCGAMEDLL -I./build.linux64-release/cgame -I./build.linux64-release/ -I./src -I./pak -c src/cgame/cg_playerstate.cpp -o build.linux64-release/cgame/cgame/cg_playerstate.o
+/usr/bin/g++ -pipe -Wall -Winvalid-pch -Wno-write-strings -fmessage-length=0 -m64 -fno-exceptions -fno-rtti -fno-strict-aliasing -fPIC -O3 -march=x86-64 -ffast-math -DXMOD_LINUX64 -DCGAMEDLL -I./build.linux64-release/cgame -I./build.linux64-release/ -I./src -I./pak -c src/cgame/cg_polybus.cpp -o build.linux64-release/cgame/cgame/cg_polybus.o
+/usr/bin/g++ -pipe -Wall -Winvalid-pch -Wno-write-strings -fmessage-length=0 -m64 -fno-exceptions -fno-rtti -fno-strict-aliasing -fPIC -O3 -march=x86-64 -ffast-math -DXMOD_LINUX64 -DCGAMEDLL -I./build.linux64-release/cgame -I./build.linux64-release/ -I./src -I./pak -c src/cgame/cg_popupmessages.cpp -o build.linux64-release/cgame/cgame/cg_popupmessages.o
+/usr/bin/g++ -pipe -Wall -Winvalid-pch -Wno-write-strings -fmessage-length=0 -m64 -fno-exceptions -fno-rtti -fno-strict-aliasing -fPIC -O3 -march=x86-64 -ffast-math -DXMOD_LINUX64 -DCGAMEDLL -I./build.linux64-release/cgame -I./build.linux64-release/ -I./src -I./pak -c src/cgame/cg_predict.cpp -o build.linux64-release/cgame/cgame/cg_predict.o
+src/cgame/cg_predict.cpp: In function ‘int IsUnacceptableError(playerState_t*, playerState_t*)’:
+src/cgame/cg_predict.cpp:885:5: warning: this ‘if’ clause does not guard... [-Wmisleading-indentation]
+  885 |     if (memcmp( pps->holdable, ps->holdable, sizeof(pps->holdable) ))
+      |     ^~
+src/cgame/cg_predict.cpp:888:9: note: ...this statement, but the latter is misleadingly indented as if it were guarded by the ‘if’
+  888 |         return 0;
+      |         ^~~~~~
+/usr/bin/g++ -pipe -Wall -Winvalid-pch -Wno-write-strings -fmessage-length=0 -m64 -fno-exceptions -fno-rtti -fno-strict-aliasing -fPIC -O3 -march=x86-64 -ffast-math -DXMOD_LINUX64 -DCGAMEDLL -I./build.linux64-release/cgame -I./build.linux64-release/ -I./src -I./pak -c src/cgame/cg_scoreboard.cpp -o build.linux64-release/cgame/cgame/cg_scoreboard.o
+src/cgame/cg_scoreboard.cpp: In function ‘int WM_DrawObjectives(int, int, int, float)’:
+src/cgame/cg_scoreboard.cpp:65:25: warning: variable ‘str’ set but not used [-Wunused-but-set-variable]
+   65 |         const char *s, *str;
+      |                         ^~~
+src/cgame/cg_scoreboard.cpp:66:13: warning: variable ‘tempy’ set but not used [-Wunused-but-set-variable]
+   66 |         int tempy, rows;
+      |             ^~~~~
+src/cgame/cg_scoreboard.cpp: In function ‘int WM_TeamScoreboard(int, int, team_t, float, int, int)’:
+src/cgame/cg_scoreboard.cpp:662:13: warning: variable ‘height’ set but not used [-Wunused-but-set-variable]
+  662 |         int height, width;
+      |             ^~~~~~
+/usr/bin/g++ -pipe -Wall -Winvalid-pch -Wno-write-strings -fmessage-length=0 -m64 -fno-exceptions -fno-rtti -fno-strict-aliasing -fPIC -O3 -march=x86-64 -ffast-math -DXMOD_LINUX64 -DCGAMEDLL -I./build.linux64-release/cgame -I./build.linux64-release/ -I./src -I./pak -c src/cgame/cg_servercmds.cpp -o build.linux64-release/cgame/cgame/cg_servercmds.o
+src/cgame/cg_servercmds.cpp: In function ‘void CG_ParseReinforcementTimes(const char*)’:
+src/cgame/cg_servercmds.cpp:507:28: warning: variable ‘dwDummy’ set but not used [-Wunused-but-set-variable]
+  507 |         unsigned int i, j, dwDummy, dwOffset[TEAM_NUM_TEAMS];
+      |                            ^~~~~~~
+/usr/bin/g++ -pipe -Wall -Winvalid-pch -Wno-write-strings -fmessage-length=0 -m64 -fno-exceptions -fno-rtti -fno-strict-aliasing -fPIC -O3 -march=x86-64 -ffast-math -DXMOD_LINUX64 -DCGAMEDLL -I./build.linux64-release/cgame -I./build.linux64-release/ -I./src -I./pak -c src/cgame/cg_snapshot.cpp -o build.linux64-release/cgame/cgame/cg_snapshot.o
+/usr/bin/g++ -pipe -Wall -Winvalid-pch -Wno-write-strings -fmessage-length=0 -m64 -fno-exceptions -fno-rtti -fno-strict-aliasing -fPIC -O3 -march=x86-64 -ffast-math -DXMOD_LINUX64 -DCGAMEDLL -I./build.linux64-release/cgame -I./build.linux64-release/ -I./src -I./pak -c src/cgame/cg_sound.cpp -o build.linux64-release/cgame/cgame/cg_sound.o
+src/cgame/cg_sound.cpp: In function ‘void CG_SoundParseSounds(char*, char*)’:
+src/cgame/cg_sound.cpp:231:13: warning: variable ‘s’ set but not used [-Wunused-but-set-variable]
+  231 |         int s;
+      |             ^
+src/cgame/cg_sound.cpp: In function ‘void CG_SoundLoadSoundFiles()’:
+src/cgame/cg_sound.cpp:410:28: warning: format not a string literal and no format arguments [-Wformat-security]
+  410 |                 Com_sprintf( soundFiles[numSounds++], MAX_QPATH, token );
+      |                 ~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/usr/bin/g++ -pipe -Wall -Winvalid-pch -Wno-write-strings -fmessage-length=0 -m64 -fno-exceptions -fno-rtti -fno-strict-aliasing -fPIC -O3 -march=x86-64 -ffast-math -DXMOD_LINUX64 -DCGAMEDLL -I./build.linux64-release/cgame -I./build.linux64-release/ -I./src -I./pak -c src/cgame/cg_spawn.cpp -o build.linux64-release/cgame/cgame/cg_spawn.o
+/usr/bin/g++ -pipe -Wall -Winvalid-pch -Wno-write-strings -fmessage-length=0 -m64 -fno-exceptions -fno-rtti -fno-strict-aliasing -fPIC -O3 -march=x86-64 -ffast-math -DXMOD_LINUX64 -DCGAMEDLL -I./build.linux64-release/cgame -I./build.linux64-release/ -I./src -I./pak -c src/cgame/cg_statsranksmedals.cpp -o build.linux64-release/cgame/cgame/cg_statsranksmedals.o
+/usr/bin/g++ -pipe -Wall -Winvalid-pch -Wno-write-strings -fmessage-length=0 -m64 -fno-exceptions -fno-rtti -fno-strict-aliasing -fPIC -O3 -march=x86-64 -ffast-math -DXMOD_LINUX64 -DCGAMEDLL -I./build.linux64-release/cgame -I./build.linux64-release/ -I./src -I./pak -c src/cgame/cg_syscalls.cpp -o build.linux64-release/cgame/cgame/cg_syscalls.o
+/usr/bin/g++ -pipe -Wall -Winvalid-pch -Wno-write-strings -fmessage-length=0 -m64 -fno-exceptions -fno-rtti -fno-strict-aliasing -fPIC -O3 -march=x86-64 -ffast-math -DXMOD_LINUX64 -DCGAMEDLL -I./build.linux64-release/cgame -I./build.linux64-release/ -I./src -I./pak -c src/cgame/cg_text.cpp -o build.linux64-release/cgame/cgame/cg_text.o
+/usr/bin/g++ -pipe -Wall -Winvalid-pch -Wno-write-strings -fmessage-length=0 -m64 -fno-exceptions -fno-rtti -fno-strict-aliasing -fPIC -O3 -march=x86-64 -ffast-math -DXMOD_LINUX64 -DCGAMEDLL -I./build.linux64-release/cgame -I./build.linux64-release/ -I./src -I./pak -c src/cgame/cg_trails.cpp -o build.linux64-release/cgame/cgame/cg_trails.o
+/usr/bin/g++ -pipe -Wall -Winvalid-pch -Wno-write-strings -fmessage-length=0 -m64 -fno-exceptions -fno-rtti -fno-strict-aliasing -fPIC -O3 -march=x86-64 -ffast-math -DXMOD_LINUX64 -DCGAMEDLL -I./build.linux64-release/cgame -I./build.linux64-release/ -I./src -I./pak -c src/cgame/cg_view.cpp -o build.linux64-release/cgame/cgame/cg_view.o
+/usr/bin/g++ -pipe -Wall -Winvalid-pch -Wno-write-strings -fmessage-length=0 -m64 -fno-exceptions -fno-rtti -fno-strict-aliasing -fPIC -O3 -march=x86-64 -ffast-math -DXMOD_LINUX64 -DCGAMEDLL -I./build.linux64-release/cgame -I./build.linux64-release/ -I./src -I./pak -c src/cgame/cg_weapons.cpp -o build.linux64-release/cgame/cgame/cg_weapons.o
+src/cgame/cg_weapons.cpp: In function ‘void CG_StartWeaponAnim(int)’:
+src/cgame/cg_weapons.cpp:33:5: warning: this ‘if’ clause does not guard... [-Wmisleading-indentation]
+   33 |     if (cg.predictedPlayerState.eFlags & EF_PLAYDEAD)
+      |     ^~
+src/cgame/cg_weapons.cpp:36:9: note: ...this statement, but the latter is misleadingly indented as if it were guarded by the ‘if’
+   36 |         if ( cg.pmext.weapAnimTimer > 0 )
+      |         ^~
+src/cgame/cg_weapons.cpp: In function ‘void CG_PyroSmokeTrail(centity_t*, const weaponInfo_t*)’:
+src/cgame/cg_weapons.cpp:438:25: warning: variable ‘contents’ set but not used [-Wunused-but-set-variable]
+  438 |         int             contents;
+      |                         ^~~~~~~~
+src/cgame/cg_weapons.cpp:439:25: warning: variable ‘lastContents’ set but not used [-Wunused-but-set-variable]
+  439 |         int             lastContents, startTime;
+      |                         ^~~~~~~~~~~~
+src/cgame/cg_weapons.cpp:443:26: warning: variable ‘le’ set but not used [-Wunused-but-set-variable]
+  443 |         localEntity_t   *le;
+      |                          ^~
+src/cgame/cg_weapons.cpp: In function ‘void CG_AddPlayerWeapon(refEntity_t*, playerState_t*, centity_t*)’:
+src/cgame/cg_weapons.cpp:2107:27: warning: variable ‘classInfo’ set but not used [-Wunused-but-set-variable]
+ 2107 |         bg_playerclass_t* classInfo;
+      |                           ^~~~~~~~~
+src/cgame/cg_weapons.cpp: In function ‘int getPrevWeapInBank(int, int)’:
+src/cgame/cg_weapons.cpp:3132:9: warning: this ‘if’ clause does not guard... [-Wmisleading-indentation]
+ 3132 |         if(cycle < 0)
+      |         ^~
+src/cgame/cg_weapons.cpp:3136:17: note: ...this statement, but the latter is misleadingly indented as if it were guarded by the ‘if’
+ 3136 |                 while(!weapBanksMultiPlayer[bank][cycle]) {
+      |                 ^~~~~
+src/cgame/cg_weapons.cpp: In function ‘void CG_LastWeaponUsed_f()’:
+src/cgame/cg_weapons.cpp:3951:13: warning: variable ‘lastweap’ set but not used [-Wunused-but-set-variable]
+ 3951 |         int lastweap;
+      |             ^~~~~~~~
+src/cgame/cg_weapons.cpp: In function ‘void CG_WeaponBank_f()’:
+src/cgame/cg_weapons.cpp:4204:5: warning: this ‘if’ clause does not guard... [-Wmisleading-indentation]
+ 4204 |     if (cg.snap->ps.eFlags & EF_PLAYDEAD)
+      |     ^~
+src/cgame/cg_weapons.cpp:4207:9: note: ...this statement, but the latter is misleadingly indented as if it were guarded by the ‘if’
+ 4207 |         cg.weaponSelectTime = cg.time;  // flash the current weapon icon
+      |         ^~
+src/cgame/cg_weapons.cpp: In function ‘void CG_MissileHitWall(int, int, vec_t*, vec_t*, int)’:
+src/cgame/cg_weapons.cpp:5123:43: warning: variable ‘alphaFade’ set but not used [-Wunused-but-set-variable]
+ 5123 |         qboolean                isSprite, alphaFade = qfalse;
+      |                                           ^~~~~~~~~
+src/cgame/cg_weapons.cpp:5124:41: warning: variable ‘r’ set but not used [-Wunused-but-set-variable]
+ 5124 |         int                             r, duration, lightOverdraw, i, j, markDuration, volume;
+      |                                         ^
+src/cgame/cg_weapons.cpp: In function ‘void CG_Tracer(vec_t*, vec_t*, int)’:
+src/cgame/cg_weapons.cpp:5857:25: warning: variable ‘midpoint’ set but not used [-Wunused-but-set-variable]
+ 5857 |         vec3_t          midpoint;
+      |                         ^~~~~~~~
+src/cgame/cg_weapons.cpp: In function ‘void CG_Bullet(vec_t*, int, vec_t*, qboolean, int, int, float, int)’:
+src/cgame/cg_weapons.cpp:6132:32: warning: variable ‘le’ set but not used [-Wunused-but-set-variable]
+ 6132 |                 localEntity_t *le; // JPW NERVE
+      |                                ^~
+/usr/bin/g++ -pipe -Wall -Winvalid-pch -Wno-write-strings -fmessage-length=0 -m64 -fno-exceptions -fno-rtti -fno-strict-aliasing -fPIC -O3 -march=x86-64 -ffast-math -DXMOD_LINUX64 -DCGAMEDLL -I./build.linux64-release/cgame -I./build.linux64-release/ -I./src -I./pak -c src/cgame/cg_window.cpp -o build.linux64-release/cgame/cgame/cg_window.o
+/usr/bin/g++ -pipe -Wall -Winvalid-pch -Wno-write-strings -fmessage-length=0 -m64 -fno-exceptions -fno-rtti -fno-strict-aliasing -fPIC -O3 -march=x86-64 -ffast-math -DXMOD_LINUX64 -DCGAMEDLL -I./build.linux64-release/cgame -I./build.linux64-release/ -I./src -I./pak -c src/cgame/cvar/Cvar.cpp -o build.linux64-release/cgame/cgame/cvar/Cvar.o
+/usr/bin/g++ -pipe -Wall -Winvalid-pch -Wno-write-strings -fmessage-length=0 -m64 -fno-exceptions -fno-rtti -fno-strict-aliasing -fPIC -O3 -march=x86-64 -ffast-math -DXMOD_LINUX64 -DCGAMEDLL -I./build.linux64-release/cgame -I./build.linux64-release/ -I./src -I./pak -c src/cgame/cvar/util.cpp -o build.linux64-release/cgame/cgame/cvar/util.o
+/usr/bin/g++ -pipe -Wall -Winvalid-pch -Wno-write-strings -fmessage-length=0 -m64 -fno-exceptions -fno-rtti -fno-strict-aliasing -fPIC -O3 -march=x86-64 -ffast-math -DXMOD_LINUX64 -DCGAMEDLL -I./build.linux64-release/cgame -I./build.linux64-release/ -I./src -I./pak -c src/cgame/jxac/jxac_antitamper.cpp -o build.linux64-release/cgame/cgame/jxac/jxac_antitamper.o
+src/cgame/jxac/jxac_antitamper.cpp:52:20: warning: ‘jxac::tamperTools’ defined but not used [-Wunused-variable]
+   52 | static const char* tamperTools[] = {
+      |                    ^~~~~~~~~~~
+src/cgame/jxac/jxac_antitamper.cpp:8:20: warning: ‘const char* Q_stristr(const char*, const char*)’ defined but not used [-Wunused-function]
+    8 | static const char* Q_stristr(const char* haystack, const char* needle) {
+      |                    ^~~~~~~~~
+/usr/bin/g++ -pipe -Wall -Winvalid-pch -Wno-write-strings -fmessage-length=0 -m64 -fno-exceptions -fno-rtti -fno-strict-aliasing -fPIC -O3 -march=x86-64 -ffast-math -DXMOD_LINUX64 -DCGAMEDLL -I./build.linux64-release/cgame -I./build.linux64-release/ -I./src -I./pak -c src/cgame/jxac/jxac_client.cpp -o build.linux64-release/cgame/cgame/jxac/jxac_client.o
+/usr/bin/g++ -pipe -Wall -Winvalid-pch -Wno-write-strings -fmessage-length=0 -m64 -fno-exceptions -fno-rtti -fno-strict-aliasing -fPIC -O3 -march=x86-64 -ffast-math -DXMOD_LINUX64 -DCGAMEDLL -I./build.linux64-release/cgame -I./build.linux64-release/ -I./src -I./pak -c src/cgame/jxac/jxac_modules.cpp -o build.linux64-release/cgame/cgame/jxac/jxac_modules.o
+src/cgame/jxac/jxac_modules.cpp: In function ‘bool jxac::calculateSHA1(const char*, char*)’:
+src/cgame/jxac/jxac_modules.cpp:65:10: warning: ignoring return value of ‘size_t fread(void*, size_t, size_t, FILE*)’ declared with attribute ‘warn_unused_result’ [-Wunused-result]
+   65 |     fread(buffer, 1, size, f);
+      |     ~~~~~^~~~~~~~~~~~~~~~~~~~
+/usr/bin/g++ -pipe -Wall -Winvalid-pch -Wno-write-strings -fmessage-length=0 -m64 -fno-exceptions -fno-rtti -fno-strict-aliasing -fPIC -O3 -march=x86-64 -ffast-math -DXMOD_LINUX64 -DCGAMEDLL -I./build.linux64-release/cgame -I./build.linux64-release/ -I./src -I./pak -c src/cgame/jxac/jxac_screenshot.cpp -o build.linux64-release/cgame/cgame/jxac/jxac_screenshot.o
+/usr/bin/g++ -pipe -Wall -Winvalid-pch -Wno-write-strings -fmessage-length=0 -m64 -fno-exceptions -fno-rtti -fno-strict-aliasing -fPIC -O3 -march=x86-64 -ffast-math -DXMOD_LINUX64 -DCGAMEDLL -I./build.linux64-release/cgame -I./build.linux64-release/ -I./src -I./pak -c src/cgame/linux/cg_hardware.cpp -o build.linux64-release/cgame/cgame/linux/cg_hardware.o
+In file included from ./src/base/public.h:27,
+                 from src/cgame/linux/cg_hardware.cpp:10:
+./build.linux64-release/base/project.h:30: warning: "XMOD_LINUX64" redefined
+   30 | #define XMOD_LINUX64
+      | 
+<command-line>: note: this is the location of the previous definition
+/usr/bin/g++ -pipe -Wall -Winvalid-pch -Wno-write-strings -fmessage-length=0 -m64 -fno-exceptions -fno-rtti -fno-strict-aliasing -fPIC -O3 -march=x86-64 -ffast-math -DXMOD_LINUX64 -DCGAMEDLL -I./build.linux64-release/cgame -I./build.linux64-release/ -I./src -I./pak -c src/cgame/static.cpp -o build.linux64-release/cgame/cgame/static.o
+/usr/bin/g++ -pipe -Wall -Winvalid-pch -Wno-write-strings -fmessage-length=0 -m64 -fno-exceptions -fno-rtti -fno-strict-aliasing -fPIC -O3 -march=x86-64 -ffast-math -DXMOD_LINUX64 -DCGAMEDLL -I./build.linux64-release/cgame -I./build.linux64-release/ -I./src -I./pak -c src/cgame/xm_client_auth.cpp -o build.linux64-release/cgame/cgame/xm_client_auth.o
+In file included from ./src/base/public.h:27,
+                 from ./src/cgame/cg_local.h:17,
+                 from src/cgame/xm_client_auth.cpp:5:
+./build.linux64-release/base/project.h:30: warning: "XMOD_LINUX64" redefined
+   30 | #define XMOD_LINUX64
+      | 
+<command-line>: note: this is the location of the previous definition
+./src/cgame/cg_local.h:57: warning: "CHAR_WIDTH" redefined
+   57 | #define CHAR_WIDTH                      32
+      | 
+In file included from /usr/lib/gcc/x86_64-linux-gnu/13/include/limits.h:205,
+                 from /usr/lib/gcc/x86_64-linux-gnu/13/include/syslimits.h:7,
+                 from /usr/lib/gcc/x86_64-linux-gnu/13/include/limits.h:34,
+                 from ./src/lua/luaconf.h:11,
+                 from ./src/lua/lua.h:16,
+                 from ./src/base/lua/public.h:4,
+                 from ./src/base/public.h:36:
+/usr/include/limits.h:147: note: this is the location of the previous definition
+  147 | #  define CHAR_WIDTH 8
+      | 
+/usr/bin/g++ -pipe -Wall -Winvalid-pch -Wno-write-strings -fmessage-length=0 -m64 -fno-exceptions -fno-rtti -fno-strict-aliasing -fPIC -O3 -march=x86-64 -ffast-math -DXMOD_LINUX64 -DCGAMEDLL -I./build.linux64-release/cgame -I./build.linux64-release/ -I./src -I./pak -c src/cgame/xm_server_commands_handler.cpp -o build.linux64-release/cgame/cgame/xm_server_commands_handler.o
+In file included from ./src/base/public.h:27,
+                 from ./src/cgame/cg_local.h:17,
+                 from src/cgame/xm_server_commands_handler.cpp:2:
+./build.linux64-release/base/project.h:30: warning: "XMOD_LINUX64" redefined
+   30 | #define XMOD_LINUX64
+      | 
+<command-line>: note: this is the location of the previous definition
+./src/cgame/cg_local.h:57: warning: "CHAR_WIDTH" redefined
+   57 | #define CHAR_WIDTH                      32
+      | 
+In file included from /usr/lib/gcc/x86_64-linux-gnu/13/include/limits.h:205,
+                 from /usr/lib/gcc/x86_64-linux-gnu/13/include/syslimits.h:7,
+                 from /usr/lib/gcc/x86_64-linux-gnu/13/include/limits.h:34,
+                 from ./src/lua/luaconf.h:11,
+                 from ./src/lua/lua.h:16,
+                 from ./src/base/lua/public.h:4,
+                 from ./src/base/public.h:36:
+/usr/include/limits.h:147: note: this is the location of the previous definition
+  147 | #  define CHAR_WIDTH 8
+      | 
+/usr/bin/g++ -pipe -Wall -Winvalid-pch -Wno-write-strings -fmessage-length=0 -m64 -fno-exceptions -fno-rtti -fno-strict-aliasing -fPIC -O3 -march=x86-64 -ffast-math -DXMOD_LINUX64 -DCGAMEDLL -I./build.linux64-release/cgame -I./build.linux64-release/ -I./src -I./pak -c src/ui/ui_shared.cpp -o build.linux64-release/cgame/ui/ui_shared.o
+src/ui/ui_shared.cpp: In function ‘int Item_ListBox_OverLB(itemDef_t*, float, float)’:
+src/ui/ui_shared.cpp:2238:23: warning: variable ‘listPtr’ set but not used [-Wunused-but-set-variable]
+ 2238 |         listBoxDef_t *listPtr;
+      |                       ^~~~~~~
+src/ui/ui_shared.cpp:2240:13: warning: variable ‘count’ set but not used [-Wunused-but-set-variable]
+ 2240 |         int count;
+      |             ^~~~~
+src/ui/ui_shared.cpp: In function ‘void Item_Slider_Paint(itemDef_t*)’:
+src/ui/ui_shared.cpp:4520:21: warning: variable ‘value’ set but not used [-Wunused-but-set-variable]
+ 4520 |         float x, y, value;
+      |                     ^~~~~
+src/ui/ui_shared.cpp: In function ‘void Item_OwnerDraw_Paint(itemDef_t*)’:
+src/ui/ui_shared.cpp:5017:20: warning: variable ‘parent’ set but not used [-Wunused-but-set-variable]
+ 5017 |         menuDef_t *parent;
+      |                    ^~~~~~
+src/ui/ui_shared.cpp: In function ‘qboolean ItemParse_asset_model(itemDef_t*, int)’:
+src/ui/ui_shared.cpp:5732:21: warning: variable ‘modelPtr’ set but not used [-Wunused-but-set-variable]
+ 5732 |         modelDef_t *modelPtr;
+      |                     ^~~~~~~~
+cp `/usr/bin/g++ -m64 --print-file-name libstdc++.a` build.linux64-release/libstdc++.a
+/usr/bin/g++ -pipe -Wall -Winvalid-pch -Wno-write-strings -fmessage-length=0 -m64 -fno-exceptions -fno-rtti -fno-strict-aliasing -fPIC -O3 -march=x86-64 -ffast-math -static-libgcc -static-libstdc++ -DXMOD_LINUX64 -DCGAMEDLL -I./build.linux64-release/cgame -I./build.linux64-release/ -I./src -I./pak -o build.linux64-release/cgame/cgame.mp.x86_64.so build.linux64-release/cgame/bgame/Engine.o build.linux64-release/cgame/bgame/Process.o build.linux64-release/cgame/bgame/SampledStat.o build.linux64-release/cgame/bgame/bg_animation.o build.linux64-release/cgame/bgame/bg_animgroup.o build.linux64-release/cgame/bgame/bg_attack2.o build.linux64-release/cgame/bgame/bg_character.o build.linux64-release/cgame/bgame/bg_classes.o build.linux64-release/cgame/bgame/bg_misc.o build.linux64-release/cgame/bgame/bg_molotov.o build.linux64-release/cgame/bgame/bg_pmove.o build.linux64-release/cgame/bgame/bg_slidemove.o build.linux64-release/cgame/bgame/bg_sscript.o build.linux64-release/cgame/bgame/bg_stats.o build.linux64-release/cgame/bgame/bg_tracemap.o build.linux64-release/cgame/bgame/bg_xmod.o build.linux64-release/cgame/bgame/cvar/Cvar.o build.linux64-release/cgame/bgame/linux/Process.o build.linux64-release/cgame/bgame/linux/bg_cpu.o build.linux64-release/cgame/bgame/q_math.o build.linux64-release/cgame/bgame/q_shared.o build.linux64-release/cgame/bgame/str/PairDump.o build.linux64-release/cgame/bgame/str/util.o build.linux64-release/cgame/cgame/CBulletVolume.o build.linux64-release/cgame/cgame/CHitVolume.o build.linux64-release/cgame/cgame/Console.o build.linux64-release/cgame/cgame/Engine.o build.linux64-release/cgame/cgame/Font.o build.linux64-release/cgame/cgame/Location.o build.linux64-release/cgame/cgame/LocationDB.o build.linux64-release/cgame/cgame/cg_atmospheric.o build.linux64-release/cgame/cgame/cg_character.o build.linux64-release/cgame/cgame/cg_commandmap.o build.linux64-release/cgame/cgame/cg_consolecmds.o build.linux64-release/cgame/cgame/cg_debriefing.o build.linux64-release/cgame/cgame/cg_draw.o build.linux64-release/cgame/cgame/cg_drawtools.o build.linux64-release/cgame/cgame/cg_effects.o build.linux64-release/cgame/cgame/cg_ents.o build.linux64-release/cgame/cgame/cg_event.o build.linux64-release/cgame/cgame/cg_fireteamoverlay.o build.linux64-release/cgame/cgame/cg_fireteams.o build.linux64-release/cgame/cgame/cg_flamethrower.o build.linux64-release/cgame/cgame/cg_info.o build.linux64-release/cgame/cgame/cg_limbopanel.o build.linux64-release/cgame/cgame/cg_loadpanel.o build.linux64-release/cgame/cgame/cg_localents.o build.linux64-release/cgame/cgame/cg_main.o build.linux64-release/cgame/cgame/cg_marks.o build.linux64-release/cgame/cgame/cg_missionbriefing.o build.linux64-release/cgame/cgame/cg_molotov.o build.linux64-release/cgame/cgame/cg_multiview.o build.linux64-release/cgame/cgame/cg_newDraw.o build.linux64-release/cgame/cgame/cg_particles.o build.linux64-release/cgame/cgame/cg_players.o build.linux64-release/cgame/cgame/cg_playerstate.o build.linux64-release/cgame/cgame/cg_polybus.o build.linux64-release/cgame/cgame/cg_popupmessages.o build.linux64-release/cgame/cgame/cg_predict.o build.linux64-release/cgame/cgame/cg_scoreboard.o build.linux64-release/cgame/cgame/cg_servercmds.o build.linux64-release/cgame/cgame/cg_snapshot.o build.linux64-release/cgame/cgame/cg_sound.o build.linux64-release/cgame/cgame/cg_spawn.o build.linux64-release/cgame/cgame/cg_statsranksmedals.o build.linux64-release/cgame/cgame/cg_syscalls.o build.linux64-release/cgame/cgame/cg_text.o build.linux64-release/cgame/cgame/cg_trails.o build.linux64-release/cgame/cgame/cg_view.o build.linux64-release/cgame/cgame/cg_weapons.o build.linux64-release/cgame/cgame/cg_window.o build.linux64-release/cgame/cgame/cvar/Cvar.o build.linux64-release/cgame/cgame/cvar/util.o build.linux64-release/cgame/cgame/jxac/jxac_antitamper.o build.linux64-release/cgame/cgame/jxac/jxac_client.o build.linux64-release/cgame/cgame/jxac/jxac_modules.o build.linux64-release/cgame/cgame/jxac/jxac_screenshot.o build.linux64-release/cgame/cgame/linux/cg_hardware.o build.linux64-release/cgame/cgame/static.o build.linux64-release/cgame/cgame/xm_client_auth.o build.linux64-release/cgame/cgame/xm_server_commands_handler.o build.linux64-release/cgame/ui/ui_shared.o build.linux64-release/lua/liblua.a build.linux64-release/base/libbase.a build.linux64-release/libstdc++.a -shared -Wl,-z,defs -Wl,-z,relro -Wl,-z,now -Wl,-Bsymbolic -L./build.linux64-release/ -lm -ldl
+strip build.linux64-release/cgame/cgame.mp.x86_64.so
+/usr/bin/g++ -pipe -Wall -Winvalid-pch -Wno-write-strings -fmessage-length=0 -m64 -fno-exceptions -fno-rtti -fno-strict-aliasing -fPIC -O3 -march=x86-64 -ffast-math -DXMOD_LINUX64 -DGAMEDLL -I./build.linux64-release/game -I./src/sqlite3 -I./build.linux64-release/ -I./src -I./pak -c src/bgame/impl.h -o build.linux64-release/game/bgame/impl.h.gch/default
+In file included from ./src/base/public.h:27,
+                 from ./src/game/g_local.h:8,
+                 from src/bgame/impl.h:9:
+./build.linux64-release/base/project.h:30: warning: "XMOD_LINUX64" redefined
+   30 | #define XMOD_LINUX64
+      | 
+<command-line>: note: this is the location of the previous definition
+In file included from ./src/game/g_local.h:2702:
+./src/game/AbstractHitVolume.h:90:32: warning: ‘virtual AbstractHitVolume& AbstractHitVolume::operator=(const AbstractHitVolume&)’ was hidden [-Woverloaded-virtual=]
+   90 |     virtual AbstractHitVolume& operator=( const AbstractHitVolume& );
+      |                                ^~~~~~~~
+In file included from ./src/game/AbstractHitVolume.h:116:
+./src/game/AlignedCuboidHV.h:6:7: note:   by ‘AlignedCuboidHV& AlignedCuboidHV::operator=(const AlignedCuboidHV&)’
+    6 | class AlignedCuboidHV : public AbstractHitVolume
+      |       ^~~~~~~~~~~~~~~
+./src/game/AbstractHitVolume.h:90:32: warning: ‘virtual AbstractHitVolume& AbstractHitVolume::operator=(const AbstractHitVolume&)’ was hidden [-Woverloaded-virtual=]
+   90 |     virtual AbstractHitVolume& operator=( const AbstractHitVolume& );
+      |                                ^~~~~~~~
+In file included from ./src/game/AbstractHitVolume.h:117:
+./src/game/OrientedCuboidHV.h:24:23: note:   by ‘OrientedCuboidHV& OrientedCuboidHV::operator=(const OrientedCuboidHV&)’
+   24 |     OrientedCuboidHV& operator=( const OrientedCuboidHV& );
+      |                       ^~~~~~~~
+In file included from ./src/game/g_local.h:2703:
+./src/game/AbstractHitModel.h:109:31: warning: ‘virtual AbstractHitModel& AbstractHitModel::operator=(const AbstractHitModel&)’ was hidden [-Woverloaded-virtual=]
+  109 |     virtual AbstractHitModel& operator=( const AbstractHitModel& );
+      |                               ^~~~~~~~
+In file included from ./src/game/AbstractHitModel.h:126:
+./src/game/AbstractStateHitModel.h:52:28: note:   by ‘AbstractStateHitModel& AbstractStateHitModel::operator=(const AbstractStateHitModel&)’
+   52 |     AbstractStateHitModel& operator=( const AbstractStateHitModel& );
+      |                            ^~~~~~~~
+./src/game/AbstractHitModel.h:109:31: warning: ‘virtual AbstractHitModel& AbstractHitModel::operator=(const AbstractHitModel&)’ was hidden [-Woverloaded-virtual=]
+  109 |     virtual AbstractHitModel& operator=( const AbstractHitModel& );
+      |                               ^~~~~~~~
+In file included from ./src/game/AbstractStateHitModel.h:59:
+./src/game/BasicHitModel.h:29:20: note:   by ‘BasicHitModel& BasicHitModel::operator=(const BasicHitModel&)’
+   29 |     BasicHitModel& operator=( const BasicHitModel& );
+      |                    ^~~~~~~~
+./src/game/AbstractHitModel.h:109:31: warning: ‘virtual AbstractHitModel& AbstractHitModel::operator=(const AbstractHitModel&)’ was hidden [-Woverloaded-virtual=]
+  109 |     virtual AbstractHitModel& operator=( const AbstractHitModel& );
+      |                               ^~~~~~~~
+In file included from ./src/game/AbstractStateHitModel.h:60:
+./src/game/EtmainHitModel.h:27:21: note:   by ‘EtmainHitModel& EtmainHitModel::operator=(const EtmainHitModel&)’
+   27 |     EtmainHitModel& operator=( const EtmainHitModel& );
+      |                     ^~~~~~~~
+./src/game/AbstractHitModel.h:109:31: warning: ‘virtual AbstractHitModel& AbstractHitModel::operator=(const AbstractHitModel&)’ was hidden [-Woverloaded-virtual=]
+  109 |     virtual AbstractHitModel& operator=( const AbstractHitModel& );
+      |                               ^~~~~~~~
+In file included from ./src/game/AbstractStateHitModel.h:61:
+./src/game/StandardHitModel.h:30:23: note:   by ‘StandardHitModel& StandardHitModel::operator=(const StandardHitModel&)’
+   30 |     StandardHitModel& operator=( const StandardHitModel& );
+      |                       ^~~~~~~~
+./src/game/AbstractHitModel.h:109:31: warning: ‘virtual AbstractHitModel& AbstractHitModel::operator=(const AbstractHitModel&)’ was hidden [-Woverloaded-virtual=]
+  109 |     virtual AbstractHitModel& operator=( const AbstractHitModel& );
+      |                               ^~~~~~~~
+In file included from ./src/game/AbstractHitModel.h:127:
+./src/game/AdvancedHitModel.h:34:23: note:   by ‘AdvancedHitModel& AdvancedHitModel::operator=(const AdvancedHitModel&)’
+   34 |     AdvancedHitModel& operator=( const AdvancedHitModel& );
+      |                       ^~~~~~~~
+./src/game/AbstractHitModel.h:109:31: warning: ‘virtual AbstractHitModel& AbstractHitModel::operator=(const AbstractHitModel&)’ was hidden [-Woverloaded-virtual=]
+  109 |     virtual AbstractHitModel& operator=( const AbstractHitModel& );
+      |                               ^~~~~~~~
+In file included from ./src/game/AbstractHitModel.h:128:
+./src/game/EntityHitModel.h:31:21: note:   by ‘EntityHitModel& EntityHitModel::operator=(const EntityHitModel&)’
+   31 |     EntityHitModel& operator=( const EntityHitModel& );
+      |                     ^~~~~~~~
+./src/game/AbstractHitModel.h:109:31: warning: ‘virtual AbstractHitModel& AbstractHitModel::operator=(const AbstractHitModel&)’ was hidden [-Woverloaded-virtual=]
+  109 |     virtual AbstractHitModel& operator=( const AbstractHitModel& );
+      |                               ^~~~~~~~
+In file included from ./src/game/AbstractHitModel.h:129:
+./src/game/OrientedHitModel.h:35:23: note:   by ‘OrientedHitModel& OrientedHitModel::operator=(const OrientedHitModel&)’
+   35 |     OrientedHitModel& operator=( const OrientedHitModel& );
+      |                       ^~~~~~~~
+/usr/bin/g++ -pipe -Wall -Winvalid-pch -Wno-write-strings -fmessage-length=0 -m64 -fno-exceptions -fno-rtti -fno-strict-aliasing -fPIC -O3 -march=x86-64 -ffast-math -DXMOD_LINUX64 -DGAMEDLL -I./build.linux64-release/game -I./src/sqlite3 -I./build.linux64-release/ -I./src -I./pak -c src/bgame/Engine.cpp -o build.linux64-release/game/bgame/Engine.o
+/usr/bin/g++ -pipe -Wall -Winvalid-pch -Wno-write-strings -fmessage-length=0 -m64 -fno-exceptions -fno-rtti -fno-strict-aliasing -fPIC -O3 -march=x86-64 -ffast-math -DXMOD_LINUX64 -DGAMEDLL -I./build.linux64-release/game -I./src/sqlite3 -I./build.linux64-release/ -I./src -I./pak -c src/bgame/Logger.cpp -o build.linux64-release/game/bgame/Logger.o
+/usr/bin/g++ -pipe -Wall -Winvalid-pch -Wno-write-strings -fmessage-length=0 -m64 -fno-exceptions -fno-rtti -fno-strict-aliasing -fPIC -O3 -march=x86-64 -ffast-math -DXMOD_LINUX64 -DGAMEDLL -I./build.linux64-release/game -I./src/sqlite3 -I./build.linux64-release/ -I./src -I./pak -c src/bgame/Process.cpp -o build.linux64-release/game/bgame/Process.o
+/usr/bin/g++ -pipe -Wall -Winvalid-pch -Wno-write-strings -fmessage-length=0 -m64 -fno-exceptions -fno-rtti -fno-strict-aliasing -fPIC -O3 -march=x86-64 -ffast-math -DXMOD_LINUX64 -DGAMEDLL -I./build.linux64-release/game -I./src/sqlite3 -I./build.linux64-release/ -I./src -I./pak -c src/bgame/SampledStat.cpp -o build.linux64-release/game/bgame/SampledStat.o
+/usr/bin/g++ -pipe -Wall -Winvalid-pch -Wno-write-strings -fmessage-length=0 -m64 -fno-exceptions -fno-rtti -fno-strict-aliasing -fPIC -O3 -march=x86-64 -ffast-math -DXMOD_LINUX64 -DGAMEDLL -I./build.linux64-release/game -I./src/sqlite3 -I./build.linux64-release/ -I./src -I./pak -c src/bgame/bg_animation.cpp -o build.linux64-release/game/bgame/bg_animation.o
+src/bgame/bg_animation.cpp: In function ‘void BG_ParseConditionBits(char**, animStringItem_t*, int, int*)’:
+src/bgame/bg_animation.cpp:581:35: warning: ‘sizeof’ on array function parameter ‘result’ will return size of ‘int*’ [-Wsizeof-array-argument]
+  581 |         memset( result, 0, sizeof(result) );
+      |                                  ~^~~~~~~
+src/bgame/bg_animation.cpp:570:95: note: declared here
+  570 | void BG_ParseConditionBits( char **text_pp, animStringItem_t *stringTable, int condIndex, int result[2] )
+      |                                                                                           ~~~~^~~~~~~~~
+src/bgame/bg_animation.cpp:581:28: warning: argument to ‘sizeof’ in ‘void* memset(void*, int, size_t)’ call is the same expression as the destination; did you mean to dereference it? [-Wsizeof-pointer-memaccess]
+  581 |         memset( result, 0, sizeof(result) );
+      |                            ^~~~~~~~~~~~~~
+src/bgame/bg_animation.cpp: In function ‘void BG_ParseCommands(char**, animScriptItem_t*, animModelInfo_t*, animScriptData_t*)’:
+src/bgame/bg_animation.cpp:774:45: warning: argument to ‘sizeof’ in ‘void* memset(void*, int, size_t)’ call is the same expression as the destination; did you mean to dereference it? [-Wsizeof-pointer-memaccess]
+  774 |                         memset( command, 0, sizeof(command) );
+      |                                             ^~~~~~~~~~~~~~~
+/usr/bin/g++ -pipe -Wall -Winvalid-pch -Wno-write-strings -fmessage-length=0 -m64 -fno-exceptions -fno-rtti -fno-strict-aliasing -fPIC -O3 -march=x86-64 -ffast-math -DXMOD_LINUX64 -DGAMEDLL -I./build.linux64-release/game -I./src/sqlite3 -I./build.linux64-release/ -I./src -I./pak -c src/bgame/bg_animgroup.cpp -o build.linux64-release/game/bgame/bg_animgroup.o
+/usr/bin/g++ -pipe -Wall -Winvalid-pch -Wno-write-strings -fmessage-length=0 -m64 -fno-exceptions -fno-rtti -fno-strict-aliasing -fPIC -O3 -march=x86-64 -ffast-math -DXMOD_LINUX64 -DGAMEDLL -I./build.linux64-release/game -I./src/sqlite3 -I./build.linux64-release/ -I./src -I./pak -c src/bgame/bg_attack2.cpp -o build.linux64-release/game/bgame/bg_attack2.o
+/usr/bin/g++ -pipe -Wall -Winvalid-pch -Wno-write-strings -fmessage-length=0 -m64 -fno-exceptions -fno-rtti -fno-strict-aliasing -fPIC -O3 -march=x86-64 -ffast-math -DXMOD_LINUX64 -DGAMEDLL -I./build.linux64-release/game -I./src/sqlite3 -I./build.linux64-release/ -I./src -I./pak -c src/bgame/bg_campaign.cpp -o build.linux64-release/game/bgame/bg_campaign.o
+/usr/bin/g++ -pipe -Wall -Winvalid-pch -Wno-write-strings -fmessage-length=0 -m64 -fno-exceptions -fno-rtti -fno-strict-aliasing -fPIC -O3 -march=x86-64 -ffast-math -DXMOD_LINUX64 -DGAMEDLL -I./build.linux64-release/game -I./src/sqlite3 -I./build.linux64-release/ -I./src -I./pak -c src/bgame/bg_character.cpp -o build.linux64-release/game/bgame/bg_character.o
+/usr/bin/g++ -pipe -Wall -Winvalid-pch -Wno-write-strings -fmessage-length=0 -m64 -fno-exceptions -fno-rtti -fno-strict-aliasing -fPIC -O3 -march=x86-64 -ffast-math -DXMOD_LINUX64 -DGAMEDLL -I./build.linux64-release/game -I./src/sqlite3 -I./build.linux64-release/ -I./src -I./pak -c src/bgame/bg_classes.cpp -o build.linux64-release/game/bgame/bg_classes.o
+/usr/bin/g++ -pipe -Wall -Winvalid-pch -Wno-write-strings -fmessage-length=0 -m64 -fno-exceptions -fno-rtti -fno-strict-aliasing -fPIC -O3 -march=x86-64 -ffast-math -DXMOD_LINUX64 -DGAMEDLL -I./build.linux64-release/game -I./src/sqlite3 -I./build.linux64-release/ -I./src -I./pak -c src/bgame/bg_misc.cpp -o build.linux64-release/game/bgame/bg_misc.o
+/usr/bin/g++ -pipe -Wall -Winvalid-pch -Wno-write-strings -fmessage-length=0 -m64 -fno-exceptions -fno-rtti -fno-strict-aliasing -fPIC -O3 -march=x86-64 -ffast-math -DXMOD_LINUX64 -DGAMEDLL -I./build.linux64-release/game -I./src/sqlite3 -I./build.linux64-release/ -I./src -I./pak -c src/bgame/bg_molotov.cpp -o build.linux64-release/game/bgame/bg_molotov.o
+/usr/bin/g++ -pipe -Wall -Winvalid-pch -Wno-write-strings -fmessage-length=0 -m64 -fno-exceptions -fno-rtti -fno-strict-aliasing -fPIC -O3 -march=x86-64 -ffast-math -DXMOD_LINUX64 -DGAMEDLL -I./build.linux64-release/game -I./src/sqlite3 -I./build.linux64-release/ -I./src -I./pak -c src/bgame/bg_pmove.cpp -o build.linux64-release/game/bgame/bg_pmove.o
+src/bgame/bg_pmove.cpp: In function ‘void PM_StartWeaponAnim(int)’:
+src/bgame/bg_pmove.cpp:221:5: warning: this ‘if’ clause does not guard... [-Wmisleading-indentation]
+  221 |     if (pm->ps->eFlags & EF_PLAYDEAD)
+      |     ^~
+src/bgame/bg_pmove.cpp:224:9: note: ...this statement, but the latter is misleadingly indented as if it were guarded by the ‘if’
+  224 |         if ( pm->pmext->weapAnimTimer > 0 )
+      |         ^~
+src/bgame/bg_pmove.cpp: In function ‘qboolean PM_CheckProne()’:
+src/bgame/bg_pmove.cpp:1022:5: warning: this ‘if’ clause does not guard... [-Wmisleading-indentation]
+ 1022 |     if (cvars::bg_proneDelay.ivalue > 0)
+      |     ^~
+src/bgame/bg_pmove.cpp:1025:9: note: ...this statement, but the latter is misleadingly indented as if it were guarded by the ‘if’
+ 1025 |         if( !(pm->ps->eFlags & EF_PRONE) ) {
+      |         ^~
+src/bgame/bg_pmove.cpp: In function ‘void PM_Weapon()’:
+src/bgame/bg_pmove.cpp:4741:23: warning: variable ‘bckmove_knockback’ set but not used [-Wunused-but-set-variable]
+ 4741 |                 float bckmove_knockback = 0.f;
+      |                       ^~~~~~~~~~~~~~~~~
+/usr/bin/g++ -pipe -Wall -Winvalid-pch -Wno-write-strings -fmessage-length=0 -m64 -fno-exceptions -fno-rtti -fno-strict-aliasing -fPIC -O3 -march=x86-64 -ffast-math -DXMOD_LINUX64 -DGAMEDLL -I./build.linux64-release/game -I./src/sqlite3 -I./build.linux64-release/ -I./src -I./pak -c src/bgame/bg_slidemove.cpp -o build.linux64-release/game/bgame/bg_slidemove.o
+/usr/bin/g++ -pipe -Wall -Winvalid-pch -Wno-write-strings -fmessage-length=0 -m64 -fno-exceptions -fno-rtti -fno-strict-aliasing -fPIC -O3 -march=x86-64 -ffast-math -DXMOD_LINUX64 -DGAMEDLL -I./build.linux64-release/game -I./src/sqlite3 -I./build.linux64-release/ -I./src -I./pak -c src/bgame/bg_sscript.cpp -o build.linux64-release/game/bgame/bg_sscript.o
+/usr/bin/g++ -pipe -Wall -Winvalid-pch -Wno-write-strings -fmessage-length=0 -m64 -fno-exceptions -fno-rtti -fno-strict-aliasing -fPIC -O3 -march=x86-64 -ffast-math -DXMOD_LINUX64 -DGAMEDLL -I./build.linux64-release/game -I./src/sqlite3 -I./build.linux64-release/ -I./src -I./pak -c src/bgame/bg_stats.cpp -o build.linux64-release/game/bgame/bg_stats.o
+/usr/bin/g++ -pipe -Wall -Winvalid-pch -Wno-write-strings -fmessage-length=0 -m64 -fno-exceptions -fno-rtti -fno-strict-aliasing -fPIC -O3 -march=x86-64 -ffast-math -DXMOD_LINUX64 -DGAMEDLL -I./build.linux64-release/game -I./src/sqlite3 -I./build.linux64-release/ -I./src -I./pak -c src/bgame/bg_tracemap.cpp -o build.linux64-release/game/bgame/bg_tracemap.o
+/usr/bin/g++ -pipe -Wall -Winvalid-pch -Wno-write-strings -fmessage-length=0 -m64 -fno-exceptions -fno-rtti -fno-strict-aliasing -fPIC -O3 -march=x86-64 -ffast-math -DXMOD_LINUX64 -DGAMEDLL -I./build.linux64-release/game -I./src/sqlite3 -I./build.linux64-release/ -I./src -I./pak -c src/bgame/bg_xmod.cpp -o build.linux64-release/game/bgame/bg_xmod.o
+/usr/bin/g++ -pipe -Wall -Winvalid-pch -Wno-write-strings -fmessage-length=0 -m64 -fno-exceptions -fno-rtti -fno-strict-aliasing -fPIC -O3 -march=x86-64 -ffast-math -DXMOD_LINUX64 -DGAMEDLL -I./build.linux64-release/game -I./src/sqlite3 -I./build.linux64-release/ -I./src -I./pak -c src/bgame/cvar/Cvar.cpp -o build.linux64-release/game/bgame/cvar/Cvar.o
+/usr/bin/g++ -pipe -Wall -Winvalid-pch -Wno-write-strings -fmessage-length=0 -m64 -fno-exceptions -fno-rtti -fno-strict-aliasing -fPIC -O3 -march=x86-64 -ffast-math -DXMOD_LINUX64 -DGAMEDLL -I./build.linux64-release/game -I./src/sqlite3 -I./build.linux64-release/ -I./src -I./pak -c src/bgame/linux/Process.cpp -o build.linux64-release/game/bgame/linux/Process.o
+In file included from ./src/base/public.h:27,
+                 from ./src/game/g_local.h:8,
+                 from src/bgame/linux/Process.cpp:4:
+./build.linux64-release/base/project.h:30: warning: "XMOD_LINUX64" redefined
+   30 | #define XMOD_LINUX64
+      | 
+<command-line>: note: this is the location of the previous definition
+In file included from ./src/game/g_local.h:2702:
+./src/game/AbstractHitVolume.h:90:32: warning: ‘virtual AbstractHitVolume& AbstractHitVolume::operator=(const AbstractHitVolume&)’ was hidden [-Woverloaded-virtual=]
+   90 |     virtual AbstractHitVolume& operator=( const AbstractHitVolume& );
+      |                                ^~~~~~~~
+In file included from ./src/game/AbstractHitVolume.h:116:
+./src/game/AlignedCuboidHV.h:6:7: note:   by ‘AlignedCuboidHV& AlignedCuboidHV::operator=(const AlignedCuboidHV&)’
+    6 | class AlignedCuboidHV : public AbstractHitVolume
+      |       ^~~~~~~~~~~~~~~
+./src/game/AbstractHitVolume.h:90:32: warning: ‘virtual AbstractHitVolume& AbstractHitVolume::operator=(const AbstractHitVolume&)’ was hidden [-Woverloaded-virtual=]
+   90 |     virtual AbstractHitVolume& operator=( const AbstractHitVolume& );
+      |                                ^~~~~~~~
+In file included from ./src/game/AbstractHitVolume.h:117:
+./src/game/OrientedCuboidHV.h:24:23: note:   by ‘OrientedCuboidHV& OrientedCuboidHV::operator=(const OrientedCuboidHV&)’
+   24 |     OrientedCuboidHV& operator=( const OrientedCuboidHV& );
+      |                       ^~~~~~~~
+In file included from ./src/game/g_local.h:2703:
+./src/game/AbstractHitModel.h:109:31: warning: ‘virtual AbstractHitModel& AbstractHitModel::operator=(const AbstractHitModel&)’ was hidden [-Woverloaded-virtual=]
+  109 |     virtual AbstractHitModel& operator=( const AbstractHitModel& );
+      |                               ^~~~~~~~
+In file included from ./src/game/AbstractHitModel.h:126:
+./src/game/AbstractStateHitModel.h:52:28: note:   by ‘AbstractStateHitModel& AbstractStateHitModel::operator=(const AbstractStateHitModel&)’
+   52 |     AbstractStateHitModel& operator=( const AbstractStateHitModel& );
+      |                            ^~~~~~~~
+./src/game/AbstractHitModel.h:109:31: warning: ‘virtual AbstractHitModel& AbstractHitModel::operator=(const AbstractHitModel&)’ was hidden [-Woverloaded-virtual=]
+  109 |     virtual AbstractHitModel& operator=( const AbstractHitModel& );
+      |                               ^~~~~~~~
+In file included from ./src/game/AbstractStateHitModel.h:59:
+./src/game/BasicHitModel.h:29:20: note:   by ‘BasicHitModel& BasicHitModel::operator=(const BasicHitModel&)’
+   29 |     BasicHitModel& operator=( const BasicHitModel& );
+      |                    ^~~~~~~~
+./src/game/AbstractHitModel.h:109:31: warning: ‘virtual AbstractHitModel& AbstractHitModel::operator=(const AbstractHitModel&)’ was hidden [-Woverloaded-virtual=]
+  109 |     virtual AbstractHitModel& operator=( const AbstractHitModel& );
+      |                               ^~~~~~~~
+In file included from ./src/game/AbstractStateHitModel.h:60:
+./src/game/EtmainHitModel.h:27:21: note:   by ‘EtmainHitModel& EtmainHitModel::operator=(const EtmainHitModel&)’
+   27 |     EtmainHitModel& operator=( const EtmainHitModel& );
+      |                     ^~~~~~~~
+./src/game/AbstractHitModel.h:109:31: warning: ‘virtual AbstractHitModel& AbstractHitModel::operator=(const AbstractHitModel&)’ was hidden [-Woverloaded-virtual=]
+  109 |     virtual AbstractHitModel& operator=( const AbstractHitModel& );
+      |                               ^~~~~~~~
+In file included from ./src/game/AbstractStateHitModel.h:61:
+./src/game/StandardHitModel.h:30:23: note:   by ‘StandardHitModel& StandardHitModel::operator=(const StandardHitModel&)’
+   30 |     StandardHitModel& operator=( const StandardHitModel& );
+      |                       ^~~~~~~~
+./src/game/AbstractHitModel.h:109:31: warning: ‘virtual AbstractHitModel& AbstractHitModel::operator=(const AbstractHitModel&)’ was hidden [-Woverloaded-virtual=]
+  109 |     virtual AbstractHitModel& operator=( const AbstractHitModel& );
+      |                               ^~~~~~~~
+In file included from ./src/game/AbstractHitModel.h:127:
+./src/game/AdvancedHitModel.h:34:23: note:   by ‘AdvancedHitModel& AdvancedHitModel::operator=(const AdvancedHitModel&)’
+   34 |     AdvancedHitModel& operator=( const AdvancedHitModel& );
+      |                       ^~~~~~~~
+./src/game/AbstractHitModel.h:109:31: warning: ‘virtual AbstractHitModel& AbstractHitModel::operator=(const AbstractHitModel&)’ was hidden [-Woverloaded-virtual=]
+  109 |     virtual AbstractHitModel& operator=( const AbstractHitModel& );
+      |                               ^~~~~~~~
+In file included from ./src/game/AbstractHitModel.h:128:
+./src/game/EntityHitModel.h:31:21: note:   by ‘EntityHitModel& EntityHitModel::operator=(const EntityHitModel&)’
+   31 |     EntityHitModel& operator=( const EntityHitModel& );
+      |                     ^~~~~~~~
+./src/game/AbstractHitModel.h:109:31: warning: ‘virtual AbstractHitModel& AbstractHitModel::operator=(const AbstractHitModel&)’ was hidden [-Woverloaded-virtual=]
+  109 |     virtual AbstractHitModel& operator=( const AbstractHitModel& );
+      |                               ^~~~~~~~
+In file included from ./src/game/AbstractHitModel.h:129:
+./src/game/OrientedHitModel.h:35:23: note:   by ‘OrientedHitModel& OrientedHitModel::operator=(const OrientedHitModel&)’
+   35 |     OrientedHitModel& operator=( const OrientedHitModel& );
+      |                       ^~~~~~~~
+/usr/bin/g++ -pipe -Wall -Winvalid-pch -Wno-write-strings -fmessage-length=0 -m64 -fno-exceptions -fno-rtti -fno-strict-aliasing -fPIC -O3 -march=x86-64 -ffast-math -DXMOD_LINUX64 -DGAMEDLL -I./build.linux64-release/game -I./src/sqlite3 -I./build.linux64-release/ -I./src -I./pak -c src/bgame/linux/bg_cpu.cpp -o build.linux64-release/game/bgame/linux/bg_cpu.o
+In file included from ./src/base/public.h:27,
+                 from ./src/game/g_local.h:8,
+                 from src/bgame/linux/bg_cpu.cpp:6:
+./build.linux64-release/base/project.h:30: warning: "XMOD_LINUX64" redefined
+   30 | #define XMOD_LINUX64
+      | 
+<command-line>: note: this is the location of the previous definition
+In file included from ./src/game/g_local.h:2702:
+./src/game/AbstractHitVolume.h:90:32: warning: ‘virtual AbstractHitVolume& AbstractHitVolume::operator=(const AbstractHitVolume&)’ was hidden [-Woverloaded-virtual=]
+   90 |     virtual AbstractHitVolume& operator=( const AbstractHitVolume& );
+      |                                ^~~~~~~~
+In file included from ./src/game/AbstractHitVolume.h:116:
+./src/game/AlignedCuboidHV.h:6:7: note:   by ‘AlignedCuboidHV& AlignedCuboidHV::operator=(const AlignedCuboidHV&)’
+    6 | class AlignedCuboidHV : public AbstractHitVolume
+      |       ^~~~~~~~~~~~~~~
+./src/game/AbstractHitVolume.h:90:32: warning: ‘virtual AbstractHitVolume& AbstractHitVolume::operator=(const AbstractHitVolume&)’ was hidden [-Woverloaded-virtual=]
+   90 |     virtual AbstractHitVolume& operator=( const AbstractHitVolume& );
+      |                                ^~~~~~~~
+In file included from ./src/game/AbstractHitVolume.h:117:
+./src/game/OrientedCuboidHV.h:24:23: note:   by ‘OrientedCuboidHV& OrientedCuboidHV::operator=(const OrientedCuboidHV&)’
+   24 |     OrientedCuboidHV& operator=( const OrientedCuboidHV& );
+      |                       ^~~~~~~~
+In file included from ./src/game/g_local.h:2703:
+./src/game/AbstractHitModel.h:109:31: warning: ‘virtual AbstractHitModel& AbstractHitModel::operator=(const AbstractHitModel&)’ was hidden [-Woverloaded-virtual=]
+  109 |     virtual AbstractHitModel& operator=( const AbstractHitModel& );
+      |                               ^~~~~~~~
+In file included from ./src/game/AbstractHitModel.h:126:
+./src/game/AbstractStateHitModel.h:52:28: note:   by ‘AbstractStateHitModel& AbstractStateHitModel::operator=(const AbstractStateHitModel&)’
+   52 |     AbstractStateHitModel& operator=( const AbstractStateHitModel& );
+      |                            ^~~~~~~~
+./src/game/AbstractHitModel.h:109:31: warning: ‘virtual AbstractHitModel& AbstractHitModel::operator=(const AbstractHitModel&)’ was hidden [-Woverloaded-virtual=]
+  109 |     virtual AbstractHitModel& operator=( const AbstractHitModel& );
+      |                               ^~~~~~~~
+In file included from ./src/game/AbstractStateHitModel.h:59:
+./src/game/BasicHitModel.h:29:20: note:   by ‘BasicHitModel& BasicHitModel::operator=(const BasicHitModel&)’
+   29 |     BasicHitModel& operator=( const BasicHitModel& );
+      |                    ^~~~~~~~
+./src/game/AbstractHitModel.h:109:31: warning: ‘virtual AbstractHitModel& AbstractHitModel::operator=(const AbstractHitModel&)’ was hidden [-Woverloaded-virtual=]
+  109 |     virtual AbstractHitModel& operator=( const AbstractHitModel& );
+      |                               ^~~~~~~~
+In file included from ./src/game/AbstractStateHitModel.h:60:
+./src/game/EtmainHitModel.h:27:21: note:   by ‘EtmainHitModel& EtmainHitModel::operator=(const EtmainHitModel&)’
+   27 |     EtmainHitModel& operator=( const EtmainHitModel& );
+      |                     ^~~~~~~~
+./src/game/AbstractHitModel.h:109:31: warning: ‘virtual AbstractHitModel& AbstractHitModel::operator=(const AbstractHitModel&)’ was hidden [-Woverloaded-virtual=]
+  109 |     virtual AbstractHitModel& operator=( const AbstractHitModel& );
+      |                               ^~~~~~~~
+In file included from ./src/game/AbstractStateHitModel.h:61:
+./src/game/StandardHitModel.h:30:23: note:   by ‘StandardHitModel& StandardHitModel::operator=(const StandardHitModel&)’
+   30 |     StandardHitModel& operator=( const StandardHitModel& );
+      |                       ^~~~~~~~
+./src/game/AbstractHitModel.h:109:31: warning: ‘virtual AbstractHitModel& AbstractHitModel::operator=(const AbstractHitModel&)’ was hidden [-Woverloaded-virtual=]
+  109 |     virtual AbstractHitModel& operator=( const AbstractHitModel& );
+      |                               ^~~~~~~~
+In file included from ./src/game/AbstractHitModel.h:127:
+./src/game/AdvancedHitModel.h:34:23: note:   by ‘AdvancedHitModel& AdvancedHitModel::operator=(const AdvancedHitModel&)’
+   34 |     AdvancedHitModel& operator=( const AdvancedHitModel& );
+      |                       ^~~~~~~~
+./src/game/AbstractHitModel.h:109:31: warning: ‘virtual AbstractHitModel& AbstractHitModel::operator=(const AbstractHitModel&)’ was hidden [-Woverloaded-virtual=]
+  109 |     virtual AbstractHitModel& operator=( const AbstractHitModel& );
+      |                               ^~~~~~~~
+In file included from ./src/game/AbstractHitModel.h:128:
+./src/game/EntityHitModel.h:31:21: note:   by ‘EntityHitModel& EntityHitModel::operator=(const EntityHitModel&)’
+   31 |     EntityHitModel& operator=( const EntityHitModel& );
+      |                     ^~~~~~~~
+./src/game/AbstractHitModel.h:109:31: warning: ‘virtual AbstractHitModel& AbstractHitModel::operator=(const AbstractHitModel&)’ was hidden [-Woverloaded-virtual=]
+  109 |     virtual AbstractHitModel& operator=( const AbstractHitModel& );
+      |                               ^~~~~~~~
+In file included from ./src/game/AbstractHitModel.h:129:
+./src/game/OrientedHitModel.h:35:23: note:   by ‘OrientedHitModel& OrientedHitModel::operator=(const OrientedHitModel&)’
+   35 |     OrientedHitModel& operator=( const OrientedHitModel& );
+      |                       ^~~~~~~~
+src/bgame/linux/bg_cpu.cpp: In function ‘void BG_cpuUpdate()’:
+src/bgame/linux/bg_cpu.cpp:85:36: warning: ‘char* __builtin_strncpy(char*, const char*, long unsigned int)’ output may be truncated copying 31 bytes from a string of length 63 [-Wstringop-truncation]
+   85 |                             strncpy( cpuModel, tokenValue, cpuModelSize-1 );
+      |                                    ^
+/usr/bin/g++ -pipe -Wall -Winvalid-pch -Wno-write-strings -fmessage-length=0 -m64 -fno-exceptions -fno-rtti -fno-strict-aliasing -fPIC -O3 -march=x86-64 -ffast-math -DXMOD_LINUX64 -DGAMEDLL -I./build.linux64-release/game -I./src/sqlite3 -I./build.linux64-release/ -I./src -I./pak -c src/bgame/q_math.cpp -o build.linux64-release/game/bgame/q_math.o
+/usr/bin/g++ -pipe -Wall -Winvalid-pch -Wno-write-strings -fmessage-length=0 -m64 -fno-exceptions -fno-rtti -fno-strict-aliasing -fPIC -O3 -march=x86-64 -ffast-math -DXMOD_LINUX64 -DGAMEDLL -I./build.linux64-release/game -I./src/sqlite3 -I./build.linux64-release/ -I./src -I./pak -c src/bgame/q_shared.cpp -o build.linux64-release/game/bgame/q_shared.o
+src/bgame/q_shared.cpp: In function ‘qboolean COM_BitCheck(const int*, int)’:
+src/bgame/q_shared.cpp:133:25: warning: ‘sizeof’ on array function parameter ‘array’ will return size of ‘const int*’ [-Wsizeof-array-argument]
+  133 |         if (i >= sizeof(array)) return qfalse;
+      |                        ~^~~~~~
+src/bgame/q_shared.cpp:120:34: note: declared here
+  120 | qboolean COM_BitCheck( const int array[], int bitNum ) {
+      |                        ~~~~~~~~~~^~~~~~~
+src/bgame/q_shared.cpp: In function ‘void COM_BitSet(int*, int)’:
+src/bgame/q_shared.cpp:158:24: warning: ‘sizeof’ on array function parameter ‘array’ will return size of ‘int*’ [-Wsizeof-array-argument]
+  158 |         if(i >= sizeof(array)) return;
+      |                       ~^~~~~~
+src/bgame/q_shared.cpp:145:22: note: declared here
+  145 | void COM_BitSet( int array[], int bitNum ) {
+      |                  ~~~~^~~~~~~
+src/bgame/q_shared.cpp: In function ‘void COM_BitClear(int*, int)’:
+src/bgame/q_shared.cpp:183:24: warning: ‘sizeof’ on array function parameter ‘array’ will return size of ‘int*’ [-Wsizeof-array-argument]
+  183 |         if(i >= sizeof(array)) return;
+      |                       ~^~~~~~
+src/bgame/q_shared.cpp:170:24: note: declared here
+  170 | void COM_BitClear( int array[], int bitNum ) {
+      |                    ~~~~^~~~~~~
+src/bgame/q_shared.cpp: In function ‘int COM_Compress(char*)’:
+src/bgame/q_shared.cpp:432:16: warning: variable ‘pc’ set but not used [-Wunused-but-set-variable]
+  432 |         int c, pc, size;
+      |                ^~
+/usr/bin/g++ -pipe -Wall -Winvalid-pch -Wno-write-strings -fmessage-length=0 -m64 -fno-exceptions -fno-rtti -fno-strict-aliasing -fPIC -O3 -march=x86-64 -ffast-math -DXMOD_LINUX64 -DGAMEDLL -I./build.linux64-release/game -I./src/sqlite3 -I./build.linux64-release/ -I./src -I./pak -c src/bgame/str/PairDump.cpp -o build.linux64-release/game/bgame/str/PairDump.o
+/usr/bin/g++ -pipe -Wall -Winvalid-pch -Wno-write-strings -fmessage-length=0 -m64 -fno-exceptions -fno-rtti -fno-strict-aliasing -fPIC -O3 -march=x86-64 -ffast-math -DXMOD_LINUX64 -DGAMEDLL -I./build.linux64-release/game -I./src/sqlite3 -I./build.linux64-release/ -I./src -I./pak -c src/bgame/str/util.cpp -o build.linux64-release/game/bgame/str/util.o
+/usr/bin/g++ -pipe -Wall -Winvalid-pch -Wno-write-strings -fmessage-length=0 -m64 -fno-exceptions -fno-rtti -fno-strict-aliasing -fPIC -O3 -march=x86-64 -ffast-math -DXMOD_LINUX64 -DGAMEDLL -I./build.linux64-release/game -I./src/sqlite3 -I./build.linux64-release/ -I./src -I./pak -c src/game/AbstractBulletModel.cpp -o build.linux64-release/game/game/AbstractBulletModel.o
+/usr/bin/g++ -pipe -Wall -Winvalid-pch -Wno-write-strings -fmessage-length=0 -m64 -fno-exceptions -fno-rtti -fno-strict-aliasing -fPIC -O3 -march=x86-64 -ffast-math -DXMOD_LINUX64 -DGAMEDLL -I./build.linux64-release/game -I./src/sqlite3 -I./build.linux64-release/ -I./src -I./pak -c src/game/AbstractBulletVolume.cpp -o build.linux64-release/game/game/AbstractBulletVolume.o
+/usr/bin/g++ -pipe -Wall -Winvalid-pch -Wno-write-strings -fmessage-length=0 -m64 -fno-exceptions -fno-rtti -fno-strict-aliasing -fPIC -O3 -march=x86-64 -ffast-math -DXMOD_LINUX64 -DGAMEDLL -I./build.linux64-release/game -I./src/sqlite3 -I./build.linux64-release/ -I./src -I./pak -c src/game/AbstractHitModel.cpp -o build.linux64-release/game/game/AbstractHitModel.o
+src/game/AbstractHitModel.cpp: In member function ‘void AbstractHitModel::tracePlayerBegin(TraceContext&)’:
+src/game/AbstractHitModel.cpp:646:1: warning: this ‘if’ clause does not guard... [-Wmisleading-indentation]
+  646 | if (!(cvars::g_test.ivalue & G_TEST_SKIP_LINK))
+      | ^~
+src/game/AbstractHitModel.cpp:649:5: note: ...this statement, but the latter is misleadingly indented as if it were guarded by the ‘if’
+  649 |     if (dbg) {
+      |     ^~
+/usr/bin/g++ -pipe -Wall -Winvalid-pch -Wno-write-strings -fmessage-length=0 -m64 -fno-exceptions -fno-rtti -fno-strict-aliasing -fPIC -O3 -march=x86-64 -ffast-math -DXMOD_LINUX64 -DGAMEDLL -I./build.linux64-release/game -I./src/sqlite3 -I./build.linux64-release/ -I./src -I./pak -c src/game/AbstractHitVolume.cpp -o build.linux64-release/game/game/AbstractHitVolume.o
+/usr/bin/g++ -pipe -Wall -Winvalid-pch -Wno-write-strings -fmessage-length=0 -m64 -fno-exceptions -fno-rtti -fno-strict-aliasing -fPIC -O3 -march=x86-64 -ffast-math -DXMOD_LINUX64 -DGAMEDLL -I./build.linux64-release/game -I./src/sqlite3 -I./build.linux64-release/ -I./src -I./pak -c src/game/AbstractStateHitModel.cpp -o build.linux64-release/game/game/AbstractStateHitModel.o
+/usr/bin/g++ -pipe -Wall -Winvalid-pch -Wno-write-strings -fmessage-length=0 -m64 -fno-exceptions -fno-rtti -fno-strict-aliasing -fPIC -O3 -march=x86-64 -ffast-math -DXMOD_LINUX64 -DGAMEDLL -I./build.linux64-release/game -I./src/sqlite3 -I./build.linux64-release/ -I./src -I./pak -c src/game/AdminLog.cpp -o build.linux64-release/game/game/AdminLog.o
+/usr/bin/g++ -pipe -Wall -Winvalid-pch -Wno-write-strings -fmessage-length=0 -m64 -fno-exceptions -fno-rtti -fno-strict-aliasing -fPIC -O3 -march=x86-64 -ffast-math -DXMOD_LINUX64 -DGAMEDLL -I./build.linux64-release/game -I./src/sqlite3 -I./build.linux64-release/ -I./src -I./pak -c src/game/AdvancedHitModel.cpp -o build.linux64-release/game/game/AdvancedHitModel.o
+/usr/bin/g++ -pipe -Wall -Winvalid-pch -Wno-write-strings -fmessage-length=0 -m64 -fno-exceptions -fno-rtti -fno-strict-aliasing -fPIC -O3 -march=x86-64 -ffast-math -DXMOD_LINUX64 -DGAMEDLL -I./build.linux64-release/game -I./src/sqlite3 -I./build.linux64-release/ -I./src -I./pak -c src/game/AlignedCuboidHV.cpp -o build.linux64-release/game/game/AlignedCuboidHV.o
+/usr/bin/g++ -pipe -Wall -Winvalid-pch -Wno-write-strings -fmessage-length=0 -m64 -fno-exceptions -fno-rtti -fno-strict-aliasing -fPIC -O3 -march=x86-64 -ffast-math -DXMOD_LINUX64 -DGAMEDLL -I./build.linux64-release/game -I./src/sqlite3 -I./build.linux64-release/ -I./src -I./pak -c src/game/BasicHitModel.cpp -o build.linux64-release/game/game/BasicHitModel.o
+/usr/bin/g++ -pipe -Wall -Winvalid-pch -Wno-write-strings -fmessage-length=0 -m64 -fno-exceptions -fno-rtti -fno-strict-aliasing -fPIC -O3 -march=x86-64 -ffast-math -DXMOD_LINUX64 -DGAMEDLL -I./build.linux64-release/game -I./src/sqlite3 -I./build.linux64-release/ -I./src -I./pak -c src/game/CensorDB.cpp -o build.linux64-release/game/game/CensorDB.o
+/usr/bin/g++ -pipe -Wall -Winvalid-pch -Wno-write-strings -fmessage-length=0 -m64 -fno-exceptions -fno-rtti -fno-strict-aliasing -fPIC -O3 -march=x86-64 -ffast-math -DXMOD_LINUX64 -DGAMEDLL -I./build.linux64-release/game -I./src/sqlite3 -I./build.linux64-release/ -I./src -I./pak -c src/game/Client.cpp -o build.linux64-release/game/game/Client.o
+src/game/Client.cpp: In member function ‘void Client::greeting()’:
+src/game/Client.cpp:971:28: warning: ‘char* __builtin___strncat_chk(char*, const char*, long unsigned int, long unsigned int)’ specified bound 1024 equals destination size [-Wstringop-truncation]
+  971 |                     strncat( token, lev.name.c_str(), sizeof(token) );
+      |                            ^
+In file included from /usr/include/string.h:548,
+                 from /usr/include/c++/13/cstring:42,
+                 from ./src/base/public.h:19,
+                 from ./src/game/g_local.h:8,
+                 from src/bgame/impl.h:9:
+In function ‘char* strncat(char*, const char*, size_t)’,
+    inlined from ‘void Client::greeting()’ at src/game/Client.cpp:965:28:
+/usr/include/x86_64-linux-gnu/bits/string_fortified.h:138:34: warning: ‘char* __builtin___strncat_chk(char*, const char*, long unsigned int, long unsigned int)’ specified bound 1024 equals destination size [-Wstringop-overflow=]
+  138 |   return __builtin___strncat_chk (__dest, __src, __len,
+      |          ~~~~~~~~~~~~~~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~
+  139 |                                   __glibc_objsize (__dest));
+      |                                   ~~~~~~~~~~~~~~~~~~~~~~~~~
+In function ‘char* strncat(char*, const char*, size_t)’,
+    inlined from ‘void Client::greeting()’ at src/game/Client.cpp:971:28:
+/usr/include/x86_64-linux-gnu/bits/string_fortified.h:138:34: warning: ‘char* __builtin___strncat_chk(char*, const char*, long unsigned int, long unsigned int)’ specified bound 1024 equals destination size [-Wstringop-overflow=]
+  138 |   return __builtin___strncat_chk (__dest, __src, __len,
+      |          ~~~~~~~~~~~~~~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~
+  139 |                                   __glibc_objsize (__dest));
+      |                                   ~~~~~~~~~~~~~~~~~~~~~~~~~
+/usr/bin/g++ -pipe -Wall -Winvalid-pch -Wno-write-strings -fmessage-length=0 -m64 -fno-exceptions -fno-rtti -fno-strict-aliasing -fPIC -O3 -march=x86-64 -ffast-math -DXMOD_LINUX64 -DGAMEDLL -I./build.linux64-release/game -I./src/sqlite3 -I./build.linux64-release/ -I./src -I./pak -c src/game/Database.cpp -o build.linux64-release/game/game/Database.o
+/usr/bin/g++ -pipe -Wall -Winvalid-pch -Wno-write-strings -fmessage-length=0 -m64 -fno-exceptions -fno-rtti -fno-strict-aliasing -fPIC -O3 -march=x86-64 -ffast-math -DXMOD_LINUX64 -DGAMEDLL -I./build.linux64-release/game -I./src/sqlite3 -I./build.linux64-release/ -I./src -I./pak -c src/game/Engine.cpp -o build.linux64-release/game/game/Engine.o
+/usr/bin/g++ -pipe -Wall -Winvalid-pch -Wno-write-strings -fmessage-length=0 -m64 -fno-exceptions -fno-rtti -fno-strict-aliasing -fPIC -O3 -march=x86-64 -ffast-math -DXMOD_LINUX64 -DGAMEDLL -I./build.linux64-release/game -I./src/sqlite3 -I./build.linux64-release/ -I./src -I./pak -c src/game/Entity.cpp -o build.linux64-release/game/game/Entity.o
+/usr/bin/g++ -pipe -Wall -Winvalid-pch -Wno-write-strings -fmessage-length=0 -m64 -fno-exceptions -fno-rtti -fno-strict-aliasing -fPIC -O3 -march=x86-64 -ffast-math -DXMOD_LINUX64 -DGAMEDLL -I./build.linux64-release/game -I./src/sqlite3 -I./build.linux64-release/ -I./src -I./pak -c src/game/EntityBulletModel.cpp -o build.linux64-release/game/game/EntityBulletModel.o
+/usr/bin/g++ -pipe -Wall -Winvalid-pch -Wno-write-strings -fmessage-length=0 -m64 -fno-exceptions -fno-rtti -fno-strict-aliasing -fPIC -O3 -march=x86-64 -ffast-math -DXMOD_LINUX64 -DGAMEDLL -I./build.linux64-release/game -I./src/sqlite3 -I./build.linux64-release/ -I./src -I./pak -c src/game/EntityHitModel.cpp -o build.linux64-release/game/game/EntityHitModel.o
+/usr/bin/g++ -pipe -Wall -Winvalid-pch -Wno-write-strings -fmessage-length=0 -m64 -fno-exceptions -fno-rtti -fno-strict-aliasing -fPIC -O3 -march=x86-64 -ffast-math -DXMOD_LINUX64 -DGAMEDLL -I./build.linux64-release/game -I./src/sqlite3 -I./build.linux64-release/ -I./src -I./pak -c src/game/EtmainBulletModel.cpp -o build.linux64-release/game/game/EtmainBulletModel.o
+/usr/bin/g++ -pipe -Wall -Winvalid-pch -Wno-write-strings -fmessage-length=0 -m64 -fno-exceptions -fno-rtti -fno-strict-aliasing -fPIC -O3 -march=x86-64 -ffast-math -DXMOD_LINUX64 -DGAMEDLL -I./build.linux64-release/game -I./src/sqlite3 -I./build.linux64-release/ -I./src -I./pak -c src/game/EtmainHitModel.cpp -o build.linux64-release/game/game/EtmainHitModel.o
+/usr/bin/g++ -pipe -Wall -Winvalid-pch -Wno-write-strings -fmessage-length=0 -m64 -fno-exceptions -fno-rtti -fno-strict-aliasing -fPIC -O3 -march=x86-64 -ffast-math -DXMOD_LINUX64 -DGAMEDLL -I./build.linux64-release/game -I./src/sqlite3 -I./build.linux64-release/ -I./src -I./pak -c src/game/Level.cpp -o build.linux64-release/game/game/Level.o
+/usr/bin/g++ -pipe -Wall -Winvalid-pch -Wno-write-strings -fmessage-length=0 -m64 -fno-exceptions -fno-rtti -fno-strict-aliasing -fPIC -O3 -march=x86-64 -ffast-math -DXMOD_LINUX64 -DGAMEDLL -I./build.linux64-release/game -I./src/sqlite3 -I./build.linux64-release/ -I./src -I./pak -c src/game/LevelDB.cpp -o build.linux64-release/game/game/LevelDB.o
+/usr/bin/g++ -pipe -Wall -Winvalid-pch -Wno-write-strings -fmessage-length=0 -m64 -fno-exceptions -fno-rtti -fno-strict-aliasing -fPIC -O3 -march=x86-64 -ffast-math -DXMOD_LINUX64 -DGAMEDLL -I./build.linux64-release/game -I./src/sqlite3 -I./build.linux64-release/ -I./src -I./pak -c src/game/MapDB.cpp -o build.linux64-release/game/game/MapDB.o
+/usr/bin/g++ -pipe -Wall -Winvalid-pch -Wno-write-strings -fmessage-length=0 -m64 -fno-exceptions -fno-rtti -fno-strict-aliasing -fPIC -O3 -march=x86-64 -ffast-math -DXMOD_LINUX64 -DGAMEDLL -I./build.linux64-release/game -I./src/sqlite3 -I./build.linux64-release/ -I./src -I./pak -c src/game/MapEntity.cpp -o build.linux64-release/game/game/MapEntity.o
+/usr/bin/g++ -pipe -Wall -Winvalid-pch -Wno-write-strings -fmessage-length=0 -m64 -fno-exceptions -fno-rtti -fno-strict-aliasing -fPIC -O3 -march=x86-64 -ffast-math -DXMOD_LINUX64 -DGAMEDLL -I./build.linux64-release/game -I./src/sqlite3 -I./build.linux64-release/ -I./src -I./pak -c src/game/MapEntityList.cpp -o build.linux64-release/game/game/MapEntityList.o
+/usr/bin/g++ -pipe -Wall -Winvalid-pch -Wno-write-strings -fmessage-length=0 -m64 -fno-exceptions -fno-rtti -fno-strict-aliasing -fPIC -O3 -march=x86-64 -ffast-math -DXMOD_LINUX64 -DGAMEDLL -I./build.linux64-release/game -I./src/sqlite3 -I./build.linux64-release/ -I./src -I./pak -c src/game/MapRecord.cpp -o build.linux64-release/game/game/MapRecord.o
+/usr/bin/g++ -pipe -Wall -Winvalid-pch -Wno-write-strings -fmessage-length=0 -m64 -fno-exceptions -fno-rtti -fno-strict-aliasing -fPIC -O3 -march=x86-64 -ffast-math -DXMOD_LINUX64 -DGAMEDLL -I./build.linux64-release/game -I./src/sqlite3 -I./build.linux64-release/ -I./src -I./pak -c src/game/MuzzleBulletModel.cpp -o build.linux64-release/game/game/MuzzleBulletModel.o
+/usr/bin/g++ -pipe -Wall -Winvalid-pch -Wno-write-strings -fmessage-length=0 -m64 -fno-exceptions -fno-rtti -fno-strict-aliasing -fPIC -O3 -march=x86-64 -ffast-math -DXMOD_LINUX64 -DGAMEDLL -I./build.linux64-release/game -I./src/sqlite3 -I./build.linux64-release/ -I./src -I./pak -c src/game/OrientedCuboidHV.cpp -o build.linux64-release/game/game/OrientedCuboidHV.o
+/usr/bin/g++ -pipe -Wall -Winvalid-pch -Wno-write-strings -fmessage-length=0 -m64 -fno-exceptions -fno-rtti -fno-strict-aliasing -fPIC -O3 -march=x86-64 -ffast-math -DXMOD_LINUX64 -DGAMEDLL -I./build.linux64-release/game -I./src/sqlite3 -I./build.linux64-release/ -I./src -I./pak -c src/game/OrientedHitModel.cpp -o build.linux64-release/game/game/OrientedHitModel.o
+/usr/bin/g++ -pipe -Wall -Winvalid-pch -Wno-write-strings -fmessage-length=0 -m64 -fno-exceptions -fno-rtti -fno-strict-aliasing -fPIC -O3 -march=x86-64 -ffast-math -DXMOD_LINUX64 -DGAMEDLL -I./build.linux64-release/game -I./src/sqlite3 -I./build.linux64-release/ -I./src -I./pak -c src/game/Privilege.cpp -o build.linux64-release/game/game/Privilege.o
+/usr/bin/g++ -pipe -Wall -Winvalid-pch -Wno-write-strings -fmessage-length=0 -m64 -fno-exceptions -fno-rtti -fno-strict-aliasing -fPIC -O3 -march=x86-64 -ffast-math -DXMOD_LINUX64 -DGAMEDLL -I./build.linux64-release/game -I./src/sqlite3 -I./build.linux64-release/ -I./src -I./pak -c src/game/PrivilegeSet.cpp -o build.linux64-release/game/game/PrivilegeSet.o
+/usr/bin/g++ -pipe -Wall -Winvalid-pch -Wno-write-strings -fmessage-length=0 -m64 -fno-exceptions -fno-rtti -fno-strict-aliasing -fPIC -O3 -march=x86-64 -ffast-math -DXMOD_LINUX64 -DGAMEDLL -I./build.linux64-release/game -I./src/sqlite3 -I./build.linux64-release/ -I./src -I./pak -c src/game/SEngine.cpp -o build.linux64-release/game/game/SEngine.o
+/usr/bin/g++ -pipe -Wall -Winvalid-pch -Wno-write-strings -fmessage-length=0 -m64 -fno-exceptions -fno-rtti -fno-strict-aliasing -fPIC -O3 -march=x86-64 -ffast-math -DXMOD_LINUX64 -DGAMEDLL -I./build.linux64-release/game -I./src/sqlite3 -I./build.linux64-release/ -I./src -I./pak -c src/game/SingleBulletVolume.cpp -o build.linux64-release/game/game/SingleBulletVolume.o
+/usr/bin/g++ -pipe -Wall -Winvalid-pch -Wno-write-strings -fmessage-length=0 -m64 -fno-exceptions -fno-rtti -fno-strict-aliasing -fPIC -O3 -march=x86-64 -ffast-math -DXMOD_LINUX64 -DGAMEDLL -I./build.linux64-release/game -I./src/sqlite3 -I./build.linux64-release/ -I./src -I./pak -c src/game/StandardHitModel.cpp -o build.linux64-release/game/game/StandardHitModel.o
+/usr/bin/g++ -pipe -Wall -Winvalid-pch -Wno-write-strings -fmessage-length=0 -m64 -fno-exceptions -fno-rtti -fno-strict-aliasing -fPIC -O3 -march=x86-64 -ffast-math -DXMOD_LINUX64 -DGAMEDLL -I./build.linux64-release/game -I./src/sqlite3 -I./build.linux64-release/ -I./src -I./pak -c src/game/TraceContext.cpp -o build.linux64-release/game/game/TraceContext.o
+/usr/bin/g++ -pipe -Wall -Winvalid-pch -Wno-write-strings -fmessage-length=0 -m64 -fno-exceptions -fno-rtti -fno-strict-aliasing -fPIC -O3 -march=x86-64 -ffast-math -DXMOD_LINUX64 -DGAMEDLL -I./build.linux64-release/game -I./src/sqlite3 -I./build.linux64-release/ -I./src -I./pak -c src/game/User.cpp -o build.linux64-release/game/game/User.o
+/usr/bin/g++ -pipe -Wall -Winvalid-pch -Wno-write-strings -fmessage-length=0 -m64 -fno-exceptions -fno-rtti -fno-strict-aliasing -fPIC -O3 -march=x86-64 -ffast-math -DXMOD_LINUX64 -DGAMEDLL -I./build.linux64-release/game -I./src/sqlite3 -I./build.linux64-release/ -I./src -I./pak -c src/game/UserManager.cpp -o build.linux64-release/game/game/UserManager.o
+src/game/UserManager.cpp: In member function ‘User& UserManager::fetchByKey(const std::string&, std::string&, bool)’:
+src/game/UserManager.cpp:41:10: error: ‘std::string User::_guid’ is private within this context
+   41 |     user._guid = key;      // assign correct key
+      |          ^~~~~
+In file included from ./src/game/g_local.h:2687,
+                 from src/bgame/impl.h:9:
+./src/game/User.h:22:12: note: declared private here
+   22 |     string _guid;
+      |            ^~~~~
+src/game/UserManager.cpp: In member function ‘void UserManager::remove(User&)’:
+src/game/UserManager.cpp:51:24: error: ‘std::string User::_guid’ is private within this context
+   51 |     _mapGUID.erase(obj._guid);
+      |                        ^~~~~
+./src/game/User.h:22:12: note: declared private here
+   22 |     string _guid;
+      |            ^~~~~
+make: *** [src/game.rules:12: build.linux64-release/game/game/UserManager.o] Error 1

@@ -6,7 +6,7 @@
 #include <bgame/jxac_common.h>
 #include <game/xmod_globals.h>
 #include <game/Client.h>
-#include <game/UserDB.h>
+#include <game/UserManager.h>
 
 ///////////////////////////////////////////////////////////////////////////////
 
