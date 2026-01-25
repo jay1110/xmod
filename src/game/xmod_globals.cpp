@@ -83,7 +83,8 @@ void initXmod() {
     // Only migrate if legacy userDB has users and SQLite is empty or has few users
     if (g_database && g_database->isOpened()) {
         int sqliteUserCount = g_database->getUserCount();
-        int legacyUserCount = (int)userDB.mapGUID.size();
+        // Legacy user.db is removed - use xmod.db for user counts
+        int legacyUserCount = 0;  // No longer used
         
         if (legacyUserCount > 0) {
             G_Printf("^3[SQLite] Found %d users in legacy userDB\n", legacyUserCount);

@@ -1626,9 +1626,8 @@ void ClientUserinfoChanged( int clientNum ) {
     int     characterIndex;
     string  mac;
 
-    // unindex user because values may change
+    // No need to unindex/reindex - SQLite database is the source of truth
     User& user = *connectedUsers[clientNum];
-    userDB.unindex( user );
 
     ent = g_entities + clientNum;
     client = ent->client;
@@ -1830,8 +1829,7 @@ void ClientUserinfoChanged( int clientNum ) {
         G_DPrintf( "ClientUserinfoChanged: %i :: %s\n", clientNum, s );
     }
 
-    // index user now that values have been updated
-    userDB.index( user );
+    // No need to index - SQLite database is the source of truth
 
     // Call Lua et_ClientUserinfoChanged callback
     G_LuaHook_ClientUserinfoChanged(clientNum);
@@ -1959,9 +1957,9 @@ ClientConnect( string& outmsg, int clientNum, qboolean firstTime, qboolean isBot
 		}
 	}
 
-    // Get user object
+    // Get user object from UserManager (no database file I/O)
     string err;
-    connectedUsers[clientNum] = &userDB.fetchByKey( guid, err, true );
+    connectedUsers[clientNum] = &userManager.fetchByKey( guid, err, true );
     User& user = *connectedUsers[clientNum];
 
     // Track fake GUIDs
@@ -2120,8 +2118,7 @@ ClientConnect( string& outmsg, int clientNum, qboolean firstTime, qboolean isBot
 	if( firstTime )
 		client->pers.initialSpawn = qtrue;				// DHM - Nerve
 
-    // unindex user before updating values
-    userDB.unindex( user );
+    // No need to unindex/reindex - SQLite database is the source of truth
 
 	// IP Address
     user.ip = Info_ValueForKey( userinfo, "ip" );
@@ -2148,8 +2145,7 @@ ClientConnect( string& outmsg, int clientNum, qboolean firstTime, qboolean isBot
         str::toLower( user.mac );
     }
 
-    // index user after updating values
-    userDB.index( user );
+    // No need to index - SQLite database is the source of truth
 
 	// Read or initialize the session data
 	if( firstTime ) {

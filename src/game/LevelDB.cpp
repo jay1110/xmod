@@ -162,9 +162,10 @@ LevelDB::load()
 uint32
 LevelDB::remove( Level& obj, const Level& migrate )
 {
-    const uint32 result = userDB.migrateAuth( obj.level, migrate.level );
+    // Legacy userDB.migrateAuth removed - auth levels are managed in SQLite
+    // This function now only removes the level from the level database
     _mapLEVEL.erase( obj.level );
-    return result;
+    return 0;  // No users migrated (handled by SQLite)
 }
 
 ///////////////////////////////////////////////////////////////////////////////
