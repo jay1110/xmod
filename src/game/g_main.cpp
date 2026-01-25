@@ -644,6 +644,16 @@ vmMain( int command, int arg0, int arg1, int arg2, int arg3, int arg4, int arg5,
 				gentity_t *ent = &g_entities[i];
 				if (ent->inuse && ent->client && IsBot(ent) &&
 					ent->client->pers.connected == CON_CONNECTED) {
+					
+					// CRITICAL FIX: Clear bot limbo state and reset playerState before re-registration
+					// This prevents bots from being stuck in broken state after warmup->playing transition
+					// Without this, bots show "Connection Interrupted" and lie on ground after map_restart
+					ent->client->ps.pm_flags &= ~PMF_LIMBO;
+					ent->client->ps.pm_type = PM_NORMAL;
+					ent->client->ps.stats[STAT_HEALTH] = ent->client->ps.stats[STAT_MAX_HEALTH];
+					ent->health = ent->client->ps.stats[STAT_HEALTH];
+					ent->r.contents = CONTENTS_BODY;
+					
 					// Register entity handle with Omni-bot (GAME_ENTITYCREATED event)
 					Bot_Event_EntityCreated(ent);
 					
