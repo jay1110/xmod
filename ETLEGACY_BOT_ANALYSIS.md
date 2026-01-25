@@ -4,9 +4,17 @@
 
 Dieser Bericht analysiert die Bot-Lifecycle-Behandlung bei Warmup-Ende und map_restart in **ET: Legacy** (etlegacy/etlegacy) und vergleicht sie mit der Implementierung in **xmod** (jay1110/xmod).
 
+**UPDATE: Kritischer Bug gefunden und behoben!**
+
+**Problem:** Bots funktionierten während Warmup, aber nach Warmup→Playing Transition lagen sie am Boden, zeigten "Connection Interrupted" (Ping 999) und ließen sich nicht entfernen.
+
+**Ursache:** Bot-Entities behielten nach map_restart kaputte State-Flags (limbo, dead PM type, corpse contents).
+
+**Fix (Commit fcd6053):** Bot-State vor Re-Registrierung in GAME_INIT zurücksetzen (PMF_LIMBO clearen, PM_NORMAL setzen, Health wiederherstellen, CONTENTS_BODY setzen).
+
 **Kernerkenntnisse:**
-- xmod basiert auf ET: Legacy und hat bereits alle wichtigen Bot-Lifecycle-Fixes implementiert
-- Bots werden korrekt über map_restart und Warmup-Übergänge hinweg behandelt
+- xmod basiert auf ET: Legacy und hat die meisten Bot-Lifecycle-Fixes implementiert
+- ABER: Bot-State-Reset nach map_restart war unvollständig → jetzt behoben
 - SVF_BOT-Flag-Persistenz verhindert Bot-Authentifizierungsprobleme
 - Omni-bot-Re-Registrierung nach GAME_INIT verhindert Entity-Desynchronisation
 
@@ -379,3 +387,72 @@ Die Bot-Lifecycle-Behandlung in **xmod ist bereits korrekt implementiert** und f
 **Erstellt:** 2026-01-25  
 **Autor:** GitHub Copilot  
 **Zweck:** Analyse der Bot-Lifecycle-Behandlung bei Warmup-Ende und map_restart
+
+---
+
+## Update: Kritischer Bug-Fix (Commit fcd6053)
+
+### Das entdeckte Problem
+
+Nach detaillierter Analyse durch @jay1110 wurde ein kritischer Bug identifiziert:
+
+**Symptom:**
+- Bots laufen direkt nach Serverstart (während Warmup) einwandfrei
+- Nach Warmup-Ende (Transition zu GS_PLAYING via map_restart):
+  - Bots liegen am Boden (bewegen sich nicht)
+  - Zeigen "Connection Interrupted" beim Spectaten
+  - Ping 999 angezeigt
+  - Lassen sich nicht mit removebot entfernen
+
+### Die Ursache
+
+In `g_main.cpp` GAME_INIT wurden Bots zwar korrekt mit Omni-bot re-registriert, aber **ihr playerState behielt kaputte Flags vom vorherigen Gamestate**:
+
+```cpp
+// VOR dem Fix - Bot behält alte Flags:
+Bot_Event_EntityCreated(ent);      // ent hat noch PMF_LIMBO!
+Bot_Event_ClientConnected(i, qtrue); // ent->ps.pm_type = PM_DEAD!
+respawn(ent);                       // Respawn mit kaputter State
+```
+
+**Problem:** Nach map_restart von Warmup→Playing hatten Bot-Entities:
+- `PMF_LIMBO` Flag gesetzt (als ob sie im Limbo wären)
+- `PM_DEAD` Player Movement Type (als ob sie tot wären)
+- `CONTENTS_CORPSE` (als ob sie eine Leiche wären)
+- Health auf 0
+
+### Der Fix
+
+```cpp
+// NACH dem Fix in g_main.cpp (Zeilen 647-657):
+// CRITICAL FIX: Clear bot limbo state and reset playerState before re-registration
+ent->client->ps.pm_flags &= ~PMF_LIMBO;   // Limbo-Flag clearen
+ent->client->ps.pm_type = PM_NORMAL;       // Normaler Movement-Type
+ent->client->ps.stats[STAT_HEALTH] = ent->client->ps.stats[STAT_MAX_HEALTH];
+ent->health = ent->client->ps.stats[STAT_HEALTH];  // Health wiederherstellen
+ent->r.contents = CONTENTS_BODY;           // Solider Body, keine Corpse
+
+// Jetzt ERST re-registrieren:
+Bot_Event_EntityCreated(ent);
+Bot_Event_ClientConnected(i, qtrue);
+respawn(ent);
+```
+
+### Warum der Fix funktioniert
+
+1. **PMF_LIMBO clearen:** Bot ist nicht mehr im Limbo-State → kann sich bewegen
+2. **PM_NORMAL setzen:** Movement-Code behandelt Bot als lebenden Spieler
+3. **Health wiederherstellen:** Bot hat korrekte HP → nicht tot
+4. **CONTENTS_BODY:** Collision-Detection funktioniert korrekt
+
+**Resultat:** Bots transitionen sauber von Warmup zu GS_PLAYING ohne State-Corruption.
+
+### Wichtige Erkenntnis
+
+Die ursprüngliche Analyse war **teilweise korrekt**:
+- ✅ SVF_BOT-Persistenz funktioniert
+- ✅ Omni-bot Re-Registrierung ist vorhanden
+- ✅ Event-Reihenfolge ist korrekt
+- ❌ **ABER:** Bot-State-Reset vor Re-Registrierung fehlte!
+
+Dieser Bug war **xmod-spezifisch** und existierte nicht explizit in der ET: Legacy-Analyse, weil dort die State-Behandlung anders implementiert ist.
