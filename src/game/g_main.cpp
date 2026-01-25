@@ -2154,8 +2154,26 @@ void G_InitGame( int levelTime, int randomSeed, int restart ) {
 	// initialize all clients for this game
 	level.maxclients = g_maxclients.integer;
 	level.clients = g_clients;
-	for (i = 0; i < MAX_CLIENTS; i++)
+	
+	// Preserve authentication state during map restart
+	// Authentication is established once at connect and should persist through map changes
+	for (i = 0; i < MAX_CLIENTS; i++) {
+		// Save authentication state before init
+		bool savedAuthenticated = g_clientObjects[i].authenticated;
+		bool savedAuthWarningShown = g_clientObjects[i].authWarningShown;
+		string savedAuthGuid = g_clientObjects[i].authGuid;
+		string savedAuthHwid = g_clientObjects[i].authHwid;
+		
 		g_clientObjects[i].init();
+		
+		// Restore authentication state if client was authenticated
+		if (savedAuthenticated) {
+			g_clientObjects[i].authenticated = savedAuthenticated;
+			g_clientObjects[i].authWarningShown = savedAuthWarningShown;
+			g_clientObjects[i].authGuid = savedAuthGuid;
+			g_clientObjects[i].authHwid = savedAuthHwid;
+		}
+	}
 
     for (i = 0; i < MAX_GENTITIES; i++)
         g_entityObjects[i].init();
