@@ -671,13 +671,23 @@ vmMain( int command, int arg0, int arg1, int arg2, int arg3, int arg4, int arg5,
 					    ent->client->sess.sessionTeam != TEAM_ALLIES) {
 						// Use PickTeam to assign a balanced team
 						team_t newTeam = PickTeam(i);
-						const char* teamName = (newTeam == TEAM_AXIS) ? "AXIS" : 
-						                       (newTeam == TEAM_ALLIES) ? "ALLIES" : "UNKNOWN";
-						G_Printf("[BOT_FIX] Bot %s had invalid team %d, assigning to %s\n",
-						         ent->client->pers.netname,
-						         ent->client->sess.sessionTeam,
-						         teamName);
-						ent->client->sess.sessionTeam = newTeam;
+						
+						// Verify PickTeam returned a valid team before assignment
+						if (newTeam == TEAM_AXIS || newTeam == TEAM_ALLIES) {
+							const char* teamName = (newTeam == TEAM_AXIS) ? "AXIS" : "ALLIES";
+							G_Printf("[BOT_FIX] Bot %s had invalid team %d, assigning to %s\n",
+							         ent->client->pers.netname,
+							         ent->client->sess.sessionTeam,
+							         teamName);
+							ent->client->sess.sessionTeam = newTeam;
+						} else {
+							// Fallback: if PickTeam somehow returns invalid, default to AXIS
+							G_Printf("[BOT_FIX] Bot %s had invalid team %d, PickTeam returned %d, defaulting to AXIS\n",
+							         ent->client->pers.netname,
+							         ent->client->sess.sessionTeam,
+							         newTeam);
+							ent->client->sess.sessionTeam = TEAM_AXIS;
+						}
 					}
 					
 					// Register entity handle with Omni-bot (GAME_ENTITYCREATED event)
