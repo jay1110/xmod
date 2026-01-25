@@ -1356,7 +1356,9 @@ void ClientThink_real( gentity_t *ent, bool skipServerTime ) {
 	// If auth fails, mark as fakeguid so XP won't be saved
 	if ( !(ent->r.svFlags & SVF_BOT) ) {
 		Client& clientObject = g_clientObjects[ent->s.number];
-		if ( !clientObject.authenticated ) {
+		// Check authoritative session status as well
+		bool sessionAuth = (::xmod::g_sessions[ent->s.number] && ::xmod::g_sessions[ent->s.number]->isAuthenticated());
+		if ( !clientObject.authenticated && !sessionAuth ) {
 			int connectTime = level.time - client->pers.connectTime;
 			if ( connectTime > 0 && connectTime > xm_auth::AUTH_TIMEOUT_MS ) {
 				// Only process once
