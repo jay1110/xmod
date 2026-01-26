@@ -235,11 +235,6 @@ OrientedCuboidHV::doEntityCompute()
          _entity->r.currentOrigin[1] != _entity->s.origin[1] &&
          _entity->r.currentOrigin[2] != _entity->s.origin[2] )
     {
-        // Don't link entity at world origin - indicates uninitialized position
-        if ( VectorCompare( _entity->s.origin, vec3_origin ) ) {
-            return;
-        }
-
         // Must set currentOrigin and re-link otherwise moving out of PVS will prune.
         VectorCopy( _entity->s.origin, _entity->r.currentOrigin );
         trap_LinkEntity( _entity );
