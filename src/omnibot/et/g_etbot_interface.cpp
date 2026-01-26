@@ -39,7 +39,8 @@ struct BotEntity
 	obint16	m_HandleSerial;
 	bool	m_NewEntity : 1;
 	bool	m_Used : 1;
-	bool	m_NewClient : 1;  // Deferred client connection notification
+	bool	m_NewClient : 1;      // Deferred client connection notification
+	bool	m_PendingKick : 1;    // Deferred bot kick (prevents crash during pfnConsoleCommand)
 };
 
 BotEntity		m_EntityHandles[MAX_GENTITIES];
@@ -1737,7 +1738,11 @@ public:
 				// Validate entity before checking IsBot
 				if(ent->inuse && ent->client && IsBot(ent))
 				{
-					trap_DropClient(pMsg->m_GameId, "disconnected", 0);
+					// CRITICAL FIX: Defer the kick instead of doing it immediately.
+					// This prevents crash in Omnibot's CheckServerSettings which can occur
+					// when the bot is kicked during pfnConsoleCommand processing.
+					// The actual kick will be processed in Bot_Interface_Update AFTER pfnUpdate().
+					m_EntityHandles[pMsg->m_GameId].m_PendingKick = true;
 				}
 			}
 		}
@@ -1764,7 +1769,8 @@ public:
 
 				if(!Q_stricmp(cleanNetName, cleanName))
 				{
-					trap_DropClient(i, "disconnected", 0);
+					// CRITICAL FIX: Defer the kick instead of doing it immediately.
+					m_EntityHandles[i].m_PendingKick = true;
 				}
 			}
 		}
@@ -5110,6 +5116,7 @@ void Bot_Interface_InitHandles()
 		m_EntityHandles[i].m_NewEntity = false;
 		m_EntityHandles[i].m_Used = false;
 		m_EntityHandles[i].m_NewClient = false;
+		m_EntityHandles[i].m_PendingKick = false;
 	}
 }
 
@@ -5328,6 +5335,27 @@ void Bot_Interface_Update()
 		//////////////////////////////////////////////////////////////////////////
 		// Call the libraries update.
 		g_BotFunctions.pfnUpdate();
+		//////////////////////////////////////////////////////////////////////////
+		
+		//////////////////////////////////////////////////////////////////////////
+		// Process any pending bot kicks AFTER pfnUpdate() completes.
+		// This is critical to prevent crashes when kicking bots via console commands.
+		// If we kick the bot during pfnConsoleCommand (which calls RemoveBot), Omnibot's
+		// CheckServerSettings can crash trying to access the disconnected bot's data.
+		// By deferring the kick until after pfnUpdate(), we ensure Omnibot has finished
+		// processing the current frame before we modify the client state.
+		for(int i = 0; i < MAX_CLIENTS; ++i)
+		{
+			if(m_EntityHandles[i].m_PendingKick)
+			{
+				m_EntityHandles[i].m_PendingKick = false;
+				// Verify the bot is still valid before kicking
+				if(g_entities[i].inuse && g_entities[i].client && IsBot(&g_entities[i]))
+				{
+					trap_DropClient(i, "disconnected", 0);
+				}
+			}
+		}
 		//////////////////////////////////////////////////////////////////////////
 	}
 }
@@ -5932,7 +5960,7 @@ void Bot_Queue_EntityCreated(gentity_t *pEnt)
 
 void Bot_Queue_ClientConnected(int clientNum, qboolean isBot)
 {
-	if(clientNum >= 0 && clientNum < MAX_GENTITIES)
+	if(clientNum >= 0 && clientNum < MAX_CLIENTS)
 	{
 		m_EntityHandles[clientNum].m_NewClient = true;
 		// Store bot status in the entity's SVF_BOT flag to preserve across deferred call
@@ -5954,6 +5982,7 @@ void Bot_Event_EntityDeleted(gentity_t *pEnt)
 		m_EntityHandles[iEntNum].m_Used = false;
 		m_EntityHandles[iEntNum].m_NewEntity = false;
 		m_EntityHandles[iEntNum].m_NewClient = false;
+		m_EntityHandles[iEntNum].m_PendingKick = false;
 		while(++m_EntityHandles[iEntNum].m_HandleSerial==0) {}
 	}
 	for(int i = 0; i < MAX_SMOKEGREN_CACHE; ++i)
