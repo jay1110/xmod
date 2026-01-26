@@ -2283,12 +2283,11 @@ ClientConnect( string& outmsg, int clientNum, qboolean firstTime, qboolean isBot
 				         clientNum, client->pers.netname, userData.id);
 			}
 			
-			// Store the SHA1 GUID/HWID in clientObject and authenticate the bot session
+			// Store the SHA1 GUID/HWID in clientObject
 			// This ensures ClientBegin can restore the session correctly
+			// Note: authenticated flag was already set earlier (lines 2202/2209)
 			clientObject.authGuid = botGuid;
 			clientObject.authHwid = botHwid;
-			clientObject.authenticated = true;
-			clientObject.authWarningShown = false;
 			
 			// Authenticate the bot session with the database
 			xmod::g_sessions[clientNum]->onGuidReceived(botGuid, botHwid);
