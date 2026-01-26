@@ -2198,17 +2198,16 @@ ClientConnect( string& outmsg, int clientNum, qboolean firstTime, qboolean isBot
 
 		// Auto-authenticate bots since they can't respond to guid_request
 		// This prevents authentication timeouts and related issues
+		// Note: authGuid will be set later with the proper SHA1 GUID
 		clientObject.authenticated = true;
 		clientObject.authWarningShown = false;
-		// Use the bot's cl_guid (e.g., OMNIBOT04...) as their authGuid
-		clientObject.authGuid = guid;
 	} else if (ent->r.svFlags & SVF_BOT) {
 		// PERSISTENT bot on map_restart: isBot=false but SVF_BOT flag is set
 		// Auto-authenticate these bots too since they can't respond to guid_request
 		// Without this, bots would lose authentication after map_restart and fail auth checks
+		// Note: authGuid will be set later with the proper SHA1 GUID
 		clientObject.authenticated = true;
 		clientObject.authWarningShown = false;
-		clientObject.authGuid = guid;
 	} else if( firstTime ) {
 		// force into spectator
 		client->sess.sessionTeam = TEAM_SPECTATOR;
@@ -2283,6 +2282,17 @@ ClientConnect( string& outmsg, int clientNum, qboolean firstTime, qboolean isBot
 				G_Printf("[SQLite] Bot %d (%s) exists in database (ID=%d)\n", 
 				         clientNum, client->pers.netname, userData.id);
 			}
+			
+			// Store the SHA1 GUID/HWID in clientObject
+			// This ensures ClientBegin can restore the session correctly
+			// Note: authenticated flag was already set earlier (lines 2202/2209)
+			clientObject.authGuid = botGuid;
+			clientObject.authHwid = botHwid;
+			
+			// Authenticate the bot session with the database
+			xmod::g_sessions[clientNum]->onGuidReceived(botGuid, botHwid);
+			G_Printf("[SQLite] Bot %d (%s) authenticated with session\n", 
+			         clientNum, client->pers.netname);
 		}
 	}
 
