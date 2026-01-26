@@ -690,6 +690,12 @@ vmMain( int command, int arg0, int arg1, int arg2, int arg3, int arg4, int arg5,
 						}
 					}
 					
+					// CRITICAL: First disconnect the bot to clean up Omni-bot's internal state
+					// This is necessary because Omni-bot's ClientJoined() checks m_BotJoining flag
+					// which is false during map_restart, causing it to create a NEW Client object
+					// without properly cleaning up the old one. This leads to corrupted state.
+					Bot_Event_ClientDisConnected(i);
+					
 					// Register entity handle with Omni-bot (GAME_ENTITYCREATED event)
 					Bot_Event_EntityCreated(ent);
 					
