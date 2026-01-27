@@ -1887,9 +1887,6 @@ bool
 ClientConnect( string& outmsg, int clientNum, qboolean firstTime, qboolean isBot ) {
     outmsg.clear();
 
-	// Access to bot status saved before map_restart (defined in g_main.cpp)
-	extern qboolean g_wasBotBeforeRestart[MAX_CLIENTS];
-
 	gclient_t	*client;
 	char		userinfo[MAX_INFO_STRING];
 	char		userinfo2[MAX_INFO_STRING];
@@ -1904,14 +1901,6 @@ ClientConnect( string& outmsg, int clientNum, qboolean firstTime, qboolean isBot
 	bool		cl_pb_enabled;
 
 	ent = &g_entities[ clientNum ];
-
-	// Restore bot status from pre-restart saved data
-	// During map_restart, the engine re-connects all clients with isBot=false,
-	// even if they were bots. We must restore the SVF_BOT flag from our saved data.
-	if (!firstTime && !isBot && g_wasBotBeforeRestart[clientNum]) {
-		isBot = qtrue;
-		G_Printf("[BOT_RECONNECT] Restored bot status for slot %d after map_restart\n", clientNum);
-	}
 
 	// Gordon: porting q3f flag bug fix
 	// If a player reconnects quickly after a disconnect, the client disconnect
