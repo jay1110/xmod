@@ -2196,10 +2196,6 @@ ClientConnect( string& outmsg, int clientNum, qboolean firstTime, qboolean isBot
 	// 3. client->sess.isBot means bot status restored from session data after map_restart
 	qboolean actuallyBot = (isBot || (ent->r.svFlags & SVF_BOT) || client->sess.isBot) ? qtrue : qfalse;
 	
-	// Track whether this is a persistent bot (restored after map_restart)
-	// These bots need special handling in ClientBegin to properly register with Omnibot
-	qboolean isPersistentBot = (!isBot && actuallyBot) ? qtrue : qfalse;
-	
 	if( actuallyBot ) {
 		ent->s.number = clientNum;
 		ent->r.svFlags |= SVF_BOT;
@@ -2211,13 +2207,9 @@ ClientConnect( string& outmsg, int clientNum, qboolean firstTime, qboolean isBot
 		clientObject.authWarningShown = false;
 		
 		// Log restoration from session (useful for debugging warmup transition)
-		if (isPersistentBot) {
-			G_Printf("[BOT_RESTORE] Restored bot status for client %d (%s) from session - will re-register with Omnibot in ClientBegin\n", 
+		if (!isBot) {
+			G_Printf("[BOT_RESTORE] Restored bot status for client %d (%s) from session\n", 
 			         clientNum, client->pers.netname);
-			// Mark this bot as needing re-registration in ClientBegin
-			// We don't call Bot_Event_ClientConnected here because the entity isn't created yet
-			// (G_InitGentity is called in ClientBegin, not ClientConnect)
-			client->sess.botNeedsReregister = qtrue;
 		}
 	} else if( firstTime ) {
 		// force into spectator
@@ -2232,12 +2224,14 @@ ClientConnect( string& outmsg, int clientNum, qboolean firstTime, qboolean isBot
 	// get and distribute relevant parameters
 	G_LogPrintf( "ClientConnect: %i\n", clientNum );
 	G_UpdateCharacter( client );
+	// MATCHING ET:LEGACY APPROACH: Call Bot_Event_ClientConnected for all clients.
 	// For NEW bots (isBot=true), Bot_Event_ClientConnected is deferred via Bot_Queue_ClientConnected
-	// in AddBot. This prevents Omnibot from processing the bot before it's fully initialized.
-	// For PERSISTENT bots on map_restart, we defer to ClientBegin where entity exists.
-	// For humans, we notify immediately.
-	if (!isBot && !isPersistentBot) {
-		Bot_Event_ClientConnected(clientNum, qfalse);
+	// in AddBot. For persistent bots and humans, notify immediately like ET:Legacy does.
+	// This ensures Omnibot knows about persistent bots reconnecting after map_restart.
+	if (!isBot) {
+		// For persistent bots, actuallyBot is true (detected via SVF_BOT or sess.isBot)
+		// For humans, actuallyBot is false
+		Bot_Event_ClientConnected(clientNum, actuallyBot);
 	}
 	ClientUserinfoChanged( clientNum );
 
@@ -2357,65 +2351,10 @@ void ClientBegin( int clientNum )
 	ent->pain = 0;
 	ent->client = client;
 
-	// CRITICAL: Re-register persistent bots with Omnibot after map_restart
-	// This must happen AFTER G_InitGentity() which creates the entity and queues Bot_Queue_EntityCreated()
-	// The sequence mirrors AddBot:
-	//   1. Reset bot state (clear limbo, reset pm_type, restore health) 
-	//   2. Clear pending entity creation flag (to prevent double registration in Bot_Interface_Update)
-	//   3. Send entity creation event immediately
-	//   4. Queue client connection (to be processed AFTER pfnUpdate() in Bot_Interface_Update)
-	// Without this, bots lie on ground with "Connection Interrupted" after warmup->playing transition
-	if (client->sess.botNeedsReregister && (ent->r.svFlags & SVF_BOT)) {
-		// Clear the flag first to prevent re-triggering
-		client->sess.botNeedsReregister = qfalse;
-		
-		G_Printf("[BOT_REREGISTER] Re-registering bot %d (%s) with Omnibot after map_restart\n",
-		         clientNum, client->pers.netname);
-		
-		// CRITICAL STATE RESET: After map_restart from warmup->playing, bots may retain
-		// broken state flags from the previous gamestate (limbo, dead pm_type, corpse contents).
-		// These MUST be cleared BEFORE re-registration or the bot will be stuck:
-		// - PMF_LIMBO: Bot thinks it's in limbo and won't move
-		// - PM_DEAD: Movement code treats bot as dead
-		// - CONTENTS_CORPSE: Collision detection broken
-		// - Health 0: Triggers death handling
-		client->ps.pm_flags &= ~PMF_LIMBO;
-		client->ps.pm_type = PM_NORMAL;
-		client->ps.stats[STAT_HEALTH] = client->ps.stats[STAT_MAX_HEALTH];
-		ent->health = client->ps.stats[STAT_HEALTH];
-		ent->r.contents = CONTENTS_BODY;
-		
-		// Clear the pending entity creation flag to prevent double registration.
-		// G_InitGentity (called earlier at line ~2355) queued Bot_Queue_EntityCreated,
-		// but we're processing the entity immediately here, so we don't want
-		// Bot_Interface_Update to process it again later.
-		Bot_ClearPendingEntityCreation(ent);
-		
-		// Process entity creation immediately so Omnibot knows about this entity
-		Bot_Event_EntityCreated(ent);
-		
-		// CRITICAL: Queue the client connection instead of sending immediately.
-		// This mirrors how AddBot handles new bots - the connection notification
-		// is deferred until AFTER pfnUpdate() completes in Bot_Interface_Update().
-		// Without this deferral, Omnibot may receive the connection event before
-		// its internal state is ready to handle it, causing the bot to be stuck.
-		Bot_Queue_ClientConnected(clientNum, qtrue);
-		
-		// Ensure the bot has a valid team for spawning
-		if (client->sess.sessionTeam != TEAM_AXIS && client->sess.sessionTeam != TEAM_ALLIES) {
-			team_t newTeam = PickTeam(clientNum);
-			if (newTeam == TEAM_AXIS || newTeam == TEAM_ALLIES) {
-				G_Printf("[BOT_REREGISTER] Bot %s had invalid team %d, assigning to %s\n",
-				         client->pers.netname, client->sess.sessionTeam,
-				         (newTeam == TEAM_AXIS) ? "AXIS" : "ALLIES");
-				client->sess.sessionTeam = newTeam;
-			} else {
-				G_Printf("[BOT_REREGISTER] Bot %s had invalid team %d, defaulting to AXIS\n",
-				         client->pers.netname, client->sess.sessionTeam);
-				client->sess.sessionTeam = TEAM_AXIS;
-			}
-		}
-	}
+	// MATCHING ET:LEGACY: Bot_Event_ClientConnected is now called in ClientConnect() for all clients,
+	// including persistent bots. So we don't need special re-registration here.
+	// However, we still need to ensure bots have clean state after map_restart.
+	// ET:Legacy relies on ClientSpawn() to reset state, which we also do below.
 	
 	// Initialize lastUpdateFrame for bots to prevent stale values after reconnect.
 	// NOTE: The main fix for "Connection Interrupted" display is in ClientEndFrame(),

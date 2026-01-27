@@ -298,8 +298,22 @@ if (client->sess.botNeedsReregister && (ent->r.svFlags & SVF_BOT)) {
 }
 ```
 
-### Changes Made
-- Added `Bot_ClearPendingEntityCreation()` helper function
-- Changed persistent bot re-registration to use `Bot_Queue_ClientConnected()` instead of direct `Bot_Event_ClientConnected()`
-- **CRITICAL:** Added bot state reset before re-registration to clear limbo/dead state flags
-- This ensures both new and persistent bots use the same registration flow with clean state
+### Changes Made - Simplified to Match ET:Legacy
+
+After reviewing ET:Legacy's implementation, the fix was simplified to match their approach:
+
+**ET:Legacy approach (now used in xmod):**
+```cpp
+// In ClientConnect() - call Bot_Event_ClientConnected for ALL clients
+if (!isBot) {
+    // For persistent bots, actuallyBot is true (detected via SVF_BOT or sess.isBot)
+    // For humans, actuallyBot is false
+    Bot_Event_ClientConnected(clientNum, actuallyBot);
+}
+```
+
+Key differences from previous xmod approach:
+- `Bot_Event_ClientConnected()` is now called in `ClientConnect()` for persistent bots (matching ET:Legacy)
+- Removed the `botNeedsReregister` flag and special re-registration in `ClientBegin()`
+- State reset is handled by `ClientSpawn()` which runs from `ClientBegin()` (like ET:Legacy)
+- Simpler, more maintainable code that follows upstream patterns
