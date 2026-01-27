@@ -2372,9 +2372,9 @@ void ClientBegin( int clientNum )
 		         clientNum, client->pers.netname);
 		
 		// Clear the pending entity creation flag to prevent double registration.
-		// G_InitGentity (called above) queued Bot_Queue_EntityCreated, but we're
-		// processing the entity immediately here, so we don't want Bot_Interface_Update
-		// to process it again later.
+		// G_InitGentity (called earlier at line ~2355) queued Bot_Queue_EntityCreated,
+		// but we're processing the entity immediately here, so we don't want
+		// Bot_Interface_Update to process it again later.
 		Bot_ClearPendingEntityCreation(ent);
 		
 		// Process entity creation immediately so Omnibot knows about this entity

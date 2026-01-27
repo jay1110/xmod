@@ -5976,7 +5976,11 @@ void Bot_Queue_EntityCreated(gentity_t *pEnt)
 void Bot_ClearPendingEntityCreation(gentity_t *pEnt)
 {
 	if(pEnt)
-		m_EntityHandles[pEnt - g_entities].m_NewEntity = false;
+	{
+		const int iEntNum = pEnt - g_entities;
+		if(iEntNum >= 0 && iEntNum < MAX_GENTITIES)
+			m_EntityHandles[iEntNum].m_NewEntity = false;
+	}
 }
 
 void Bot_Queue_ClientConnected(int clientNum, qboolean isBot)
