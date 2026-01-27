@@ -199,7 +199,7 @@ If bots have invalid team during warmup transition:
 - SVF_BOT flag is used to preserve bot status across deferred call
 - Direct Bot_Event_ClientConnected calls remain for non-bots and persistent bots (safe contexts)
 - Warmup fix in GAME_INIT handles re-registration after map_restart
-- **NEW:** `lastUpdateFrame` initialization in `ClientBegin()` prevents immediate "Connection Interrupted"
+- **FIXED:** `EF_CONNECTION` check in `ClientEndFrame()` now skips bots entirely
 
 ## Compatibility
 
@@ -208,24 +208,36 @@ If bots have invalid team during warmup transition:
 - No changes to client modules (cgame, ui)
 - No changes to Omni-bot library itself
 
-## Update: lastUpdateFrame Fix
+## Update: Connection Interrupted Fix (Revised)
 
 ### Issue
-Bots showed "Connection Interrupted" immediately after warmup end or map_restart because the `lastUpdateFrame` field was not initialized when bots reconnected.
+Bots showed "Connection Interrupted" (ping 999) immediately after warmup end or map_restart.
 
-### Root Cause
-- `lastUpdateFrame` is used by `ClientEndFrame()` to detect connection issues
-- It's only updated via `trap_BotUserCommand()` in `UpdateBotInput()` 
-- `ClientEndFrame()` runs BEFORE `Bot_Interface_Update()` in the frame order
-- After reconnect, `lastUpdateFrame` was stale → EF_CONNECTION set immediately
+### Root Cause Analysis
+The previous fix attempted to initialize `lastUpdateFrame` in `ClientBegin()`, but this was insufficient because:
 
-### Solution
-Initialize `client->lastUpdateFrame = level.framenum` for bots in `ClientBegin()`:
+1. `ClientEndFrame()` runs BEFORE `Bot_Interface_Update()` in the frame order
+2. Omnibot may take several frames after registration before it starts sending commands
+3. Even with correct initialization, if Omnibot doesn't send commands for 3+ frames, `EF_CONNECTION` gets set
+
+The real issue is that **bots are server-side entities without real network connections**, so the connection timeout detection in `ClientEndFrame()` is fundamentally inappropriate for them.
+
+### Solution (Correct Fix)
+Skip the `EF_CONNECTION` flag check for bots in `ClientEndFrame()`:
 
 ```cpp
-if (ent->r.svFlags & SVF_BOT) {
-    client->lastUpdateFrame = level.framenum;
+// In ClientEndFrame() - src/game/g_active.cpp
+if ( frames > 2 ) {
+    frames = 2;
+    // Skip EF_CONNECTION for bots - they have no network connection
+    if ( !(ent->r.svFlags & SVF_BOT) ) {
+        ent->client->ps.eFlags |= EF_CONNECTION;
+        ent->s.eFlags |= EF_CONNECTION;
+    }
 }
 ```
 
-This ensures bots start with a valid frame number, preventing the "Connection Interrupted" display until Omnibot begins generating input.
+This is the correct fix because:
+- Bots are server-side entities with no network latency
+- The "Connection Interrupted" display is meaningless for bots
+- Omnibot may legitimately delay sending commands for several frames after bot registration

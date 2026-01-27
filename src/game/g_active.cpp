@@ -2201,6 +2201,7 @@ void ClientEndFrame( gentity_t *ent ) {
 //unlagged - smooth clients #1
 	// mark as not missing updates initially
 	ent->client->ps.eFlags &= ~EF_CONNECTION;
+	ent->s.eFlags &= ~EF_CONNECTION;
 
 	// see how many frames the client has missed
 	frames = level.framenum - ent->client->lastUpdateFrame - 1;
@@ -2210,8 +2211,15 @@ void ClientEndFrame( gentity_t *ent ) {
 		frames = 2;
 
 		// if they missed more than two in a row, show the phone jack
-		ent->client->ps.eFlags |= EF_CONNECTION;
-		ent->s.eFlags |= EF_CONNECTION;
+		// CRITICAL: Skip this check for bots - they are server-side entities without
+		// real network connections. Omnibot may take several frames after map_restart
+		// or warmup transition before it starts sending commands, which would incorrectly
+		// trigger EF_CONNECTION. Since bots have no network latency, the "Connection
+		// Interrupted" display is meaningless for them.
+		if ( !(ent->r.svFlags & SVF_BOT) ) {
+			ent->client->ps.eFlags |= EF_CONNECTION;
+			ent->s.eFlags |= EF_CONNECTION;
+		}
 	}
 
 	// did the client miss any frames?
