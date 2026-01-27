@@ -2359,7 +2359,11 @@ void ClientBegin( int clientNum )
 
 	// CRITICAL: Re-register persistent bots with Omnibot after map_restart
 	// This must happen AFTER G_InitGentity() which creates the entity and queues Bot_Queue_EntityCreated()
-	// The sequence is: EntityCreated (from G_InitGentity) -> ClientConnected (below)
+	// The sequence mirrors AddBot:
+	//   1. Reset bot state (clear limbo, reset pm_type, restore health) 
+	//   2. Clear pending entity creation flag (to prevent double registration in Bot_Interface_Update)
+	//   3. Send entity creation event immediately
+	//   4. Queue client connection (to be processed AFTER pfnUpdate() in Bot_Interface_Update)
 	// Without this, bots lie on ground with "Connection Interrupted" after warmup->playing transition
 	if (client->sess.botNeedsReregister && (ent->r.svFlags & SVF_BOT)) {
 		// Clear the flag first to prevent re-triggering
@@ -2368,15 +2372,36 @@ void ClientBegin( int clientNum )
 		G_Printf("[BOT_REREGISTER] Re-registering bot %d (%s) with Omnibot after map_restart\n",
 		         clientNum, client->pers.netname);
 		
-		// Process the queued entity creation immediately so Omnibot knows about this entity
-		// G_InitGentity queued Bot_Queue_EntityCreated, which will be processed in Bot_Interface_Update
-		// We need to ensure entity is registered before we send ClientConnected
-		// The entity was just created above, so we can directly call Bot_Event_EntityCreated
+		// CRITICAL STATE RESET: After map_restart from warmup->playing, bots may retain
+		// broken state flags from the previous gamestate (limbo, dead pm_type, corpse contents).
+		// These MUST be cleared BEFORE re-registration or the bot will be stuck:
+		// - PMF_LIMBO: Bot thinks it's in limbo and won't move
+		// - PM_DEAD: Movement code treats bot as dead
+		// - CONTENTS_CORPSE: Collision detection broken
+		// - Health 0: Triggers death handling
+		// - Ping 999: Engine doesn't track bot packet times properly after map_restart
+		client->ps.pm_flags &= ~PMF_LIMBO;
+		client->ps.pm_type = PM_NORMAL;
+		client->ps.stats[STAT_HEALTH] = client->ps.stats[STAT_MAX_HEALTH];
+		ent->health = client->ps.stats[STAT_HEALTH];
+		ent->r.contents = CONTENTS_BODY;
+		client->ps.ping = 0;  // Bots have no network latency
+		
+		// Clear the pending entity creation flag to prevent double registration.
+		// G_InitGentity (called earlier at line ~2355) queued Bot_Queue_EntityCreated,
+		// but we're processing the entity immediately here, so we don't want
+		// Bot_Interface_Update to process it again later.
+		Bot_ClearPendingEntityCreation(ent);
+		
+		// Process entity creation immediately so Omnibot knows about this entity
 		Bot_Event_EntityCreated(ent);
 		
-		// Now notify Omnibot about the client connection
-		// This must come AFTER EntityCreated
-		Bot_Event_ClientConnected(clientNum, qtrue);
+		// CRITICAL: Queue the client connection instead of sending immediately.
+		// This mirrors how AddBot handles new bots - the connection notification
+		// is deferred until AFTER pfnUpdate() completes in Bot_Interface_Update().
+		// Without this deferral, Omnibot may receive the connection event before
+		// its internal state is ready to handle it, causing the bot to be stuck.
+		Bot_Queue_ClientConnected(clientNum, qtrue);
 		
 		// Ensure the bot has a valid team for spawning
 		if (client->sess.sessionTeam != TEAM_AXIS && client->sess.sessionTeam != TEAM_ALLIES) {
