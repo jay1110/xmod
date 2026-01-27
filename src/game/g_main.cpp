@@ -9,6 +9,11 @@
 // Forward declaration for Bot_Event_EntityCreated (defined in g_etbot_interface.cpp)
 void Bot_Event_EntityCreated(gentity_t *pEnt);
 
+// Save bot status across map_restart since g_entities array is wiped
+// This array survives the G_InitGame() memset and allows us to
+// restore SVF_BOT flags when bots reconnect after map_restart
+qboolean g_wasBotBeforeRestart[MAX_CLIENTS] = { qfalse };
+
 level_locals_t	level;
 
 typedef struct {
@@ -644,12 +649,18 @@ vmMain( int command, int arg0, int arg1, int arg2, int arg3, int arg4, int arg5,
 		// 3. GAME_CLIENT_BEGIN -> ClientBegin() -> bot re-registration happens here
 		return 0;
 	case GAME_SHUTDOWN:
+		// Save bot status BEFORE disconnecting them
+		// This array survives the G_InitGame() memset and allows us to
+		// restore SVF_BOT flags when bots reconnect after map_restart
+		memset(g_wasBotBeforeRestart, 0, sizeof(g_wasBotBeforeRestart));
+		
 		// Disconnect all bots from Omni-bot BEFORE shutting down the game
 		// This ensures clean state transition during warmup end / map restart
 		if (IsOmnibotLoaded()) {
 			for (int i = 0; i < level.maxclients; i++) {
 				gentity_t *ent = &g_entities[i];
 				if (ent->inuse && ent->client && IsBot(ent)) {
+					g_wasBotBeforeRestart[i] = qtrue;  // Save bot status!
 					Bot_Event_ClientDisConnected(i);
 				}
 			}
