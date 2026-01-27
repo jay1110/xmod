@@ -199,6 +199,7 @@ If bots have invalid team during warmup transition:
 - SVF_BOT flag is used to preserve bot status across deferred call
 - Direct Bot_Event_ClientConnected calls remain for non-bots and persistent bots (safe contexts)
 - Warmup fix in GAME_INIT handles re-registration after map_restart
+- **NEW:** `lastUpdateFrame` initialization in `ClientBegin()` prevents immediate "Connection Interrupted"
 
 ## Compatibility
 
@@ -206,3 +207,25 @@ If bots have invalid team during warmup transition:
 - Module: qagame.mp.x86_64.so
 - No changes to client modules (cgame, ui)
 - No changes to Omni-bot library itself
+
+## Update: lastUpdateFrame Fix
+
+### Issue
+Bots showed "Connection Interrupted" immediately after warmup end or map_restart because the `lastUpdateFrame` field was not initialized when bots reconnected.
+
+### Root Cause
+- `lastUpdateFrame` is used by `ClientEndFrame()` to detect connection issues
+- It's only updated via `trap_BotUserCommand()` in `UpdateBotInput()` 
+- `ClientEndFrame()` runs BEFORE `Bot_Interface_Update()` in the frame order
+- After reconnect, `lastUpdateFrame` was stale → EF_CONNECTION set immediately
+
+### Solution
+Initialize `client->lastUpdateFrame = level.framenum` for bots in `ClientBegin()`:
+
+```cpp
+if (ent->r.svFlags & SVF_BOT) {
+    client->lastUpdateFrame = level.framenum;
+}
+```
+
+This ensures bots start with a valid frame number, preventing the "Connection Interrupted" display until Omnibot begins generating input.

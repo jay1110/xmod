@@ -2393,6 +2393,24 @@ void ClientBegin( int clientNum )
 			}
 		}
 	}
+	
+	// CRITICAL FIX: Initialize lastUpdateFrame for bots to prevent "Connection Interrupted"
+	// The lastUpdateFrame field is used by ClientEndFrame() to determine if a client has
+	// stopped sending input commands. If (level.framenum - lastUpdateFrame - 1) > 2, the
+	// EF_CONNECTION flag is set and "Connection Interrupted" is displayed.
+	// For bots, lastUpdateFrame is only updated when trap_BotUserCommand() is called in
+	// UpdateBotInput(), which happens during Bot_Interface_Update(). However, ClientEndFrame()
+	// runs BEFORE Bot_Interface_Update() in the frame order:
+	//   1. G_RunFrame() -> ClientEndFrame() checks lastUpdateFrame
+	//   2. Bot_Interface_Update() -> UpdateBotInput() -> trap_BotUserCommand() -> updates lastUpdateFrame
+	// This means on the first frame after a bot reconnects, lastUpdateFrame is stale (from before
+	// map restart) or zero (for new bots), causing EF_CONNECTION to be set immediately.
+	// By initializing lastUpdateFrame here in ClientBegin(), we ensure the bot starts with a
+	// valid frame number, preventing the connection interrupted display until Omnibot starts
+	// generating input for the bot.
+	if (ent->r.svFlags & SVF_BOT) {
+		client->lastUpdateFrame = level.framenum;
+	}
 
 	client->pers.connected = CON_CONNECTED;
 	client->pers.teamState.state = TEAM_BEGIN;
