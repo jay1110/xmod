@@ -11,9 +11,15 @@
 - **Symptom**: Bots spawned before warmup end stop moving when warmup transitions to playing
 - **Status**: Already fixed in GAME_INIT (lines 640-705 in g_main.cpp)
 
+### Issue 3: Server Crash on `bot kickbot`
+- **Symptom**: Server crashes with SIGSEGV when executing `bot kickbot` command on moving bots
+- **Error**: Same crash pattern - Omni-bot crash in `Utils::ConvertString` during `IGame::CheckServerSettings`
+- **Root Cause**: Race condition where `RemoveBot()` disconnects a bot during `pfnConsoleCommand()`, and the immediate disconnection causes Omnibot's internal state to become inconsistent
+- **Solution**: Deferred kick mechanism using `m_PendingKick` flag
+
 ## Solution Implemented
 
-### Core Fix: Deferred Client Connection Notification
+### Core Fix 1: Deferred Client Connection Notification (for addbot)
 
 Added a deferred notification mechanism for bot client connections, similar to the existing entity creation pattern:
 
@@ -22,7 +28,15 @@ Added a deferred notification mechanism for bot client connections, similar to t
 3. **Processing loop**: Modified `Bot_Interface_Update()` to process queued connections before `pfnUpdate()`
 4. **Updated AddBot**: Changed to use `Bot_Queue_ClientConnected()` instead of immediate notification
 
-### Event Sequence (Before Fix)
+### Core Fix 2: Deferred Bot Kick (for kickbot)
+
+Added a deferred kick mechanism to prevent crashes during bot removal:
+
+1. **New BotEntity flag**: Added `m_PendingKick` flag to mark bots for deferred kicking
+2. **Updated RemoveBot**: Changed to set `m_PendingKick` flag instead of calling `trap_DropClient()` immediately
+3. **Processing loop**: Added processing of pending kicks in `Bot_Interface_Update()` AFTER `pfnUpdate()` completes
+
+### Event Sequence - AddBot (Before Fix)
 ```
 Frame N:
   - bot addbot command executed
@@ -35,7 +49,7 @@ Frame N:
     - CRASH: Bot data not fully stable yet
 ```
 
-### Event Sequence (After Fix)
+### Event Sequence - AddBot (After Fix)
 ```
 Frame N:
   - bot addbot command executed
@@ -53,15 +67,44 @@ Frame N+1:
     - pfnUpdate() runs safely
 ```
 
+### Event Sequence - Kickbot (Before Fix)
+```
+Frame N:
+  - bot kickbot command executed
+  - Bot_Interface_ConsoleCommand() calls pfnConsoleCommand()
+  - Omni-bot calls RemoveBot()
+  - RemoveBot() calls trap_DropClient() IMMEDIATELY
+  - ClientDisconnect() notifies Omni-bot via Bot_Event_ClientDisConnected()
+  - Control returns to pfnConsoleCommand() which continues processing
+  - CRASH: Omni-bot accesses invalidated bot data
+```
+
+### Event Sequence - Kickbot (After Fix)
+```
+Frame N:
+  - bot kickbot command executed
+  - Bot_Interface_ConsoleCommand() calls pfnConsoleCommand()
+  - Omni-bot calls RemoveBot()
+  - RemoveBot() sets m_PendingKick flag (deferred)
+  - pfnConsoleCommand() completes normally
+  - Bot_Interface_Update() continues
+    - pfnUpdate() runs safely (bot still connected)
+    - Process pending kicks AFTER pfnUpdate()
+    - trap_DropClient() called NOW
+```
+
 ## Files Modified
 
 1. **src/omnibot/et/g_etbot_interface.cpp**
-   - Added `m_NewClient` flag to BotEntity structure (line 43)
-   - Implemented `Bot_Queue_ClientConnected()` function (lines 5909-5917)
-   - Updated `Bot_Interface_InitHandles()` to initialize m_NewClient (line 5112)
-   - Updated `Bot_Event_EntityDeleted()` to clear m_NewClient (line 5931)
-   - Added client connection processing loop in `Bot_Interface_Update()` (lines 5305-5326)
-   - Modified `AddBot()` to use `Bot_Queue_ClientConnected()` (line 1722)
+   - Added `m_NewClient` flag to BotEntity structure
+   - Added `m_PendingKick` flag to BotEntity structure
+   - Implemented `Bot_Queue_ClientConnected()` function
+   - Updated `Bot_Interface_InitHandles()` to initialize flags
+   - Updated `Bot_Event_EntityDeleted()` to clear flags
+   - Added client connection processing loop in `Bot_Interface_Update()`
+   - Added pending kick processing loop in `Bot_Interface_Update()` (AFTER pfnUpdate)
+   - Modified `AddBot()` to use `Bot_Queue_ClientConnected()`
+   - Modified `RemoveBot()` to use deferred kick via `m_PendingKick` flag
 
 2. **src/omnibot/et/g_etbot_interface.h**
    - Added `Bot_Queue_ClientConnected()` declaration (line 52)
@@ -95,7 +138,17 @@ Console commands:
 ```
 Expected: No crash, bots join successfully
 
-### 4. Test bot maxbots (Regression Check)
+### 4. Test bot kickbot (New Fix)
+```
+Console commands:
+  bot load
+  bot maxbots 4
+  (wait for bots to spawn and move around)
+  bot kickbot
+```
+Expected: No crash, bot is kicked successfully
+
+### 5. Test bot maxbots (Regression Check)
 ```
 Console commands:
   bot load
@@ -103,7 +156,7 @@ Console commands:
 ```
 Expected: Bots join successfully (should work as before)
 
-### 5. Test Warmup Transition
+### 6. Test Warmup Transition
 ```
 Setup:
   1. Set g_doWarmup 1
@@ -130,10 +183,12 @@ If bots have invalid team during warmup transition:
 
 ### Before Fix
 - `bot addbot`: CRASH (SIGSEGV in Omni-bot)
+- `bot kickbot`: CRASH (SIGSEGV in Omni-bot)
 - Bots through warmup: Stop moving after warmup ends
 
 ### After Fix
 - `bot addbot`: No crash, bots join and function normally
+- `bot kickbot`: No crash, bots are kicked successfully
 - Bots through warmup: Continue moving after warmup ends
 - `bot maxbots`: Still works as expected (no regression)
 

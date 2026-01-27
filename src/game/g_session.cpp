@@ -20,19 +20,24 @@ Called on game shutdown
 */
 void G_WriteClientSessionData( gclient_t *client, qboolean restart )
 {
-	int mvc = G_smvGenerateClientList(g_entities + (client - level.clients));
+	int clientNum = client - level.clients;
+	int mvc = G_smvGenerateClientList(g_entities + clientNum);
 	const char	*s;
 
 	// OSP -- stats reset check
 	// Jaybird - check for cvar...
 	if ((g_gametype.integer == GT_WOLF_CAMPAIGN && !g_saveCampaignStats.integer) || level.fResetStats)
-		G_deleteStats(client - level.clients);
+		G_deleteStats(clientNum);
 
 	// Jaybird
 	// - Added auto mute
 	// - Added revives
 	// - Added headshots
-	s = va("%i %i %i %i %i %i %i %i %i %i %i %i %i %i %i %i %i %i %i %i %i %i %i %i %i %i %i %i %i %i",
+	// CRITICAL FIX: Added isBot (position 31) to preserve bot status across map_restart
+	// Without this, bots lose their SVF_BOT flag after warmup->playing transition
+	// and become unresponsive (lie on ground with "Connection Interrupted")
+	int isBot = (g_entities[clientNum].r.svFlags & SVF_BOT) ? 1 : 0;
+	s = va("%i %i %i %i %i %i %i %i %i %i %i %i %i %i %i %i %i %i %i %i %i %i %i %i %i %i %i %i %i %i %i",
 		client->sess.sessionTeam,
 		client->sess.spectatorTime,
 		client->sess.spectatorState,
@@ -56,7 +61,7 @@ void G_WriteClientSessionData( gclient_t *client, qboolean restart )
 		client->sess.team_kills,
 		(mvc & 0xFFFF),
 		((mvc >> 16) & 0xFFFF), 
-		(int)(::xmod::isClientMuted(client - level.clients) ? 1 : 0),
+		(int)(::xmod::isClientMuted(clientNum) ? 1 : 0),
 		0,		// Jaybird - muteExpiry stored in SQLite now
 		client->sess.shoutcaster,
 		client->sess.ignoreClients[0],
@@ -64,7 +69,8 @@ void G_WriteClientSessionData( gclient_t *client, qboolean restart )
 		client->pers.enterTime,
 		restart ? client->sess.spawnObjectiveIndex : 0,
 		client->sess.revives,				// Jaybird
-		client->sess.headshots				// Jaybird
+		client->sess.headshots,				// Jaybird
+		isBot							// CRITICAL: Bot status for persistence across map_restart
 		);
 
 	trap_Cvar_Set( va( "session%i", client - level.clients ), s );
@@ -178,6 +184,7 @@ void G_ReadSessionData( gclient_t *client )
 	qboolean test;
 	int tempMuted = 0;
 	int tempMuteExpiry = 0;
+	int tempIsBot = 0;
 
 	trap_Cvar_VariableStringBuffer( va( "session%i", client - level.clients ), s, sizeof(s) );
 
@@ -185,7 +192,8 @@ void G_ReadSessionData( gclient_t *client )
 	// - Added automute
 	// - Added revives
 	// - Added headshots
-	sscanf( s, "%i %i %i %i %i %i %i %i %i %i %i %i %i %i %i %i %i %i %i %i %i %i %i %i %i %i %i %i %i %i",
+	// CRITICAL FIX: Added isBot (position 31) to preserve bot status across map_restart
+	sscanf( s, "%i %i %i %i %i %i %i %i %i %i %i %i %i %i %i %i %i %i %i %i %i %i %i %i %i %i %i %i %i %i %i",
 		(int *)&client->sess.sessionTeam,
 		&client->sess.spectatorTime,
 		(int *)&client->sess.spectatorState,
@@ -219,8 +227,12 @@ void G_ReadSessionData( gclient_t *client )
 		&client->pers.enterTime,
 		&client->sess.spawnObjectiveIndex,
 		&client->sess.revives,				// Jaybird
-		&client->sess.headshots				// Jaybird
+		&client->sess.headshots,			// Jaybird
+		&tempIsBot						// CRITICAL: Bot status for persistence across map_restart
 		);
+
+	// CRITICAL: Store bot status in session for later restoration in ClientConnect
+	client->sess.isBot = tempIsBot ? qtrue : qfalse;
 
 	// Apply muted status via session helper
 	if (tempMuted) {

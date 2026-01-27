@@ -690,6 +690,7 @@ typedef struct {
 	//Omni-bot
 	qboolean	botSuicide;			// /kill before next spawn
 	qboolean	botPush;			// allow for disabling of bot pushing via script
+	qboolean	isBot;				// CRITICAL: Bot status persisted across map_restart
 
 	weapon_stat_t aWeaponStats[WS_MAX+1];	// Weapon stats.  +1 to avoid invalid weapon check
 	// OSP
