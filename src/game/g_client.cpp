@@ -2190,24 +2190,27 @@ ClientConnect( string& outmsg, int clientNum, qboolean firstTime, qboolean isBot
 		client->pers.enterTime = level.time;
 	}
 
-	if( isBot ) {
+	// Determine if this client is actually a bot:
+	// 1. isBot=true means new bot from AddBot command
+	// 2. ent->r.svFlags & SVF_BOT means SVF_BOT persisted (unlikely after map_restart)
+	// 3. client->sess.isBot means bot status restored from session data after map_restart
+	qboolean actuallyBot = (isBot || (ent->r.svFlags & SVF_BOT) || client->sess.isBot) ? qtrue : qfalse;
+	
+	if( actuallyBot ) {
 		ent->s.number = clientNum;
-
 		ent->r.svFlags |= SVF_BOT;
 		ent->inuse = qtrue;
 
 		// Auto-authenticate bots since they can't respond to guid_request
 		// This prevents authentication timeouts and related issues
-		// Note: authGuid will be set later with the proper SHA1 GUID
 		clientObject.authenticated = true;
 		clientObject.authWarningShown = false;
-	} else if (ent->r.svFlags & SVF_BOT) {
-		// PERSISTENT bot on map_restart: isBot=false but SVF_BOT flag is set
-		// Auto-authenticate these bots too since they can't respond to guid_request
-		// Without this, bots would lose authentication after map_restart and fail auth checks
-		// Note: authGuid will be set later with the proper SHA1 GUID
-		clientObject.authenticated = true;
-		clientObject.authWarningShown = false;
+		
+		// Log restoration from session (useful for debugging warmup transition)
+		if (!isBot && client->sess.isBot) {
+			G_Printf("[BOT_RESTORE] Restored bot status for client %d (%s) from session\n", 
+			         clientNum, client->pers.netname);
+		}
 	} else if( firstTime ) {
 		// force into spectator
 		client->sess.sessionTeam = TEAM_SPECTATOR;
@@ -2223,15 +2226,11 @@ ClientConnect( string& outmsg, int clientNum, qboolean firstTime, qboolean isBot
 	G_UpdateCharacter( client );
 	// For NEW bots (isBot=true), Bot_Event_ClientConnected is deferred via Bot_Queue_ClientConnected
 	// in AddBot. This prevents Omnibot from processing the bot before it's fully initialized.
-	// For PERSISTENT bots on map_restart, isBot=false but SVF_BOT is set. We must pass
-	// the actual bot status to Omnibot so it correctly registers them as bots.
-	// Without this fix, bots would be registered as human players after map_restart
-	// and would not move (their AI would not be started).
-	if (!isBot) {
-		// Pass actual bot status from SVF_BOT flag, not the isBot parameter
-		// isBot is only true for NEW bots from AddBot, but SVF_BOT persists across map_restart
-		qboolean actuallyBot = (ent->r.svFlags & SVF_BOT) ? qtrue : qfalse;
-		Bot_Event_ClientConnected(clientNum, actuallyBot);
+	// For PERSISTENT bots on map_restart, we need to notify Omnibot now.
+	if (!isBot && actuallyBot) {
+		Bot_Event_ClientConnected(clientNum, qtrue);
+	} else if (!isBot) {
+		Bot_Event_ClientConnected(clientNum, qfalse);
 	}
 	ClientUserinfoChanged( clientNum );
 
