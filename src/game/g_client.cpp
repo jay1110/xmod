@@ -1886,6 +1886,9 @@ restarts.
 bool
 ClientConnect( string& outmsg, int clientNum, qboolean firstTime, qboolean isBot ) {
     outmsg.clear();
+    
+	// DEBUG: Log ClientConnect parameters
+	G_Printf("[CLIENT_CONNECT] clientNum=%d, firstTime=%d, isBot=%d\n", clientNum, firstTime, isBot);
 
 	gclient_t	*client;
 	char		userinfo[MAX_INFO_STRING];
