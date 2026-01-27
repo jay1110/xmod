@@ -241,3 +241,57 @@ This is the correct fix because:
 - Bots are server-side entities with no network latency
 - The "Connection Interrupted" display is meaningless for bots
 - Omnibot may legitimately delay sending commands for several frames after bot registration
+
+## Update: Bot Stuck Fix (Further Revised)
+
+### Issue
+Despite the `EF_CONNECTION` skip, bots still appeared stuck/frozen after warmup or map_restart.
+
+### Root Cause Analysis
+In `ClientBegin()`, persistent bots (restored from session data after map_restart) were re-registered with Omnibot using a different pattern than newly added bots:
+
+**Problem (Old Code):**
+```cpp
+// In ClientBegin() - for persistent bots
+Bot_Event_EntityCreated(ent);           // Direct call
+Bot_Event_ClientConnected(clientNum, qtrue);  // Direct call - WRONG!
+```
+
+**How AddBot works (New Bots):**
+```cpp
+// In AddBot() - for new bots
+Bot_ClearPendingEntityCreation(bot);    // Clear flag first
+Bot_Event_EntityCreated(bot);           // Direct call
+Bot_Queue_ClientConnected(num, qtrue);  // QUEUED, processed after pfnUpdate()
+```
+
+The key difference: **new bots queue the client connection**, which is processed AFTER `pfnUpdate()` in `Bot_Interface_Update()`. This deferral is critical because:
+
+1. Omnibot's internal state needs to be ready before receiving client connections
+2. The entity must be fully registered before the connection event
+3. `pfnUpdate()` must complete without the newly connected bot in its client list
+
+### Solution (Correct Fix)
+Align persistent bot re-registration with new bot registration:
+
+```cpp
+// In ClientBegin() - src/game/g_client.cpp
+if (client->sess.botNeedsReregister && (ent->r.svFlags & SVF_BOT)) {
+    client->sess.botNeedsReregister = qfalse;
+    
+    // Clear pending entity creation to prevent double registration
+    Bot_ClearPendingEntityCreation(ent);
+    
+    // Register entity immediately
+    Bot_Event_EntityCreated(ent);
+    
+    // QUEUE client connection (processed after pfnUpdate())
+    Bot_Queue_ClientConnected(clientNum, qtrue);
+    // ...
+}
+```
+
+### Changes Made
+- Added `Bot_ClearPendingEntityCreation()` helper function
+- Changed persistent bot re-registration to use `Bot_Queue_ClientConnected()` instead of direct `Bot_Event_ClientConnected()`
+- This ensures both new and persistent bots use the same registration flow

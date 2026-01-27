@@ -2359,7 +2359,10 @@ void ClientBegin( int clientNum )
 
 	// CRITICAL: Re-register persistent bots with Omnibot after map_restart
 	// This must happen AFTER G_InitGentity() which creates the entity and queues Bot_Queue_EntityCreated()
-	// The sequence is: EntityCreated (from G_InitGentity) -> ClientConnected (below)
+	// The sequence mirrors AddBot:
+	//   1. Clear pending entity creation flag (to prevent double registration in Bot_Interface_Update)
+	//   2. Send entity creation event immediately
+	//   3. Queue client connection (to be processed AFTER pfnUpdate() in Bot_Interface_Update)
 	// Without this, bots lie on ground with "Connection Interrupted" after warmup->playing transition
 	if (client->sess.botNeedsReregister && (ent->r.svFlags & SVF_BOT)) {
 		// Clear the flag first to prevent re-triggering
@@ -2368,15 +2371,21 @@ void ClientBegin( int clientNum )
 		G_Printf("[BOT_REREGISTER] Re-registering bot %d (%s) with Omnibot after map_restart\n",
 		         clientNum, client->pers.netname);
 		
-		// Process the queued entity creation immediately so Omnibot knows about this entity
-		// G_InitGentity queued Bot_Queue_EntityCreated, which will be processed in Bot_Interface_Update
-		// We need to ensure entity is registered before we send ClientConnected
-		// The entity was just created above, so we can directly call Bot_Event_EntityCreated
+		// Clear the pending entity creation flag to prevent double registration.
+		// G_InitGentity (called above) queued Bot_Queue_EntityCreated, but we're
+		// processing the entity immediately here, so we don't want Bot_Interface_Update
+		// to process it again later.
+		Bot_ClearPendingEntityCreation(ent);
+		
+		// Process entity creation immediately so Omnibot knows about this entity
 		Bot_Event_EntityCreated(ent);
 		
-		// Now notify Omnibot about the client connection
-		// This must come AFTER EntityCreated
-		Bot_Event_ClientConnected(clientNum, qtrue);
+		// CRITICAL: Queue the client connection instead of sending immediately.
+		// This mirrors how AddBot handles new bots - the connection notification
+		// is deferred until AFTER pfnUpdate() completes in Bot_Interface_Update().
+		// Without this deferral, Omnibot may receive the connection event before
+		// its internal state is ready to handle it, causing the bot to be stuck.
+		Bot_Queue_ClientConnected(clientNum, qtrue);
 		
 		// Ensure the bot has a valid team for spawning
 		if (client->sess.sessionTeam != TEAM_AXIS && client->sess.sessionTeam != TEAM_ALLIES) {
