@@ -2474,7 +2474,11 @@ void ClientBegin( int clientNum )
 
 
 	// DHM - Nerve :: Start players in limbo mode if they change teams during the match
-	if(client->sess.sessionTeam != TEAM_SPECTATOR && (level.time - level.startTime > FRAMETIME * GAME_INIT_FRAMES) ) {
+	// CRITICAL: Skip bots - they are managed by Omni-bot and should NOT be put in limbo.
+	// After warmup→playing (map_restart), bots would be incorrectly put in limbo because
+	// level.time - level.startTime > GAME_INIT_FRAMES by the time ClientBegin is called.
+	// This caused bots to lie on ground with "Connection Interrupted" after warmup ended.
+	if(!(ent->r.svFlags & SVF_BOT) && client->sess.sessionTeam != TEAM_SPECTATOR && (level.time - level.startTime > FRAMETIME * GAME_INIT_FRAMES) ) {
 		ent->health = 0;
 		ent->r.contents = CONTENTS_CORPSE;
 
