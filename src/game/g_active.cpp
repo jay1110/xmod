@@ -1304,6 +1304,14 @@ void ClientThink_real( gentity_t *ent, bool skipServerTime ) {
 	if ( client->pers.realPing < 0 ) {
 		client->pers.realPing = 0;
 	}
+	
+	// Bots have no network latency - ensure their ping is always 0.
+	// The engine may set ps.ping to 999 after map_restart because it doesn't
+	// properly track lastPacketTime for bot clients.
+	if ( ent->r.svFlags & SVF_BOT ) {
+		client->ps.ping = 0;
+		client->pers.realPing = 0;
+	}
 //unlagged - true ping
 
 

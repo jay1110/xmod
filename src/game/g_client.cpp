@@ -2379,11 +2379,13 @@ void ClientBegin( int clientNum )
 		// - PM_DEAD: Movement code treats bot as dead
 		// - CONTENTS_CORPSE: Collision detection broken
 		// - Health 0: Triggers death handling
+		// - Ping 999: Engine doesn't track bot packet times properly after map_restart
 		client->ps.pm_flags &= ~PMF_LIMBO;
 		client->ps.pm_type = PM_NORMAL;
 		client->ps.stats[STAT_HEALTH] = client->ps.stats[STAT_MAX_HEALTH];
 		ent->health = client->ps.stats[STAT_HEALTH];
 		ent->r.contents = CONTENTS_BODY;
+		client->ps.ping = 0;  // Bots have no network latency
 		
 		// Clear the pending entity creation flag to prevent double registration.
 		// G_InitGentity (called earlier at line ~2355) queued Bot_Queue_EntityCreated,
