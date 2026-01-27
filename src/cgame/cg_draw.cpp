@@ -1124,6 +1124,19 @@ static void CG_DrawDisconnect( void ) {
 	if( cg.serverRespawning )
 		return;
 
+	// Skip connection interrupt display when spectating a bot.
+	// Bots are server-side entities without real network connections, so the
+	// connection timeout detection is meaningless for them. After map_restart
+	// or warmup transition, there can be command timing mismatches that would
+	// incorrectly trigger this check for bots.
+	if ( cg.snap && (cg.snap->ps.pm_flags & PMF_FOLLOW) ) {
+		int spectatedClient = cg.snap->ps.clientNum;
+		if ( spectatedClient >= 0 && spectatedClient < MAX_CLIENTS &&
+		     cgs.clientinfo[spectatedClient].botSkill > 0 ) {
+			return;
+		}
+	}
+
 	// draw the phone jack if we are completely past our buffers
 	cmdNum = trap_GetCurrentCmdNumber() - CMD_BACKUP + 1;
 	trap_GetUserCmd( cmdNum, &cmd );

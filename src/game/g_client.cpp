@@ -1803,7 +1803,11 @@ void ClientUserinfoChanged( int clientNum ) {
 
     // send over a subset of the userinfo keys so other clients can
     // print scoreboards, display models, and play custom sounds
-    s = va( "n\\%s\\t\\%i\\c\\%i\\r\\%i\\m\\%s\\s\\%s\\dn\\%s\\dr\\%i\\w\\%i\\lw\\%i\\sw\\%i\\mu\\%i\\ref\\%i\\sc\\%i\\u\\%i",
+    // "skill" key: 0 = human player, 1 = bot (value 1 used to identify bots, not actual skill)
+    // This allows clients to identify bots without needing server-side entity access.
+    // Used by CG_DrawDisconnect() to skip "Connection Interrupted" display when spectating bots.
+    int botSkillValue = (ent->r.svFlags & SVF_BOT) ? 1 : 0;
+    s = va( "n\\%s\\t\\%i\\c\\%i\\r\\%i\\m\\%s\\s\\%s\\dn\\%s\\dr\\%i\\w\\%i\\lw\\%i\\sw\\%i\\mu\\%i\\ref\\%i\\sc\\%i\\u\\%i\\skill\\%i",
         client->pers.netname, 
         client->sess.sessionTeam, 
         client->sess.playerType, 
@@ -1818,7 +1822,8 @@ void ClientUserinfoChanged( int clientNum ) {
         ::xmod::isClientMuted(clientNum) ? 1 : 0,
         client->sess.referee,
         client->sess.shoutcaster,
-        client->sess.uci
+        client->sess.uci,
+        botSkillValue
     );
 
     trap_GetConfigstring( CS_PLAYERS + clientNum, oldname, sizeof( oldname ) );
