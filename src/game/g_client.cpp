@@ -1803,7 +1803,11 @@ void ClientUserinfoChanged( int clientNum ) {
 
     // send over a subset of the userinfo keys so other clients can
     // print scoreboards, display models, and play custom sounds
-    s = va( "n\\%s\\t\\%i\\c\\%i\\r\\%i\\m\\%s\\s\\%s\\dn\\%s\\dr\\%i\\w\\%i\\lw\\%i\\sw\\%i\\mu\\%i\\ref\\%i\\sc\\%i\\u\\%i",
+    // "skill" key: 0 = human player, 1 = bot (value 1 used to identify bots, not actual skill)
+    // This allows clients to identify bots without needing server-side entity access.
+    // Used by CG_DrawDisconnect() to skip "Connection Interrupted" display when spectating bots.
+    int botSkillValue = (ent->r.svFlags & SVF_BOT) ? 1 : 0;
+    s = va( "n\\%s\\t\\%i\\c\\%i\\r\\%i\\m\\%s\\s\\%s\\dn\\%s\\dr\\%i\\w\\%i\\lw\\%i\\sw\\%i\\mu\\%i\\ref\\%i\\sc\\%i\\u\\%i\\skill\\%i",
         client->pers.netname, 
         client->sess.sessionTeam, 
         client->sess.playerType, 
@@ -1818,7 +1822,8 @@ void ClientUserinfoChanged( int clientNum ) {
         ::xmod::isClientMuted(clientNum) ? 1 : 0,
         client->sess.referee,
         client->sess.shoutcaster,
-        client->sess.uci
+        client->sess.uci,
+        botSkillValue
     );
 
     trap_GetConfigstring( CS_PLAYERS + clientNum, oldname, sizeof( oldname ) );
@@ -2396,12 +2401,16 @@ void ClientBegin( int clientNum )
 		// Process entity creation immediately so Omnibot knows about this entity
 		Bot_Event_EntityCreated(ent);
 		
-		// CRITICAL: Queue the client connection instead of sending immediately.
-		// This mirrors how AddBot handles new bots - the connection notification
-		// is deferred until AFTER pfnUpdate() completes in Bot_Interface_Update().
-		// Without this deferral, Omnibot may receive the connection event before
-		// its internal state is ready to handle it, causing the bot to be stuck.
-		Bot_Queue_ClientConnected(clientNum, qtrue);
+		// CRITICAL: For persistent bots after map_restart, send the client connection
+		// notification IMMEDIATELY (not queued). This is different from newly added bots:
+		// - New bots (via AddBot): Queue connection to avoid crash during same-frame pfnUpdate()
+		// - Persistent bots: Send immediately so Omnibot can control them on the first frame
+		// The crash issue with CheckServerSettings only occurs when bot is created in the
+		// SAME frame as pfnUpdate(). For map_restart, bots are initialized during GAME_CLIENT_BEGIN
+		// which completes BEFORE Bot_Interface_Update() runs, so it's safe to notify immediately.
+		// Without immediate notification, Omnibot doesn't know the bot is connected and won't
+		// send movement commands, causing the bot to be stuck/frozen after map_restart.
+		Bot_Event_ClientConnected(clientNum, qtrue);
 		
 		// Ensure the bot has a valid team for spawning
 		if (client->sess.sessionTeam != TEAM_AXIS && client->sess.sessionTeam != TEAM_ALLIES) {
