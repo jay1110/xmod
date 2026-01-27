@@ -186,6 +186,7 @@ Called on a reconnect
 */
 void G_ReadSessionData( gclient_t *client )
 {
+	int clientNum = client - level.clients;
 	int mvc_l, mvc_h;
 	char s[MAX_STRING_CHARS];
 	qboolean test;
@@ -193,7 +194,7 @@ void G_ReadSessionData( gclient_t *client )
 	int tempMuteExpiry = 0;
 	int tempIsBot = 0;
 
-	trap_Cvar_VariableStringBuffer( va( "session%i", client - level.clients ), s, sizeof(s) );
+	trap_Cvar_VariableStringBuffer( va( "session%i", clientNum ), s, sizeof(s) );
 
 	// Jaybird
 	// - Added automute
@@ -244,8 +245,8 @@ void G_ReadSessionData( gclient_t *client )
 	// DEBUG: Log bot session restore
 	if (tempIsBot) {
 		G_Printf("[SESSION_LOAD] Client %d restored bot status tempIsBot=%d, sess.isBot=%d from session%d\n",
-		         (int)(client - level.clients), tempIsBot, client->sess.isBot, (int)(client - level.clients));
-		G_Printf("[SESSION_LOAD] Session string for client %d: %s\n", (int)(client - level.clients), s);
+		         clientNum, tempIsBot, client->sess.isBot, clientNum);
+		G_Printf("[SESSION_LOAD] Session string for client %d: %s\n", clientNum, s);
 	}
 
 	// Apply muted status via session helper
@@ -259,7 +260,7 @@ void G_ReadSessionData( gclient_t *client )
 
 	// OSP -- pull and parse weapon stats
 	*s = 0;
-	trap_Cvar_VariableStringBuffer(va("wstats%i", client - level.clients), s, sizeof(s));
+	trap_Cvar_VariableStringBuffer(va("wstats%i", clientNum), s, sizeof(s));
 	if(*s) {
 		G_parseStats(s);
 		if(cvars::gameState.ivalue == GS_PLAYING) client->sess.rounds++;
@@ -305,7 +306,7 @@ void G_ReadSessionData( gclient_t *client )
 	}
  
 	if (load) {
-		trap_Cvar_VariableStringBuffer( va( "sessionstats%i", client - level.clients ), s, sizeof(s) );
+		trap_Cvar_VariableStringBuffer( va( "sessionstats%i", clientNum ), s, sizeof(s) );
 
 		// Arnout: read the clients stats (7) and medals (7)
 		sscanf( s, "%f %f %f %f %f %f %f %i %i %i %i %i %i %i",
