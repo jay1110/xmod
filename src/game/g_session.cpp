@@ -37,6 +37,13 @@ void G_WriteClientSessionData( gclient_t *client, qboolean restart )
 	// Without this, bots lose their SVF_BOT flag after warmup->playing transition
 	// and become unresponsive (lie on ground with "Connection Interrupted")
 	int isBot = (g_entities[clientNum].r.svFlags & SVF_BOT) ? 1 : 0;
+	
+	// DEBUG: Log bot session save
+	if (isBot) {
+		G_Printf("[SESSION_SAVE] Client %d (%s) saving bot status isBot=%d to session%d\n",
+		         clientNum, client->pers.netname, isBot, clientNum);
+	}
+	
 	s = va("%i %i %i %i %i %i %i %i %i %i %i %i %i %i %i %i %i %i %i %i %i %i %i %i %i %i %i %i %i %i %i",
 		client->sess.sessionTeam,
 		client->sess.spectatorTime,
@@ -233,6 +240,13 @@ void G_ReadSessionData( gclient_t *client )
 
 	// CRITICAL: Store bot status in session for later restoration in ClientConnect
 	client->sess.isBot = tempIsBot ? qtrue : qfalse;
+	
+	// DEBUG: Log bot session restore
+	if (tempIsBot) {
+		G_Printf("[SESSION_LOAD] Client %d restored bot status tempIsBot=%d, sess.isBot=%d from session%d\n",
+		         (int)(client - level.clients), tempIsBot, client->sess.isBot, (int)(client - level.clients));
+		G_Printf("[SESSION_LOAD] Session string for client %d: %s\n", (int)(client - level.clients), s);
+	}
 
 	// Apply muted status via session helper
 	if (tempMuted) {

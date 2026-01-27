@@ -2201,6 +2201,10 @@ ClientConnect( string& outmsg, int clientNum, qboolean firstTime, qboolean isBot
 	// 3. client->sess.isBot means bot status restored from session data after map_restart
 	qboolean actuallyBot = (isBot || (ent->r.svFlags & SVF_BOT) || client->sess.isBot) ? qtrue : qfalse;
 	
+	// DEBUG: Log bot detection
+	G_Printf("[BOT_DETECT] Client %d: isBot=%d, svFlags&SVF_BOT=%d, sess.isBot=%d, actuallyBot=%d\n",
+	         clientNum, isBot, !!(ent->r.svFlags & SVF_BOT), client->sess.isBot, actuallyBot);
+	
 	// Track whether this is a persistent bot (restored after map_restart)
 	// These bots need special handling in ClientBegin to properly register with Omnibot
 	qboolean isPersistentBot = (!isBot && actuallyBot) ? qtrue : qfalse;
