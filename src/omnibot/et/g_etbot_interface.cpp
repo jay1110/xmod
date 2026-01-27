@@ -1717,10 +1717,13 @@ public:
 			}
 			
 			// CRITICAL FIX: Queue the client connection notification instead of sending immediately.
-			// This defers the notification until the next Bot_Interface_Update() call.
-			// This prevents crash in Omnibot's CheckServerSettings which can be triggered by
-			// pfnUpdate() on the SAME frame if bot addbot is executed mid-frame.
-			// By deferring, we ensure the bot is in a fully stable state before Omnibot processes it.
+			// This defers the notification until AFTER pfnUpdate() completes in Bot_Interface_Update().
+			// When "bot addbot" is executed via console command:
+			//   1. AddBot() runs and sets m_NewClient = true
+			//   2. Same frame: Bot_Interface_Update() is called
+			//   3. pfnUpdate() runs - bot is NOT yet registered (safe, no CheckServerSettings crash)
+			//   4. Bot_Event_ClientConnected() is called AFTER pfnUpdate()
+			//   5. Next frame: pfnUpdate() can safely access the now-stable bot data
 			Bot_Queue_ClientConnected(num, qtrue);
 		}
 		// bad hack to prevent unhandled errors being returned as successful connections
@@ -5308,32 +5311,13 @@ void Bot_Interface_Update()
 			}
 		}
 		
-		//////////////////////////////////////////////////////////////////////////
-		// Register any pending client connections.
-		// This is deferred to ensure clients are in a stable state before Omni-bot processes them.
-		// Without this, Omni-bot's CheckServerSettings can crash trying to access incomplete client data.
-		for(int i = 0; i < MAX_CLIENTS; ++i)
-		{
-			if(m_EntityHandles[i].m_NewClient && g_entities[i].inuse && g_entities[i].client)
-			{
-				// Verify client is still connected before notifying Omni-bot
-				if(g_entities[i].client->pers.connected == CON_CONNECTED)
-				{
-					m_EntityHandles[i].m_NewClient = false;
-					qboolean isBot = (g_entities[i].r.svFlags & SVF_BOT) ? qtrue : qfalse;
-					Bot_Event_ClientConnected(i, isBot);
-				}
-				else
-				{
-					// Client disconnected before notification could be sent, clear the flag
-					m_EntityHandles[i].m_NewClient = false;
-				}
-			}
-		}
-		
 		SendDeferredGoals();
 		//////////////////////////////////////////////////////////////////////////
 		// Call the libraries update.
+		// NOTE: Any pending client connections (m_NewClient) are NOT processed before this call.
+		// This is intentional - we want pfnUpdate() to run WITHOUT the newly added bot being
+		// registered as connected. This prevents Omnibot's CheckServerSettings from accessing
+		// potentially unstable bot data on the same frame the bot was created.
 		g_BotFunctions.pfnUpdate();
 		//////////////////////////////////////////////////////////////////////////
 		
@@ -5353,6 +5337,37 @@ void Bot_Interface_Update()
 				if(g_entities[i].inuse && g_entities[i].client && IsBot(&g_entities[i]))
 				{
 					trap_DropClient(i, "disconnected", 0);
+				}
+			}
+		}
+		//////////////////////////////////////////////////////////////////////////
+		
+		//////////////////////////////////////////////////////////////////////////
+		// Register any pending client connections AFTER pfnUpdate() completes.
+		// CRITICAL: This MUST happen AFTER pfnUpdate(), not before!
+		// When "bot addbot" is executed:
+		//   1. Console command calls AddBot() which sets m_NewClient = true
+		//   2. Same frame: Bot_Interface_Update() is called
+		//   3. pfnUpdate() runs - bot is NOT yet registered as connected (safe!)
+		//   4. THEN we call Bot_Event_ClientConnected() to register the bot
+		//   5. Next frame: pfnUpdate() runs with bot in a stable state
+		// If we processed m_NewClient BEFORE pfnUpdate(), the bot would be registered
+		// and then immediately queried by CheckServerSettings, causing a crash.
+		for(int i = 0; i < MAX_CLIENTS; ++i)
+		{
+			if(m_EntityHandles[i].m_NewClient && g_entities[i].inuse && g_entities[i].client)
+			{
+				// Verify client is still connected before notifying Omnibot
+				if(g_entities[i].client->pers.connected == CON_CONNECTED)
+				{
+					m_EntityHandles[i].m_NewClient = false;
+					qboolean isBot = (g_entities[i].r.svFlags & SVF_BOT) ? qtrue : qfalse;
+					Bot_Event_ClientConnected(i, isBot);
+				}
+				else
+				{
+					// Client disconnected before notification could be sent, clear the flag
+					m_EntityHandles[i].m_NewClient = false;
 				}
 			}
 		}

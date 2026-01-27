@@ -636,80 +636,12 @@ vmMain( int command, int arg0, int arg1, int arg2, int arg3, int arg4, int arg5,
 		G_InitGame( arg0, arg1, arg2 );
 		if (!Bot_Interface_Init())
 			G_Printf(S_COLOR_RED "Unable to Initialize Omni-Bot.^7\n");
-		else {
-			// Re-register bots with Omni-bot after game restart (warmup end, map_restart)
-			// This ensures proper event synchronization: EntityCreated -> ClientConnected -> respawn
-			// Without this, Omni-bot's entity handles become out of sync with the game state
-			for (int i = 0; i < level.maxclients; i++) {
-				gentity_t *ent = &g_entities[i];
-				if (ent->inuse && ent->client && IsBot(ent) &&
-					ent->client->pers.connected == CON_CONNECTED) {
-					
-					// CRITICAL FIX: Clear bot limbo state and reset playerState before re-registration
-					// This prevents bots from being stuck in broken state after warmup->playing transition
-					// Without this, bots show "Connection Interrupted" and lie on ground after map_restart
-					ent->client->ps.pm_flags &= ~PMF_LIMBO;
-					ent->client->ps.pm_type = PM_NORMAL;
-					ent->client->ps.stats[STAT_HEALTH] = ent->client->ps.stats[STAT_MAX_HEALTH];
-					ent->health = ent->client->ps.stats[STAT_HEALTH];
-					ent->r.contents = CONTENTS_BODY;
-					
-					// DEBUG: Log bot state before respawn (guarded by g_developer)
-					if (g_developer.integer) {
-						G_Printf("[BOT_DEBUG] Client %d (%s): sessionTeam=%d pm_flags=0x%x pm_type=%d contents=%d health=%d\n",
-						         i, ent->client->pers.netname,
-						         ent->client->sess.sessionTeam,
-						         ent->client->ps.pm_flags,
-						         ent->client->ps.pm_type,
-						         ent->r.contents,
-						         ent->health);
-					}
-					
-					// SAFEGUARD: Restore team if sessionTeam is not AXIS/ALLIES
-					// This handles the case where warmup->playing transition drops bots to spectator
-					if (ent->client->sess.sessionTeam != TEAM_AXIS && 
-					    ent->client->sess.sessionTeam != TEAM_ALLIES) {
-						// Use PickTeam to assign a balanced team
-						team_t newTeam = PickTeam(i);
-						
-						// Verify PickTeam returned a valid team before assignment
-						if (newTeam == TEAM_AXIS || newTeam == TEAM_ALLIES) {
-							const char* teamName = (newTeam == TEAM_AXIS) ? "AXIS" : "ALLIES";
-							G_Printf("[BOT_FIX] Bot %s had invalid team %d, assigning to %s\n",
-							         ent->client->pers.netname,
-							         ent->client->sess.sessionTeam,
-							         teamName);
-							ent->client->sess.sessionTeam = newTeam;
-						} else {
-							// Fallback: if PickTeam somehow returns invalid, default to AXIS
-							G_Printf("[BOT_FIX] Bot %s had invalid team %d, PickTeam returned %d, defaulting to AXIS\n",
-							         ent->client->pers.netname,
-							         ent->client->sess.sessionTeam,
-							         newTeam);
-							ent->client->sess.sessionTeam = TEAM_AXIS;
-						}
-					}
-					
-					// CRITICAL: First disconnect the bot to clean up Omni-bot's internal state
-					// This is necessary because Omni-bot's ClientJoined() checks m_BotJoining flag
-					// which is false during map_restart, causing it to create a NEW Client object
-					// without properly cleaning up the old one. This leads to corrupted state.
-					Bot_Event_ClientDisConnected(i);
-					
-					// Register entity handle with Omni-bot (GAME_ENTITYCREATED event)
-					Bot_Event_EntityCreated(ent);
-					
-					// Notify Omni-bot about client connection (GAME_CLIENTCONNECTED event)
-					Bot_Event_ClientConnected(i, qtrue);
-					
-					// Now respawn the bot (should always succeed now that team is guaranteed valid)
-					if (ent->client->sess.sessionTeam == TEAM_AXIS || 
-					    ent->client->sess.sessionTeam == TEAM_ALLIES) {
-						respawn(ent);
-					}
-				}
-			}
-		}
+		// NOTE: Bot re-registration for persistent bots (after warmup/map_restart) is now handled
+		// in ClientBegin() - NOT here. At this point in GAME_INIT, the g_entities array has been
+		// cleared by G_InitGame() and clients haven't reconnected yet. The sequence is:
+		// 1. GAME_INIT -> entities cleared, this code runs (but no bots exist yet)
+		// 2. GAME_CLIENT_CONNECT -> for each persisted client
+		// 3. GAME_CLIENT_BEGIN -> ClientBegin() -> bot re-registration happens here
 		return 0;
 	case GAME_SHUTDOWN:
 		// Disconnect all bots from Omni-bot BEFORE shutting down the game
