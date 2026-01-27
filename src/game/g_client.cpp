@@ -2196,6 +2196,10 @@ ClientConnect( string& outmsg, int clientNum, qboolean firstTime, qboolean isBot
 	// 3. client->sess.isBot means bot status restored from session data after map_restart
 	qboolean actuallyBot = (isBot || (ent->r.svFlags & SVF_BOT) || client->sess.isBot) ? qtrue : qfalse;
 	
+	// Track whether this is a persistent bot (restored after map_restart)
+	// These bots need special handling in ClientBegin to properly register with Omnibot
+	qboolean isPersistentBot = (!isBot && actuallyBot) ? qtrue : qfalse;
+	
 	if( actuallyBot ) {
 		ent->s.number = clientNum;
 		ent->r.svFlags |= SVF_BOT;
@@ -2207,9 +2211,13 @@ ClientConnect( string& outmsg, int clientNum, qboolean firstTime, qboolean isBot
 		clientObject.authWarningShown = false;
 		
 		// Log restoration from session (useful for debugging warmup transition)
-		if (!isBot && client->sess.isBot) {
-			G_Printf("[BOT_RESTORE] Restored bot status for client %d (%s) from session\n", 
+		if (isPersistentBot) {
+			G_Printf("[BOT_RESTORE] Restored bot status for client %d (%s) from session - will re-register with Omnibot in ClientBegin\n", 
 			         clientNum, client->pers.netname);
+			// Mark this bot as needing re-registration in ClientBegin
+			// We don't call Bot_Event_ClientConnected here because the entity isn't created yet
+			// (G_InitGentity is called in ClientBegin, not ClientConnect)
+			client->sess.botNeedsReregister = qtrue;
 		}
 	} else if( firstTime ) {
 		// force into spectator
@@ -2226,10 +2234,9 @@ ClientConnect( string& outmsg, int clientNum, qboolean firstTime, qboolean isBot
 	G_UpdateCharacter( client );
 	// For NEW bots (isBot=true), Bot_Event_ClientConnected is deferred via Bot_Queue_ClientConnected
 	// in AddBot. This prevents Omnibot from processing the bot before it's fully initialized.
-	// For PERSISTENT bots on map_restart, we need to notify Omnibot now.
-	if (!isBot && actuallyBot) {
-		Bot_Event_ClientConnected(clientNum, qtrue);
-	} else if (!isBot) {
+	// For PERSISTENT bots on map_restart, we defer to ClientBegin where entity exists.
+	// For humans, we notify immediately.
+	if (!isBot && !isPersistentBot) {
 		Bot_Event_ClientConnected(clientNum, qfalse);
 	}
 	ClientUserinfoChanged( clientNum );
@@ -2349,6 +2356,43 @@ void ClientBegin( int clientNum )
 	ent->touch = 0;
 	ent->pain = 0;
 	ent->client = client;
+
+	// CRITICAL: Re-register persistent bots with Omnibot after map_restart
+	// This must happen AFTER G_InitGentity() which creates the entity and queues Bot_Queue_EntityCreated()
+	// The sequence is: EntityCreated (from G_InitGentity) -> ClientConnected (below)
+	// Without this, bots lie on ground with "Connection Interrupted" after warmup->playing transition
+	if (client->sess.botNeedsReregister && (ent->r.svFlags & SVF_BOT)) {
+		// Clear the flag first to prevent re-triggering
+		client->sess.botNeedsReregister = qfalse;
+		
+		G_Printf("[BOT_REREGISTER] Re-registering bot %d (%s) with Omnibot after map_restart\n",
+		         clientNum, client->pers.netname);
+		
+		// Process the queued entity creation immediately so Omnibot knows about this entity
+		// G_InitGentity queued Bot_Queue_EntityCreated, which will be processed in Bot_Interface_Update
+		// We need to ensure entity is registered before we send ClientConnected
+		// The entity was just created above, so we can directly call Bot_Event_EntityCreated
+		Bot_Event_EntityCreated(ent);
+		
+		// Now notify Omnibot about the client connection
+		// This must come AFTER EntityCreated
+		Bot_Event_ClientConnected(clientNum, qtrue);
+		
+		// Ensure the bot has a valid team for spawning
+		if (client->sess.sessionTeam != TEAM_AXIS && client->sess.sessionTeam != TEAM_ALLIES) {
+			team_t newTeam = PickTeam(clientNum);
+			if (newTeam == TEAM_AXIS || newTeam == TEAM_ALLIES) {
+				G_Printf("[BOT_REREGISTER] Bot %s had invalid team %d, assigning to %s\n",
+				         client->pers.netname, client->sess.sessionTeam,
+				         (newTeam == TEAM_AXIS) ? "AXIS" : "ALLIES");
+				client->sess.sessionTeam = newTeam;
+			} else {
+				G_Printf("[BOT_REREGISTER] Bot %s had invalid team %d, defaulting to AXIS\n",
+				         client->pers.netname, client->sess.sessionTeam);
+				client->sess.sessionTeam = TEAM_AXIS;
+			}
+		}
+	}
 
 	client->pers.connected = CON_CONNECTED;
 	client->pers.teamState.state = TEAM_BEGIN;
