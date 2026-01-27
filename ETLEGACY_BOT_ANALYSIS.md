@@ -459,68 +459,48 @@ Dieser Bug war **xmod-spezifisch** und existierte nicht explizit in der ET: Lega
 
 ---
 
-## Update: lastUpdateFrame Initialisierung (Commit ee3b0b4)
+## Update: Connection Interrupted Fix (Revidiert)
 
-### Das entdeckte Problem
+### Das Problem
 
-Nach der State-Reset Korrektur trat ein weiteres Problem auf:
+Bots zeigten "Connection Interrupted" (Ping 999) nach Warmup-Ende oder map_restart.
 
-**Symptom:**
-- Bots zeigen "Connection Interrupted" unmittelbar nach Warmup-Ende oder map_restart
-- Ping 999 angezeigt
-- Bots scheinen stecken zu bleiben
+### Warum der vorherige Fix nicht funktionierte
 
-### Die Ursache
-
-Das `lastUpdateFrame`-Feld im gclient_t wurde für Bots nicht initialisiert:
-
-1. `lastUpdateFrame` wird nur in `ClientThink_real()` aktualisiert
-2. Für Bots wird dies durch `trap_BotUserCommand()` in `UpdateBotInput()` getriggert
-3. `UpdateBotInput()` wird während `Bot_Interface_Update()` aufgerufen
-4. **ABER:** `ClientEndFrame()` läuft VORHER und prüft `lastUpdateFrame`:
-   ```cpp
-   frames = level.framenum - ent->client->lastUpdateFrame - 1;
-   if (frames > 2) {
-       ent->client->ps.eFlags |= EF_CONNECTION; // "Connection Interrupted"
-   }
-   ```
-5. Nach map_restart hat `lastUpdateFrame` einen veralteten oder Null-Wert
-6. Die Berechnung ergibt eine große Zahl → EF_CONNECTION wird sofort gesetzt
-
-### Frame-Reihenfolge in vmMain/G_RunFrame
-
-```
-1. G_RunFrame() aufgerufen
-   └── ClientEndFrame() → prüft lastUpdateFrame (ALTE WERTE!)
-2. Bot_Interface_Update() aufgerufen
-   └── UpdateBotInput() → trap_BotUserCommand() → aktualisiert lastUpdateFrame (ZU SPÄT!)
-```
-
-### Der Fix
-
-In `ClientBegin()` wird `lastUpdateFrame` für Bots initialisiert:
+Der vorherige Fix initialisierte `lastUpdateFrame` in `ClientBegin()`:
 
 ```cpp
-// CRITICAL FIX: Initialize lastUpdateFrame for bots to prevent "Connection Interrupted"
 if (ent->r.svFlags & SVF_BOT) {
     client->lastUpdateFrame = level.framenum;
 }
 ```
 
-**Warum funktioniert das:**
-- Bot bekommt gültigen Frame-Wert bei Begin
-- Erste `ClientEndFrame()` Berechnung: `frames = framenum - framenum - 1 = -1` (< 2, OK)
-- Omnibot hat dann Zeit, Input zu generieren und `lastUpdateFrame` normal zu aktualisieren
+**Problem:** Dies reicht nicht aus, weil:
+1. `ClientEndFrame()` läuft VOR `Bot_Interface_Update()` in jedem Frame
+2. Omnibot kann mehrere Frames brauchen, bevor es anfängt, Befehle zu senden
+3. Selbst mit korrekter Initialisierung: Wenn Omnibot 3+ Frames keine Befehle sendet → `EF_CONNECTION` wird gesetzt
 
-### Korrigierte Event-Reihenfolge
+### Die eigentliche Ursache
 
+Bots sind **serverseitige Entitäten ohne echte Netzwerkverbindung**. Die Connection-Timeout-Erkennung in `ClientEndFrame()` ist für Bots grundsätzlich ungeeignet.
+
+### Der korrekte Fix
+
+Die `EF_CONNECTION`-Prüfung in `ClientEndFrame()` wird für Bots übersprungen:
+
+```cpp
+// In ClientEndFrame() - src/game/g_active.cpp
+if ( frames > 2 ) {
+    frames = 2;
+    // Skip EF_CONNECTION for bots - sie haben keine Netzwerkverbindung
+    if ( !(ent->r.svFlags & SVF_BOT) ) {
+        ent->client->ps.eFlags |= EF_CONNECTION;
+        ent->s.eFlags |= EF_CONNECTION;
+    }
+}
 ```
-Frame N (Bot ClientBegin):
-1. ClientBegin() → lastUpdateFrame = level.framenum (INITIALISIERT!)
-2. ClientEndFrame() → frames = -1 (KEIN EF_CONNECTION)
-3. Bot_Interface_Update() → Omnibot beginnt Input zu generieren
 
-Frame N+1:
-1. ClientEndFrame() → frames = 0 (falls Omnibot Input generierte)
-2. Bot_Interface_Update() → normaler Betrieb
-```
+**Warum das funktioniert:**
+- Bots sind serverseitige Entitäten ohne Netzwerklatenz
+- "Connection Interrupted" ist für Bots bedeutungslos
+- Omnibot darf legitimerweise mehrere Frames warten, bevor es Befehle sendet
