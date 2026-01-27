@@ -2360,9 +2360,10 @@ void ClientBegin( int clientNum )
 	// CRITICAL: Re-register persistent bots with Omnibot after map_restart
 	// This must happen AFTER G_InitGentity() which creates the entity and queues Bot_Queue_EntityCreated()
 	// The sequence mirrors AddBot:
-	//   1. Clear pending entity creation flag (to prevent double registration in Bot_Interface_Update)
-	//   2. Send entity creation event immediately
-	//   3. Queue client connection (to be processed AFTER pfnUpdate() in Bot_Interface_Update)
+	//   1. Reset bot state (clear limbo, reset pm_type, restore health) 
+	//   2. Clear pending entity creation flag (to prevent double registration in Bot_Interface_Update)
+	//   3. Send entity creation event immediately
+	//   4. Queue client connection (to be processed AFTER pfnUpdate() in Bot_Interface_Update)
 	// Without this, bots lie on ground with "Connection Interrupted" after warmup->playing transition
 	if (client->sess.botNeedsReregister && (ent->r.svFlags & SVF_BOT)) {
 		// Clear the flag first to prevent re-triggering
@@ -2370,6 +2371,19 @@ void ClientBegin( int clientNum )
 		
 		G_Printf("[BOT_REREGISTER] Re-registering bot %d (%s) with Omnibot after map_restart\n",
 		         clientNum, client->pers.netname);
+		
+		// CRITICAL STATE RESET: After map_restart from warmup->playing, bots may retain
+		// broken state flags from the previous gamestate (limbo, dead pm_type, corpse contents).
+		// These MUST be cleared BEFORE re-registration or the bot will be stuck:
+		// - PMF_LIMBO: Bot thinks it's in limbo and won't move
+		// - PM_DEAD: Movement code treats bot as dead
+		// - CONTENTS_CORPSE: Collision detection broken
+		// - Health 0: Triggers death handling
+		client->ps.pm_flags &= ~PMF_LIMBO;
+		client->ps.pm_type = PM_NORMAL;
+		client->ps.stats[STAT_HEALTH] = client->ps.stats[STAT_MAX_HEALTH];
+		ent->health = client->ps.stats[STAT_HEALTH];
+		ent->r.contents = CONTENTS_BODY;
 		
 		// Clear the pending entity creation flag to prevent double registration.
 		// G_InitGentity (called earlier at line ~2355) queued Bot_Queue_EntityCreated,

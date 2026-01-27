@@ -279,6 +279,13 @@ Align persistent bot re-registration with new bot registration:
 if (client->sess.botNeedsReregister && (ent->r.svFlags & SVF_BOT)) {
     client->sess.botNeedsReregister = qfalse;
     
+    // CRITICAL STATE RESET - clear broken flags from previous gamestate
+    client->ps.pm_flags &= ~PMF_LIMBO;
+    client->ps.pm_type = PM_NORMAL;
+    client->ps.stats[STAT_HEALTH] = client->ps.stats[STAT_MAX_HEALTH];
+    ent->health = client->ps.stats[STAT_HEALTH];
+    ent->r.contents = CONTENTS_BODY;
+    
     // Clear pending entity creation to prevent double registration
     Bot_ClearPendingEntityCreation(ent);
     
@@ -294,4 +301,5 @@ if (client->sess.botNeedsReregister && (ent->r.svFlags & SVF_BOT)) {
 ### Changes Made
 - Added `Bot_ClearPendingEntityCreation()` helper function
 - Changed persistent bot re-registration to use `Bot_Queue_ClientConnected()` instead of direct `Bot_Event_ClientConnected()`
-- This ensures both new and persistent bots use the same registration flow
+- **CRITICAL:** Added bot state reset before re-registration to clear limbo/dead state flags
+- This ensures both new and persistent bots use the same registration flow with clean state
