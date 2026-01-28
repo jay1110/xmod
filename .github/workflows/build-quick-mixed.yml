@@ -1,0 +1,122 @@
+name: Quick Build (Mixed Platforms)
+
+# Quick build for testing: Linux 64-bit qagame + Windows 32/64-bit cgame/ui
+# This is useful for testing server changes on Linux while testing client changes on Windows
+
+on:
+  push:
+    branches:
+      - main
+      - develop
+      - 'feature/**'
+      - 'fix/**'
+      - 'copilot/**'
+  pull_request:
+    branches:
+      - main
+      - develop
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build-linux64-qagame:
+    name: Build Linux 64-bit qagame (Server)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y build-essential python3 zip m4
+      
+      - name: Ensure scripts are executable
+        run: chmod +x project/info.py
+      
+      - name: Build qagame only (Linux 64-bit Release)
+        run: |
+          # Build only the qagame module (server-side) for faster quick builds
+          make PLATFORM=linux64 VARIANT=release all MODULES="src/lua src/sqlite3 src/base src/game"
+      
+      - name: Upload Linux 64-bit qagame
+        uses: actions/upload-artifact@v4
+        with:
+          name: qagame-linux64
+          path: |
+            build.linux64-release/game/qagame.mp.x86_64.so
+          retention-days: 7
+
+  build-windows-cgame-ui:
+    name: Build Windows 32/64-bit cgame/ui (Client)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y build-essential python3 mingw-w64 zip m4
+      
+      - name: Ensure scripts are executable
+        run: chmod +x project/info.py
+      
+      - name: Build cgame and ui (Windows 32-bit Release)
+        run: |
+          # Build only cgame and ui modules (client-side)
+          make PLATFORM=mingw VARIANT=release all MODULES="src/lua src/sqlite3 src/base src/cgame src/ui"
+      
+      - name: Build cgame and ui (Windows 64-bit Release)
+        run: |
+          # Build only cgame and ui modules (client-side)
+          make PLATFORM=mingw64 VARIANT=release all MODULES="src/lua src/sqlite3 src/base src/cgame src/ui"
+      
+      - name: Upload Windows 32-bit cgame/ui
+        uses: actions/upload-artifact@v4
+        with:
+          name: cgame-ui-windows32
+          path: |
+            build.mingw-release/cgame/cgame_mp_x86.dll
+            build.mingw-release/ui/ui_mp_x86.dll
+          retention-days: 7
+      
+      - name: Upload Windows 64-bit cgame/ui
+        uses: actions/upload-artifact@v4
+        with:
+          name: cgame-ui-windows64
+          path: |
+            build.mingw64-release/cgame/cgame_mp_x64.dll
+            build.mingw64-release/ui/ui_mp_x64.dll
+          retention-days: 7
+
+  build-summary:
+    name: Build Summary
+    needs: [build-linux64-qagame, build-windows-cgame-ui]
+    runs-on: ubuntu-latest
+    if: always()
+    steps:
+      - name: Generate build summary
+        run: |
+          echo "## Quick Build Summary (Mixed Platforms) :rocket:" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Built Artifacts:" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Platform | Module | File |" >> $GITHUB_STEP_SUMMARY
+          echo "|----------|--------|------|" >> $GITHUB_STEP_SUMMARY
+          echo "| Linux 64-bit | qagame (Server) | \`qagame.mp.x86_64.so\` |" >> $GITHUB_STEP_SUMMARY
+          echo "| Windows 32-bit | cgame (Client) | \`cgame_mp_x86.dll\` |" >> $GITHUB_STEP_SUMMARY
+          echo "| Windows 32-bit | ui (Client) | \`ui_mp_x86.dll\` |" >> $GITHUB_STEP_SUMMARY
+          echo "| Windows 64-bit | cgame (Client) | \`cgame_mp_x64.dll\` |" >> $GITHUB_STEP_SUMMARY
+          echo "| Windows 64-bit | ui (Client) | \`ui_mp_x64.dll\` |" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Configuration:** Release" >> $GITHUB_STEP_SUMMARY
+          echo "**Artifacts retention:** 7 days" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Usage:" >> $GITHUB_STEP_SUMMARY
+          echo "- **qagame**: Deploy to Linux server in \`xmod/\` folder" >> $GITHUB_STEP_SUMMARY
+          echo "- **cgame/ui**: Package into pk3 or place in \`xmod/\` folder for clients" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "For full multi-platform builds, use the 'Build Multi-Platform' workflow." >> $GITHUB_STEP_SUMMARY
