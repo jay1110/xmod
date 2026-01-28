@@ -299,6 +299,30 @@ See [docs/BUILD_ANDROID.md](docs/BUILD_ANDROID.md) for detailed instructions.
 
 📖 **Full Documentation:** [BUILD.md](BUILD.md) | [notes/BuildSystem.txt](notes/BuildSystem.txt)
 
+### GitHub Actions - Automated Builds
+
+**Don't want to build locally?** Use GitHub Actions to build automatically on every pull request!
+
+**Quick Build (3-5 minutes):**
+- Automatically builds on every PR push
+- Linux 64-bit binaries only
+- Download artifacts from Actions tab
+- Perfect for rapid testing
+
+**Build Multi-Platform (15-30 minutes):**
+- Builds all platforms (Linux, Windows, macOS, Android)
+- Available via manual trigger or automatic on main/develop
+- Complete release package
+
+**How to use:**
+1. Push to your PR branch
+2. Go to [Actions tab](../../actions)
+3. Download artifacts when build completes
+
+**You never need to close the PR to get builds!**
+
+📖 **Full Documentation:** [.github/USING_GITHUB_ACTIONS.md](.github/USING_GITHUB_ACTIONS.md)
+
 ---
 
 ## Platform Support
