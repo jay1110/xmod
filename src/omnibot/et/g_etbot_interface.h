@@ -54,6 +54,8 @@ void Bot_ClearPendingEntityCreation(gentity_t *pEnt);
 void Bot_Event_EntityCreated(gentity_t *pEnt);
 void Bot_Event_EntityDeleted(gentity_t *pEnt);
 
+void Bot_HumanPlayerCountChanged();  // xmod: Signal that human player count changed (for pre-emptive bot kick)
+
 //////////////////////////////////////////////////////////////////////////
 
 void Bot_Event_ClientConnected(int _client, qboolean _isbot);

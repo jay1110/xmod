@@ -41,6 +41,11 @@ struct BotEntity
 
 BotEntity		m_EntityHandles[MAX_GENTITIES];
 
+// Tracking for pre-emptive bot kick workaround
+// When a human player connects or joins a team, we may need to kick bots
+// BEFORE pfnUpdate() runs to avoid crashes in Omnibot's CheckServerSettings
+static bool g_HumanPlayerCountChanged = false;
+
 //////////////////////////////////////////////////////////////////////////
 
 // utils partly taken from id code
@@ -5143,6 +5148,124 @@ int Bot_Interface_Shutdown()
 }
 
 //////////////////////////////////////////////////////////////////////////
+// Pre-emptive bot kick to prevent crashes in Omnibot's CheckServerSettings
+// This function kicks bots BEFORE pfnUpdate() is called, so Omnibot's
+// ManagePlayers script doesn't need to kick any bots (which causes crashes).
+// 
+// The crash occurs because Omnibot's script crashes in Utils::ConvertString
+// when trying to kick a bot during CheckServerSettings/ManagePlayers.
+//
+// By kicking bots ourselves before pfnUpdate(), we prevent this crash.
+static void Bot_PreemptiveBotKick()
+{
+	// Only do pre-emptive kick if the feature is enabled (maxbots > 0)
+	if(g_OmniBotMaxBots.integer < 0)
+		return;
+	
+	if(!g_HumanPlayerCountChanged)
+		return;
+	
+	g_HumanPlayerCountChanged = false;
+	
+	// Count current players
+	int numHumans = 0;
+	int numBots = 0;
+	int numPlayersNoSpec = 0;  // Players on axis or allies (not spectators)
+	
+	for(int i = 0; i < g_maxclients.integer; ++i)
+	{
+		if(!g_entities[i].inuse)
+			continue;
+		if(!g_entities[i].client)
+			continue;
+		if(g_entities[i].client->pers.connected != CON_CONNECTED)
+			continue;
+		
+		if(IsBot(&g_entities[i]))
+		{
+			numBots++;
+			// Bots are always on a team
+			if(g_entities[i].client->sess.sessionTeam == TEAM_AXIS ||
+			   g_entities[i].client->sess.sessionTeam == TEAM_ALLIES)
+			{
+				numPlayersNoSpec++;
+			}
+		}
+		else
+		{
+			numHumans++;
+			// Only count humans if they're on a team (not spectator)
+			if(g_entities[i].client->sess.sessionTeam == TEAM_AXIS ||
+			   g_entities[i].client->sess.sessionTeam == TEAM_ALLIES)
+			{
+				numPlayersNoSpec++;
+			}
+		}
+	}
+	
+	// Determine the player count to use based on CountSpectators setting
+	int countedPlayers;
+	if(g_OmniBotCountSpectators.integer)
+	{
+		// CountSpectators = 1: count all players including spectators
+		countedPlayers = numHumans + numBots;
+	}
+	else
+	{
+		// CountSpectators = 0: only count players on teams
+		countedPlayers = numPlayersNoSpec;
+	}
+	
+	// Kick bots if we're over maxbots (but keep at least minbots)
+	int minBots = g_OmniBotMinBots.integer;
+	if(minBots < 0) minBots = 0;
+	
+	while(countedPlayers > g_OmniBotMaxBots.integer && numBots > minBots)
+	{
+		// Find a bot to kick (prefer highest slot number)
+		int kickSlot = -1;
+		for(int i = g_maxclients.integer - 1; i >= 0; --i)
+		{
+			if(g_entities[i].inuse && IsBot(&g_entities[i]))
+			{
+				kickSlot = i;
+				break;
+			}
+		}
+		
+		if(kickSlot >= 0)
+		{
+			trap_DropClient(kickSlot, "disconnected", 0);
+			numBots--;
+			if(g_OmniBotCountSpectators.integer)
+			{
+				countedPlayers--;
+			}
+			else
+			{
+				// Bot was on a team, so decrement numPlayersNoSpec
+				if(g_entities[kickSlot].client &&
+				   (g_entities[kickSlot].client->sess.sessionTeam == TEAM_AXIS ||
+				    g_entities[kickSlot].client->sess.sessionTeam == TEAM_ALLIES))
+				{
+					numPlayersNoSpec--;
+					countedPlayers = numPlayersNoSpec;
+				}
+			}
+		}
+		else
+		{
+			break; // No more bots to kick
+		}
+	}
+}
+
+// Called when a human player count changes (connect, disconnect, or team change)
+void Bot_HumanPlayerCountChanged()
+{
+	g_HumanPlayerCountChanged = true;
+}
+//////////////////////////////////////////////////////////////////////////
 
 void Bot_Interface_ConsoleCommand()
 {
@@ -5348,6 +5471,15 @@ void Bot_Interface_Update()
 		}
 		
 		SendDeferredGoals();
+		
+		//////////////////////////////////////////////////////////////////////////
+		// WORKAROUND: Pre-emptively kick bots BEFORE pfnUpdate() to prevent crashes
+		// in Omnibot's CheckServerSettings/ManagePlayers script.
+		// The crash occurs in Utils::ConvertString when Omnibot tries to kick a bot.
+		// By kicking bots ourselves before pfnUpdate(), we prevent the crash.
+		Bot_PreemptiveBotKick();
+		//////////////////////////////////////////////////////////////////////////
+		
 		//////////////////////////////////////////////////////////////////////////
 		// Call the libraries update.
 		g_BotFunctions.pfnUpdate();

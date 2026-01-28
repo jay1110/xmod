@@ -1804,6 +1804,9 @@ extern	vmCvar_t	g_OmniBotPath;
 extern	vmCvar_t	g_OmniBotEnable;
 extern	vmCvar_t	g_OmniBotFlags;
 extern	vmCvar_t	g_OmniBotPlaying;
+extern	vmCvar_t	g_OmniBotMaxBots;        // xmod: Pre-emptive bot kick - max total players (-1=disabled)
+extern	vmCvar_t	g_OmniBotMinBots;        // xmod: Pre-emptive bot kick - min bots (-1=disabled)
+extern	vmCvar_t	g_OmniBotCountSpectators; // xmod: 0=kick on connect, 1=kick on team join
 
 extern	vmCvar_t	g_gametype;
 

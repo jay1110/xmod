@@ -2254,6 +2254,8 @@ ClientConnect( string& outmsg, int clientNum, qboolean firstTime, qboolean isBot
 	// For humans, we notify immediately.
 	if (!isBot && !isPersistentBot) {
 		Bot_Event_ClientConnected(clientNum, qfalse);
+		// Signal that a human player connected (for pre-emptive bot kick)
+		Bot_HumanPlayerCountChanged();
 	}
 	ClientUserinfoChanged( clientNum );
 

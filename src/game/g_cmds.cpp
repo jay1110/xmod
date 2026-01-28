@@ -818,6 +818,12 @@ qboolean SetTeam( gentity_t* ent, const char* teamName, qboolean force, weapon_t
 
 	G_UpdateSpawnCounts();
 
+	// xmod: Signal when a human player joins a team (for pre-emptive bot kick)
+	// This is needed when CountSpectators = 1 (kick on team join, not on connect)
+	if(!IsBot(ent) && team != TEAM_SPECTATOR && oldTeam == TEAM_SPECTATOR) {
+		Bot_HumanPlayerCountChanged();
+	}
+
 	if( cvars::gameState.ivalue == GS_PLAYING && ( client->sess.sessionTeam == TEAM_AXIS || client->sess.sessionTeam == TEAM_ALLIES ) ) {
 		if(g_gametype.integer == GT_WOLF_LMS && level.numTeamClients[0] > 0 && level.numTeamClients[1] > 0) {
 			trap_SendServerCommand( clientNum, "cp \"Will spawn next round, please wait.\n\"" );
