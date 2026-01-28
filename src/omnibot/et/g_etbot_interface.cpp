@@ -40,17 +40,10 @@ struct BotEntity
 	bool	m_NewEntity : 1;
 	bool	m_Used : 1;
 	bool	m_NewClient : 1;      // Deferred client connection notification
-	bool	m_PendingKick : 1;    // Deferred bot kick (prevents crash during pfnConsoleCommand)
+	bool	m_PendingKick : 1;    // Deferred bot kick (processed after pfnUpdate completes)
 };
 
 BotEntity		m_EntityHandles[MAX_GENTITIES];
-
-// Track whether we're inside pfnUpdate() to handle bot kicks correctly.
-// When RemoveBot is called during pfnUpdate (e.g., from CheckServerSettings when maxbots kicks a bot),
-// we must kick immediately. Omnibot expects the bot to be removed and will handle the disconnection.
-// When RemoveBot is called during pfnConsoleCommand (e.g., "bot kickbot"), we defer the kick
-// to prevent crashes where pfnUpdate's CheckServerSettings queries the disconnected bot.
-static bool g_InsidePfnUpdate = false;
 
 //////////////////////////////////////////////////////////////////////////
 
@@ -1748,21 +1741,13 @@ public:
 				// Validate entity before checking IsBot
 				if(ent->inuse && ent->client && IsBot(ent))
 				{
-					// Determine whether to kick immediately or defer based on context:
-					// - During pfnUpdate (e.g., maxbots auto-kick): kick immediately
-					//   Omnibot expects the bot to be removed and will handle the disconnect event.
-					// - During pfnConsoleCommand (e.g., "bot kickbot"): defer the kick
-					//   This prevents crash in CheckServerSettings when pfnUpdate runs later.
-					if(g_InsidePfnUpdate)
-					{
-						// Kick immediately - Omnibot is requesting this during its own update
-						trap_DropClient(pMsg->m_GameId, "disconnected", 0);
-					}
-					else
-					{
-						// Defer the kick until after pfnUpdate() completes
-						m_EntityHandles[pMsg->m_GameId].m_PendingKick = true;
-					}
+					// ALWAYS defer the kick until after pfnUpdate() completes.
+					// This is critical because when Omnibot's CheckServerSettings (running inside
+					// pfnUpdate) requests a bot kick, the script continues executing after RemoveBot
+					// returns. If we kick immediately, the script accesses invalidated bot data,
+					// causing a SIGSEGV crash in Utils::ConvertString.
+					// By deferring ALL kicks, the bot's data remains valid until pfnUpdate finishes.
+					m_EntityHandles[pMsg->m_GameId].m_PendingKick = true;
 				}
 			}
 		}
@@ -1789,15 +1774,8 @@ public:
 
 				if(!Q_stricmp(cleanNetName, cleanName))
 				{
-					// Same logic as above: immediate vs deferred kick
-					if(g_InsidePfnUpdate)
-					{
-						trap_DropClient(i, "disconnected", 0);
-					}
-					else
-					{
-						m_EntityHandles[i].m_PendingKick = true;
-					}
+					// ALWAYS defer the kick - same reason as above
+					m_EntityHandles[i].m_PendingKick = true;
 				}
 			}
 		}
@@ -5342,23 +5320,17 @@ void Bot_Interface_Update()
 		// This is intentional - we want pfnUpdate() to run WITHOUT the newly added bot being
 		// registered as connected. This prevents Omnibot's CheckServerSettings from accessing
 		// potentially unstable bot data on the same frame the bot was created.
-		//
-		// IMPORTANT: Set g_InsidePfnUpdate flag so RemoveBot knows to kick immediately.
-		// When Omnibot's CheckServerSettings decides to kick a bot (e.g., maxbots exceeded),
-		// it expects the kick to happen immediately. If we defer the kick, Omnibot's script
-		// continues with inconsistent state, causing crashes.
-		g_InsidePfnUpdate = true;
 		g_BotFunctions.pfnUpdate();
-		g_InsidePfnUpdate = false;
 		//////////////////////////////////////////////////////////////////////////
 		
 		//////////////////////////////////////////////////////////////////////////
 		// Process any pending bot kicks AFTER pfnUpdate() completes.
-		// This is critical to prevent crashes when kicking bots via console commands.
-		// If we kick the bot during pfnConsoleCommand (which calls RemoveBot), Omnibot's
-		// CheckServerSettings can crash trying to access the disconnected bot's data.
-		// By deferring the kick until after pfnUpdate(), we ensure Omnibot has finished
-		// processing the current frame before we modify the client state.
+		// ALL bot kicks are deferred to prevent crashes.
+		// When Omnibot's CheckServerSettings (inside pfnUpdate) calls RemoveBot,
+		// the script continues executing after RemoveBot returns. If we kicked
+		// immediately, the script would access invalidated bot data and crash
+		// (SIGSEGV in Utils::ConvertString). By deferring ALL kicks until after
+		// pfnUpdate completes, the bot's data remains valid during script execution.
 		for(int i = 0; i < MAX_CLIENTS; ++i)
 		{
 			if(m_EntityHandles[i].m_PendingKick)
