@@ -2156,7 +2156,23 @@ ClientConnect( string& outmsg, int clientNum, qboolean firstTime, qboolean isBot
 
     // GeoIP country lookup for country flags
     if (gidb != NULL && g_countryflags.integer) {
-        if (!Q_stricmp(user.ip.c_str(), "localhost")) {
+        // Check if this is a bot
+        if (isBot || (ent->r.svFlags & SVF_BOT)) {
+            if (g_countryflags.integer == 2) {
+                // Mode 2: Random country for each bot (1-253 are valid country codes)
+                client->sess.uci = 1 + (rand() % 253);
+            } else {
+                // Mode 1: Bots use server's location (based on net_ip cvar)
+                char net_ip[MAX_STRING_CHARS];
+                trap_Cvar_VariableStringBuffer("net_ip", net_ip, sizeof(net_ip));
+                if (net_ip[0] && Q_stricmp(net_ip, "localhost") != 0) {
+                    unsigned long ipnum = GeoIP_addr_to_num(net_ip);
+                    client->sess.uci = GeoIP_seek_record(gidb, ipnum);
+                } else {
+                    client->sess.uci = 254; // Localhost for server
+                }
+            }
+        } else if (!Q_stricmp(user.ip.c_str(), "localhost")) {
             client->sess.uci = 254; // Localhost
         } else {
             unsigned long ipnum = GeoIP_addr_to_num(user.ip.c_str());

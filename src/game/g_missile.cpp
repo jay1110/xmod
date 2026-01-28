@@ -2065,12 +2065,36 @@ gentity_t *fire_grenade (gentity_t *self, vec3_t start, vec3_t dir, int grenadeW
 			bolt->s.eFlags				= EF_BOUNCE_HALF | EF_BOUNCE;
 			// rain - this is supposed to be MOD_SMOKEBOMB, not SMOKEGRENADE
 			bolt->methodOfDeath			= MOD_SMOKEBOMB;
+
+			// g_damageweapons: Smoke canisters can be damaged
+			if( g_damageweapons.integer & DW_SMOKE ) {
+				bolt->health = 15;
+				bolt->takedamage = qtrue;
+				bolt->die = G_MissileDie;
+				bolt->r.contents = CONTENTS_CORPSE;
+				VectorSet(bolt->r.mins, -6, -6, 0);
+				VectorCopy(bolt->r.mins, bolt->r.absmin);
+				VectorSet(bolt->r.maxs, 6, 6, 12);
+				VectorCopy(bolt->r.maxs, bolt->r.absmax);
+			}
 			break;
 		case WP_POISON_GAS:
 			bolt->classname				= "poison_gas";
 			bolt->s.eFlags				= EF_BOUNCE_HALF | EF_BOUNCE;
 			bolt->methodOfDeath			= MOD_POISON_GAS;
 			bolt->poisonGasWeaponType	= grenadeWPID;
+
+			// g_damageweapons: Poison gas canisters can be damaged
+			if( g_damageweapons.integer & DW_POISONGAS ) {
+				bolt->health = 15;
+				bolt->takedamage = qtrue;
+				bolt->die = G_MissileDie;
+				bolt->r.contents = CONTENTS_CORPSE;
+				VectorSet(bolt->r.mins, -6, -6, 0);
+				VectorCopy(bolt->r.mins, bolt->r.absmin);
+				VectorSet(bolt->r.maxs, 6, 6, 12);
+				VectorCopy(bolt->r.maxs, bolt->r.absmax);
+			}
 			break;
 		case WP_GRENADE_LAUNCHER:
 			bolt->classname				= "grenade";
@@ -2079,8 +2103,8 @@ gentity_t *fire_grenade (gentity_t *self, vec3_t start, vec3_t dir, int grenadeW
 			bolt->splashMethodOfDeath	= MOD_GRENADE_LAUNCHER;
 			bolt->s.eFlags				= EF_BOUNCE_HALF | EF_BOUNCE;
 
-			// Jaybird - Vulnerable Weapons
-			if( g_vulnerableWeapons.integer & VULN_GRENADE ) {
+			// Vulnerable Weapons (g_vulnerableWeapons or g_damageweapons)
+			if( (g_vulnerableWeapons.integer & VULN_GRENADE) || (g_damageweapons.integer & DW_GRENADES) ) {
 				bolt->health = 15;
 				bolt->takedamage = qtrue;
 				bolt->die = G_MissileDie;
@@ -2099,8 +2123,8 @@ gentity_t *fire_grenade (gentity_t *self, vec3_t start, vec3_t dir, int grenadeW
 			bolt->splashMethodOfDeath	= MOD_GRENADE_LAUNCHER;
 			bolt->s.eFlags				= EF_BOUNCE_HALF | EF_BOUNCE;
 
-			// Jaybird - Vulnerable Weapons
-			if( g_vulnerableWeapons.integer & VULN_GRENADE ) {
+			// Vulnerable Weapons (g_vulnerableWeapons or g_damageweapons)
+			if( (g_vulnerableWeapons.integer & VULN_GRENADE) || (g_damageweapons.integer & DW_GRENADES) ) {
 				bolt->health = 15;
 				bolt->takedamage = qtrue;
 				bolt->die = G_MissileDie;
@@ -2120,8 +2144,8 @@ gentity_t *fire_grenade (gentity_t *self, vec3_t start, vec3_t dir, int grenadeW
 			bolt->methodOfDeath			= MOD_SMOKEGRENADE;
 			bolt->splashMethodOfDeath	= MOD_SMOKEGRENADE;
 
-			// Jaybird - Vulnerable Weapons
-			if( g_vulnerableWeapons.integer & VULN_CANISTER ) {
+			// Vulnerable Weapons (g_vulnerableWeapons or g_damageweapons - airstrike markers)
+			if( (g_vulnerableWeapons.integer & VULN_CANISTER) || (g_damageweapons.integer & DW_AIRSTRIKE) ) {
 				bolt->health = 15;
 				bolt->takedamage = qtrue;
 				bolt->die = G_MissileDie;
@@ -2212,7 +2236,7 @@ gentity_t *fire_grenade (gentity_t *self, vec3_t start, vec3_t dir, int grenadeW
 			bolt->splashMethodOfDeath	= MOD_TRIPMINE;
 			bolt->s.eFlags				= (EF_BOUNCE | EF_BOUNCE_HALF);
 			bolt->health				= 5;
-			bolt->takedamage			= qtrue;
+			bolt->takedamage			= qfalse;  // Default to not damageable
 			bolt->r.contents			= CONTENTS_CORPSE;	// (player can walk through)
 
 			bolt->r.snapshotCallback	= qtrue;
@@ -2221,6 +2245,12 @@ gentity_t *fire_grenade (gentity_t *self, vec3_t start, vec3_t dir, int grenadeW
 			VectorCopy(bolt->r.mins, bolt->r.absmin);
 			VectorSet(bolt->r.maxs, 16, 16, 16);
 			VectorCopy(bolt->r.maxs, bolt->r.absmax);
+
+			// g_damageweapons: Tripmines can be damaged
+			if( g_damageweapons.integer & DW_TRIPMINES ) {
+				bolt->takedamage = qtrue;
+				bolt->die = G_MissileDie;
+			}
 			break;
 		case WP_SATCHEL:
 			bolt->accuracy				= 0;
@@ -2239,8 +2269,8 @@ gentity_t *fire_grenade (gentity_t *self, vec3_t start, vec3_t dir, int grenadeW
 			VectorSet(bolt->r.maxs, 12, 12, 20);
 			VectorCopy(bolt->r.maxs, bolt->r.absmax);
 
-			// Jaybird - Vulnerable Weapons
-			if( g_vulnerableWeapons.integer & VULN_SATCHEL ) {
+			// Vulnerable Weapons (g_vulnerableWeapons or g_damageweapons)
+			if( (g_vulnerableWeapons.integer & VULN_SATCHEL) || (g_damageweapons.integer & DW_SATCHEL) ) {
 				bolt->health = 50;
 				bolt->takedamage = qtrue;
 				bolt->die = G_MissileDie;
@@ -2275,6 +2305,13 @@ gentity_t *fire_grenade (gentity_t *self, vec3_t start, vec3_t dir, int grenadeW
 			VectorCopy(bolt->r.mins, bolt->r.absmin);
 			VectorSet(bolt->r.maxs, 12, 12, 20);
 			VectorCopy(bolt->r.maxs, bolt->r.absmax);
+
+			// g_damageweapons: Bombs/dynamite can be damaged
+			if( g_damageweapons.integer & DW_BOMBS ) {
+				bolt->health = 50;
+				bolt->takedamage = qtrue;
+				bolt->die = G_MissileDie;
+			}
 
 			break;
 	}
