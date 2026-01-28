@@ -45,6 +45,13 @@ struct BotEntity
 
 BotEntity		m_EntityHandles[MAX_GENTITIES];
 
+// Track whether we're inside pfnUpdate() to handle bot kicks correctly.
+// When RemoveBot is called during pfnUpdate (e.g., from CheckServerSettings when maxbots kicks a bot),
+// we must kick immediately. Omnibot expects the bot to be removed and will handle the disconnection.
+// When RemoveBot is called during pfnConsoleCommand (e.g., "bot kickbot"), we defer the kick
+// to prevent crashes where pfnUpdate's CheckServerSettings queries the disconnected bot.
+static bool g_InsidePfnUpdate = false;
+
 //////////////////////////////////////////////////////////////////////////
 
 // utils partly taken from id code
@@ -1741,11 +1748,21 @@ public:
 				// Validate entity before checking IsBot
 				if(ent->inuse && ent->client && IsBot(ent))
 				{
-					// CRITICAL FIX: Defer the kick instead of doing it immediately.
-					// This prevents crash in Omnibot's CheckServerSettings which can occur
-					// when the bot is kicked during pfnConsoleCommand processing.
-					// The actual kick will be processed in Bot_Interface_Update AFTER pfnUpdate().
-					m_EntityHandles[pMsg->m_GameId].m_PendingKick = true;
+					// Determine whether to kick immediately or defer based on context:
+					// - During pfnUpdate (e.g., maxbots auto-kick): kick immediately
+					//   Omnibot expects the bot to be removed and will handle the disconnect event.
+					// - During pfnConsoleCommand (e.g., "bot kickbot"): defer the kick
+					//   This prevents crash in CheckServerSettings when pfnUpdate runs later.
+					if(g_InsidePfnUpdate)
+					{
+						// Kick immediately - Omnibot is requesting this during its own update
+						trap_DropClient(pMsg->m_GameId, "disconnected", 0);
+					}
+					else
+					{
+						// Defer the kick until after pfnUpdate() completes
+						m_EntityHandles[pMsg->m_GameId].m_PendingKick = true;
+					}
 				}
 			}
 		}
@@ -1772,8 +1789,15 @@ public:
 
 				if(!Q_stricmp(cleanNetName, cleanName))
 				{
-					// CRITICAL FIX: Defer the kick instead of doing it immediately.
-					m_EntityHandles[i].m_PendingKick = true;
+					// Same logic as above: immediate vs deferred kick
+					if(g_InsidePfnUpdate)
+					{
+						trap_DropClient(i, "disconnected", 0);
+					}
+					else
+					{
+						m_EntityHandles[i].m_PendingKick = true;
+					}
 				}
 			}
 		}
@@ -5318,7 +5342,14 @@ void Bot_Interface_Update()
 		// This is intentional - we want pfnUpdate() to run WITHOUT the newly added bot being
 		// registered as connected. This prevents Omnibot's CheckServerSettings from accessing
 		// potentially unstable bot data on the same frame the bot was created.
+		//
+		// IMPORTANT: Set g_InsidePfnUpdate flag so RemoveBot knows to kick immediately.
+		// When Omnibot's CheckServerSettings decides to kick a bot (e.g., maxbots exceeded),
+		// it expects the kick to happen immediately. If we defer the kick, Omnibot's script
+		// continues with inconsistent state, causing crashes.
+		g_InsidePfnUpdate = true;
 		g_BotFunctions.pfnUpdate();
+		g_InsidePfnUpdate = false;
 		//////////////////////////////////////////////////////////////////////////
 		
 		//////////////////////////////////////////////////////////////////////////
