@@ -1886,6 +1886,9 @@ restarts.
 bool
 ClientConnect( string& outmsg, int clientNum, qboolean firstTime, qboolean isBot ) {
     outmsg.clear();
+    
+	// DEBUG: Log ClientConnect parameters
+	G_Printf("[CLIENT_CONNECT] clientNum=%d, firstTime=%d, isBot=%d\n", clientNum, firstTime, isBot);
 
 	gclient_t	*client;
 	char		userinfo[MAX_INFO_STRING];
@@ -2201,9 +2204,17 @@ ClientConnect( string& outmsg, int clientNum, qboolean firstTime, qboolean isBot
 	// 3. client->sess.isBot means bot status restored from session data after map_restart
 	qboolean actuallyBot = (isBot || (ent->r.svFlags & SVF_BOT) || client->sess.isBot) ? qtrue : qfalse;
 	
+	// DEBUG: Log bot detection
+	G_Printf("[BOT_DETECT] Client %d: isBot=%d, svFlags&SVF_BOT=%d, sess.isBot=%d, actuallyBot=%d\n",
+	         clientNum, isBot, !!(ent->r.svFlags & SVF_BOT), client->sess.isBot, actuallyBot);
+	
 	// Track whether this is a persistent bot (restored after map_restart)
 	// These bots need special handling in ClientBegin to properly register with Omnibot
-	qboolean isPersistentBot = (!isBot && actuallyBot) ? qtrue : qfalse;
+	// CRITICAL FIX: A bot is persistent if:
+	// 1. Session data indicates it was a bot (sess.isBot=1), OR
+	// 2. Not first time connecting AND detected as bot but not from new AddBot command
+	// The engine may pass isBot=1 even for persistent bots, so we can't rely on !isBot alone
+	qboolean isPersistentBot = (client->sess.isBot || (!firstTime && !isBot && actuallyBot)) ? qtrue : qfalse;
 	
 	if( actuallyBot ) {
 		ent->s.number = clientNum;
@@ -2425,6 +2436,23 @@ void ClientBegin( int clientNum )
 				         client->pers.netname, client->sess.sessionTeam);
 				client->sess.sessionTeam = TEAM_AXIS;
 			}
+		}
+	}
+	
+	// CRITICAL FIX: Ensure ALL bots have a valid team before spawning
+	// If a bot somehow ended up on spectator team (session mechanism failed,
+	// bot not detected properly, etc.), force them to a playing team NOW.
+	// This must happen BEFORE limbo check (line ~2591) and ClientSpawn (line ~2523).
+	if (ent->r.svFlags & SVF_BOT) {
+		if (client->sess.sessionTeam != TEAM_AXIS && client->sess.sessionTeam != TEAM_ALLIES) {
+			team_t newTeam = PickTeam(clientNum);
+			if (newTeam != TEAM_AXIS && newTeam != TEAM_ALLIES) {
+				newTeam = TEAM_AXIS;  // Force to AXIS if PickTeam returns invalid
+			}
+			G_Printf("[BOT_TEAM_FIX] Bot %d (%s) had invalid team %d, forcing to %s before spawn\n",
+			         clientNum, client->pers.netname, client->sess.sessionTeam,
+			         (newTeam == TEAM_AXIS) ? "AXIS" : "ALLIES");
+			client->sess.sessionTeam = newTeam;
 		}
 	}
 	
