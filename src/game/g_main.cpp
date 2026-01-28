@@ -33,9 +33,6 @@ vmCvar_t	g_OmniBotPath;
 vmCvar_t	g_OmniBotEnable;
 vmCvar_t	g_OmniBotFlags;
 vmCvar_t	g_OmniBotPlaying;
-vmCvar_t	g_OmniBotMaxBots;
-vmCvar_t	g_OmniBotMinBots;
-vmCvar_t	g_OmniBotCountSpectators;
 
 vmCvar_t	g_gametype;
 vmCvar_t	g_fraglimit;
@@ -594,11 +591,6 @@ cvarTable_t		gameCvarTable[] = {
 	{ &g_OmniBotEnable, "omnibot_enable", "1", CVAR_ARCHIVE | CVAR_SERVERINFO_NOUPDATE | CVAR_NORESTART, 0, qfalse },
 	{ &g_OmniBotPlaying, "omnibot_playing", "0", CVAR_SERVERINFO_NOUPDATE | CVAR_ROM, 0, qfalse },	
 	{ &g_OmniBotFlags, "omnibot_flags", "0", CVAR_ARCHIVE | CVAR_NORESTART, 0, qfalse },
-	// xmod: Pre-emptive bot kick settings - these should match omnibot.cfg ServerManager settings
-	// Set these cvars to prevent crashes when Omnibot tries to manage bots itself
-	{ &g_OmniBotMaxBots, "omnibot_maxbots", "-1", CVAR_ARCHIVE | CVAR_NORESTART, 0, qfalse },
-	{ &g_OmniBotMinBots, "omnibot_minbots", "-1", CVAR_ARCHIVE | CVAR_NORESTART, 0, qfalse },
-	{ &g_OmniBotCountSpectators, "omnibot_countspectators", "0", CVAR_ARCHIVE | CVAR_NORESTART, 0, qfalse },
 };
 
 // bk001129 - made static to avoid aliasing

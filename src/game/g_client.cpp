@@ -2248,14 +2248,10 @@ ClientConnect( string& outmsg, int clientNum, qboolean firstTime, qboolean isBot
 	// get and distribute relevant parameters
 	G_LogPrintf( "ClientConnect: %i\n", clientNum );
 	G_UpdateCharacter( client );
-	// For NEW bots (isBot=true), Bot_Event_ClientConnected is deferred via Bot_Queue_ClientConnected
-	// in AddBot. This prevents Omnibot from processing the bot before it's fully initialized.
-	// For PERSISTENT bots on map_restart, we defer to ClientBegin where entity exists.
-	// For humans, we notify immediately.
+	// For humans, notify Omnibot immediately.
+	// For bots, the notification happens elsewhere.
 	if (!isBot && !isPersistentBot) {
 		Bot_Event_ClientConnected(clientNum, qfalse);
-		// Signal that a human player connected (for pre-emptive bot kick)
-		Bot_HumanPlayerCountChanged();
 	}
 	ClientUserinfoChanged( clientNum );
 
