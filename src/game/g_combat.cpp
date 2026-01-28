@@ -169,6 +169,17 @@ void TossClientItems( gentity_t *self ) {
 		// drop our primary weapon
 		G_DropWeapon( self, primaryWeapon );
 	}
+	
+	// Drop second SMG if g_dualSMG DROP_BOTH is enabled and player has dual SMG
+	if ((g_dualSMG.integer & DUALSMG_ENABLE) && (g_dualSMG.integer & DUALSMG_DROP_BOTH)) {
+		// Check if player has the other SMG (not the primary one that was just dropped)
+		if (primaryWeapon != WP_MP40 && COM_BitCheck(self->client->ps.weapons, WP_MP40)) {
+			G_DropWeapon(self, WP_MP40);
+		}
+		if (primaryWeapon != WP_THOMPSON && COM_BitCheck(self->client->ps.weapons, WP_THOMPSON)) {
+			G_DropWeapon(self, WP_THOMPSON);
+		}
+	}
 
 	// Drop binoculars if you have 'em and is set to drop
 	if (cvars::bg_weapons.ivalue & SBW_DROPBINOCS && self->client->ps.stats[STAT_KEYS] & ( 1 << INV_BINOCS )) {

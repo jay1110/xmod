@@ -2668,6 +2668,8 @@ void G_TempTraceIgnoreEntity( gentity_t* ent );
 void G_TempTraceIgnorePlayersAndBodies( void );
 
 qboolean G_CanPickupWeapon( weapon_t weapon, gentity_t* ent );
+qboolean G_CanHaveDualSMG( gentity_t* ent );
+qboolean G_HasDualSMG( gentity_t* ent );
 
 qboolean G_LandmineSnapshotCallback( int entityNum, int clientNum );
 
