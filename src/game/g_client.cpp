@@ -2435,33 +2435,40 @@ void ClientBegin( int clientNum )
 		}
 	}
 	// FALLBACK SAFETY: Even if botNeedsReregister was NOT set (session mechanism failed),
-	// still clear limbo/death state for ALL bots to prevent them from being stuck.
+	// still clear limbo/death state for ALL persistent bots to prevent them from being stuck.
 	// This is a defense-in-depth measure - the session mechanism should work, but if it
 	// doesn't for any reason, this ensures bots still function after map_restart.
-	else if (ent->r.svFlags & SVF_BOT) {
-		G_Printf("[BOT_FALLBACK] Bot %d (%s) detected without botNeedsReregister - clearing limbo state as safety measure\n",
-		         clientNum, client->pers.netname);
-		
-		// Clear broken state flags that would prevent bot from moving/spawning
-		client->ps.pm_flags &= ~PMF_LIMBO;
-		client->ps.pm_type = PM_NORMAL;
-		client->ps.stats[STAT_HEALTH] = client->ps.stats[STAT_MAX_HEALTH];
-		ent->health = client->ps.stats[STAT_HEALTH];
-		ent->r.contents = CONTENTS_BODY;
-		client->ps.ping = 0;
-		
-		// Ensure valid team
-		if (client->sess.sessionTeam != TEAM_AXIS && client->sess.sessionTeam != TEAM_ALLIES) {
-			team_t newTeam = PickTeam(clientNum);
-			if (newTeam == TEAM_AXIS || newTeam == TEAM_ALLIES) {
-				G_Printf("[BOT_FALLBACK] Bot %s had invalid team %d, assigning to %s\n",
-				         client->pers.netname, client->sess.sessionTeam,
-				         (newTeam == TEAM_AXIS) ? "AXIS" : "ALLIES");
-				client->sess.sessionTeam = newTeam;
-			} else {
-				G_Printf("[BOT_FALLBACK] Bot %s had invalid team %d, defaulting to AXIS\n",
-				         client->pers.netname, client->sess.sessionTeam);
-				client->sess.sessionTeam = TEAM_AXIS;
+	// NOTE: This only affects bots that were already connected before map_restart.
+	// New bots (from AddBot command) will NOT match this condition because they won't
+	// have been through ClientConnect yet where SVF_BOT is set.
+	else if ((ent->r.svFlags & SVF_BOT) && !client->sess.botNeedsReregister) {
+		// Only apply fallback if this appears to be a reconnection (not first time)
+		// Check if this bot has session data that would indicate previous connection
+		if (client->sess.sessionTeam == TEAM_AXIS || client->sess.sessionTeam == TEAM_ALLIES) {
+			G_Printf("[BOT_FALLBACK] Bot %d (%s) detected without botNeedsReregister - clearing limbo state as safety measure\n",
+			         clientNum, client->pers.netname);
+			
+			// Clear broken state flags that would prevent bot from moving/spawning
+			client->ps.pm_flags &= ~PMF_LIMBO;
+			client->ps.pm_type = PM_NORMAL;
+			client->ps.stats[STAT_HEALTH] = client->ps.stats[STAT_MAX_HEALTH];
+			ent->health = client->ps.stats[STAT_HEALTH];
+			ent->r.contents = CONTENTS_BODY;
+			client->ps.ping = 0;
+			
+			// Ensure valid team (should already be set from session, but verify)
+			if (client->sess.sessionTeam != TEAM_AXIS && client->sess.sessionTeam != TEAM_ALLIES) {
+				team_t newTeam = PickTeam(clientNum);
+				if (newTeam == TEAM_AXIS || newTeam == TEAM_ALLIES) {
+					G_Printf("[BOT_FALLBACK] Bot %s had invalid team %d, assigning to %s\n",
+					         client->pers.netname, client->sess.sessionTeam,
+					         (newTeam == TEAM_AXIS) ? "AXIS" : "ALLIES");
+					client->sess.sessionTeam = newTeam;
+				} else {
+					G_Printf("[BOT_FALLBACK] Bot %s had invalid team %d, defaulting to AXIS\n",
+					         client->pers.netname, client->sess.sessionTeam);
+					client->sess.sessionTeam = TEAM_AXIS;
+				}
 			}
 		}
 	}

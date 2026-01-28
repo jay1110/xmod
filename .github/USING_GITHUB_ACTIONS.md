@@ -23,7 +23,7 @@ This guide explains how to use GitHub Actions to build xmod without closing or m
 - PR development and iteration
 - Verifying builds before multi-platform testing
 
-### 2. Multi-Platform Build
+### 2. Build Multi-Platform
 **File:** `.github/workflows/build-multiplatform.yml`
 
 **Purpose:** Complete multi-platform builds for all supported targets
@@ -103,10 +103,10 @@ After a workflow completes:
 | Scenario | Recommended Workflow | Why |
 |----------|---------------------|-----|
 | Testing code changes on PR | Quick Build | Fast feedback (3-5 min) |
-| Verifying cross-platform compatibility | Multi-Platform Build | Tests all platforms |
+| Verifying cross-platform compatibility | Build Multi-Platform | Tests all platforms |
 | Creating a release | Build and Release | Creates GitHub release |
 | Debugging build issues | Quick Build | Fast iteration |
-| Pre-merge validation | Multi-Platform Build | Ensures nothing breaks |
+| Pre-merge validation | Build Multi-Platform | Ensures nothing breaks |
 
 ## Understanding Build Status
 
@@ -136,7 +136,7 @@ Common issues:
 Some branches may require successful builds before merging:
 
 - The **Quick Build** workflow runs on all PRs for fast validation
-- The **Multi-Platform Build** workflow may be required for `main` branch
+- The **Build Multi-Platform** workflow may be required for `main` branch
 - Check with repository maintainers for specific requirements
 
 ## Tips and Best Practices

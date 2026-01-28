@@ -7,7 +7,7 @@
 This PR triggers automatic builds via GitHub Actions. You can track build status here:
 
 - **Quick Build (Linux 64-bit):** [![Build Status](../../actions/workflows/build-quick-test.yml/badge.svg?branch=YOUR_BRANCH_NAME)](../../actions/workflows/build-quick-test.yml)
-- **Multi-Platform Build:** [![Build Status](../../actions/workflows/build-multiplatform.yml/badge.svg?branch=YOUR_BRANCH_NAME)](../../actions/workflows/build-multiplatform.yml)
+- **Build Multi-Platform:** [![Build Status](../../actions/workflows/build-multiplatform.yml/badge.svg?branch=YOUR_BRANCH_NAME)](../../actions/workflows/build-multiplatform.yml)
 
 ### 📥 Download Artifacts
 
@@ -34,14 +34,14 @@ You can trigger builds manually without pushing new commits:
 ### ✅ Build Verification Checklist
 
 - [ ] Quick Build passing (Linux 64-bit)
-- [ ] Multi-Platform Build passing (all platforms)
+- [ ] Build Multi-Platform passing (all platforms)
 - [ ] Artifacts downloaded and tested locally
 - [ ] No build warnings in logs
 - [ ] Cross-platform compatibility verified
 
 ### 📚 Need Help?
 
-See [Using GitHub Actions Guide](../.github/USING_GITHUB_ACTIONS.md) for detailed instructions on:
+See [Using GitHub Actions Guide](USING_GITHUB_ACTIONS.md) for detailed instructions on:
 - Downloading artifacts
 - Triggering manual builds
 - Understanding build status

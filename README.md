@@ -309,7 +309,7 @@ See [docs/BUILD_ANDROID.md](docs/BUILD_ANDROID.md) for detailed instructions.
 - Download artifacts from Actions tab
 - Perfect for rapid testing
 
-**Multi-Platform Build (15-30 minutes):**
+**Build Multi-Platform (15-30 minutes):**
 - Builds all platforms (Linux, Windows, macOS, Android)
 - Available via manual trigger or automatic on main/develop
 - Complete release package
