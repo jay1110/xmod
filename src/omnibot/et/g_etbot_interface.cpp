@@ -23,9 +23,6 @@ void Bot_Event_EntityCreated(gentity_t *pEnt);
 
 bool IsBot(gentity_t *e)
 {
-	// Safety check: ensure entity pointer is valid before accessing
-	if(!e || !e->inuse)
-		return false;
 	return e->r.svFlags & SVF_BOT ? true : false;
 }
 
@@ -39,8 +36,6 @@ struct BotEntity
 	obint16	m_HandleSerial;
 	bool	m_NewEntity : 1;
 	bool	m_Used : 1;
-	bool	m_NewClient : 1;      // Deferred client connection notification
-	bool	m_PendingKick : 1;    // Deferred bot kick (prevents crash during pfnConsoleCommand)
 };
 
 BotEntity		m_EntityHandles[MAX_GENTITIES];
@@ -1566,11 +1561,6 @@ public:
 		}
 
 		OB_GETMSG(Msg_Addbot);
-		if (!pMsg)
-		{
-			PrintError("Could not add bot: missing addbot message.");
-			return -1;
-		}
 
 		// cs: find a usable slot. this should avoid and game / engine sync problems related to CS_FREE
 		gentity_t* clEnt = NULL;
@@ -1603,14 +1593,8 @@ public:
 
 		char userinfo[MAX_INFO_STRING] = {0};
 
-		// Bot cl_guid: 24 zeros + BOT + 5 digit slot number = 32 chars total
-		// Format: 000000000000000000000000BOT00XXX
-		// Using num (slot 0-63) ensures only up to 64 bot entries in xmod.db
-		// This matches the user's expected format and allows proper display in !finger
 		std::stringstream guid;
-		guid << std::string(24, '0')  // 24 zeros prefix
-		     << "BOT"
-		     << std::setw(5) << std::setfill('0') << num;  // 5-digit slot number (0-63)
+		guid << "OMNIBOT" << std::setw(2) << std::setfill('0') << num << std::right << std::setw(23) << "";
 
 		gentity_t* bot = &g_entities[num];
 
@@ -1628,104 +1612,6 @@ public:
 			PrintError(va("Could not connect bot: %s", connectErrMsg.c_str()));
 			num = -1;
 		}
-		else
-		{
-			// Set up bot's team and class BEFORE calling ClientBegin to avoid
-			// double ClientBegin calls (ChangeTeam -> SetTeam -> ClientBegin).
-			// This ensures the bot is in a consistent state when omnibot processes it.
-			
-			gclient_t* client = bot->client;
-			
-			// Determine target team
-			int targetTeam = pMsg->m_Team;
-			if (targetTeam != ET_TEAM_AXIS && targetTeam != ET_TEAM_ALLIES)
-			{
-				// Pick team with fewer players
-				if (TeamCount(num, TEAM_ALLIES) <= TeamCount(num, TEAM_AXIS))
-					targetTeam = ET_TEAM_ALLIES;
-				else
-					targetTeam = ET_TEAM_AXIS;
-			}
-			
-			// Determine target class
-			int targetClass = pMsg->m_Class;
-			if (targetClass <= ET_CLASS_NULL || targetClass >= ET_CLASS_MAX)
-			{
-				// Pick a class based on team needs
-				team_t gameTeam = (targetTeam == ET_TEAM_AXIS) ? TEAM_AXIS : TEAM_ALLIES;
-				int engineers = CountPlayerClass(gameTeam, PC_ENGINEER, num);
-				int medics = CountPlayerClass(gameTeam, PC_MEDIC, num);
-				int fieldops = CountPlayerClass(gameTeam, PC_FIELDOPS, num);
-				int soldiers = CountPlayerClass(gameTeam, PC_SOLDIER, num);
-				int covops = CountPlayerClass(gameTeam, PC_COVERTOPS, num);
-				
-				if (OMNIBOT_MIN_ENG > 0 && engineers == 0)
-					targetClass = ET_CLASS_ENGINEER;
-				else if (OMNIBOT_MIN_MED > 0 && medics == 0)
-					targetClass = ET_CLASS_MEDIC;
-				else if (OMNIBOT_MIN_FOP > 0 && fieldops == 0)
-					targetClass = ET_CLASS_FIELDOPS;
-				else if (OMNIBOT_MIN_SOL > 0 && soldiers == 0)
-					targetClass = ET_CLASS_SOLDIER;
-				else if (OMNIBOT_MIN_COP > 0 && covops == 0)
-					targetClass = ET_CLASS_COVERTOPS;
-				else if (engineers < OMNIBOT_MIN_ENG)
-					targetClass = ET_CLASS_ENGINEER;
-				else if (medics < OMNIBOT_MIN_MED)
-					targetClass = ET_CLASS_MEDIC;
-				else if (fieldops < OMNIBOT_MIN_FOP)
-					targetClass = ET_CLASS_FIELDOPS;
-				else if (soldiers < OMNIBOT_MIN_SOL)
-					targetClass = ET_CLASS_SOLDIER;
-				else if (covops < OMNIBOT_MIN_COP)
-					targetClass = ET_CLASS_COVERTOPS;
-				else
-					targetClass = Bot_PlayerClassGameToBot(rand() % NUM_PLAYER_CLASSES);
-			}
-			
-			// Convert to game types and set session data directly
-			team_t gameTeam = (targetTeam == ET_TEAM_AXIS) ? TEAM_AXIS : TEAM_ALLIES;
-			int gameClass = playerClassBotToGame(targetClass);
-			
-			client->sess.sessionTeam = gameTeam;
-			client->sess.latchPlayerType = gameClass;
-			client->sess.playerType = gameClass;
-			
-			// Set weapons for the class
-			client->sess.latchPlayerWeapon = _weaponBotToGame(_choosePriWeap(bot, targetClass, targetTeam));
-			client->sess.latchPlayerWeapon2 = _weaponBotToGame(_chooseSecWeap(bot, targetClass, targetTeam));
-			
-			// Verify weapons are allowed
-			if(G_IsWeaponDisabled(bot, (weapon_t)client->sess.latchPlayerWeapon, qtrue))
-				client->sess.latchPlayerWeapon = 0;
-			if(G_IsWeaponDisabled(bot, (weapon_t)client->sess.latchPlayerWeapon2, qtrue))
-				client->sess.latchPlayerWeapon2 = 0;
-			
-			// Now call ClientBegin with all session data properly set.
-			// This completes the connection and spawns the bot.
-			ClientBegin(num);
-			
-			// Process the bot entity registration immediately.
-			// G_InitGentity (called by ClientBegin) queued the entity via Bot_Queue_EntityCreated,
-			// but we need to register it NOW before Bot_Queue_ClientConnected is called.
-			// Otherwise Omnibot receives GAME_CLIENTCONNECTED before GAME_ENTITYCREATED
-			// which can cause it to access an unregistered entity.
-			if(m_EntityHandles[num].m_NewEntity && bot->inuse)
-			{
-				m_EntityHandles[num].m_NewEntity = false;
-				Bot_Event_EntityCreated(bot);
-			}
-			
-			// CRITICAL FIX: Queue the client connection notification instead of sending immediately.
-			// This defers the notification until AFTER pfnUpdate() completes in Bot_Interface_Update().
-			// When "bot addbot" is executed via console command:
-			//   1. AddBot() runs and sets m_NewClient = true
-			//   2. Same frame: Bot_Interface_Update() is called
-			//   3. pfnUpdate() runs - bot is NOT yet registered (safe, no CheckServerSettings crash)
-			//   4. Bot_Event_ClientConnected() is called AFTER pfnUpdate()
-			//   5. Next frame: pfnUpdate() can safely access the now-stable bot data
-			Bot_Queue_ClientConnected(num, qtrue);
-		}
 		// bad hack to prevent unhandled errors being returned as successful connections
 		return bot && bot->inuse ? num : -1;
 	}
@@ -1738,15 +1624,8 @@ public:
 			if(pMsg->m_GameId >= 0 && pMsg->m_GameId < MAX_CLIENTS)
 			{
 				gentity_t *ent = &g_entities[pMsg->m_GameId];
-				// Validate entity before checking IsBot
-				if(ent->inuse && ent->client && IsBot(ent))
-				{
-					// CRITICAL FIX: Defer the kick instead of doing it immediately.
-					// This prevents crash in Omnibot's CheckServerSettings which can occur
-					// when the bot is kicked during pfnConsoleCommand processing.
-					// The actual kick will be processed in Bot_Interface_Update AFTER pfnUpdate().
-					m_EntityHandles[pMsg->m_GameId].m_PendingKick = true;
-				}
+				if(IsBot(ent))
+					trap_DropClient(pMsg->m_GameId, "disconnected", 0);
 			}
 		}
 		else
@@ -1761,8 +1640,6 @@ public:
 			{
 				if(!g_entities[i].inuse)
 					continue;
-				if(!g_entities[i].client)
-					continue;
 				if (!IsBot(&g_entities[i]))
 					continue;
 
@@ -1772,8 +1649,7 @@ public:
 
 				if(!Q_stricmp(cleanNetName, cleanName))
 				{
-					// CRITICAL FIX: Defer the kick instead of doing it immediately.
-					m_EntityHandles[i].m_PendingKick = true;
+					trap_DropClient(i, "disconnected", 0);
 				}
 			}
 		}
@@ -1781,17 +1657,8 @@ public:
 
 	obResult ChangeTeam(int _client, int _newteam, const MessageHelper *_data)
 	{
-		// Validate client index and entity before accessing
-		if(_client < 0 || _client >= MAX_CLIENTS)
-			return InvalidEntity;
-
-		gentity_t* bot = &g_entities[_client];
-
-		// Check if the entity is valid and connected before processing
-		if(!bot->inuse || !bot->client || bot->client->pers.connected != CON_CONNECTED)
-			return InvalidEntity;
-
 		char* teamName;
+		gentity_t* bot = &g_entities[_client];
 
 		// find a team if we didn't get one and we need one ;-)
 		if (_newteam != ET_TEAM_ALLIES && _newteam != ET_TEAM_AXIS)
@@ -5118,8 +4985,6 @@ void Bot_Interface_InitHandles()
 		m_EntityHandles[i].m_HandleSerial = 1;
 		m_EntityHandles[i].m_NewEntity = false;
 		m_EntityHandles[i].m_Used = false;
-		m_EntityHandles[i].m_NewClient = false;
-		m_EntityHandles[i].m_PendingKick = false;
 	}
 }
 
@@ -5310,67 +5175,10 @@ void Bot_Interface_Update()
 				}
 			}
 		}
-		
 		SendDeferredGoals();
 		//////////////////////////////////////////////////////////////////////////
 		// Call the libraries update.
-		// NOTE: Any pending client connections (m_NewClient) are NOT processed before this call.
-		// This is intentional - we want pfnUpdate() to run WITHOUT the newly added bot being
-		// registered as connected. This prevents Omnibot's CheckServerSettings from accessing
-		// potentially unstable bot data on the same frame the bot was created.
 		g_BotFunctions.pfnUpdate();
-		//////////////////////////////////////////////////////////////////////////
-		
-		//////////////////////////////////////////////////////////////////////////
-		// Process any pending bot kicks AFTER pfnUpdate() completes.
-		// This is critical to prevent crashes when kicking bots via console commands.
-		// If we kick the bot during pfnConsoleCommand (which calls RemoveBot), Omnibot's
-		// CheckServerSettings can crash trying to access the disconnected bot's data.
-		// By deferring the kick until after pfnUpdate(), we ensure Omnibot has finished
-		// processing the current frame before we modify the client state.
-		for(int i = 0; i < MAX_CLIENTS; ++i)
-		{
-			if(m_EntityHandles[i].m_PendingKick)
-			{
-				m_EntityHandles[i].m_PendingKick = false;
-				// Verify the bot is still valid before kicking
-				if(g_entities[i].inuse && g_entities[i].client && IsBot(&g_entities[i]))
-				{
-					trap_DropClient(i, "disconnected", 0);
-				}
-			}
-		}
-		//////////////////////////////////////////////////////////////////////////
-		
-		//////////////////////////////////////////////////////////////////////////
-		// Register any pending client connections AFTER pfnUpdate() completes.
-		// CRITICAL: This MUST happen AFTER pfnUpdate(), not before!
-		// When "bot addbot" is executed:
-		//   1. Console command calls AddBot() which sets m_NewClient = true
-		//   2. Same frame: Bot_Interface_Update() is called
-		//   3. pfnUpdate() runs - bot is NOT yet registered as connected (safe!)
-		//   4. THEN we call Bot_Event_ClientConnected() to register the bot
-		//   5. Next frame: pfnUpdate() runs with bot in a stable state
-		// If we processed m_NewClient BEFORE pfnUpdate(), the bot would be registered
-		// and then immediately queried by CheckServerSettings, causing a crash.
-		for(int i = 0; i < MAX_CLIENTS; ++i)
-		{
-			if(m_EntityHandles[i].m_NewClient && g_entities[i].inuse && g_entities[i].client)
-			{
-				// Verify client is still connected before notifying Omnibot
-				if(g_entities[i].client->pers.connected == CON_CONNECTED)
-				{
-					m_EntityHandles[i].m_NewClient = false;
-					qboolean isBot = (g_entities[i].r.svFlags & SVF_BOT) ? qtrue : qfalse;
-					Bot_Event_ClientConnected(i, isBot);
-				}
-				else
-				{
-					// Client disconnected before notification could be sent, clear the flag
-					m_EntityHandles[i].m_NewClient = false;
-				}
-			}
-		}
 		//////////////////////////////////////////////////////////////////////////
 	}
 }
@@ -5983,17 +5791,6 @@ void Bot_ClearPendingEntityCreation(gentity_t *pEnt)
 	}
 }
 
-void Bot_Queue_ClientConnected(int clientNum, qboolean isBot)
-{
-	if(clientNum >= 0 && clientNum < MAX_CLIENTS)
-	{
-		m_EntityHandles[clientNum].m_NewClient = true;
-		// Store bot status in the entity's SVF_BOT flag to preserve across deferred call
-		if(isBot)
-			g_entities[clientNum].r.svFlags |= SVF_BOT;
-	}
-}
-
 void Bot_Event_EntityDeleted(gentity_t *pEnt)
 {
 	if(pEnt)
@@ -6006,8 +5803,6 @@ void Bot_Event_EntityDeleted(gentity_t *pEnt)
 		}
 		m_EntityHandles[iEntNum].m_Used = false;
 		m_EntityHandles[iEntNum].m_NewEntity = false;
-		m_EntityHandles[iEntNum].m_NewClient = false;
-		m_EntityHandles[iEntNum].m_PendingKick = false;
 		while(++m_EntityHandles[iEntNum].m_HandleSerial==0) {}
 	}
 	for(int i = 0; i < MAX_SMOKEGREN_CACHE; ++i)

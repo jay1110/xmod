@@ -6,5 +6,7 @@ else
 CXX.fnStrip = strip $(1)
 endif
 
-CXX.libstdcxx.DEPS = $(BUILD/)libstdc++.a
+# Don't statically link libstdc++ - it conflicts with Omnibot's dynamic libstdc++
+# causing crashes in C++ runtime (iostream, locale, etc.)
+CXX.libstdcxx.DEPS =
 CXX.static         = 1
