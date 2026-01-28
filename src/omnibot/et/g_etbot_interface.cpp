@@ -1657,14 +1657,8 @@ public:
 
 	obResult ChangeTeam(int _client, int _newteam, const MessageHelper *_data)
 	{
-
-		gentity_t* bot = &g_entities[_client];
-
-		// Check if the entity is valid and connected before processing
-		if(!bot->inuse || !bot->client || bot->client->pers.connected != CON_CONNECTED)
-			return InvalidEntity;
-
 		char* teamName;
+		gentity_t* bot = &g_entities[_client];
 
 		// find a team if we didn't get one and we need one ;-)
 		if (_newteam != ET_TEAM_ALLIES && _newteam != ET_TEAM_AXIS)
