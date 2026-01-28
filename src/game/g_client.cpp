@@ -2219,7 +2219,11 @@ ClientConnect( string& outmsg, int clientNum, qboolean firstTime, qboolean isBot
 	
 	// Track whether this is a persistent bot (restored after map_restart)
 	// These bots need special handling in ClientBegin to properly register with Omnibot
-	qboolean isPersistentBot = (!isBot && actuallyBot) ? qtrue : qfalse;
+	// CRITICAL FIX: A bot is persistent if:
+	// 1. Session data indicates it was a bot (sess.isBot=1), OR
+	// 2. Not first time connecting AND detected as bot but not from new AddBot command
+	// The engine may pass isBot=1 even for persistent bots, so we can't rely on !isBot alone
+	qboolean isPersistentBot = (client->sess.isBot || (!firstTime && !isBot && actuallyBot)) ? qtrue : qfalse;
 	
 	if( actuallyBot ) {
 		ent->s.number = clientNum;
