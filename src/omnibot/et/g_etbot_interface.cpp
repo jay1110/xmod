@@ -5164,6 +5164,55 @@ void Bot_Interface_ConsoleCommand()
 			Bot_Interface_Init();
 			return;
 		}
+		// WORKAROUND: Handle maxbots command ourselves to avoid crash in Omnibot's script.
+		// When Omnibot processes maxbots, it runs CheckServerSettings which crashes in
+		// Utils::ConvertString<int>. We can work around this by kicking bots ourselves
+		// before passing the command to Omnibot.
+		else if(!Q_stricmp( buffer, "maxbots" ))
+		{
+			char maxbotsBuffer[BuffSize] = {};
+			trap_Argv(2, maxbotsBuffer, BuffSize);
+			int newMaxBots = atoi(maxbotsBuffer);
+			
+			if(newMaxBots >= 0)
+			{
+				// Count current bots
+				int currentBots = 0;
+				for(int i = 0; i < g_maxclients.integer; ++i)
+				{
+					if(g_entities[i].inuse && IsBot(&g_entities[i]))
+						currentBots++;
+				}
+				
+				// Kick bots if we have too many
+				while(currentBots > newMaxBots)
+				{
+					// Find a bot to kick (prefer spectators, then lowest slot)
+					int kickSlot = -1;
+					for(int i = g_maxclients.integer - 1; i >= 0; --i)
+					{
+						if(g_entities[i].inuse && IsBot(&g_entities[i]))
+						{
+							kickSlot = i;
+							break;
+						}
+					}
+					
+					if(kickSlot >= 0)
+					{
+						trap_DropClient(kickSlot, "disconnected", 0);
+						currentBots--;
+					}
+					else
+					{
+						break; // No more bots to kick
+					}
+				}
+			}
+			
+			// Now pass the command to Omnibot so it updates its internal maxbots setting
+			// but it won't need to kick any bots since we already did that
+		}
 
 		Arguments args;
 		for(int i = 0; i < trap_Argc(); ++i)
