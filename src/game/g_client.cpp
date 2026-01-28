@@ -2476,8 +2476,7 @@ void ClientBegin( int clientNum )
 	// CRITICAL FIX: Ensure ALL bots have a valid team before spawning
 	// If a bot somehow ended up on spectator team (session mechanism failed,
 	// bot not detected properly, etc.), force them to a playing team NOW.
-	// This must happen BEFORE ClientSpawn is called (line ~2523) because
-	// ClientSpawn at line 2762 will put spectator-team clients at spectator spawn points.
+	// This must happen BEFORE limbo check (line ~2591) and ClientSpawn (line ~2523).
 	if (ent->r.svFlags & SVF_BOT) {
 		if (client->sess.sessionTeam != TEAM_AXIS && client->sess.sessionTeam != TEAM_ALLIES) {
 			team_t newTeam = PickTeam(clientNum);
@@ -2489,10 +2488,6 @@ void ClientBegin( int clientNum )
 			         (newTeam == TEAM_AXIS) ? "AXIS" : "ALLIES");
 			client->sess.sessionTeam = newTeam;
 		}
-		
-		// Also ensure bot is not in limbo - clear flags that would prevent spawning
-		client->ps.pm_flags &= ~PMF_LIMBO;
-		client->ps.pm_type = PM_NORMAL;
 	}
 	
 	// Initialize lastUpdateFrame for bots to prevent stale values after reconnect.
@@ -2602,6 +2597,24 @@ void ClientBegin( int clientNum )
 		}
 
 		limbo(ent, qfalse);
+	}
+	
+	// CRITICAL FIX: Ensure bots are NEVER in limbo after ClientBegin
+	// Even if something put the bot in limbo above, force them out of it now.
+	// Bots should spawn immediately, not wait in limbo.
+	if (ent->r.svFlags & SVF_BOT) {
+		client->ps.pm_flags &= ~PMF_LIMBO;
+		client->ps.pm_type = PM_NORMAL;
+		client->ps.stats[STAT_HEALTH] = client->ps.stats[STAT_MAX_HEALTH];
+		ent->health = client->ps.stats[STAT_HEALTH];
+		ent->r.contents = CONTENTS_BODY;
+		
+		// Ensure bot has valid team
+		if (client->sess.sessionTeam != TEAM_AXIS && client->sess.sessionTeam != TEAM_ALLIES) {
+			G_Printf("[BOT_LIMBO_FIX] Bot %d (%s) has invalid team %d after limbo code, forcing to AXIS\n",
+			         clientNum, client->pers.netname, client->sess.sessionTeam);
+			client->sess.sessionTeam = TEAM_AXIS;
+		}
 	}
 
 	if(client->sess.sessionTeam != TEAM_SPECTATOR) {
