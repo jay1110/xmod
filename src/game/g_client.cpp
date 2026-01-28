@@ -2248,12 +2248,21 @@ ClientConnect( string& outmsg, int clientNum, qboolean firstTime, qboolean isBot
 	// get and distribute relevant parameters
 	G_LogPrintf( "ClientConnect: %i\n", clientNum );
 	G_UpdateCharacter( client );
-	// For NEW bots (isBot=true), Bot_Event_ClientConnected is deferred via Bot_Queue_ClientConnected
-	// in AddBot. This prevents Omnibot from processing the bot before it's fully initialized.
-	// For PERSISTENT bots on map_restart, we defer to ClientBegin where entity exists.
-	// For humans, we notify immediately.
+	// CRITICAL: ALL client connection notifications to Omnibot are now deferred.
+	// For NEW bots: deferred via Bot_Queue_ClientConnected in AddBot
+	// For PERSISTENT bots on map_restart: deferred to ClientBegin
+	// For HUMANS: also deferred now to prevent Omnibot's CheckServerSettings from crashing
+	//
+	// The crash occurred when (before this fix):
+	// 1. Human connected - Omnibot was notified immediately
+	// 2. Omnibot's pfnUpdate ran, CheckServerSettings counted players
+	// 3. maxbots exceeded, CheckServerSettings tried to kick a bot
+	// 4. Omnibot's script crashed in Utils::ConvertString BEFORE even calling our RemoveBot
+	//
+	// By deferring the human connection notification, we delay when Omnibot sees
+	// the new player count, preventing the immediate kick decision.
 	if (!isBot && !isPersistentBot) {
-		Bot_Event_ClientConnected(clientNum, qfalse);
+		Bot_Queue_ClientConnected(clientNum, qfalse);
 	}
 	ClientUserinfoChanged( clientNum );
 
