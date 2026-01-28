@@ -42,8 +42,6 @@ jobs:
           name: xmod-linux64-quick
           path: |
             build.linux64-release/game/qagame.mp.x86_64.so
-            build.linux64-release/cgame/cgame.mp.x86_64.so
-            build.linux64-release/ui/ui.mp.x86_64.so
           retention-days: 7
       
       - name: Build summary
@@ -54,8 +52,6 @@ jobs:
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "### Built files:" >> $GITHUB_STEP_SUMMARY
           echo "- \`qagame.mp.x86_64.so\` - Server-side game module" >> $GITHUB_STEP_SUMMARY
-          echo "- \`cgame.mp.x86_64.so\` - Client-side game module" >> $GITHUB_STEP_SUMMARY
-          echo "- \`ui.mp.x86_64.so\` - User interface module" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "**Platform:** Linux 64-bit only" >> $GITHUB_STEP_SUMMARY
           echo "**Configuration:** Release" >> $GITHUB_STEP_SUMMARY
