@@ -28,13 +28,16 @@ Added a deferred notification mechanism for bot client connections, similar to t
 3. **Processing loop**: Modified `Bot_Interface_Update()` to process queued connections before `pfnUpdate()`
 4. **Updated AddBot**: Changed to use `Bot_Queue_ClientConnected()` instead of immediate notification
 
-### Core Fix 2: Deferred Bot Kick (for kickbot)
+### Core Fix 2: Context-Aware Bot Kick (for kickbot and maxbots)
 
-Added a deferred kick mechanism to prevent crashes during bot removal:
+Added a context-aware kick mechanism to handle different bot removal scenarios:
 
 1. **New BotEntity flag**: Added `m_PendingKick` flag to mark bots for deferred kicking
-2. **Updated RemoveBot**: Changed to set `m_PendingKick` flag instead of calling `trap_DropClient()` immediately
-3. **Processing loop**: Added processing of pending kicks in `Bot_Interface_Update()` AFTER `pfnUpdate()` completes
+2. **New context flag**: Added `g_InsidePfnUpdate` static flag to track execution context
+3. **Updated RemoveBot**: Uses context-aware logic:
+   - During `pfnUpdate()` (e.g., maxbots auto-kick): kick immediately - Omnibot expects this
+   - During `pfnConsoleCommand()` (e.g., "bot kickbot"): defer the kick to prevent crash
+4. **Processing loop**: Added processing of pending kicks in `Bot_Interface_Update()` AFTER `pfnUpdate()` completes
 
 ### Event Sequence - AddBot (Before Fix)
 ```
@@ -93,6 +96,19 @@ Frame N:
     - trap_DropClient() called NOW
 ```
 
+### Event Sequence - Maxbots Auto-Kick (After Fix)
+```
+Frame N:
+  - Human player connects, triggers Omnibot's CheckServerSettings
+  - pfnUpdate() is running (g_InsidePfnUpdate = true)
+  - CheckServerSettings detects maxbots exceeded
+  - Omni-bot calls RemoveBot()
+  - RemoveBot() detects we're inside pfnUpdate
+  - trap_DropClient() called IMMEDIATELY
+  - Bot_Event_ClientDisConnected() sent to Omnibot
+  - Omnibot handles disconnect event, script continues safely
+```
+
 ## Files Modified
 
 1. **src/omnibot/et/g_etbot_interface.cpp**
@@ -104,7 +120,8 @@ Frame N:
    - Added client connection processing loop in `Bot_Interface_Update()`
    - Added pending kick processing loop in `Bot_Interface_Update()` (AFTER pfnUpdate)
    - Modified `AddBot()` to use `Bot_Queue_ClientConnected()`
-   - Modified `RemoveBot()` to use deferred kick via `m_PendingKick` flag
+   - Modified `RemoveBot()` to use context-aware kick (immediate during pfnUpdate, deferred otherwise)
+   - Added `g_InsidePfnUpdate` flag to track whether we're inside pfnUpdate()
 
 2. **src/omnibot/et/g_etbot_interface.h**
    - Added `Bot_Queue_ClientConnected()` declaration (line 52)
