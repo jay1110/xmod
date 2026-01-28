@@ -2198,43 +2198,16 @@ ClientConnect( string& outmsg, int clientNum, qboolean firstTime, qboolean isBot
 		client->pers.enterTime = level.time;
 	}
 
-	// Determine if this client is actually a bot:
-	// 1. isBot=true means new bot from AddBot command
-	// 2. ent->r.svFlags & SVF_BOT means SVF_BOT persisted (unlikely after map_restart)
-	// 3. client->sess.isBot means bot status restored from session data after map_restart
-	qboolean actuallyBot = (isBot || (ent->r.svFlags & SVF_BOT) || client->sess.isBot) ? qtrue : qfalse;
-	
-	// DEBUG: Log bot detection
-	G_Printf("[BOT_DETECT] Client %d: isBot=%d, svFlags&SVF_BOT=%d, sess.isBot=%d, actuallyBot=%d\n",
-	         clientNum, isBot, !!(ent->r.svFlags & SVF_BOT), client->sess.isBot, actuallyBot);
-	
-	// Track whether this is a persistent bot (restored after map_restart)
-	// These bots need special handling in ClientBegin to properly register with Omnibot
-	// CRITICAL FIX: A bot is persistent if:
-	// 1. Session data indicates it was a bot (sess.isBot=1), OR
-	// 2. Not first time connecting AND detected as bot but not from new AddBot command
-	// The engine may pass isBot=1 even for persistent bots, so we can't rely on !isBot alone
-	qboolean isPersistentBot = (client->sess.isBot || (!firstTime && !isBot && actuallyBot)) ? qtrue : qfalse;
-	
-	if( actuallyBot ) {
+	if( isBot ) {
 		ent->s.number = clientNum;
 		ent->r.svFlags |= SVF_BOT;
 		ent->inuse = qtrue;
 
 		// Auto-authenticate bots since they can't respond to guid_request
 		// This prevents authentication timeouts and related issues
+		Client& clientObject = g_clientObjects[clientNum];
 		clientObject.authenticated = true;
 		clientObject.authWarningShown = false;
-		
-		// Log restoration from session (useful for debugging warmup transition)
-		if (isPersistentBot) {
-			G_Printf("[BOT_RESTORE] Restored bot status for client %d (%s) from session - will re-register with Omnibot in ClientBegin\n", 
-			         clientNum, client->pers.netname);
-			// Mark this bot as needing re-registration in ClientBegin
-			// We don't call Bot_Event_ClientConnected here because the entity isn't created yet
-			// (G_InitGentity is called in ClientBegin, not ClientConnect)
-			client->sess.botNeedsReregister = qtrue;
-		}
 	} else if( firstTime ) {
 		// force into spectator
 		client->sess.sessionTeam = TEAM_SPECTATOR;
@@ -2248,11 +2221,7 @@ ClientConnect( string& outmsg, int clientNum, qboolean firstTime, qboolean isBot
 	// get and distribute relevant parameters
 	G_LogPrintf( "ClientConnect: %i\n", clientNum );
 	G_UpdateCharacter( client );
-	// For humans, notify Omnibot immediately.
-	// For bots, the notification happens elsewhere.
-	if (!isBot && !isPersistentBot) {
-		Bot_Event_ClientConnected(clientNum, qfalse);
-	}
+	Bot_Event_ClientConnected(clientNum, isBot);
 	ClientUserinfoChanged( clientNum );
 
 	// don't do the "xxx connected" messages if they were carried over from previous level
@@ -2370,98 +2339,6 @@ void ClientBegin( int clientNum )
 	ent->touch = 0;
 	ent->pain = 0;
 	ent->client = client;
-
-	// CRITICAL: Re-register persistent bots with Omnibot after map_restart
-	// This must happen AFTER G_InitGentity() which creates the entity and queues Bot_Queue_EntityCreated()
-	// The sequence mirrors AddBot:
-	//   1. Reset bot state (clear limbo, reset pm_type, restore health) 
-	//   2. Clear pending entity creation flag (to prevent double registration in Bot_Interface_Update)
-	//   3. Send entity creation event immediately
-	//   4. Queue client connection (to be processed AFTER pfnUpdate() in Bot_Interface_Update)
-	// Without this, bots lie on ground with "Connection Interrupted" after warmup->playing transition
-	if (client->sess.botNeedsReregister && (ent->r.svFlags & SVF_BOT)) {
-		// Clear the flag first to prevent re-triggering
-		client->sess.botNeedsReregister = qfalse;
-		
-		G_Printf("[BOT_REREGISTER] Re-registering bot %d (%s) with Omnibot after map_restart\n",
-		         clientNum, client->pers.netname);
-		
-		// CRITICAL STATE RESET: After map_restart from warmup->playing, bots may retain
-		// broken state flags from the previous gamestate (limbo, dead pm_type, corpse contents).
-		// These MUST be cleared BEFORE re-registration or the bot will be stuck:
-		// - PMF_LIMBO: Bot thinks it's in limbo and won't move
-		// - PM_DEAD: Movement code treats bot as dead
-		// - CONTENTS_CORPSE: Collision detection broken
-		// - Health 0: Triggers death handling
-		// - Ping 999: Engine doesn't track bot packet times properly after map_restart
-		client->ps.pm_flags &= ~PMF_LIMBO;
-		client->ps.pm_type = PM_NORMAL;
-		client->ps.stats[STAT_HEALTH] = client->ps.stats[STAT_MAX_HEALTH];
-		ent->health = client->ps.stats[STAT_HEALTH];
-		ent->r.contents = CONTENTS_BODY;
-		client->ps.ping = 0;  // Bots have no network latency
-		
-		// Clear the pending entity creation flag to prevent double registration.
-		// G_InitGentity (called earlier at line ~2355) queued Bot_Queue_EntityCreated,
-		// but we're processing the entity immediately here, so we don't want
-		// Bot_Interface_Update to process it again later.
-		Bot_ClearPendingEntityCreation(ent);
-		
-		// Process entity creation immediately so Omnibot knows about this entity
-		Bot_Event_EntityCreated(ent);
-		
-		// CRITICAL: For persistent bots after map_restart, send the client connection
-		// notification IMMEDIATELY (not queued). This is different from newly added bots:
-		// - New bots (via AddBot): Queue connection to avoid crash during same-frame pfnUpdate()
-		// - Persistent bots: Send immediately so Omnibot can control them on the first frame
-		// The crash issue with CheckServerSettings only occurs when bot is created in the
-		// SAME frame as pfnUpdate(). For map_restart, bots are initialized during GAME_CLIENT_BEGIN
-		// which completes BEFORE Bot_Interface_Update() runs, so it's safe to notify immediately.
-		// Without immediate notification, Omnibot doesn't know the bot is connected and won't
-		// send movement commands, causing the bot to be stuck/frozen after map_restart.
-		Bot_Event_ClientConnected(clientNum, qtrue);
-		
-		// Ensure the bot has a valid team for spawning
-		if (client->sess.sessionTeam != TEAM_AXIS && client->sess.sessionTeam != TEAM_ALLIES) {
-			team_t newTeam = PickTeam(clientNum);
-			if (newTeam == TEAM_AXIS || newTeam == TEAM_ALLIES) {
-				G_Printf("[BOT_REREGISTER] Bot %s had invalid team %d, assigning to %s\n",
-				         client->pers.netname, client->sess.sessionTeam,
-				         (newTeam == TEAM_AXIS) ? "AXIS" : "ALLIES");
-				client->sess.sessionTeam = newTeam;
-			} else {
-				G_Printf("[BOT_REREGISTER] Bot %s had invalid team %d, defaulting to AXIS\n",
-				         client->pers.netname, client->sess.sessionTeam);
-				client->sess.sessionTeam = TEAM_AXIS;
-			}
-		}
-	}
-	
-	// CRITICAL FIX: Ensure ALL bots have a valid team before spawning
-	// If a bot somehow ended up on spectator team (session mechanism failed,
-	// bot not detected properly, etc.), force them to a playing team NOW.
-	// This must happen BEFORE limbo check (line ~2591) and ClientSpawn (line ~2523).
-	if (ent->r.svFlags & SVF_BOT) {
-		if (client->sess.sessionTeam != TEAM_AXIS && client->sess.sessionTeam != TEAM_ALLIES) {
-			team_t newTeam = PickTeam(clientNum);
-			if (newTeam != TEAM_AXIS && newTeam != TEAM_ALLIES) {
-				newTeam = TEAM_AXIS;  // Force to AXIS if PickTeam returns invalid
-			}
-			G_Printf("[BOT_TEAM_FIX] Bot %d (%s) had invalid team %d, forcing to %s before spawn\n",
-			         clientNum, client->pers.netname, client->sess.sessionTeam,
-			         (newTeam == TEAM_AXIS) ? "AXIS" : "ALLIES");
-			client->sess.sessionTeam = newTeam;
-		}
-	}
-	
-	// Initialize lastUpdateFrame for bots to prevent stale values after reconnect.
-	// NOTE: The main fix for "Connection Interrupted" display is in ClientEndFrame(),
-	// which skips the EF_CONNECTION check entirely for bots (SVF_BOT). This initialization
-	// is kept as a defense-in-depth measure to prevent any other code that might depend
-	// on lastUpdateFrame from seeing stale/zero values.
-	if (ent->r.svFlags & SVF_BOT) {
-		client->lastUpdateFrame = level.framenum;
-	}
 
 	client->pers.connected = CON_CONNECTED;
 	client->pers.teamState.state = TEAM_BEGIN;
