@@ -2473,6 +2473,28 @@ void ClientBegin( int clientNum )
 		}
 	}
 	
+	// CRITICAL FIX: Ensure ALL bots have a valid team before spawning
+	// If a bot somehow ended up on spectator team (session mechanism failed,
+	// bot not detected properly, etc.), force them to a playing team NOW.
+	// This must happen BEFORE ClientSpawn is called (line ~2523) because
+	// ClientSpawn at line 2762 will put spectator-team clients at spectator spawn points.
+	if (ent->r.svFlags & SVF_BOT) {
+		if (client->sess.sessionTeam != TEAM_AXIS && client->sess.sessionTeam != TEAM_ALLIES) {
+			team_t newTeam = PickTeam(clientNum);
+			if (newTeam != TEAM_AXIS && newTeam != TEAM_ALLIES) {
+				newTeam = TEAM_AXIS;  // Force to AXIS if PickTeam returns invalid
+			}
+			G_Printf("[BOT_TEAM_FIX] Bot %d (%s) had invalid team %d, forcing to %s before spawn\n",
+			         clientNum, client->pers.netname, client->sess.sessionTeam,
+			         (newTeam == TEAM_AXIS) ? "AXIS" : "ALLIES");
+			client->sess.sessionTeam = newTeam;
+		}
+		
+		// Also ensure bot is not in limbo - clear flags that would prevent spawning
+		client->ps.pm_flags &= ~PMF_LIMBO;
+		client->ps.pm_type = PM_NORMAL;
+	}
+	
 	// Initialize lastUpdateFrame for bots to prevent stale values after reconnect.
 	// NOTE: The main fix for "Connection Interrupted" display is in ClientEndFrame(),
 	// which skips the EF_CONNECTION check entirely for bots (SVF_BOT). This initialization
