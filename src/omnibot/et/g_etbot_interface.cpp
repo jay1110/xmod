@@ -23,9 +23,6 @@ void Bot_Event_EntityCreated(gentity_t *pEnt);
 
 bool IsBot(gentity_t *e)
 {
-	// Safety check: ensure entity pointer is valid before accessing
-	if(!e || !e->inuse)
-		return false;
 	return e->r.svFlags & SVF_BOT ? true : false;
 }
 
@@ -40,7 +37,6 @@ struct BotEntity
 	bool	m_NewEntity : 1;
 	bool	m_Used : 1;
 	bool	m_NewClient : 1;      // Deferred client connection notification
-	bool	m_PendingKick : 1;    // Deferred bot kick (processed after pfnUpdate completes)
 };
 
 BotEntity		m_EntityHandles[MAX_GENTITIES];
@@ -1738,17 +1734,8 @@ public:
 			if(pMsg->m_GameId >= 0 && pMsg->m_GameId < MAX_CLIENTS)
 			{
 				gentity_t *ent = &g_entities[pMsg->m_GameId];
-				// Validate entity before checking IsBot
-				if(ent->inuse && ent->client && IsBot(ent))
-				{
-					// ALWAYS defer the kick until after pfnUpdate() completes.
-					// This is critical because when Omnibot's CheckServerSettings (running inside
-					// pfnUpdate) requests a bot kick, the script continues executing after RemoveBot
-					// returns. If we kick immediately, the script accesses invalidated bot data,
-					// causing a SIGSEGV crash in Utils::ConvertString.
-					// By deferring ALL kicks, the bot's data remains valid until pfnUpdate finishes.
-					m_EntityHandles[pMsg->m_GameId].m_PendingKick = true;
-				}
+				if(ent->inuse && IsBot(ent))
+					trap_DropClient(pMsg->m_GameId, "disconnected", 0);
 			}
 		}
 		else
@@ -1763,9 +1750,9 @@ public:
 			{
 				if(!g_entities[i].inuse)
 					continue;
-				if(!g_entities[i].client)
-					continue;
 				if (!IsBot(&g_entities[i]))
+					continue;
+				if (!g_entities[i].client)
 					continue;
 
 				// clean stuff
@@ -1774,8 +1761,7 @@ public:
 
 				if(!Q_stricmp(cleanNetName, cleanName))
 				{
-					// ALWAYS defer the kick - same reason as above
-					m_EntityHandles[i].m_PendingKick = true;
+					trap_DropClient(i, "disconnected", 0);
 				}
 			}
 		}
@@ -5121,7 +5107,6 @@ void Bot_Interface_InitHandles()
 		m_EntityHandles[i].m_NewEntity = false;
 		m_EntityHandles[i].m_Used = false;
 		m_EntityHandles[i].m_NewClient = false;
-		m_EntityHandles[i].m_PendingKick = false;
 	}
 }
 
@@ -5316,33 +5301,7 @@ void Bot_Interface_Update()
 		SendDeferredGoals();
 		//////////////////////////////////////////////////////////////////////////
 		// Call the libraries update.
-		// NOTE: Any pending client connections (m_NewClient) are NOT processed before this call.
-		// This is intentional - we want pfnUpdate() to run WITHOUT the newly added bot being
-		// registered as connected. This prevents Omnibot's CheckServerSettings from accessing
-		// potentially unstable bot data on the same frame the bot was created.
 		g_BotFunctions.pfnUpdate();
-		//////////////////////////////////////////////////////////////////////////
-		
-		//////////////////////////////////////////////////////////////////////////
-		// Process any pending bot kicks AFTER pfnUpdate() completes.
-		// ALL bot kicks are deferred to prevent crashes.
-		// When Omnibot's CheckServerSettings (inside pfnUpdate) calls RemoveBot,
-		// the script continues executing after RemoveBot returns. If we kicked
-		// immediately, the script would access invalidated bot data and crash
-		// (SIGSEGV in Utils::ConvertString). By deferring ALL kicks until after
-		// pfnUpdate completes, the bot's data remains valid during script execution.
-		for(int i = 0; i < MAX_CLIENTS; ++i)
-		{
-			if(m_EntityHandles[i].m_PendingKick)
-			{
-				m_EntityHandles[i].m_PendingKick = false;
-				// Verify the bot is still valid before kicking
-				if(g_entities[i].inuse && g_entities[i].client && IsBot(&g_entities[i]))
-				{
-					trap_DropClient(i, "disconnected", 0);
-				}
-			}
-		}
 		//////////////////////////////////////////////////////////////////////////
 		
 		//////////////////////////////////////////////////////////////////////////
@@ -6010,7 +5969,6 @@ void Bot_Event_EntityDeleted(gentity_t *pEnt)
 		m_EntityHandles[iEntNum].m_Used = false;
 		m_EntityHandles[iEntNum].m_NewEntity = false;
 		m_EntityHandles[iEntNum].m_NewClient = false;
-		m_EntityHandles[iEntNum].m_PendingKick = false;
 		while(++m_EntityHandles[iEntNum].m_HandleSerial==0) {}
 	}
 	for(int i = 0; i < MAX_SMOKEGREN_CACHE; ++i)
