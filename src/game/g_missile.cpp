@@ -221,7 +221,7 @@ void G_MissileImpact( gentity_t *ent, trace_t *trace, int impactDamage ) {
 				g_entities[ent->r.ownerNum].client->sess.skill[SK_MILITARY_INTELLIGENCE_AND_SCOPED_WEAPONS] > 2 &&
 				other->client->ps.stats[STAT_HEALTH] > 0 &&
 				other->client->ps.powerups[PW_INVULNERABLE] < level.time &&
-				(!OnSameTeam(g_entities + ent->r.ownerNum, other) || g_friendlyFire.integer)
+				(!OnSameTeam(g_entities + ent->r.ownerNum, other) || (g_friendlyFire.integer & FF_ENABLE))
 				)
 			{
 				G_AddPoisonEvent(other, g_entities + ent->r.ownerNum);
@@ -1084,7 +1084,7 @@ void G_BurnTarget( gentity_t *self, gentity_t *body, qboolean directhit )
 //		if( !self->count2 && body == self->parent )
 //			return;
 
-		if( !(g_friendlyFire.integer) && OnSameTeam( body, self->parent ) )
+		if( !(g_friendlyFire.integer & FF_ENABLE) && OnSameTeam( body, self->parent ) )
 			return;
 	}
 // jpw
@@ -1776,6 +1776,14 @@ qboolean sEntWillTriggerMine(gentity_t *ent, gentity_t *mine)
 
 		// Jaybird - disable friendly mine tripping
 		if ((g_engineers.integer & ENGI_FRIENDLYMINES) && ent->client->sess.sessionTeam == mine->s.teamNum && mine->parent != ent )
+			return qfalse;
+
+		// FF_LANDMINE_NO_TRIP: Landmines cannot be tripped by teammates
+		if ((g_friendlyFire.integer & FF_LANDMINE_NO_TRIP) && G_LandmineTeam(mine) == ent->client->sess.sessionTeam && mine->parent != ent)
+			return qfalse;
+
+		// FF_LANDMINE_NO_SELF: Players don't trigger their own landmines
+		if ((g_friendlyFire.integer & FF_LANDMINE_NO_SELF) && mine->parent == ent)
 			return qfalse;
 
 		VectorSubtract(mine->r.currentOrigin, ent->r.currentOrigin, dist);

@@ -1042,7 +1042,7 @@ void G_FallDamage( gentity_t *ent, int event ) {
 	if( !damage )
 		damage = 5;
 
-	if( g_friendlyFire.integer || !OnSameTeam( ent, victim )) {
+	if( (g_friendlyFire.integer & FF_ENABLE) || !OnSameTeam( ent, victim )) {
 		if( kb_time ) {
 			victim->client->ps.pm_time = kb_time;
 			victim->client->ps.pm_flags |= PMF_TIME_KNOCKBACK;
@@ -1205,7 +1205,7 @@ void G_RunPoisonEvents( gentity_t *ent ) {
 			ent->client->pmext.poisonEvents[i].fireTime = level.time + POISONINTERVAL;
 
 			// Damage
-			if (g_friendlyFire.integer || !OnSameTeam( ent, attacker )) {
+			if ((g_friendlyFire.integer & FF_ENABLE) || !OnSameTeam( ent, attacker )) {
 				G_Damage( ent, attacker, attacker, 0, 0, POISONDAMAGE, 0, MOD_POISON_SYRINGE );
 				// XP
 				if( !OnSameTeam( ent, attacker ) ) {

@@ -1036,7 +1036,8 @@ void G_Damage( gentity_t *targ, gentity_t *inflictor, gentity_t *attacker, const
 	if( client && (client->ps.weapon == WP_MORTAR_SET || client->ps.weapon == WP_MOBILE_MG42_SET) )
 		knockback = int( knockback * 0.5f );
 
-	if( targ->client && g_friendlyFire.integer && OnSameTeam(targ, attacker) ) {
+	// Friendly fire knockback - disable unless FF_KNOCKBACK flag is set
+	if( targ->client && (g_friendlyFire.integer & FF_ENABLE) && OnSameTeam(targ, attacker) && !(g_friendlyFire.integer & FF_KNOCKBACK) ) {
 		knockback = 0;
 	}
 	
@@ -1089,7 +1090,7 @@ void G_Damage( gentity_t *targ, gentity_t *inflictor, gentity_t *attacker, const
     if (!(dflags & DAMAGE_NO_PROTECTION)
         && targ != attacker
         && OnSameTeam( targ, attacker )
-        && !g_friendlyFire.integer)
+        && !(g_friendlyFire.integer & FF_ENABLE))
     {
         return;
     }
@@ -1159,7 +1160,8 @@ void G_Damage( gentity_t *targ, gentity_t *inflictor, gentity_t *attacker, const
 		G_Printf( "client:%i health:%i damage:%i mod:%s\n", targ->s.number, targ->health, take, modNames[mod] );
 	}
 
-	if( targ && targ->client && attacker && attacker->client && targ != attacker && targ->health > 0 && OnSameTeam( targ, attacker ) && g_friendlyFire.integer == 2 && IsReflectable( mod )) {
+	// FF_SAME_DAMAGE: Reflect damage to attacker when hitting teammates
+	if( targ && targ->client && attacker && attacker->client && targ != attacker && targ->health > 0 && OnSameTeam( targ, attacker ) && (g_friendlyFire.integer & FF_SAME_DAMAGE) && IsReflectable( mod )) {
 		int ffDamage;
 
 		// Percentage based reflect
@@ -1185,6 +1187,11 @@ void G_Damage( gentity_t *targ, gentity_t *inflictor, gentity_t *attacker, const
 				attacker->die( attacker, attacker, attacker, ffDamage, MOD_REFLECTED_FF );
 			}
 		}
+	}
+
+	// FF_HALF_DAMAGE: Friendly fire does only half damage to teammates
+	if( (g_friendlyFire.integer & FF_HALF_DAMAGE) && OnSameTeam( targ, attacker ) && targ != attacker ) {
+		take = take / 2;
 	}
 
 	// add to the damage inflicted on a player this frame

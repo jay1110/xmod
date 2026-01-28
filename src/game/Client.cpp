@@ -518,7 +518,7 @@ Client::takeBulletDamageFrom( const TraceContext& trx, Client& actor, int damage
         return;
 
     // Bump hitsound counters.
-    if (g_friendlyFire.integer || !onSameTeam)
+    if ((g_friendlyFire.integer & FF_ENABLE) || !onSameTeam)
         actor.recordHit( trx.hitvol->zone, onSameTeam );
 
     // Fast-exit if god.
@@ -526,7 +526,7 @@ Client::takeBulletDamageFrom( const TraceContext& trx, Client& actor, int damage
         return;
 
     // Fast-exit if friendly-fire and friendly-fire is disabled.
-    if (onSameTeam && !g_friendlyFire.integer)
+    if (onSameTeam && !(g_friendlyFire.integer & FF_ENABLE))
         return;
 
     if (gentity.health > 0) {
@@ -536,7 +536,7 @@ Client::takeBulletDamageFrom( const TraceContext& trx, Client& actor, int damage
         if (isHeadShot && cvars::bg_sniperWar.ivalue && ( mod == MOD_K43_SCOPE || mod == MOD_GARAND_SCOPE )) {
             G_GlobalClientEvent( EV_HEADSHOT, 0, actor.slot );
         }
-        else if (g_friendlyFire.integer && onSameTeam) {
+        else if ((g_friendlyFire.integer & FF_ENABLE) && onSameTeam) {
             if ( (!gclient.lasthurt_mod || gclient.lasthurt_client != actor.slot ) &&
                  cvars::gameState.ivalue == GS_PLAYING &&
                  (actor.gentity.health - take) > FORCE_LIMBO_HEALTH )
@@ -559,9 +559,9 @@ Client::takeBulletDamageFrom( const TraceContext& trx, Client& actor, int damage
     VectorSubtract( trx.end, trx.start, dir );
     VectorNormalizeFast( dir );
 
-    // Knockback
+    // Knockback - disable unless FF_KNOCKBACK flag is set
     int knockback = 0;
-    if (!g_friendlyFire.integer || !onSameTeam)
+    if (!(g_friendlyFire.integer & FF_ENABLE) || !onSameTeam || (g_friendlyFire.integer & FF_KNOCKBACK))
         knockback = calculateKnockback(damage, dir);
 
     if (isHeadShot) {
@@ -603,8 +603,8 @@ Client::takeBulletDamageFrom( const TraceContext& trx, Client& actor, int damage
     // Jaybird - add stats for logging
     actor.addStats(trx.hitvol->zone, mod);
 
-    // Reflected friendly fire
-        if( gentity.health > 0 && onSameTeam && g_friendlyFire.integer == 2 && IsReflectable( mod )) {
+    // Reflected friendly fire (FF_SAME_DAMAGE)
+        if( gentity.health > 0 && onSameTeam && (g_friendlyFire.integer & FF_SAME_DAMAGE) && IsReflectable( mod )) {
                 int ffDamage;
 
                 // Percentage based reflect
@@ -734,8 +734,8 @@ Client::takeBulletDamageFrom( const TraceContext& trx, Client& actor, int damage
     // Ridah, this needs to be done last, incase the health is altered in one of the event calls
     gclient.ps.stats[STAT_HEALTH] = gentity.health;
 
-    // Reflected friendly fire
-    if (gentity.health > 0 && onSameTeam && g_friendlyFire.integer == 2 && IsReflectable( mod )) {
+    // Reflected friendly fire (FF_SAME_DAMAGE)
+    if (gentity.health > 0 && onSameTeam && (g_friendlyFire.integer & FF_SAME_DAMAGE) && IsReflectable( mod )) {
         int ffDamage;
 
         // Percentage based reflect

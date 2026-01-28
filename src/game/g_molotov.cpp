@@ -476,7 +476,7 @@ Chunk::inflictDamage()
 
         if (ent.client
             && ent.health > 0
-            && (&ent == _attacker || (g_friendlyFire.integer && !OnSameTeam( &ent, _inflictor )))
+            && (&ent == _attacker || ((g_friendlyFire.integer & FF_ENABLE) && !OnSameTeam( &ent, _inflictor )))
             && (level.time >= ent.nextMolotovScreamTime)
             && screamers.size() < 4)
         {
