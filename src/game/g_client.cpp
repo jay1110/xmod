@@ -1153,6 +1153,12 @@ qboolean _SetMedicSpawnWeapons(gclient_t *client)
     // Add the primary weapon
 	AddWeaponToPlayer(client, w, 0, GetAmmoTableData(w)->defaultStartingClip, qtrue);
 
+    // g_dualSMG: Give both SMGs if enabled and primary is MP40/Thompson
+    if ((g_dualSMG.integer & DUALSMG_ENABLE) && (w == WP_MP40 || w == WP_THOMPSON)) {
+        weapon_t otherSMG = (w == WP_MP40) ? WP_THOMPSON : WP_MP40;
+        AddWeaponToPlayer(client, otherSMG, 0, GetAmmoTableData(otherSMG)->defaultStartingClip, qfalse);
+    }
+
     // Give another clip for M97
 	if (w == WP_M97)
 		client->ps.ammo[BG_FindClipForWeapon(WP_M97)] += GetAmmoTableData(w)->maxclip;
@@ -1199,6 +1205,12 @@ qboolean _SetEngineerSpawnWeapons(gclient_t *client)
 
     // Add the primary weapon
 	AddWeaponToPlayer(client, w, GetAmmoTableData(w)->defaultStartingAmmo, GetAmmoTableData(w)->defaultStartingClip, qtrue);
+
+    // g_dualSMG: Give both SMGs if enabled and primary is MP40/Thompson
+    if ((g_dualSMG.integer & DUALSMG_ENABLE) && (w == WP_MP40 || w == WP_THOMPSON)) {
+        weapon_t otherSMG = (w == WP_MP40) ? WP_THOMPSON : WP_MP40;
+        AddWeaponToPlayer(client, otherSMG, GetAmmoTableData(otherSMG)->defaultStartingAmmo, GetAmmoTableData(otherSMG)->defaultStartingClip, qfalse);
+    }
 
     // Add secondaries
 	if(w == WP_KAR98) {
@@ -1251,6 +1263,12 @@ qboolean _SetFieldOpSpawnWeapons(gclient_t *client)
 
     // Add the primary weapon
 	AddWeaponToPlayer(client, w, GetAmmoTableData(w)->defaultStartingAmmo, GetAmmoTableData(w)->defaultStartingClip, qtrue);
+
+    // g_dualSMG: Give both SMGs if enabled and primary is MP40/Thompson
+    if ((g_dualSMG.integer & DUALSMG_ENABLE) && (w == WP_MP40 || w == WP_THOMPSON)) {
+        weapon_t otherSMG = (w == WP_MP40) ? WP_THOMPSON : WP_MP40;
+        AddWeaponToPlayer(client, otherSMG, GetAmmoTableData(otherSMG)->defaultStartingAmmo, GetAmmoTableData(otherSMG)->defaultStartingClip, qfalse);
+    }
 
     // Get secondary weapon
     weapon_t w2 = (weapon_t)client->sess.latchPlayerWeapon2;

@@ -829,7 +829,19 @@ void Touch_Item_Auto( gentity_t *ent, gentity_t *other, trace_t *trace )
 	if( !ent->active && ent->item->giType == IT_WEAPON ) {
 		if( ent->item->giTag != WP_AMMO ) {
 			// Jaybird - allow auto pickup of binocs
-			if( !COM_BitCheck( other->client->ps.weapons, ent->item->giTag ) && ent->item->giTag != WP_BINOCULARS) {
+			// Also allow auto pickup for dual SMG case
+			qboolean allowAutoPickup = qfalse;
+			
+			if (COM_BitCheck(other->client->ps.weapons, ent->item->giTag)) {
+				allowAutoPickup = qtrue;
+			} else if (ent->item->giTag == WP_BINOCULARS) {
+				allowAutoPickup = qtrue;
+			} else if ((ent->item->giTag == WP_MP40 || ent->item->giTag == WP_THOMPSON) && G_CanHaveDualSMG(other)) {
+				// Allow auto-pickup of SMG for dual SMG feature
+				allowAutoPickup = qtrue;
+			}
+			
+			if (!allowAutoPickup) {
 				return;	// force activate only
 			}
 		}
