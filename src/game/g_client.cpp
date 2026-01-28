@@ -508,6 +508,15 @@ void limbo( gentity_t *ent, qboolean makeCorpse )
 	//int startclient = ent->client->sess.spectatorClient;
 	int startclient = ent->client->ps.clientNum;
 
+	// CRITICAL: Bots should NEVER enter limbo - they are managed by Omnibot
+	// If a bot dies, it should respawn via the regular bot respawn mechanism,
+	// not wait in limbo. This prevents bots from getting stuck lying on ground.
+	if (ent->r.svFlags & SVF_BOT) {
+		G_Printf("[BOT_LIMBO_BLOCKED] Prevented bot %d (%s) from entering limbo\n",
+		         (int)(ent - g_entities), ent->client->pers.netname);
+		return;
+	}
+
 	if(ent->r.svFlags & SVF_POW) {
 		return;
 	}
