@@ -1625,6 +1625,78 @@ int G_SkillForMOD( int wp ) {
 
 /*
 ==================
+G_CanisterKickTouch
+------------------
+Touch handler for kicking canisters (grenades, airstrikes, smokegrenades)
+when g_canisterKick is enabled.
+==================
+*/
+void G_CanisterKickTouch( gentity_t *ent, gentity_t *other, trace_t *trace ) {
+	vec3_t kickDir, kickVel;
+
+	// Only clients can kick canisters
+	if( !other->client ) {
+		return;
+	}
+
+	// Must be enabled
+	if( !g_canisterKick.integer ) {
+		return;
+	}
+
+	// Don't kick if the canister is already moving fast
+	if( VectorLengthSquared( ent->s.pos.trDelta ) > SQR(100) ) {
+		return;
+	}
+
+	// Get the kick direction based on player's facing direction
+	VectorCopy( other->client->ps.viewangles, kickDir );
+	kickDir[PITCH] = 0;  // Only use yaw for horizontal direction
+	AngleVectors( kickDir, kickVel, NULL, NULL );
+
+	// Apply kick velocity - a good kick
+	VectorScale( kickVel, 250, kickVel );
+	kickVel[2] = 100;  // Give it some height
+
+	// Update the trajectory
+	VectorCopy( ent->r.currentOrigin, ent->s.pos.trBase );
+	VectorCopy( kickVel, ent->s.pos.trDelta );
+	ent->s.pos.trType = TR_GRAVITY;
+	ent->s.pos.trTime = level.time;
+
+	// Set new owner if enabled
+	if( g_canisterKickOwner.integer && other->client ) {
+		ent->r.ownerNum = other->s.number;
+		ent->parent = other;
+	}
+
+	// Play kick sound
+	G_AddEvent( ent, EV_GENERAL_SOUND, G_SoundIndex("sound/xmod/push.wav" ));
+}
+
+/*
+==================
+G_IsKickableCanister
+------------------
+Check if a weapon type is a kickable canister
+==================
+*/
+qboolean G_IsKickableCanister( int weapon ) {
+	switch( weapon ) {
+		case WP_GRENADE_LAUNCHER:
+		case WP_GRENADE_PINEAPPLE:
+		case WP_SMOKE_MARKER:
+		case WP_SMOKE_BOMB:
+		case WP_GPG40:
+		case WP_M7:
+			return qtrue;
+		default:
+			return qfalse;
+	}
+}
+
+/*
+==================
 ThrowingKnifeTouch
 ------------------
 Jaybird - handle ammo pickup of idle

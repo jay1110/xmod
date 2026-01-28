@@ -290,6 +290,16 @@ vmCvar_t        g_warnDecay;
 vmCvar_t        g_warnMuteLevel;
 vmCvar_t        g_warnBanLevel;
 
+// Canister kicking
+vmCvar_t        g_canisterKick;
+vmCvar_t        g_canisterKickOwner;
+
+// Dual SMG
+vmCvar_t        g_dualSMG;
+
+// Damage weapons (shoot to destroy)
+vmCvar_t        g_damageweapons;
+
 /*********************
 * End Xmod Cvars   *
 *********************/
@@ -391,6 +401,16 @@ cvarTable_t		gameCvarTable[] = {
     { &g_warnDecay,         "g_warnDecay",          "1",        0 },
     { &g_warnMuteLevel,     "g_warnMuteLevel",      "50",       0 },
     { &g_warnBanLevel,      "g_warnBanLevel",       "100",      0 },
+
+    // Canister kicking
+    { &g_canisterKick,      "g_canisterKick",       "0",        CVAR_ARCHIVE },
+    { &g_canisterKickOwner, "g_canisterKickOwner",  "0",        CVAR_ARCHIVE },
+
+    // Dual SMG
+    { &g_dualSMG,           "g_dualSMG",            "0",        CVAR_ARCHIVE },
+
+    // Damage weapons (shoot to destroy)
+    { &g_damageweapons,     "g_damageweapons",      "0",        CVAR_ARCHIVE },
 
     // Some useful mod-info cvars.
     { NULL, "mod_binary",  XMOD_buildTarget, CVAR_SERVERINFO | CVAR_ROM },

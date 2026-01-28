@@ -1,5 +1,6 @@
 #include <bgame/impl.h>
 #include <omnibot/et/g_etbot_interface.h>
+#include <game/g_xmod.h>
 
 #define	MISSILE_PRESTEP_TIME	50
 
@@ -2294,6 +2295,11 @@ gentity_t *fire_grenade (gentity_t *self, vec3_t start, vec3_t dir, int grenadeW
 
 	// RF, record the time for AI
 	bolt->awaitingHelpTime = level.time;
+
+	// Canister kick - set touch handler for kickable canisters
+	if( g_canisterKick.integer && G_IsKickableCanister( grenadeWPID )) {
+		bolt->touch = G_CanisterKickTouch;
+	}
 
 	return bolt;
 }
