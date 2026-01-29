@@ -1741,9 +1741,19 @@ void G_TripMineThink(gentity_t* ent) {
 
 	if(!Q_stricmp(traceEnt->classname, "player")) {
 		// FF_TRIPMINE_NO_ACTIVATE: Teammates don't activate tripmines
-		if ((g_friendlyFire.integer & FF_TRIPMINE_NO_ACTIVATE) && traceEnt->client &&
-			G_LandmineTeam(ent) == traceEnt->client->sess.sessionTeam && ent->parent != traceEnt) {
-			return;  // Don't explode if teammate crosses beam (unless it's their own tripmine)
+		if ((g_friendlyFire.integer & FF_TRIPMINE_NO_ACTIVATE) && traceEnt->client) {
+			team_t mineTeam = G_LandmineTeam(ent);
+			team_t playerTeam = traceEnt->client->sess.sessionTeam;
+			qboolean isOwner = (ent->parent == traceEnt) ? qtrue : qfalse;
+			
+			if (g_developer.integer) {
+				G_Printf("Tripmine check: mineTeam=%d, playerTeam=%d, isOwner=%d, teamNum=%d\n",
+					(int)mineTeam, (int)playerTeam, (int)isOwner, ent->s.teamNum);
+			}
+			
+			if (mineTeam == playerTeam && !isOwner) {
+				return;  // Don't explode if teammate crosses beam (unless it's their own tripmine)
+			}
 		}
 
 		ent->think = G_ExplodeMissile;
