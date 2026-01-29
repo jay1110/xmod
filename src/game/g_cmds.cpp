@@ -2957,9 +2957,24 @@ void Cmd_Activate_f( gentity_t *ent ) {
 tryagain:
 
 	if ( tr.surfaceFlags & SURF_NOIMPACT || tr.entityNum == ENTITYNUM_WORLD) {
-		// Debug: Print when trace hits world/nothing
+		// Debug: Print when trace hits world/nothing AND show nearby kickable missiles
 		if( g_canisterKick.integer && g_developer.integer ) {
+			int i;
 			G_Printf("Canister kick debug: Trace hit world/nothing\n");
+			G_Printf("  Player pos: (%.0f, %.0f, %.0f), looking at end: (%.0f, %.0f, %.0f)\n",
+				offset[0], offset[1], offset[2], end[0], end[1], end[2]);
+			// Find all kickable missiles and print their positions
+			for( i = 0; i < level.num_entities; i++ ) {
+				gentity_t *m = &g_entities[i];
+				if( m->inuse && m->s.eType == ET_MISSILE && G_IsKickableCanister(m->s.weapon) ) {
+					vec3_t diff;
+					VectorSubtract(m->r.currentOrigin, offset, diff);
+					G_Printf("  Found %s at (%.0f, %.0f, %.0f), dist=%.0f, contents=%d, linked=%d\n",
+						m->classname ? m->classname : "unknown",
+						m->r.currentOrigin[0], m->r.currentOrigin[1], m->r.currentOrigin[2],
+						VectorLength(diff), m->r.contents, m->r.linked);
+				}
+			}
 		}
 		return;
 	}
