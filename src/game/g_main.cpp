@@ -242,7 +242,6 @@ vmCvar_t		g_damagexp;
 vmCvar_t		g_mapScriptDirectory;
 vmCvar_t		g_logOptions;
 vmCvar_t		g_userConfig;
-vmCvar_t		g_vulnerableWeapons;
 vmCvar_t		g_fear;
 vmCvar_t		g_reflectFriendlyFire;
 vmCvar_t		g_teamDamageRestriction;
@@ -364,7 +363,6 @@ cvarTable_t		gameCvarTable[] = {
 	{ &g_mapScriptDirectory,"g_mapScriptDirectory",	"",			0 },
 	{ &g_logOptions,		"g_logOptions",			"0",		0 },
 	{ &g_userConfig,		"g_userConfig",			"xmod.db",	CVAR_ARCHIVE },
-	{ &g_vulnerableWeapons,	"g_vulnerableWeapons",	"0",		0 },
     { &g_muteTime,          "g_muteTime",           "0",        0 },
     { &g_antiwarp,          "g_antiwarp",           "1",        0 },
     { &g_countryflags,      "g_countryflags",       "1",        CVAR_ARCHIVE | CVAR_SERVERINFO },

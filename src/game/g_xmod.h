@@ -69,7 +69,6 @@ extern vmCvar_t	g_shoutcastpassword;
 extern vmCvar_t	g_damagexp;
 extern vmCvar_t g_mapScriptDirectory;
 extern vmCvar_t	g_logOptions;
-extern vmCvar_t g_vulnerableWeapons;
 extern vmCvar_t	g_fear;
 extern vmCvar_t	g_reflectFriendlyFire;
 extern vmCvar_t	g_teamDamageRestriction;
@@ -142,6 +141,7 @@ extern vmCvar_t g_damageweapons;
 #define DW_BOMBS                  16    // Bombs can be damaged
 #define DW_TRIPMINES              32    // Tripmines can be damaged
 #define DW_POISONGAS              64    // Poison gas canisters can be damaged
+#define DW_PANZER                128    // Panzer projectiles can be damaged
 
 // g_dualSMG bitflags
 #define DUALSMG_ENABLE             1    // Enable dual SMG
@@ -215,11 +215,6 @@ namespace cache {
 
 // g_soldiers
 #define SDR_PANZERGRAV        1
-
-#define VULN_PANZER   1
-#define VULN_GRENADE  2
-#define VULN_CANISTER 4
-#define VULN_SATCHEL  8
 
 // g_spectator
 #define SPEC_CLICK     1

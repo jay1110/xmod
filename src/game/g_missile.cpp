@@ -2119,8 +2119,8 @@ gentity_t *fire_grenade (gentity_t *self, vec3_t start, vec3_t dir, int grenadeW
 			bolt->splashMethodOfDeath	= MOD_GRENADE_LAUNCHER;
 			bolt->s.eFlags				= EF_BOUNCE_HALF | EF_BOUNCE;
 
-			// Vulnerable Weapons (g_vulnerableWeapons or g_damageweapons)
-			if( (g_vulnerableWeapons.integer & VULN_GRENADE) || (g_damageweapons.integer & DW_GRENADES) ) {
+			// g_damageweapons: Grenades can be damaged
+			if( g_damageweapons.integer & DW_GRENADES ) {
 				bolt->health = 15;
 				bolt->takedamage = qtrue;
 				bolt->die = G_MissileDie;
@@ -2146,8 +2146,8 @@ gentity_t *fire_grenade (gentity_t *self, vec3_t start, vec3_t dir, int grenadeW
 			bolt->splashMethodOfDeath	= MOD_GRENADE_LAUNCHER;
 			bolt->s.eFlags				= EF_BOUNCE_HALF | EF_BOUNCE;
 
-			// Vulnerable Weapons (g_vulnerableWeapons or g_damageweapons)
-			if( (g_vulnerableWeapons.integer & VULN_GRENADE) || (g_damageweapons.integer & DW_GRENADES) ) {
+			// g_damageweapons: Grenades can be damaged
+			if( g_damageweapons.integer & DW_GRENADES ) {
 				bolt->health = 15;
 				bolt->takedamage = qtrue;
 				bolt->die = G_MissileDie;
@@ -2175,8 +2175,8 @@ gentity_t *fire_grenade (gentity_t *self, vec3_t start, vec3_t dir, int grenadeW
 			bolt->methodOfDeath			= MOD_SMOKEGRENADE;
 			bolt->splashMethodOfDeath	= MOD_SMOKEGRENADE;
 
-			// Vulnerable Weapons (g_vulnerableWeapons or g_damageweapons - airstrike markers)
-			if( (g_vulnerableWeapons.integer & VULN_CANISTER) || (g_damageweapons.integer & DW_AIRSTRIKE) ) {
+			// g_damageweapons: Airstrike markers can be damaged
+			if( g_damageweapons.integer & DW_AIRSTRIKE ) {
 				bolt->health = 15;
 				bolt->takedamage = qtrue;
 				bolt->die = G_MissileDie;
@@ -2308,8 +2308,8 @@ gentity_t *fire_grenade (gentity_t *self, vec3_t start, vec3_t dir, int grenadeW
 			VectorSet(bolt->r.maxs, 12, 12, 20);
 			VectorCopy(bolt->r.maxs, bolt->r.absmax);
 
-			// Vulnerable Weapons (g_vulnerableWeapons or g_damageweapons)
-			if( (g_vulnerableWeapons.integer & VULN_SATCHEL) || (g_damageweapons.integer & DW_SATCHEL) ) {
+			// g_damageweapons: Satchel charges can be damaged
+			if( g_damageweapons.integer & DW_SATCHEL ) {
 				bolt->health = 50;
 				bolt->takedamage = qtrue;
 				bolt->die = G_MissileDie;
@@ -2411,7 +2411,8 @@ gentity_t *fire_rocket (gentity_t *self, vec3_t start, vec3_t dir) {
 	//DHM - Nerve :: Use the correct weapon in multiplayer
 	bolt->s.weapon = self->s.weapon;
 
-	if( g_vulnerableWeapons.integer & VULN_PANZER ) {
+	// g_damageweapons: Panzer projectiles can be damaged
+	if( g_damageweapons.integer & DW_PANZER ) {
 		bolt->health = 15;
 		bolt->takedamage = qtrue;
 		bolt->die = G_MissileDie;
