@@ -1959,11 +1959,6 @@ gentity_t *fire_grenade (gentity_t *self, vec3_t start, vec3_t dir, int grenadeW
 	gentity_t	*bolt;
 	qboolean	noExplode = qfalse;
 
-	// Debug output for canister kick
-	if( g_developer.integer && G_IsKickableCanister(grenadeWPID) ) {
-		G_Printf("fire_grenade: grenadeWPID=%d, g_canisterKick=%d\n", grenadeWPID, g_canisterKick.integer);
-	}
-
 	bolt = G_Spawn();
 
 	// no self->client for shooter_grenade's
@@ -2134,9 +2129,6 @@ gentity_t *fire_grenade (gentity_t *self, vec3_t start, vec3_t dir, int grenadeW
 				VectorCopy(bolt->r.mins, bolt->r.absmin);
 				VectorSet(bolt->r.maxs, 6, 6, 12);
 				VectorCopy(bolt->r.maxs, bolt->r.absmax);
-				if( g_developer.integer ) {
-					G_Printf("WP_GRENADE_LAUNCHER bounds via damageweapons (contents=%d)\n", bolt->r.contents);
-				}
 			}
 			// g_canisterKick: Add collision bounds if not already set by damage weapons
 			else if( g_canisterKick.integer ) {
@@ -2145,12 +2137,6 @@ gentity_t *fire_grenade (gentity_t *self, vec3_t start, vec3_t dir, int grenadeW
 				VectorCopy(bolt->r.mins, bolt->r.absmin);
 				VectorSet(bolt->r.maxs, 6, 6, 12);
 				VectorCopy(bolt->r.maxs, bolt->r.absmax);
-				if( g_developer.integer ) {
-					G_Printf("WP_GRENADE_LAUNCHER bounds via canisterKick (contents=%d)\n", bolt->r.contents);
-				}
-			} else if( g_developer.integer ) {
-				G_Printf("WP_GRENADE_LAUNCHER NO bounds (g_canisterKick=%d, g_vulnerableWeapons=%d, g_damageweapons=%d)\n", 
-					g_canisterKick.integer, g_vulnerableWeapons.integer, g_damageweapons.integer);
 			}
 			break;
 		case WP_GRENADE_PINEAPPLE:

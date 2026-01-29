@@ -2947,6 +2947,20 @@ void Cmd_Activate_f( gentity_t *ent ) {
 	//VectorMA( offset, 256, forward, end );
 	VectorMA( offset, 96, forward, end );
 
+	// g_canisterKick: First do a trace that ONLY looks for CONTENTS_CORPSE (canisters)
+	// This ignores solid world geometry so we can find canisters sitting on the floor
+	if( g_canisterKick.integer ) {
+		trap_Trace( &tr, offset, NULL, NULL, end, ent->s.number, CONTENTS_CORPSE );
+		if( tr.entityNum != ENTITYNUM_NONE && tr.entityNum != ENTITYNUM_WORLD ) {
+			traceEnt = &g_entities[ tr.entityNum ];
+			if( traceEnt->s.eType == ET_MISSILE && G_IsKickableCanister( traceEnt->s.weapon ) ) {
+				// Found a kickable canister - kick it and return
+				G_CanisterKickTouch( traceEnt, ent, NULL );
+				return;
+			}
+		}
+	}
+
 	trap_Trace( &tr, offset, NULL, NULL, end, ent->s.number, (CONTENTS_SOLID|CONTENTS_MISSILECLIP|CONTENTS_BODY|CONTENTS_CORPSE)  );
 
 	if ( tr.surfaceFlags & SURF_NOIMPACT || tr.entityNum == ENTITYNUM_WORLD) {
@@ -2957,37 +2971,10 @@ void Cmd_Activate_f( gentity_t *ent ) {
 tryagain:
 
 	if ( tr.surfaceFlags & SURF_NOIMPACT || tr.entityNum == ENTITYNUM_WORLD) {
-		// Debug: Print when trace hits world/nothing AND show nearby kickable missiles
-		if( g_canisterKick.integer && g_developer.integer ) {
-			int i;
-			G_Printf("Canister kick debug: Trace hit world/nothing\n");
-			G_Printf("  Player pos: (%.0f, %.0f, %.0f), looking at end: (%.0f, %.0f, %.0f)\n",
-				offset[0], offset[1], offset[2], end[0], end[1], end[2]);
-			// Find all kickable missiles and print their positions
-			for( i = 0; i < level.num_entities; i++ ) {
-				gentity_t *m = &g_entities[i];
-				if( m->inuse && m->s.eType == ET_MISSILE && G_IsKickableCanister(m->s.weapon) ) {
-					vec3_t diff;
-					VectorSubtract(m->r.currentOrigin, offset, diff);
-					G_Printf("  Found %s at (%.0f, %.0f, %.0f), dist=%.0f, contents=%d, linked=%d\n",
-						m->classname ? m->classname : "unknown",
-						m->r.currentOrigin[0], m->r.currentOrigin[1], m->r.currentOrigin[2],
-						VectorLength(diff), m->r.contents, m->r.linked);
-				}
-			}
-		}
 		return;
 	}
 
 	traceEnt = &g_entities[ tr.entityNum ];
-
-	// Debug: Print what was hit
-	if( g_canisterKick.integer && g_developer.integer ) {
-		G_Printf("Canister kick debug: Hit entity %d, eType=%d, weapon=%d, classname=%s, contents=%d\n",
-			tr.entityNum, traceEnt->s.eType, traceEnt->s.weapon,
-			traceEnt->classname ? traceEnt->classname : "NULL",
-			traceEnt->r.contents);
-	}
 
 	found = Do_Activate_f(ent, traceEnt);
 
