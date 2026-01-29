@@ -2119,6 +2119,14 @@ gentity_t *fire_grenade (gentity_t *self, vec3_t start, vec3_t dir, int grenadeW
 				VectorSet(bolt->r.maxs, 6, 6, 12);
 				VectorCopy(bolt->r.maxs, bolt->r.absmax);
 			}
+			// g_canisterKick: Add collision bounds if not already set
+			else if( g_canisterKick.integer ) {
+				bolt->r.contents = CONTENTS_CORPSE;
+				VectorSet(bolt->r.mins, -6, -6, 0);
+				VectorCopy(bolt->r.mins, bolt->r.absmin);
+				VectorSet(bolt->r.maxs, 6, 6, 12);
+				VectorCopy(bolt->r.maxs, bolt->r.absmax);
+			}
 			break;
 		case WP_GRENADE_LAUNCHER:
 			bolt->classname				= "grenade";

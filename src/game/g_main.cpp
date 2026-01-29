@@ -293,6 +293,7 @@ vmCvar_t        g_warnBanLevel;
 // Canister kicking
 vmCvar_t        g_canisterKick;
 vmCvar_t        g_canisterKickOwner;
+vmCvar_t        g_canisterKickDistance;
 
 // Dual SMG
 vmCvar_t        g_dualSMG;
@@ -403,8 +404,9 @@ cvarTable_t		gameCvarTable[] = {
     { &g_warnBanLevel,      "g_warnBanLevel",       "100",      0 },
 
     // Canister kicking
-    { &g_canisterKick,      "g_canisterKick",       "0",        CVAR_ARCHIVE },
-    { &g_canisterKickOwner, "g_canisterKickOwner",  "0",        CVAR_ARCHIVE },
+    { &g_canisterKick,          "g_canisterKick",           "0",        CVAR_ARCHIVE },
+    { &g_canisterKickOwner,     "g_canisterKickOwner",      "0",        CVAR_ARCHIVE },
+    { &g_canisterKickDistance,  "g_canisterKickDistance",   "250",      CVAR_ARCHIVE },
 
     // Dual SMG
     { &g_dualSMG,           "g_dualSMG",            "0",        CVAR_ARCHIVE },

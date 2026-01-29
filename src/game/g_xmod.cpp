@@ -1633,6 +1633,7 @@ when g_canisterKick is enabled.
 */
 void G_CanisterKickTouch( gentity_t *ent, gentity_t *other, trace_t *trace ) {
 	vec3_t kickDir, kickVel;
+	float kickDistance;
 
 	// Only clients can kick canisters
 	if( !other->client ) {
@@ -1654,9 +1655,17 @@ void G_CanisterKickTouch( gentity_t *ent, gentity_t *other, trace_t *trace ) {
 	kickDir[PITCH] = 0;  // Only use yaw for horizontal direction
 	AngleVectors( kickDir, kickVel, NULL, NULL );
 
-	// Apply kick velocity - a good kick
-	VectorScale( kickVel, 250, kickVel );
-	kickVel[2] = 100;  // Give it some height
+	// Get kick distance from cvar (default 250)
+	kickDistance = g_canisterKickDistance.value;
+	if( kickDistance < 50 ) {
+		kickDistance = 50;  // Minimum kick
+	} else if( kickDistance > 1000 ) {
+		kickDistance = 1000;  // Maximum kick
+	}
+
+	// Apply kick velocity
+	VectorScale( kickVel, kickDistance, kickVel );
+	kickVel[2] = kickDistance * 0.4f;  // Give it some height proportional to distance
 
 	// Update the trajectory
 	VectorCopy( ent->r.currentOrigin, ent->s.pos.trBase );
@@ -1689,6 +1698,7 @@ qboolean G_IsKickableCanister( int weapon ) {
 		case WP_SMOKE_BOMB:
 		case WP_GPG40:
 		case WP_M7:
+		case WP_POISON_GAS:
 			return qtrue;
 		default:
 			return qfalse;

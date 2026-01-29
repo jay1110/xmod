@@ -113,6 +113,7 @@ extern vmCvar_t g_banners;
 // Canister kicking
 extern vmCvar_t g_canisterKick;
 extern vmCvar_t g_canisterKickOwner;
+extern vmCvar_t g_canisterKickDistance;
 
 // Dual SMG
 extern vmCvar_t g_dualSMG;
