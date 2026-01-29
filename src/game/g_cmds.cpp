@@ -2808,6 +2808,13 @@ qboolean Do_Activate_f(gentity_t *ent, gentity_t *traceEnt) {
 			G_UseEntity( traceEnt, ent, ent );
 			found = qtrue;
 		}
+		// g_canisterKick: Allow kicking missiles with +activate
+		else if ( traceEnt->s.eType == ET_MISSILE && g_canisterKick.integer && G_IsKickableCanister( traceEnt->s.weapon ) ) {
+			trace_t trace;
+			memset( &trace, 0, sizeof(trace) );
+			G_CanisterKickTouch( traceEnt, ent, &trace );
+			found = qtrue;
+		}
 	}
 
 	return found;
