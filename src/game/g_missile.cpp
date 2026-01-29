@@ -2154,6 +2154,11 @@ gentity_t *fire_grenade (gentity_t *self, vec3_t start, vec3_t dir, int grenadeW
 				VectorCopy(bolt->r.mins, bolt->r.absmin);
 				VectorSet(bolt->r.maxs, 6, 6, 12);
 				VectorCopy(bolt->r.maxs, bolt->r.absmax);
+				if( g_developer.integer ) {
+					G_Printf("WP_GRENADE_LAUNCHER created with canisterKick bounds (contents=%d)\n", bolt->r.contents);
+				}
+			} else if( g_developer.integer ) {
+				G_Printf("WP_GRENADE_LAUNCHER created WITHOUT bounds (g_canisterKick=%d)\n", g_canisterKick.integer);
 			}
 			break;
 		case WP_GRENADE_PINEAPPLE:
