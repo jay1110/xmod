@@ -1483,6 +1483,7 @@ qboolean visible (gentity_t *self, gentity_t *other);
 
 gentity_t *fire_mortar (gentity_t *self, vec3_t start, vec3_t dir);
 gentity_t *fire_flamebarrel (gentity_t *self, vec3_t start, vec3_t dir);
+void G_MissileDie( gentity_t *self, gentity_t *inflictor, gentity_t *attacker, int damage, int mod );
 // done
 
 //

@@ -7,6 +7,7 @@
 
 #include <bgame/impl.h>
 #include <omnibot/et/g_etbot_interface.h>
+#include <game/g_xmod.h>
 
 namespace {
 
@@ -351,6 +352,13 @@ void G_PlaceTripmine(gentity_t* ent) {
 	
 	// Store the team for coloring the laser (1 = Axis, 0 = Allied)
 	bomb->s.otherEntityNum2 = (ent->client->sess.sessionTeam == TEAM_AXIS) ? 1 : 0;
+
+	// g_damageweapons: Tripmines can be damaged
+	if( g_damageweapons.integer & DW_TRIPMINES ) {
+		bomb->health = 5;
+		bomb->takedamage = qtrue;
+		bomb->die = G_MissileDie;
+	}
 
 	trap_LinkEntity(bomb);
 }

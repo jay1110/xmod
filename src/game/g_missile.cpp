@@ -1746,11 +1746,6 @@ void G_TripMineThink(gentity_t* ent) {
 			team_t playerTeam = traceEnt->client->sess.sessionTeam;
 			qboolean isOwner = (ent->parent == traceEnt) ? qtrue : qfalse;
 			
-			if (g_developer.integer) {
-				G_Printf("Tripmine check: mineTeam=%d, playerTeam=%d, isOwner=%d, teamNum=%d\n",
-					(int)mineTeam, (int)playerTeam, (int)isOwner, ent->s.teamNum);
-			}
-			
 			if (mineTeam == playerTeam && !isOwner) {
 				return;  // Don't explode if teammate crosses beam (unless it's their own tripmine)
 			}
