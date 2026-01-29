@@ -1959,6 +1959,11 @@ gentity_t *fire_grenade (gentity_t *self, vec3_t start, vec3_t dir, int grenadeW
 	gentity_t	*bolt;
 	qboolean	noExplode = qfalse;
 
+	// Debug output for canister kick
+	if( g_developer.integer && G_IsKickableCanister(grenadeWPID) ) {
+		G_Printf("fire_grenade: grenadeWPID=%d, g_canisterKick=%d\n", grenadeWPID, g_canisterKick.integer);
+	}
+
 	bolt = G_Spawn();
 
 	// no self->client for shooter_grenade's
@@ -2050,14 +2055,6 @@ gentity_t *fire_grenade (gentity_t *self, vec3_t start, vec3_t dir, int grenadeW
 			bolt->splashMethodOfDeath	= MOD_GPG40;
 			bolt->s.eFlags				= /*0;*/EF_BOUNCE_HALF | EF_BOUNCE;
 			bolt->nextthink				= level.time + 4000;
-			// g_canisterKick: Add collision bounds for rifle grenades
-			if( g_canisterKick.integer ) {
-				bolt->r.contents = CONTENTS_CORPSE;
-				VectorSet(bolt->r.mins, -6, -6, 0);
-				VectorCopy(bolt->r.mins, bolt->r.absmin);
-				VectorSet(bolt->r.maxs, 6, 6, 12);
-				VectorCopy(bolt->r.maxs, bolt->r.absmax);
-			}
 			break;
 		case WP_M7:
 			bolt->classname				= "m7_grenade";
@@ -2066,14 +2063,6 @@ gentity_t *fire_grenade (gentity_t *self, vec3_t start, vec3_t dir, int grenadeW
 			bolt->splashMethodOfDeath	= MOD_M7;
 			bolt->s.eFlags				= /*0;*/EF_BOUNCE_HALF | EF_BOUNCE;
 			bolt->nextthink				= level.time + 4000;
-			// g_canisterKick: Add collision bounds for rifle grenades
-			if( g_canisterKick.integer ) {
-				bolt->r.contents = CONTENTS_CORPSE;
-				VectorSet(bolt->r.mins, -6, -6, 0);
-				VectorCopy(bolt->r.mins, bolt->r.absmin);
-				VectorSet(bolt->r.maxs, 6, 6, 12);
-				VectorCopy(bolt->r.maxs, bolt->r.absmax);
-			}
 			break;
 		case WP_SMOKE_BOMB:
 			// xkan 11/25/2002, fixed typo, classname used to be "somke_bomb"

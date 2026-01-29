@@ -1715,8 +1715,6 @@ qboolean G_IsKickableCanister( int weapon ) {
 		case WP_GRENADE_PINEAPPLE:
 		case WP_SMOKE_MARKER:
 		case WP_SMOKE_BOMB:
-		case WP_GPG40:
-		case WP_M7:
 		case WP_POISON_GAS:
 			return qtrue;
 		default:
