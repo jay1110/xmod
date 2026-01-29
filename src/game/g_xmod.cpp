@@ -1042,7 +1042,7 @@ void G_FallDamage( gentity_t *ent, int event ) {
 	if( !damage )
 		damage = 5;
 
-	if( g_friendlyFire.integer || !OnSameTeam( ent, victim )) {
+	if( (g_friendlyFire.integer & FF_ENABLE) || !OnSameTeam( ent, victim )) {
 		if( kb_time ) {
 			victim->client->ps.pm_time = kb_time;
 			victim->client->ps.pm_flags |= PMF_TIME_KNOCKBACK;
@@ -1205,7 +1205,7 @@ void G_RunPoisonEvents( gentity_t *ent ) {
 			ent->client->pmext.poisonEvents[i].fireTime = level.time + POISONINTERVAL;
 
 			// Damage
-			if (g_friendlyFire.integer || !OnSameTeam( ent, attacker )) {
+			if ((g_friendlyFire.integer & FF_ENABLE) || !OnSameTeam( ent, attacker )) {
 				G_Damage( ent, attacker, attacker, 0, 0, POISONDAMAGE, 0, MOD_POISON_SYRINGE );
 				// XP
 				if( !OnSameTeam( ent, attacker ) ) {
@@ -1620,6 +1620,105 @@ int G_SkillForMOD( int wp ) {
             return SK_BATTLE_SENSE;
 		default:
 			return -1;
+	}
+}
+
+/*
+==================
+G_CanisterKickTouch
+------------------
+Touch handler for kicking canisters (grenades, airstrikes, smokegrenades)
+when g_canisterKick is enabled.
+==================
+*/
+void G_CanisterKickTouch( gentity_t *ent, gentity_t *other, trace_t *trace ) {
+	vec3_t kickDir, kickVel;
+	float kickDistance;
+	float velocitySq;
+
+	// Debug output
+	if( g_developer.integer ) {
+		G_Printf("G_CanisterKickTouch called: ent=%d, other=%d\n", 
+			ent ? (int)(ent - g_entities) : -1, 
+			other ? (int)(other - g_entities) : -1);
+	}
+
+	// Only clients can kick canisters
+	if( !other->client ) {
+		if( g_developer.integer ) G_Printf("  -> Failed: other is not a client\n");
+		return;
+	}
+
+	// Must be enabled
+	if( !g_canisterKick.integer ) {
+		if( g_developer.integer ) G_Printf("  -> Failed: g_canisterKick is disabled\n");
+		return;
+	}
+
+	// Don't kick if the canister is moving very fast (airborne at high speed)
+	// Grenades can be kicked when they've slowed down to reasonable speeds
+	velocitySq = VectorLengthSquared( ent->s.pos.trDelta );
+	if( velocitySq > SQR(300) ) {
+		if( g_developer.integer ) G_Printf("  -> Failed: velocity too high (%.0f > %d)\n", sqrt(velocitySq), 300);
+		return;
+	}
+
+	// Get the kick direction based on player's facing direction
+	VectorCopy( other->client->ps.viewangles, kickDir );
+	kickDir[PITCH] = 0;  // Only use yaw for horizontal direction
+	AngleVectors( kickDir, kickVel, NULL, NULL );
+
+	// Get kick distance from cvar (default 250)
+	kickDistance = g_canisterKickDistance.value;
+	if( kickDistance < 50 ) {
+		kickDistance = 50;  // Minimum kick
+	} else if( kickDistance > 1000 ) {
+		kickDistance = 1000;  // Maximum kick
+	}
+
+	// Apply kick velocity
+	VectorScale( kickVel, kickDistance, kickVel );
+	kickVel[2] = kickDistance * 0.4f;  // Give it some height proportional to distance
+
+	// Update the trajectory
+	VectorCopy( ent->r.currentOrigin, ent->s.pos.trBase );
+	VectorCopy( kickVel, ent->s.pos.trDelta );
+	ent->s.pos.trType = TR_GRAVITY;
+	ent->s.pos.trTime = level.time;
+
+	// Set new owner if enabled
+	if( g_canisterKickOwner.integer && other->client ) {
+		ent->r.ownerNum = other->s.number;
+		ent->parent = other;
+	}
+
+	// Debug: Kick succeeded!
+	if( g_developer.integer ) {
+		G_Printf("  -> SUCCESS! Kicked canister with distance=%.0f, velocity=(%.0f, %.0f, %.0f)\n",
+			kickDistance, kickVel[0], kickVel[1], kickVel[2]);
+	}
+
+	// Play kick sound
+	G_AddEvent( ent, EV_GENERAL_SOUND, G_SoundIndex("sound/xmod/push.wav" ));
+}
+
+/*
+==================
+G_IsKickableCanister
+------------------
+Check if a weapon type is a kickable canister
+==================
+*/
+qboolean G_IsKickableCanister( int weapon ) {
+	switch( weapon ) {
+		case WP_GRENADE_LAUNCHER:
+		case WP_GRENADE_PINEAPPLE:
+		case WP_SMOKE_MARKER:
+		case WP_SMOKE_BOMB:
+		case WP_POISON_GAS:
+			return qtrue;
+		default:
+			return qfalse;
 	}
 }
 

@@ -29,6 +29,10 @@ CXX.opt.PIC =
 CXX.opt.vis =
 CXX.opt.BIT =
 
+# Windows needs static libstdc++ since it's not available on most systems
+# (Linux needs dynamic for Omnibot compatibility, but Windows doesn't have this issue)
+CXX.opt.static = -static-libgcc -static-libstdc++
+
 CXX.ldopts.so = -shared
 
 ###############################################################################

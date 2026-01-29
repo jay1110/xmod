@@ -7,6 +7,7 @@
 
 #include <bgame/impl.h>
 #include <omnibot/et/g_etbot_interface.h>
+#include <game/g_xmod.h>
 
 namespace {
 
@@ -351,6 +352,13 @@ void G_PlaceTripmine(gentity_t* ent) {
 	
 	// Store the team for coloring the laser (1 = Axis, 0 = Allied)
 	bomb->s.otherEntityNum2 = (ent->client->sess.sessionTeam == TEAM_AXIS) ? 1 : 0;
+
+	// g_damageweapons: Tripmines can be damaged
+	if( g_damageweapons.integer & DW_TRIPMINES ) {
+		bomb->health = 5;
+		bomb->takedamage = qtrue;
+		bomb->die = G_MissileDie;
+	}
 
 	trap_LinkEntity(bomb);
 }
@@ -753,7 +761,7 @@ void Weapon_PoisonSyringe(gentity_t *ent) {
         return;
 
     // skip if no friendly-fire and victim is on same team
-    if (!g_friendlyFire.integer && OnSameTeam( ent, &victim.gentity ))
+    if (!(g_friendlyFire.integer & FF_ENABLE) && OnSameTeam( ent, &victim.gentity ))
         return;
 
     // all criteria satisfied, proceed
@@ -1983,7 +1991,12 @@ evilbanigoto:
 					return;
 				}
 
-				traceEnt->r.contents = 0;	// (player can walk through)
+				// g_damageweapons: Keep tripmine shootable if enabled
+				if( g_damageweapons.integer & DW_TRIPMINES ) {
+					traceEnt->r.contents = CONTENTS_CORPSE;	// (player can walk through, but bullets hit)
+				} else {
+					traceEnt->r.contents = 0;	// (player can walk through)
+				}
 				trap_LinkEntity( traceEnt );
 
 				// forty - mine id
@@ -1994,7 +2007,14 @@ evilbanigoto:
 
 				// Don't allow disarming for sec (so guy that WAS arming doesn't start disarming it!
 				traceEnt->timestamp = level.time + 1000;
-				traceEnt->health = 0;
+				// g_damageweapons: Set shootable health if enabled, otherwise 0
+				if( g_damageweapons.integer & DW_TRIPMINES ) {
+					traceEnt->health = 5;
+					traceEnt->takedamage = qtrue;
+					traceEnt->die = G_MissileDie;
+				} else {
+					traceEnt->health = 0;
+				}
 
 				// Jaybird - for fading effect
 				traceEnt->s.effect1Time = level.time;
@@ -2705,7 +2725,7 @@ qboolean weapon_checkAirStrike( gentity_t *ent ) {
 
 	// cancel the airstrike if FF off and player joined spec
 	// FIXME: this is a stupid workaround. Just store the parent team in the enitity itself and use that - no need to look up the parent
-	if (!g_friendlyFire.integer && ent->parent->client && ent->parent->client->sess.sessionTeam == TEAM_SPECTATOR)
+	if (!(g_friendlyFire.integer & FF_ENABLE) && ent->parent->client && ent->parent->client->sess.sessionTeam == TEAM_SPECTATOR)
 	{
 		ent->splashDamage = 0;	// no damage
 		ent->think = G_ExplodeMissile;

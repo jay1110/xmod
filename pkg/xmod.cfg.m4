@@ -465,11 +465,6 @@ set g_teamDamageRestriction "0"
 set g_teamDamageMinHits "6"
 
 // Vulnerable weapons
-// Default: "0"
-// Allow weapons to be damaged/destroyed
-// Bit 1 (1): Panzer, Bit 2 (2): Grenades, Bit 3 (4): Canister, Bit 4 (8): Satchel
-set g_vulnerableWeapons "0"
-
 // Mover scale
 // Default: "1.0"
 // Speed multiplier for movers (doors, lifts, etc.)

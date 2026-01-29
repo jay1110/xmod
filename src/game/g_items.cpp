@@ -452,7 +452,58 @@ void G_DropWeapon( gentity_t *ent, weapon_t weapon )
 // TAT 1/6/2003 - Bot picks up a new weapon
 void BotPickupWeapon(int client, int weaponnum, qboolean alreadyHave);
 
+/*
+================
+G_CanHaveDualSMG
+Check if the player's class can have dual SMG (not CovertOps or Soldier)
+================
+*/
+qboolean G_CanHaveDualSMG( gentity_t* ent ) {
+	if (!ent || !ent->client) {
+		return qfalse;
+	}
+	
+	// Check if dual SMG is enabled
+	if (!(g_dualSMG.integer & DUALSMG_ENABLE)) {
+		return qfalse;
+	}
+	
+	// Cannot be used by CovertOps or Soldiers
+	if (ent->client->sess.playerType == PC_COVERTOPS || 
+	    ent->client->sess.playerType == PC_SOLDIER) {
+		return qfalse;
+	}
+	
+	// Must be on a team
+	if (ent->client->sess.sessionTeam != TEAM_AXIS && 
+	    ent->client->sess.sessionTeam != TEAM_ALLIES) {
+		return qfalse;
+	}
+	
+	return qtrue;
+}
+
+/*
+================
+G_HasDualSMG
+Check if the player currently has both SMGs (MP40 and Thompson)
+================
+*/
+qboolean G_HasDualSMG( gentity_t* ent ) {
+	if (!ent || !ent->client) {
+		return qfalse;
+	}
+	
+	if (COM_BitCheck(ent->client->ps.weapons, WP_MP40) && 
+	    COM_BitCheck(ent->client->ps.weapons, WP_THOMPSON)) {
+		return qtrue;
+	}
+	return qfalse;
+}
+
 qboolean G_CanPickupWeapon( weapon_t weapon, gentity_t* ent ) {
+	weapon_t originalWeapon = weapon;
+	
 	if( ent->client->sess.sessionTeam == TEAM_AXIS ) {
 		if( weapon == WP_THOMPSON ) {
 			weapon = WP_MP40;
@@ -479,6 +530,20 @@ qboolean G_CanPickupWeapon( weapon_t weapon, gentity_t* ent ) {
 	*/
 
 	if (G_IsWeaponDisabled(ent, weapon, qtrue)) return qfalse;
+	
+	// Check if this is an SMG and player can have dual SMG
+	if ((originalWeapon == WP_MP40 || originalWeapon == WP_THOMPSON) && G_CanHaveDualSMG(ent)) {
+		// If they already have one SMG, they can pick up the other
+		qboolean hasMP40 = COM_BitCheck(ent->client->ps.weapons, WP_MP40);
+		qboolean hasThompson = COM_BitCheck(ent->client->ps.weapons, WP_THOMPSON);
+		
+		// If they have an SMG and the pickup is the OTHER SMG, allow it
+		if ((hasMP40 && originalWeapon == WP_THOMPSON) ||
+		    (hasThompson && originalWeapon == WP_MP40)) {
+			return qtrue;
+		}
+	}
+	
 	return BG_WeaponIsPrimaryForClassAndTeam( ent->client->sess.playerType, ent->client->sess.sessionTeam, weapon );
 }
 
@@ -563,12 +628,27 @@ int Pickup_Weapon( gentity_t *ent, gentity_t *other ) {
 		// See if we can pick it up
 		if( G_CanPickupWeapon( (weapon_t)ent->item->giTag, other ) ) {
 			weapon_t primaryWeapon = G_GetPrimaryWeaponForClient( other->client );
+			weapon_t pickupWeapon = (weapon_t)ent->item->giTag;
+			qboolean isDualSMGPickup = qfalse;
+			
+			// Check if this is a dual SMG pickup (picking up second SMG without dropping first)
+			if ((pickupWeapon == WP_MP40 || pickupWeapon == WP_THOMPSON) && G_CanHaveDualSMG(other)) {
+				qboolean hasMP40 = COM_BitCheck(other->client->ps.weapons, WP_MP40);
+				qboolean hasThompson = COM_BitCheck(other->client->ps.weapons, WP_THOMPSON);
+				
+				// If they already have one SMG and picking up the other, don't drop anything
+				if ((hasMP40 && pickupWeapon == WP_THOMPSON) ||
+				    (hasThompson && pickupWeapon == WP_MP40)) {
+					isDualSMGPickup = qtrue;
+				}
+			}
 
 			// rain - added parens around ambiguous &&
 			if( primaryWeapon || 
-				(other->client->sess.playerType == PC_SOLDIER && other->client->sess.skill[SK_HEAVY_WEAPONS] >= 4) ) {
+				(other->client->sess.playerType == PC_SOLDIER && other->client->sess.skill[SK_HEAVY_WEAPONS] >= 4) ||
+				isDualSMGPickup ) {
 
-				if( primaryWeapon ) {
+				if( primaryWeapon && !isDualSMGPickup ) {
 					// drop our primary weapon
 					// Jaybird - hack to make sure soldier's do not drop
 					// their heavy weapon in favor over the smg when level 4+
@@ -749,7 +829,19 @@ void Touch_Item_Auto( gentity_t *ent, gentity_t *other, trace_t *trace )
 	if( !ent->active && ent->item->giType == IT_WEAPON ) {
 		if( ent->item->giTag != WP_AMMO ) {
 			// Jaybird - allow auto pickup of binocs
-			if( !COM_BitCheck( other->client->ps.weapons, ent->item->giTag ) && ent->item->giTag != WP_BINOCULARS) {
+			// Also allow auto pickup for dual SMG case
+			qboolean allowAutoPickup = qfalse;
+			
+			if (COM_BitCheck(other->client->ps.weapons, ent->item->giTag)) {
+				allowAutoPickup = qtrue;
+			} else if (ent->item->giTag == WP_BINOCULARS) {
+				allowAutoPickup = qtrue;
+			} else if ((ent->item->giTag == WP_MP40 || ent->item->giTag == WP_THOMPSON) && G_CanHaveDualSMG(other)) {
+				// Allow auto-pickup of SMG for dual SMG feature
+				allowAutoPickup = qtrue;
+			}
+			
+			if (!allowAutoPickup) {
 				return;	// force activate only
 			}
 		}

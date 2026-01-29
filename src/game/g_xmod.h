@@ -69,7 +69,6 @@ extern vmCvar_t	g_shoutcastpassword;
 extern vmCvar_t	g_damagexp;
 extern vmCvar_t g_mapScriptDirectory;
 extern vmCvar_t	g_logOptions;
-extern vmCvar_t g_vulnerableWeapons;
 extern vmCvar_t	g_fear;
 extern vmCvar_t	g_reflectFriendlyFire;
 extern vmCvar_t	g_teamDamageRestriction;
@@ -109,6 +108,45 @@ extern vmCvar_t g_loseSpreeLevels;
 extern vmCvar_t g_bannerLocation;
 extern vmCvar_t g_bannerTime;
 extern vmCvar_t g_banners;
+
+// Canister kicking
+extern vmCvar_t g_canisterKick;
+extern vmCvar_t g_canisterKickOwner;
+extern vmCvar_t g_canisterKickDistance;
+
+// Dual SMG
+extern vmCvar_t g_dualSMG;
+
+// Damage weapons (shoot to destroy)
+extern vmCvar_t g_damageweapons;
+
+///////////////////////////////////////////////////////////////////////////////
+
+// g_friendlyFire bitflags
+#define FF_ENABLE                  1    // Enable friendly fire
+#define FF_HALF_DAMAGE             2    // Friendly fire does only half damage to teammates
+#define FF_SAME_DAMAGE             4    // Friendly fire does the same damage to the inflictor
+#define FF_AFFECTS_MOVERS          8    // Friendly fire affects movers (tanks, trucks, etc)
+#define FF_KNOCKBACK              16    // Friendly fire delivers knockback
+#define FF_LANDMINE_NO_TRIP       32    // Landmines cannot be tripped by teammates
+#define FF_LANDMINE_HURT          64    // Landmines hurt teammates (even if friendly fire is disabled)
+#define FF_TRIPMINE_NO_ACTIVATE  128    // Teammates don't activate tripmines
+#define FF_LANDMINE_NO_SELF      256    // Players don't trigger their own landmines
+#define FF_TRIPMINE_NO_SELF      512    // Players don't trigger their own tripmines
+
+// g_damageweapons bitflags
+#define DW_GRENADES                1    // Hand grenades can be damaged
+#define DW_SATCHEL                 2    // Satchel charges can be damaged
+#define DW_AIRSTRIKE               4    // Airstrike markers can be damaged
+#define DW_SMOKE                   8    // Smoke canisters can be damaged
+#define DW_BOMBS                  16    // Bombs can be damaged
+#define DW_TRIPMINES              32    // Tripmines can be damaged
+#define DW_POISONGAS              64    // Poison gas canisters can be damaged
+#define DW_PANZER                128    // Panzer projectiles can be damaged
+
+// g_dualSMG bitflags
+#define DUALSMG_ENABLE             1    // Enable dual SMG
+#define DUALSMG_DROP_BOTH          2    // Drop both primary weapons when going limbo
 
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -179,11 +217,6 @@ namespace cache {
 // g_soldiers
 #define SDR_PANZERGRAV        1
 
-#define VULN_PANZER   1
-#define VULN_GRENADE  2
-#define VULN_CANISTER 4
-#define VULN_SATCHEL  8
-
 // g_spectator
 #define SPEC_CLICK     1
 #define SPEC_CLICKMISS 2
@@ -216,6 +249,8 @@ int      G_TeamMaxArtillery      ( );
 int      G_TeamMaxLandMines      ( );
 int      G_TeamMaxTripmines      ( );
 void     ThrowingKnifeTouch      ( gentity_t*, gentity_t*, trace_t* );
+void     G_CanisterKickTouch    ( gentity_t*, gentity_t*, trace_t* );
+qboolean G_IsKickableCanister   ( int );
 void     G_Update_CS_Airstrikes  ( );
 void     G_UpdateXmodCS        ( );
 void     G_UpdateUptime          ( );

@@ -1,5 +1,6 @@
 #include <bgame/impl.h>
 #include <omnibot/et/g_etbot_interface.h>
+#include <game/g_xmod.h>
 
 #define	MISSILE_PRESTEP_TIME	50
 
@@ -220,7 +221,7 @@ void G_MissileImpact( gentity_t *ent, trace_t *trace, int impactDamage ) {
 				g_entities[ent->r.ownerNum].client->sess.skill[SK_MILITARY_INTELLIGENCE_AND_SCOPED_WEAPONS] > 2 &&
 				other->client->ps.stats[STAT_HEALTH] > 0 &&
 				other->client->ps.powerups[PW_INVULNERABLE] < level.time &&
-				(!OnSameTeam(g_entities + ent->r.ownerNum, other) || g_friendlyFire.integer)
+				(!OnSameTeam(g_entities + ent->r.ownerNum, other) || (g_friendlyFire.integer & FF_ENABLE))
 				)
 			{
 				G_AddPoisonEvent(other, g_entities + ent->r.ownerNum);
@@ -1083,7 +1084,7 @@ void G_BurnTarget( gentity_t *self, gentity_t *body, qboolean directhit )
 //		if( !self->count2 && body == self->parent )
 //			return;
 
-		if( !(g_friendlyFire.integer) && OnSameTeam( body, self->parent ) )
+		if( !(g_friendlyFire.integer & FF_ENABLE) && OnSameTeam( body, self->parent ) )
 			return;
 	}
 // jpw
@@ -1739,6 +1740,23 @@ void G_TripMineThink(gentity_t* ent) {
 	traceEnt = &g_entities[trace.entityNum];
 
 	if(!Q_stricmp(traceEnt->classname, "player")) {
+		// FF_TRIPMINE_NO_SELF: Players don't trigger their own tripmines
+		if ((g_friendlyFire.integer & FF_TRIPMINE_NO_SELF) && traceEnt->client) {
+			if (ent->parent == traceEnt) {
+				return;  // Don't explode if owner crosses their own tripmine beam
+			}
+		}
+
+		// FF_TRIPMINE_NO_ACTIVATE: Teammates don't activate tripmines
+		if ((g_friendlyFire.integer & FF_TRIPMINE_NO_ACTIVATE) && traceEnt->client) {
+			team_t mineTeam = G_LandmineTeam(ent);
+			team_t playerTeam = traceEnt->client->sess.sessionTeam;
+			
+			if (mineTeam == playerTeam && ent->parent != traceEnt) {
+				return;  // Don't explode if teammate crosses beam (unless it's their own tripmine)
+			}
+		}
+
 		ent->think = G_ExplodeMissile;
 //		return;
 	}
@@ -1775,6 +1793,14 @@ qboolean sEntWillTriggerMine(gentity_t *ent, gentity_t *mine)
 
 		// Jaybird - disable friendly mine tripping
 		if ((g_engineers.integer & ENGI_FRIENDLYMINES) && ent->client->sess.sessionTeam == mine->s.teamNum && mine->parent != ent )
+			return qfalse;
+
+		// FF_LANDMINE_NO_TRIP: Landmines cannot be tripped by teammates
+		if ((g_friendlyFire.integer & FF_LANDMINE_NO_TRIP) && G_LandmineTeam(mine) == ent->client->sess.sessionTeam && mine->parent != ent)
+			return qfalse;
+
+		// FF_LANDMINE_NO_SELF: Players don't trigger their own landmines
+		if ((g_friendlyFire.integer & FF_LANDMINE_NO_SELF) && mine->parent == ent)
 			return qfalse;
 
 		VectorSubtract(mine->r.currentOrigin, ent->r.currentOrigin, dist);
@@ -2056,12 +2082,52 @@ gentity_t *fire_grenade (gentity_t *self, vec3_t start, vec3_t dir, int grenadeW
 			bolt->s.eFlags				= EF_BOUNCE_HALF | EF_BOUNCE;
 			// rain - this is supposed to be MOD_SMOKEBOMB, not SMOKEGRENADE
 			bolt->methodOfDeath			= MOD_SMOKEBOMB;
+
+			// g_damageweapons: Smoke canisters can be damaged
+			if( g_damageweapons.integer & DW_SMOKE ) {
+				bolt->health = 15;
+				bolt->takedamage = qtrue;
+				bolt->die = G_MissileDie;
+				bolt->r.contents = CONTENTS_CORPSE;
+				VectorSet(bolt->r.mins, -6, -6, 0);
+				VectorCopy(bolt->r.mins, bolt->r.absmin);
+				VectorSet(bolt->r.maxs, 6, 6, 12);
+				VectorCopy(bolt->r.maxs, bolt->r.absmax);
+			}
+			// g_canisterKick: Add collision bounds if not already set
+			else if( g_canisterKick.integer ) {
+				bolt->r.contents = CONTENTS_CORPSE;
+				VectorSet(bolt->r.mins, -6, -6, 0);
+				VectorCopy(bolt->r.mins, bolt->r.absmin);
+				VectorSet(bolt->r.maxs, 6, 6, 12);
+				VectorCopy(bolt->r.maxs, bolt->r.absmax);
+			}
 			break;
 		case WP_POISON_GAS:
 			bolt->classname				= "poison_gas";
 			bolt->s.eFlags				= EF_BOUNCE_HALF | EF_BOUNCE;
 			bolt->methodOfDeath			= MOD_POISON_GAS;
 			bolt->poisonGasWeaponType	= grenadeWPID;
+
+			// g_damageweapons: Poison gas canisters can be damaged
+			if( g_damageweapons.integer & DW_POISONGAS ) {
+				bolt->health = 15;
+				bolt->takedamage = qtrue;
+				bolt->die = G_MissileDie;
+				bolt->r.contents = CONTENTS_CORPSE;
+				VectorSet(bolt->r.mins, -6, -6, 0);
+				VectorCopy(bolt->r.mins, bolt->r.absmin);
+				VectorSet(bolt->r.maxs, 6, 6, 12);
+				VectorCopy(bolt->r.maxs, bolt->r.absmax);
+			}
+			// g_canisterKick: Add collision bounds if not already set
+			else if( g_canisterKick.integer ) {
+				bolt->r.contents = CONTENTS_CORPSE;
+				VectorSet(bolt->r.mins, -6, -6, 0);
+				VectorCopy(bolt->r.mins, bolt->r.absmin);
+				VectorSet(bolt->r.maxs, 6, 6, 12);
+				VectorCopy(bolt->r.maxs, bolt->r.absmax);
+			}
 			break;
 		case WP_GRENADE_LAUNCHER:
 			bolt->classname				= "grenade";
@@ -2070,8 +2136,35 @@ gentity_t *fire_grenade (gentity_t *self, vec3_t start, vec3_t dir, int grenadeW
 			bolt->splashMethodOfDeath	= MOD_GRENADE_LAUNCHER;
 			bolt->s.eFlags				= EF_BOUNCE_HALF | EF_BOUNCE;
 
-			// Jaybird - Vulnerable Weapons
-			if( g_vulnerableWeapons.integer & VULN_GRENADE ) {
+			// g_damageweapons: Grenades can be damaged
+			if( g_damageweapons.integer & DW_GRENADES ) {
+				bolt->health = 15;
+				bolt->takedamage = qtrue;
+				bolt->die = G_MissileDie;
+				bolt->r.contents = CONTENTS_CORPSE;
+				VectorSet(bolt->r.mins, -6, -6, 0);
+				VectorCopy(bolt->r.mins, bolt->r.absmin);
+				VectorSet(bolt->r.maxs, 6, 6, 12);
+				VectorCopy(bolt->r.maxs, bolt->r.absmax);
+			}
+			// g_canisterKick: Add collision bounds if not already set by damage weapons
+			else if( g_canisterKick.integer ) {
+				bolt->r.contents = CONTENTS_CORPSE;
+				VectorSet(bolt->r.mins, -6, -6, 0);
+				VectorCopy(bolt->r.mins, bolt->r.absmin);
+				VectorSet(bolt->r.maxs, 6, 6, 12);
+				VectorCopy(bolt->r.maxs, bolt->r.absmax);
+			}
+			break;
+		case WP_GRENADE_PINEAPPLE:
+			bolt->classname				= "grenade";
+			bolt->splashRadius			= 300;
+			bolt->methodOfDeath			= MOD_GRENADE_LAUNCHER;
+			bolt->splashMethodOfDeath	= MOD_GRENADE_LAUNCHER;
+			bolt->s.eFlags				= EF_BOUNCE_HALF | EF_BOUNCE;
+
+			// g_damageweapons: Grenades can be damaged
+			if( g_damageweapons.integer & DW_GRENADES ) {
 				bolt->health = 15;
 				bolt->takedamage = qtrue;
 				bolt->die = G_MissileDie;
@@ -2082,25 +2175,13 @@ gentity_t *fire_grenade (gentity_t *self, vec3_t start, vec3_t dir, int grenadeW
 				VectorCopy(bolt->r.maxs, bolt->r.absmax);
 
 			}
-			break;
-		case WP_GRENADE_PINEAPPLE:
-			bolt->classname				= "grenade";
-			bolt->splashRadius			= 300;
-			bolt->methodOfDeath			= MOD_GRENADE_LAUNCHER;
-			bolt->splashMethodOfDeath	= MOD_GRENADE_LAUNCHER;
-			bolt->s.eFlags				= EF_BOUNCE_HALF | EF_BOUNCE;
-
-			// Jaybird - Vulnerable Weapons
-			if( g_vulnerableWeapons.integer & VULN_GRENADE ) {
-				bolt->health = 15;
-				bolt->takedamage = qtrue;
-				bolt->die = G_MissileDie;
+			// g_canisterKick: Add collision bounds if not already set by damage weapons
+			else if( g_canisterKick.integer ) {
 				bolt->r.contents = CONTENTS_CORPSE;
 				VectorSet(bolt->r.mins, -6, -6, 0);
 				VectorCopy(bolt->r.mins, bolt->r.absmin);
 				VectorSet(bolt->r.maxs, 6, 6, 12);
 				VectorCopy(bolt->r.maxs, bolt->r.absmax);
-
 			}
 			break;
 // JPW NERVE
@@ -2111,8 +2192,8 @@ gentity_t *fire_grenade (gentity_t *self, vec3_t start, vec3_t dir, int grenadeW
 			bolt->methodOfDeath			= MOD_SMOKEGRENADE;
 			bolt->splashMethodOfDeath	= MOD_SMOKEGRENADE;
 
-			// Jaybird - Vulnerable Weapons
-			if( g_vulnerableWeapons.integer & VULN_CANISTER ) {
+			// g_damageweapons: Airstrike markers can be damaged
+			if( g_damageweapons.integer & DW_AIRSTRIKE ) {
 				bolt->health = 15;
 				bolt->takedamage = qtrue;
 				bolt->die = G_MissileDie;
@@ -2122,6 +2203,14 @@ gentity_t *fire_grenade (gentity_t *self, vec3_t start, vec3_t dir, int grenadeW
 				VectorSet(bolt->r.maxs, 6, 6, 12);
 				VectorCopy(bolt->r.maxs, bolt->r.absmax);
 
+			}
+			// g_canisterKick: Add collision bounds if not already set by damage weapons
+			else if( g_canisterKick.integer ) {
+				bolt->r.contents = CONTENTS_CORPSE;
+				VectorSet(bolt->r.mins, -6, -6, 0);
+				VectorCopy(bolt->r.mins, bolt->r.absmin);
+				VectorSet(bolt->r.maxs, 6, 6, 12);
+				VectorCopy(bolt->r.maxs, bolt->r.absmax);
 			}
 			break;
 // jpw
@@ -2203,7 +2292,7 @@ gentity_t *fire_grenade (gentity_t *self, vec3_t start, vec3_t dir, int grenadeW
 			bolt->splashMethodOfDeath	= MOD_TRIPMINE;
 			bolt->s.eFlags				= (EF_BOUNCE | EF_BOUNCE_HALF);
 			bolt->health				= 5;
-			bolt->takedamage			= qtrue;
+			bolt->takedamage			= qfalse;  // Default to not damageable
 			bolt->r.contents			= CONTENTS_CORPSE;	// (player can walk through)
 
 			bolt->r.snapshotCallback	= qtrue;
@@ -2212,6 +2301,12 @@ gentity_t *fire_grenade (gentity_t *self, vec3_t start, vec3_t dir, int grenadeW
 			VectorCopy(bolt->r.mins, bolt->r.absmin);
 			VectorSet(bolt->r.maxs, 16, 16, 16);
 			VectorCopy(bolt->r.maxs, bolt->r.absmax);
+
+			// g_damageweapons: Tripmines can be damaged
+			if( g_damageweapons.integer & DW_TRIPMINES ) {
+				bolt->takedamage = qtrue;
+				bolt->die = G_MissileDie;
+			}
 			break;
 		case WP_SATCHEL:
 			bolt->accuracy				= 0;
@@ -2230,8 +2325,8 @@ gentity_t *fire_grenade (gentity_t *self, vec3_t start, vec3_t dir, int grenadeW
 			VectorSet(bolt->r.maxs, 12, 12, 20);
 			VectorCopy(bolt->r.maxs, bolt->r.absmax);
 
-			// Jaybird - Vulnerable Weapons
-			if( g_vulnerableWeapons.integer & VULN_SATCHEL ) {
+			// g_damageweapons: Satchel charges can be damaged
+			if( g_damageweapons.integer & DW_SATCHEL ) {
 				bolt->health = 50;
 				bolt->takedamage = qtrue;
 				bolt->die = G_MissileDie;
@@ -2267,6 +2362,13 @@ gentity_t *fire_grenade (gentity_t *self, vec3_t start, vec3_t dir, int grenadeW
 			VectorSet(bolt->r.maxs, 12, 12, 20);
 			VectorCopy(bolt->r.maxs, bolt->r.absmax);
 
+			// g_damageweapons: Bombs/dynamite can be damaged
+			if( g_damageweapons.integer & DW_BOMBS ) {
+				bolt->health = 50;
+				bolt->takedamage = qtrue;
+				bolt->die = G_MissileDie;
+			}
+
 			break;
 	}
 
@@ -2295,6 +2397,11 @@ gentity_t *fire_grenade (gentity_t *self, vec3_t start, vec3_t dir, int grenadeW
 	// RF, record the time for AI
 	bolt->awaitingHelpTime = level.time;
 
+	// Canister kick - set touch handler for kickable canisters
+	if( g_canisterKick.integer && G_IsKickableCanister( grenadeWPID )) {
+		bolt->touch = G_CanisterKickTouch;
+	}
+
 	return bolt;
 }
 
@@ -2321,7 +2428,8 @@ gentity_t *fire_rocket (gentity_t *self, vec3_t start, vec3_t dir) {
 	//DHM - Nerve :: Use the correct weapon in multiplayer
 	bolt->s.weapon = self->s.weapon;
 
-	if( g_vulnerableWeapons.integer & VULN_PANZER ) {
+	// g_damageweapons: Panzer projectiles can be damaged
+	if( g_damageweapons.integer & DW_PANZER ) {
 		bolt->health = 15;
 		bolt->takedamage = qtrue;
 		bolt->die = G_MissileDie;

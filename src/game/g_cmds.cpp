@@ -2808,6 +2808,13 @@ qboolean Do_Activate_f(gentity_t *ent, gentity_t *traceEnt) {
 			G_UseEntity( traceEnt, ent, ent );
 			found = qtrue;
 		}
+		// g_canisterKick: Allow kicking missiles with +activate
+		else if ( traceEnt->s.eType == ET_MISSILE && g_canisterKick.integer && G_IsKickableCanister( traceEnt->s.weapon ) ) {
+			trace_t trace;
+			memset( &trace, 0, sizeof(trace) );
+			G_CanisterKickTouch( traceEnt, ent, &trace );
+			found = qtrue;
+		}
 	}
 
 	return found;
@@ -2939,6 +2946,45 @@ void Cmd_Activate_f( gentity_t *ent ) {
 
 	//VectorMA( offset, 256, forward, end );
 	VectorMA( offset, 96, forward, end );
+
+	// g_canisterKick: Search for canisters near the player's feet (not where they're looking)
+	// Players kick canisters by standing over them, not by aiming at them
+	if( g_canisterKick.integer ) {
+		int i;
+		gentity_t *canister = NULL;
+		float closestDist = 64.0f;  // Max distance from feet to kick (horizontal)
+		vec3_t playerFeet;
+		
+		VectorCopy( ent->client->ps.origin, playerFeet );
+		
+		// Find the closest kickable canister near player's feet
+		for( i = 0; i < level.num_entities; i++ ) {
+			gentity_t *m = &g_entities[i];
+			if( m->inuse && m->s.eType == ET_MISSILE && G_IsKickableCanister(m->s.weapon) ) {
+				vec3_t diff;
+				float dist;
+				
+				// Calculate horizontal distance only (ignore height difference)
+				diff[0] = m->r.currentOrigin[0] - playerFeet[0];
+				diff[1] = m->r.currentOrigin[1] - playerFeet[1];
+				diff[2] = 0;  // Ignore vertical distance
+				dist = VectorLength(diff);
+				
+				// Check if canister is within reach and below player's waist
+				// (canister should be on the ground, not flying above)
+				if( dist < closestDist && m->r.currentOrigin[2] < playerFeet[2] + 48 ) {
+					closestDist = dist;
+					canister = m;
+				}
+			}
+		}
+		
+		// Kick the closest canister if found
+		if( canister ) {
+			G_CanisterKickTouch( canister, ent, NULL );
+			return;
+		}
+	}
 
 	trap_Trace( &tr, offset, NULL, NULL, end, ent->s.number, (CONTENTS_SOLID|CONTENTS_MISSILECLIP|CONTENTS_BODY|CONTENTS_CORPSE)  );
 

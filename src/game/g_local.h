@@ -1483,6 +1483,7 @@ qboolean visible (gentity_t *self, gentity_t *other);
 
 gentity_t *fire_mortar (gentity_t *self, vec3_t start, vec3_t dir);
 gentity_t *fire_flamebarrel (gentity_t *self, vec3_t start, vec3_t dir);
+void G_MissileDie( gentity_t *self, gentity_t *inflictor, gentity_t *attacker, int damage, int mod );
 // done
 
 //
@@ -2668,6 +2669,8 @@ void G_TempTraceIgnoreEntity( gentity_t* ent );
 void G_TempTraceIgnorePlayersAndBodies( void );
 
 qboolean G_CanPickupWeapon( weapon_t weapon, gentity_t* ent );
+qboolean G_CanHaveDualSMG( gentity_t* ent );
+qboolean G_HasDualSMG( gentity_t* ent );
 
 qboolean G_LandmineSnapshotCallback( int entityNum, int clientNum );
 
