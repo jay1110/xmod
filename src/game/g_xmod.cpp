@@ -1634,20 +1634,32 @@ when g_canisterKick is enabled.
 void G_CanisterKickTouch( gentity_t *ent, gentity_t *other, trace_t *trace ) {
 	vec3_t kickDir, kickVel;
 	float kickDistance;
+	float velocitySq;
+
+	// Debug output
+	if( g_developer.integer ) {
+		G_Printf("G_CanisterKickTouch called: ent=%d, other=%d\n", 
+			ent ? (int)(ent - g_entities) : -1, 
+			other ? (int)(other - g_entities) : -1);
+	}
 
 	// Only clients can kick canisters
 	if( !other->client ) {
+		if( g_developer.integer ) G_Printf("  -> Failed: other is not a client\n");
 		return;
 	}
 
 	// Must be enabled
 	if( !g_canisterKick.integer ) {
+		if( g_developer.integer ) G_Printf("  -> Failed: g_canisterKick is disabled\n");
 		return;
 	}
 
 	// Don't kick if the canister is moving very fast (airborne at high speed)
 	// Grenades can be kicked when they've slowed down to reasonable speeds
-	if( VectorLengthSquared( ent->s.pos.trDelta ) > SQR(300) ) {
+	velocitySq = VectorLengthSquared( ent->s.pos.trDelta );
+	if( velocitySq > SQR(300) ) {
+		if( g_developer.integer ) G_Printf("  -> Failed: velocity too high (%.0f > %d)\n", sqrt(velocitySq), 300);
 		return;
 	}
 
@@ -1678,6 +1690,12 @@ void G_CanisterKickTouch( gentity_t *ent, gentity_t *other, trace_t *trace ) {
 	if( g_canisterKickOwner.integer && other->client ) {
 		ent->r.ownerNum = other->s.number;
 		ent->parent = other;
+	}
+
+	// Debug: Kick succeeded!
+	if( g_developer.integer ) {
+		G_Printf("  -> SUCCESS! Kicked canister with distance=%.0f, velocity=(%.0f, %.0f, %.0f)\n",
+			kickDistance, kickVel[0], kickVel[1], kickVel[2]);
 	}
 
 	// Play kick sound

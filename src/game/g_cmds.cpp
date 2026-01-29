@@ -2957,10 +2957,22 @@ void Cmd_Activate_f( gentity_t *ent ) {
 tryagain:
 
 	if ( tr.surfaceFlags & SURF_NOIMPACT || tr.entityNum == ENTITYNUM_WORLD) {
+		// Debug: Print when trace hits world/nothing
+		if( g_canisterKick.integer && g_developer.integer ) {
+			G_Printf("Canister kick debug: Trace hit world/nothing\n");
+		}
 		return;
 	}
 
 	traceEnt = &g_entities[ tr.entityNum ];
+
+	// Debug: Print what was hit
+	if( g_canisterKick.integer && g_developer.integer ) {
+		G_Printf("Canister kick debug: Hit entity %d, eType=%d, weapon=%d, classname=%s, contents=%d\n",
+			tr.entityNum, traceEnt->s.eType, traceEnt->s.weapon,
+			traceEnt->classname ? traceEnt->classname : "NULL",
+			traceEnt->r.contents);
+	}
 
 	found = Do_Activate_f(ent, traceEnt);
 
