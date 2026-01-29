@@ -1645,8 +1645,9 @@ void G_CanisterKickTouch( gentity_t *ent, gentity_t *other, trace_t *trace ) {
 		return;
 	}
 
-	// Don't kick if the canister is already moving fast
-	if( VectorLengthSquared( ent->s.pos.trDelta ) > SQR(100) ) {
+	// Don't kick if the canister is moving very fast (airborne at high speed)
+	// Grenades can be kicked when they've slowed down to reasonable speeds
+	if( VectorLengthSquared( ent->s.pos.trDelta ) > SQR(300) ) {
 		return;
 	}
 
