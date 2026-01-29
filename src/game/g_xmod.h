@@ -132,6 +132,7 @@ extern vmCvar_t g_damageweapons;
 #define FF_LANDMINE_HURT          64    // Landmines hurt teammates (even if friendly fire is disabled)
 #define FF_TRIPMINE_NO_ACTIVATE  128    // Teammates don't activate tripmines
 #define FF_LANDMINE_NO_SELF      256    // Players don't trigger their own landmines
+#define FF_TRIPMINE_NO_SELF      512    // Players don't trigger their own tripmines
 
 // g_damageweapons bitflags
 #define DW_GRENADES                1    // Hand grenades can be damaged
