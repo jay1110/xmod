@@ -1991,7 +1991,12 @@ evilbanigoto:
 					return;
 				}
 
-				traceEnt->r.contents = 0;	// (player can walk through)
+				// g_damageweapons: Keep tripmine shootable if enabled
+				if( g_damageweapons.integer & DW_TRIPMINES ) {
+					traceEnt->r.contents = CONTENTS_CORPSE;	// (player can walk through, but bullets hit)
+				} else {
+					traceEnt->r.contents = 0;	// (player can walk through)
+				}
 				trap_LinkEntity( traceEnt );
 
 				// forty - mine id
@@ -2002,7 +2007,14 @@ evilbanigoto:
 
 				// Don't allow disarming for sec (so guy that WAS arming doesn't start disarming it!
 				traceEnt->timestamp = level.time + 1000;
-				traceEnt->health = 0;
+				// g_damageweapons: Set shootable health if enabled, otherwise 0
+				if( g_damageweapons.integer & DW_TRIPMINES ) {
+					traceEnt->health = 5;
+					traceEnt->takedamage = qtrue;
+					traceEnt->die = G_MissileDie;
+				} else {
+					traceEnt->health = 0;
+				}
 
 				// Jaybird - for fading effect
 				traceEnt->s.effect1Time = level.time;
