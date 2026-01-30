@@ -157,6 +157,7 @@ void Weapon_Knife( gentity_t *ent ) {
 		damage *= 2;	// Watch it - you could hurt someone with that thing!
 
 	// CHRUKER: b002 - Only do backstabs if the body is standing up (ie. alive)
+	qboolean isBackstab = qfalse;
 	if(traceEnt->client && traceEnt->health > 0) 
 	{
 		AngleVectors (ent->client->ps.viewangles,		pforward, NULL, NULL);
@@ -166,6 +167,7 @@ void Weapon_Knife( gentity_t *ent ) {
 		{
 			damage = 100;	// enough to drop a 'normal' (100 health) human with one jab
 			mod = MOD_KNIFE;
+			isBackstab = qtrue;
 
 			if ( ent->client->sess.skill[SK_MILITARY_INTELLIGENCE_AND_SCOPED_WEAPONS] >= 4 ) {
 				damage = traceEnt->health;
@@ -173,8 +175,8 @@ void Weapon_Knife( gentity_t *ent ) {
 		}
 	}
 
-	// SBW_KNIFE_HEADSHOT - Check for headshot with knife
-	if (traceEnt->client && traceEnt->health > 0 && (cvars::bg_weapons.ivalue & SBW_KNIFE_HEADSHOT)) {
+	// SBW_KNIFE_HEADSHOT - Check for headshot with knife (only if not a backstab)
+	if (!isBackstab && traceEnt->client && traceEnt->health > 0 && (cvars::bg_weapons.ivalue & SBW_KNIFE_HEADSHOT)) {
 		// Calculate the height of the hit relative to the target's origin
 		float hitHeight = tr.endpos[2] - traceEnt->r.currentOrigin[2];
 		
