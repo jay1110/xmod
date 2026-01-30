@@ -4425,9 +4425,15 @@ static void PM_Weapon( void ) {
 
 	// check for fire
 	// if not on fire button and there's not a delayed shot this frame...
-	// consider also leaning, with delayed attack reset
-	if((!(pm->cmd.buttons & (BUTTON_ATTACK | WBUTTON_ATTACK2)) && !delayedFire) ||
-	  (pm->ps->leanf != 0 && pm->ps->weapon != WP_GRENADE_LAUNCHER && pm->ps->weapon != WP_GRENADE_PINEAPPLE && pm->ps->weapon != WP_SMOKE_BOMB && pm->ps->weapon != WP_POISON_GAS))
+	// consider also leaning, with delayed attack reset (unless SBW_FIRE_LEAN flag allows it)
+	qboolean blockLeanFire = (pm->ps->leanf != 0 && pm->ps->weapon != WP_GRENADE_LAUNCHER && pm->ps->weapon != WP_GRENADE_PINEAPPLE && pm->ps->weapon != WP_SMOKE_BOMB && pm->ps->weapon != WP_POISON_GAS);
+	
+	// SBW_FIRE_LEAN - Allow players to fire while leaning
+	if (cvars::bg_weapons.ivalue & SBW_FIRE_LEAN) {
+		blockLeanFire = qfalse;
+	}
+	
+	if((!(pm->cmd.buttons & (BUTTON_ATTACK | WBUTTON_ATTACK2)) && !delayedFire) || blockLeanFire)
 	{
 		pm->ps->weaponTime	= 0;
 		pm->ps->weaponDelay	= 0;
@@ -4479,15 +4485,35 @@ static void PM_Weapon( void ) {
 				break;
 
 			case WP_PLIERS:
-				nofire = !(cvars::bg_weapons.ivalue & SBW_ENGI);
+				nofire = !(cvars::bg_weapons.ivalue & SBW_PLIERS_WATER);
 				break;
 
 			case WP_MEDIC_SYRINGE:
-				nofire = !(cvars::bg_weapons.ivalue & SBW_MEDIC);
+				nofire = !(cvars::bg_weapons.ivalue & SBW_SYRINGE_WATER);
 				break;
 
 			default:
-				nofire = 1;
+				// Allow firing underwater if SBW_FIRE_UNDERWATER flag is set
+				// (except flamers, panzers, rifle grenades, mortars and MG42 which should always be blocked)
+				if (cvars::bg_weapons.ivalue & SBW_FIRE_UNDERWATER) {
+					switch (pm->ps->weapon) {
+						case WP_FLAMETHROWER:
+						case WP_PANZERFAUST:
+						case WP_GPG40:
+						case WP_M7:
+						case WP_MORTAR:
+						case WP_MORTAR_SET:
+						case WP_MOBILE_MG42:
+						case WP_MOBILE_MG42_SET:
+							nofire = 1;
+							break;
+						default:
+							nofire = 0;
+							break;
+					}
+				} else {
+					nofire = 1;
+				}
 				break;
 		}
 

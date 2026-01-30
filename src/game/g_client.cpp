@@ -854,7 +854,7 @@ void G_AddClassSpecificTools(gclient_t *client)
 			if (client->sess.skill[SK_EXPLOSIVES_AND_CONSTRUCTION] >= 5) {
 				if (cvars::bg_sk5_eng.ivalue & SK5_ENG_LM_BBETTY)
 					AddWeaponToPlayer(client, WP_LANDMINE_BBETTY, GetAmmoTableData(WP_LANDMINE_BBETTY)->defaultStartingAmmo, GetAmmoTableData(WP_LANDMINE_BBETTY)->defaultStartingClip, qfalse );
-				if (cvars::bg_sk5_eng.ivalue & SK5_ENG_LM_PGAS)
+				if ((cvars::bg_sk5_eng.ivalue & SK5_ENG_LM_PGAS) || (cvars::bg_weaponsenable.ivalue & WPEN_POISONMINE))
 					AddWeaponToPlayer(client, WP_LANDMINE_PGAS, GetAmmoTableData(WP_LANDMINE_PGAS)->defaultStartingAmmo, GetAmmoTableData(WP_LANDMINE_PGAS)->defaultStartingClip, qfalse );
 			}
 			break;
@@ -877,7 +877,7 @@ void G_AddClassSpecificTools(gclient_t *client)
 			}
 
 			if (client->sess.skill[SK_MILITARY_INTELLIGENCE_AND_SCOPED_WEAPONS] >= 5) {
-                if (cvars::bg_sk5_cvops.ivalue & SK5_CVO_POISON) {
+                if ((cvars::bg_sk5_cvops.ivalue & SK5_CVO_POISON) || (cvars::bg_weaponsenable.ivalue & WPEN_POISONGAS)) {
 				    AddWeaponToPlayer(client, WP_POISON_GAS, GetAmmoTableData(WP_POISON_GAS)->defaultStartingAmmo, GetAmmoTableData(WP_POISON_GAS)->defaultStartingClip, qfalse);
                 }
 			}

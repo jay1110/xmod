@@ -2236,6 +2236,12 @@ gentity_t *fire_grenade (gentity_t *self, vec3_t start, vec3_t dir, int grenadeW
 
 			bolt->r.snapshotCallback	= qtrue;
 
+			// SBW_ENG_MINE_DMG - Level 5 Engineers' landmines inflict +15% damage
+			if ((cvars::bg_weapons.ivalue & SBW_ENG_MINE_DMG) &&
+				self->client->sess.skill[SK_EXPLOSIVES_AND_CONSTRUCTION] >= 5) {
+				bolt->splashDamage = int(bolt->splashDamage * 1.15f);
+			}
+
 			VectorSet(bolt->r.mins, -16, -16, 0);
 			VectorCopy(bolt->r.mins, bolt->r.absmin);
 			VectorSet(bolt->r.maxs, 16, 16, 16);
@@ -2255,6 +2261,12 @@ gentity_t *fire_grenade (gentity_t *self, vec3_t start, vec3_t dir, int grenadeW
 			bolt->r.contents			= CONTENTS_CORPSE;	// (player can walk through)
 
 			bolt->r.snapshotCallback	= qtrue;
+
+			// SBW_ENG_MINE_DMG - Level 5 Engineers' landmines inflict +15% damage
+			if ((cvars::bg_weapons.ivalue & SBW_ENG_MINE_DMG) &&
+				self->client->sess.skill[SK_EXPLOSIVES_AND_CONSTRUCTION] >= 5) {
+				bolt->splashDamage = int(bolt->splashDamage * 1.15f);
+			}
 
 			VectorSet(bolt->r.mins, -16, -16, 0);
 			VectorCopy(bolt->r.mins, bolt->r.absmin);
