@@ -165,6 +165,14 @@ Client::headshotAllowed(const int mod)
         case MOD_M97:
             return false;
 
+        // Knife headshot requires SBW_KNIFE_HEADSHOT flag
+        case MOD_KNIFE:
+            return (cvars::bg_weapons.ivalue & SBW_KNIFE_HEADSHOT) != 0;
+
+        // Throwing knife headshot requires SBW_THKNIFE_HEADSHOT flag
+        case MOD_THROWING_KNIFE:
+            return (cvars::bg_weapons.ivalue & SBW_THKNIFE_HEADSHOT) != 0;
+
         default:
             return true;
     }

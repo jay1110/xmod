@@ -57,10 +57,6 @@
             <entry>more realistic weapons aim-spread, factoring player crouch/prone, slick-surfaces and water</entry>
         </row>
         <row>
-            <entry>128</entry>
-            <entry>Don't let teammates disarm dynamite near objective (alias for flag 1)</entry>
-        </row>
-        <row>
             <entry>256</entry>
             <entry>Do not give XP to players who kill someone who has been inactive for more than 30 seconds</entry>
         </row>

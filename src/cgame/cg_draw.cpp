@@ -2269,8 +2269,8 @@ static void CG_DrawCrosshair(void) {
 	if ( cg_drawCrosshair.integer < 0 )	//----(SA)	moved down so it doesn't keep the scoped weaps from drawing reticles
 		return;
 
-	// no crosshair while leaning
-	if( cg.snap->ps.leanf ) {
+	// no crosshair while leaning (unless SBW_FIRE_LEAN is enabled)
+	if( cg.snap->ps.leanf && !(cvars::bg_weapons.ivalue & SBW_FIRE_LEAN) ) {
 		return;
 	}
 

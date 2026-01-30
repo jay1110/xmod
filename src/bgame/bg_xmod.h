@@ -101,7 +101,7 @@
 #define MISC_UNUSED           0x0010 //   16 - unused
 #define MISC_BSREVIVE         0x0020 //   32 - level-4 battle-sense revivees get full health
 #define MISC_REALAIMSPREAD    0x0040 //   64 - more realistic weapons aim-spread
-#define MISC_NODISARMDYN2     0x0080 //  128 - Don't let teammates disarm dynamite (alias)
+// flag 128 (0x0080) removed - was duplicate of flag 1
 #define MISC_NOXPINACTIVE     0x0100 //  256 - No XP for killing inactive players
 #define MISC_NOXPMEDPACKS     0x0200 //  512 - No XP for med packs
 #define MISC_NOXPAMMOPACKS    0x0400 // 1024 - No XP for ammo packs
