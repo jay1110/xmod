@@ -832,7 +832,6 @@ static void CG_Bomb( centity_t *cent ) {
 	trace_t			trace;
 	qboolean		isAxisTeam;
 	qboolean		isTeammate;
-	qboolean		isOwner;
 	team_t			playerTeam;
 	int				laserAlpha;
 	vec3_t			perpAxis;
@@ -864,14 +863,11 @@ static void CG_Bomb( centity_t *cent ) {
 	// s1->otherEntityNum2: 1 = Axis mine, 0 = Allied mine
 	isAxisTeam = (qboolean)(s1->otherEntityNum2 == 1);
 	
-	// Get player's team
-	playerTeam = cgs.clientinfo[cg.clientNum].team;
+	// Get player's team (use cg.snap->ps.clientNum for consistency with spectator mode)
+	playerTeam = cgs.clientinfo[cg.snap->ps.clientNum].team;
 	
 	// Check if player is on the same team as the tripmine
 	isTeammate = (qboolean)((isAxisTeam && playerTeam == TEAM_AXIS) || (!isAxisTeam && playerTeam == TEAM_ALLIES));
-	
-	// Check if player is the owner of the tripmine (s1->otherEntityNum stores owner client number)
-	isOwner = (qboolean)(s1->otherEntityNum == cg.snap->ps.clientNum);
 	
 	// Scan for crosshair tripmine (for owner name display) - only for teammates
 	if (isTeammate) {
@@ -917,8 +913,8 @@ static void CG_Bomb( centity_t *cent ) {
 
 	trap_R_AddRefEntityToScene( &beam );
 	
-	// Draw additional beams for owner and teammates to make laser appear wider (double width)
-	if (isTeammate || isOwner) {
+	// Draw additional beams for teammates (owner is always teammate) to make laser appear wider (double width)
+	if (isTeammate) {
 		// Calculate perpendicular axis for offsetting the beams
 		PerpendicularVector( perpAxis, s1->origin2 );
 		
