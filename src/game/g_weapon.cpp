@@ -176,22 +176,32 @@ void Weapon_Knife( gentity_t *ent ) {
 	}
 
 	// SBW_KNIFE_HEADSHOT - Check for headshot with knife (only if not a backstab)
+	// Use hitvol from the trace if available (more accurate)
 	if (!isBackstab && traceEnt->client && traceEnt->health > 0 && (cvars::bg_weapons.ivalue & SBW_KNIFE_HEADSHOT)) {
-		// Calculate the height of the hit relative to the target's origin
-		float hitHeight = tr.endpos[2] - traceEnt->r.currentOrigin[2];
+		qboolean isHeadshot = qfalse;
 		
-		// Check if target is prone, crouching, or standing
-		float headHeight;
-		if (traceEnt->client->ps.eFlags & EF_PRONE) {
-			headHeight = 12.0f; // Prone head height
-		} else if (traceEnt->client->ps.pm_flags & PMF_DUCKED) {
-			headHeight = 36.0f; // Crouching head height
-		} else {
-			headHeight = 48.0f; // Standing head height
+		// Check if we got a headshot via the hit volume system
+		if (trx.hitvol && trx.hitvol->zone == AbstractHitVolume::ZONE_HEAD) {
+			isHeadshot = qtrue;
+		}
+		// Fallback to height-based detection if hitvol not available
+		else if (!trx.hitvol) {
+			float hitHeight = tr.endpos[2] - traceEnt->r.currentOrigin[2];
+			float headHeight;
+			if (traceEnt->client->ps.eFlags & EF_PRONE) {
+				headHeight = 12.0f;
+			} else if (traceEnt->client->ps.pm_flags & PMF_DUCKED) {
+				headHeight = 36.0f;
+			} else {
+				headHeight = 48.0f;
+			}
+			if (hitHeight >= headHeight) {
+				isHeadshot = qtrue;
+			}
 		}
 		
-		// If hit is in the head region, apply headshot damage
-		if (hitHeight >= headHeight) {
+		// Apply headshot damage and effects
+		if (isHeadshot) {
 			if (damage * 2 < 50)
 				damage = 50;
 			else

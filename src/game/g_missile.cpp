@@ -217,14 +217,15 @@ void G_MissileImpact( gentity_t *ent, trace_t *trace, int impactDamage ) {
 				// Calculate the height of the hit relative to the target's origin
 				float hitHeight = trace->endpos[2] - target->r.currentOrigin[2];
 				
-				// Check if target is prone, crouching, or standing
+				// Head region thresholds (player standing height ~72, crouching ~48, prone ~16)
+				// These are the minimum heights for a headshot in each stance
 				float headHeight;
 				if (target->client->ps.eFlags & EF_PRONE) {
-					headHeight = 12.0f; // Prone head height
+					headHeight = 8.0f;  // Prone head starts at ~8 units up
 				} else if (target->client->ps.pm_flags & PMF_DUCKED) {
-					headHeight = 36.0f; // Crouching head height
+					headHeight = 32.0f; // Crouching head starts at ~32 units up
 				} else {
-					headHeight = 48.0f; // Standing head height
+					headHeight = 52.0f; // Standing head starts at ~52 units up
 				}
 				
 				// If hit is in the head region, apply headshot damage
