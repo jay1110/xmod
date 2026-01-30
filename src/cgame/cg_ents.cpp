@@ -820,9 +820,6 @@ CG_Bomb
 ===============
 */
 
-#define TRIPMINE_LASER_ALPHA_TEAMMATE 200  // Laser visibility for teammates
-#define TRIPMINE_LASER_ALPHA_ENEMY 80      // Laser visibility for enemies
-
 static void CG_Bomb( centity_t *cent ) {
 	refEntity_t		ent, beam;
 	entityState_t	*s1;
@@ -832,7 +829,6 @@ static void CG_Bomb( centity_t *cent ) {
 	qboolean		isAxisTeam;
 	qboolean		isTeammate;
 	team_t			playerTeam;
-	int				laserAlpha;
 
 	memset(&ent, 0, sizeof(ent));
 
@@ -857,6 +853,21 @@ static void CG_Bomb( centity_t *cent ) {
 		return;
 	}
 	
+	// Determine team colors
+	// s1->otherEntityNum2: 1 = Axis mine, 0 = Allied mine
+	isAxisTeam = (qboolean)(s1->otherEntityNum2 == 1);
+	
+	// Get player's team (use cg.snap->ps.clientNum for consistency with spectator mode)
+	playerTeam = cgs.clientinfo[cg.snap->ps.clientNum].team;
+	
+	// Check if player is on the same team as the tripmine
+	isTeammate = (qboolean)((isAxisTeam && playerTeam == TEAM_AXIS) || (!isAxisTeam && playerTeam == TEAM_ALLIES));
+	
+	// Scan for crosshair tripmine (for owner name display) - only for teammates
+	if (isTeammate) {
+		CG_ScanForCrosshairMine(cent);
+	}
+
 	memset(&beam, 0, sizeof(beam));
 
 	VectorCopy( cent->lerpOrigin, beam.origin );
@@ -870,23 +881,6 @@ static void CG_Bomb( centity_t *cent ) {
 	beam.reType = RT_RAIL_CORE;
 	beam.renderfx = RF_NOSHADOW;
 	beam.customShader = cgs.media.railCoreShader;
-
-	// Determine team colors
-	// s1->otherEntityNum2: 1 = Axis mine, 0 = Allied mine
-	isAxisTeam = (qboolean)(s1->otherEntityNum2 == 1);
-	
-	// Get player's team
-	playerTeam = cgs.clientinfo[cg.clientNum].team;
-	
-	// Check if player is on the same team as the tripmine
-	isTeammate = (qboolean)((isAxisTeam && playerTeam == TEAM_AXIS) || (!isAxisTeam && playerTeam == TEAM_ALLIES));
-	
-	// Set laser visibility - teammates see more visible laser
-	if (isTeammate) {
-		laserAlpha = TRIPMINE_LASER_ALPHA_TEAMMATE;
-	} else {
-		laserAlpha = TRIPMINE_LASER_ALPHA_ENEMY;
-	}
 	
 	// Set laser color based on team
 	if (isAxisTeam) {
@@ -900,12 +894,16 @@ static void CG_Bomb( centity_t *cent ) {
 		beam.shaderRGBA[1] = 0;
 		beam.shaderRGBA[2] = 255;
 	}
-	beam.shaderRGBA[3] = laserAlpha;
-
+	beam.shaderRGBA[3] = 255;
 
 	AxisClear( beam.axis );
 
 	trap_R_AddRefEntityToScene( &beam );
+	
+	// Draw a second laser in the same position for teammates to increase visibility
+	if (isTeammate) {
+		trap_R_AddRefEntityToScene( &beam );
+	}
 }
 
 /*

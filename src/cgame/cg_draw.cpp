@@ -2671,6 +2671,10 @@ static void CG_DrawCrosshairNames( void ) {
 				case WP_LANDMINE_PGAS:
 					s = va("%s^7's poison-gas mine", cgs.clientinfo[cg.crosshairMine].name);
 					break;
+					
+				case WP_TRIPMINE:
+					s = va("%s^7's tripmine", cgs.clientinfo[cg.crosshairMine].name);
+					break;
 			}
 
 			w = CG_DrawStrlen( s ) * SMALLCHAR_WIDTH;
