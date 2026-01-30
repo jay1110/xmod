@@ -4426,7 +4426,7 @@ static void PM_Weapon( void ) {
 	// check for fire
 	// if not on fire button and there's not a delayed shot this frame...
 	// consider also leaning, with delayed attack reset (unless SBW_FIRE_LEAN flag allows it)
-	qboolean blockLeanFire = (pm->ps->leanf != 0 && pm->ps->weapon != WP_GRENADE_LAUNCHER && pm->ps->weapon != WP_GRENADE_PINEAPPLE && pm->ps->weapon != WP_SMOKE_BOMB && pm->ps->weapon != WP_POISON_GAS);
+	qboolean blockLeanFire = (qboolean)(pm->ps->leanf != 0 && pm->ps->weapon != WP_GRENADE_LAUNCHER && pm->ps->weapon != WP_GRENADE_PINEAPPLE && pm->ps->weapon != WP_SMOKE_BOMB && pm->ps->weapon != WP_POISON_GAS);
 	
 	// SBW_FIRE_LEAN - Allow players to fire while leaning
 	if (cvars::bg_weapons.ivalue & SBW_FIRE_LEAN) {
