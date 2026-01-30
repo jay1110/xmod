@@ -857,7 +857,7 @@ static qboolean PM_CheckDoubleJump( void ) {
 	pm->ps->pm_flags |= PMF_JUMP_HELD;
 
 	pm->ps->groundEntityNum = ENTITYNUM_NONE;
-	// Use g_DJHeight for the jump height multiplier
+	// Use g_djHeight for the jump height multiplier
 	pm->ps->velocity[2] = JUMP_VELOCITY * cvars::bg_djHeight.fvalue;
 	PM_AddEvent( EV_JUMP );
 	
