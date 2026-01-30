@@ -1,0 +1,38 @@
+<refentry id="cvar.g_djHeight">
+
+<refmeta>
+    <refentrytitle>g_djHeight</refentrytitle>
+    <manvolnum>cvar</manvolnum>
+</refmeta>
+
+<refnamediv>
+    <refname>g_djHeight</refname>
+    <refpurpose>set double jump height multiplier</refpurpose>
+</refnamediv>
+
+<refsynopsisdiv>
+    <cmdsynopsis>
+        <command>g_djHeight</command>
+        <arg><replaceable>multiplier</replaceable></arg>
+    </cmdsynopsis>
+</refsynopsisdiv>
+
+<refsection>
+<title>Default</title>
+    <cmdsynopsis>
+        <command>g_djHeight</command>
+        <arg choice="plain"><literal>1.4</literal></arg>
+    </cmdsynopsis>
+</refsection>
+
+<refsection>
+<title>Description</title>
+<para>
+    <command>g_djHeight</command>
+    defines how many times higher the second jump will be compared to a normal jump.
+    This only has effect when double jump is enabled via <command>g_doubleJump</command>.
+    A value of 1.4 means the second jump will be 1.4 times the normal jump height.
+</para>
+</refsection>
+
+</refentry>

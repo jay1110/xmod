@@ -291,7 +291,7 @@ void CG_ParseXmodinfo( void) {
     cvars::bg_proneDelay.set      ( Info_ValueForKey( info, "z" ));
 
     cvars::bg_doubleJump.set      ( Info_ValueForKey( info, "A" ));
-    cvars::bg_DJHeight.set        ( Info_ValueForKey( info, "B" ));
+    cvars::bg_djHeight.set        ( Info_ValueForKey( info, "B" ));
     cvars::bg_weaponsenable.set   ( Info_ValueForKey( info, "C" ));
 
     ammoTableNeedsUpdate = true;

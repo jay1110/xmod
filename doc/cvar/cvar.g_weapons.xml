@@ -31,55 +31,91 @@
     <tbody>
         <row>
             <entry>1</entry>
-            <entry>&fieldops; with level 0 battle-sense do not spawn with binoculars</entry>
+            <entry>Disable Sten overheating</entry>
         </row>
         <row>
             <entry>2</entry>
-            <entry>syringes function underwater</entry>
+            <entry>Disable Mobile MG42 overheating</entry>
         </row>
         <row>
             <entry>4</entry>
-            <entry>pliers function underwater</entry>
+            <entry>Allow headshots with Mobile MG42</entry>
         </row>
         <row>
             <entry>8</entry>
-            <entry>"Too many air strikes requested" will restore used charge bar</entry>
+            <entry>Allow players to fire while leaning (1st person view and 3rd person animation are modified if this option is enabled)</entry>
         </row>
         <row>
             <entry>16</entry>
-            <entry>"Too many air strikes requested" will restore half of used charge bar</entry>
+            <entry>Allow Medics and Engineers to pick Sten in limbo</entry>
         </row>
         <row>
             <entry>32</entry>
-            <entry>ammo packs restore a lost helmet</entry>
+            <entry>Fire underwater (except flamers, panzers, rifle grenades, mortars and MG42)</entry>
         </row>
         <row>
             <entry>64</entry>
-            <entry>players with binoculars drop them upon death</entry>
+            <entry>&fieldops; with level 0 battle-sense do not spawn with binoculars</entry>
         </row>
         <row>
             <entry>128</entry>
-            <entry>allies reload rifles mid-clip to match corresponding axis ability</entry>
+            <entry>syringes function underwater</entry>
         </row>
         <row>
             <entry>256</entry>
-            <entry>enable throwing knives</entry>
+            <entry>pliers function underwater</entry>
         </row>
         <row>
             <entry>512</entry>
-            <entry>enable poison throwing knives</entry>
+            <entry>Level 5 Engineers will spawn with a Bomb. - Looks like a red smoke bomb, but does as much damage as a dynamite and explodes in 4 seconds. Only 1 per life</entry>
         </row>
         <row>
             <entry>1024</entry>
-            <entry>enable Winchester M97 (shotgun)</entry>
+            <entry>Level 5 Engineers' landmines inflict +15% damage</entry>
         </row>
         <row>
             <entry>2048</entry>
-            <entry>disable adrenaline</entry>
+            <entry>Allow Engineer's "Bomb" to damage movers (trucks, tanks, etc.)</entry>
         </row>
         <row>
             <entry>4096</entry>
-            <entry>enable Molotov-Cocktails</entry>
+            <entry>"Too many air strikes requested" will restore used charge bar</entry>
+        </row>
+        <row>
+            <entry>8192</entry>
+            <entry>"Too many air strikes requested" will restore half of used charge bar</entry>
+        </row>
+        <row>
+            <entry>16384</entry>
+            <entry>ammo packs restore a lost helmet</entry>
+        </row>
+        <row>
+            <entry>32768</entry>
+            <entry>players with binoculars drop them upon death</entry>
+        </row>
+        <row>
+            <entry>65536</entry>
+            <entry>allies reload rifles mid-clip to match corresponding axis ability</entry>
+        </row>
+        <row>
+            <entry>131072</entry>
+            <entry>Enable fast shooting for MP40, Thompson and Sten (delay between rounds lowered from 150ms to 110ms)</entry>
+        </row>
+        <row>
+            <entry>262144</entry>
+            <entry>Knife can get headshots</entry>
+        </row>
+        <row>
+            <entry>524288</entry>
+            <entry>Throwing knife can get headshots</entry>
+        </row>
+        <row>
+            <entry>1048576</entry>
+            <entry>enable poison throwing knives</entry>
+        </row>
+        <row>
+            <entry>2097152</entry>
+            <entry>disable adrenaline</entry>
         </row>
     </tbody>
 </tgroup>

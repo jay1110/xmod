@@ -77,7 +77,7 @@ namespace objects {
     Cvar bg_proneDelay      ( "cg_proneDelay",         "0",   CVAR_ROM );
 
     Cvar bg_doubleJump      ( "cg_doubleJump",         "0",   CVAR_ROM );
-    Cvar bg_DJHeight        ( "cg_DJHeight",           "1.4", CVAR_ROM );
+    Cvar bg_djHeight        ( "cg_djHeight",           "1.4", CVAR_ROM );
     Cvar bg_weaponsenable   ( "cg_weaponsenable",      "0",   CVAR_ROM );
 
     Cvar gameState( "gameState", "-1", CVAR_ROM );
