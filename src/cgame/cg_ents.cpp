@@ -822,6 +822,7 @@ CG_Bomb
 
 #define TRIPMINE_LASER_ALPHA_TEAMMATE 200  // Laser visibility for teammates
 #define TRIPMINE_LASER_ALPHA_ENEMY 80      // Laser visibility for enemies
+#define TRIPMINE_LASER_OFFSET 1.5f         // Offset for wider laser effect
 
 static void CG_Bomb( centity_t *cent ) {
 	refEntity_t		ent, beam;
@@ -831,8 +832,10 @@ static void CG_Bomb( centity_t *cent ) {
 	trace_t			trace;
 	qboolean		isAxisTeam;
 	qboolean		isTeammate;
+	qboolean		isOwner;
 	team_t			playerTeam;
 	int				laserAlpha;
+	vec3_t			perpAxis;
 
 	memset(&ent, 0, sizeof(ent));
 
@@ -857,6 +860,24 @@ static void CG_Bomb( centity_t *cent ) {
 		return;
 	}
 	
+	// Determine team colors
+	// s1->otherEntityNum2: 1 = Axis mine, 0 = Allied mine
+	isAxisTeam = (qboolean)(s1->otherEntityNum2 == 1);
+	
+	// Get player's team
+	playerTeam = cgs.clientinfo[cg.clientNum].team;
+	
+	// Check if player is on the same team as the tripmine
+	isTeammate = (qboolean)((isAxisTeam && playerTeam == TEAM_AXIS) || (!isAxisTeam && playerTeam == TEAM_ALLIES));
+	
+	// Check if player is the owner of the tripmine (s1->otherEntityNum stores owner client number)
+	isOwner = (qboolean)(s1->otherEntityNum == cg.snap->ps.clientNum);
+	
+	// Scan for crosshair tripmine (for owner name display) - only for teammates
+	if (isTeammate) {
+		CG_ScanForCrosshairMine(cent);
+	}
+
 	memset(&beam, 0, sizeof(beam));
 
 	VectorCopy( cent->lerpOrigin, beam.origin );
@@ -870,16 +891,6 @@ static void CG_Bomb( centity_t *cent ) {
 	beam.reType = RT_RAIL_CORE;
 	beam.renderfx = RF_NOSHADOW;
 	beam.customShader = cgs.media.railCoreShader;
-
-	// Determine team colors
-	// s1->otherEntityNum2: 1 = Axis mine, 0 = Allied mine
-	isAxisTeam = (qboolean)(s1->otherEntityNum2 == 1);
-	
-	// Get player's team
-	playerTeam = cgs.clientinfo[cg.clientNum].team;
-	
-	// Check if player is on the same team as the tripmine
-	isTeammate = (qboolean)((isAxisTeam && playerTeam == TEAM_AXIS) || (!isAxisTeam && playerTeam == TEAM_ALLIES));
 	
 	// Set laser visibility - teammates see more visible laser
 	if (isTeammate) {
@@ -902,10 +913,25 @@ static void CG_Bomb( centity_t *cent ) {
 	}
 	beam.shaderRGBA[3] = laserAlpha;
 
-
 	AxisClear( beam.axis );
 
 	trap_R_AddRefEntityToScene( &beam );
+	
+	// Draw additional beams for owner and teammates to make laser appear wider (double width)
+	if (isTeammate || isOwner) {
+		// Calculate perpendicular axis for offsetting the beams
+		PerpendicularVector( perpAxis, s1->origin2 );
+		
+		// Draw beam offset in one direction
+		VectorMA( cent->lerpOrigin, TRIPMINE_LASER_OFFSET, perpAxis, beam.origin );
+		VectorMA( trace.endpos, TRIPMINE_LASER_OFFSET, perpAxis, beam.oldorigin );
+		trap_R_AddRefEntityToScene( &beam );
+		
+		// Draw beam offset in opposite direction
+		VectorMA( cent->lerpOrigin, -TRIPMINE_LASER_OFFSET, perpAxis, beam.origin );
+		VectorMA( trace.endpos, -TRIPMINE_LASER_OFFSET, perpAxis, beam.oldorigin );
+		trap_R_AddRefEntityToScene( &beam );
+	}
 }
 
 /*
