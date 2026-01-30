@@ -2334,8 +2334,19 @@ void CG_EntityEvent( centity_t *cent, vec3_t position ) {
 
 	case EV_NOFIRE_UNDERWATER:
 		DEBUGNAME("EV_NOFIRE_UNDERWATER");
-		if(cgs.media.noFireUnderwater)
-			trap_S_StartSound (NULL, es->number, CHAN_WEAPON, cgs.media.noFireUnderwater);
+		// Don't play click sound for pliers/syringe when they're allowed to work underwater
+		{
+			qboolean skipSound = qfalse;
+			if (es->weapon == WP_PLIERS && (cvars::bg_weapons.ivalue & SBW_PLIERS_WATER)) {
+				skipSound = qtrue;
+			}
+			else if (es->weapon == WP_MEDIC_SYRINGE && (cvars::bg_weapons.ivalue & SBW_SYRINGE_WATER)) {
+				skipSound = qtrue;
+			}
+			if (!skipSound && cgs.media.noFireUnderwater) {
+				trap_S_StartSound (NULL, es->number, CHAN_WEAPON, cgs.media.noFireUnderwater);
+			}
+		}
 		break;
 
 	case EV_PLAYER_TELEPORT_IN:

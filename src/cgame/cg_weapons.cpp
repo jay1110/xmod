@@ -4869,7 +4869,8 @@ void CG_FireWeapon( centity_t *cent ) {
 
 	// Determine if we should skip the fire sound (for tools working underwater)
 	qboolean skipFireSound = qfalse;
-	if (cg_pmove.waterlevel >= 3) {
+	// Only check for local player - cg_pmove.waterlevel is from local prediction
+	if (ent->number == cg.snap->ps.clientNum && cg_pmove.waterlevel >= 3) {
 		// Skip pliers sound underwater when SBW_PLIERS_WATER is enabled (pliers work silently underwater)
 		if (ent->weapon == WP_PLIERS && (cvars::bg_weapons.ivalue & SBW_PLIERS_WATER)) {
 			skipFireSound = qtrue;
