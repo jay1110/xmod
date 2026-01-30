@@ -2789,6 +2789,15 @@ int CG_LimboPanel_WeaponCount_ForSlot( int number ) {
 
 			cnt++;
 		}
+
+		// SBW_ENGI - Add Sten to weapon count for Medics and Engineers (Allies only)
+		if ((cvars::bg_weapons.ivalue & SBW_ENGI) && CG_LimboPanel_GetTeam() == TEAM_ALLIES) {
+			int cls = CG_LimboPanel_GetClass();
+			if (cls == PC_MEDIC || cls == PC_ENGINEER) {
+				cnt++;
+			}
+		}
+
 		return cnt;
 	} else {
 		if( cgs.clientinfo[cg.clientNum].skill[SK_HEAVY_WEAPONS] >= 4 && CG_LimboPanel_GetClass() == PC_SOLDIER ) {
@@ -2845,6 +2854,14 @@ weapon_t CG_LimboPanel_GetWeaponForNumber( int number, int slot, qboolean ignore
 				return WP_NONE;
 			} else {
 				return classInfo->classWeapons[ 0 ];
+			}
+		}
+		
+		// SBW_ENGI - Return Sten for Medics/Engineers if number exceeds normal class weapons
+		if ((cvars::bg_weapons.ivalue & SBW_ENGI) && CG_LimboPanel_GetTeam() == TEAM_ALLIES) {
+			int cls = CG_LimboPanel_GetClass();
+			if ((cls == PC_MEDIC || cls == PC_ENGINEER) && !classInfo->classWeapons[number]) {
+				return WP_STEN;
 			}
 		}
 		
