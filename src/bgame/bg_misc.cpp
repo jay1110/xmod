@@ -4224,6 +4224,10 @@ void BG_PlayerStateToEntityState( playerState_t *ps, entityState_t *s, int time,
 	else
 		s->angles2[YAW] = ps->movementDir;
 
+	// SBW_FIRE_LEAN - Copy lean value to entity state for other clients to see
+	// This allows the lean animation to be visible to other players
+	s->angles2[ROLL] = ps->leanf;
+
 	// Jaybird - lock the animation here so that the player does not flail
 	if(!(ps->eFlags & EF_PLAYDEAD)) {
 		s->legsAnim		= ps->legsAnim;
@@ -4349,6 +4353,9 @@ void BG_PlayerStateToEntityStateExtraPolate( playerState_t *ps, entityState_t *s
 	}
 
 	s->angles2[YAW] = ps->movementDir;
+
+	// SBW_FIRE_LEAN - Copy lean value to entity state for other clients to see
+	s->angles2[ROLL] = ps->leanf;
 
 	// Jaybird - lock the animation here so that the player does not flail
 	if(!(ps->eFlags & EF_PLAYDEAD)) {

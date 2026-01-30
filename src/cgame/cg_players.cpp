@@ -1151,6 +1151,14 @@ static void CG_PlayerAngles( centity_t *cent, vec3_t legs[3], vec3_t torso[3], v
 		legsAngles[PITCH] += side;
 	}
 
+	// MISC_REALISTICLEAN or SBW_FIRE_LEAN - Apply lean animation visible to other players
+	// The lean value is sent via angles2[ROLL] from BG_PlayerStateToEntityState
+	if (cent->currentState.angles2[ROLL] != 0) {
+		float leanf = cent->currentState.angles2[ROLL];
+		// Apply lean to torso roll - divide by 2 for realistic lean appearance
+		torsoAngles[ROLL] += leanf / 2.0f;
+	}
+
 	// pain twitch
 	CG_AddPainTwitch( cent, torsoAngles );
 
