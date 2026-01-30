@@ -667,6 +667,13 @@ void Weapon_Syringe(gentity_t *ent) {
 		if (traceEnt->client != NULL) {
 
 			if ( traceEnt->client->ps.pm_type == PM_DEAD && traceEnt->client->sess.sessionTeam == ent->client->sess.sessionTeam ) {
+				// MISC_NODROWREVIVE - Don't allow reviving players who drowned
+				if ((cvars::bg_misc.ivalue & MISC_NODROWREVIVE) && traceEnt->deathType == MOD_WATER) {
+					trap_SendServerCommand( ent-g_entities, "cp \"Cannot revive drowned player!\n\"" );
+					// Return ammo - syringe wasn't used
+					ent->client->ps.ammoclip[BG_FindClipForWeapon(WP_MEDIC_SYRINGE)] += 1;
+					return;
+				}
 				// Mad Doc - TDF moved all the revive stuff into its own function
 				usedSyringe = ReviveEntity( ent, traceEnt );
 
