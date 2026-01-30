@@ -76,6 +76,10 @@ namespace objects {
 
     Cvar bg_proneDelay         ( "g_proneDelay",          "0",   CVAR_XMODINFO );
 
+    Cvar bg_doubleJump         ( "g_doubleJump",          "0",   CVAR_XMODINFO );
+    Cvar bg_DJHeight           ( "g_DJHeight",            "1.4", CVAR_XMODINFO );
+    Cvar bg_weaponsenable      ( "g_weaponsenable",       "0",   CVAR_XMODINFO );
+
     Cvar gameState( "gameState", "-1", CVAR_WOLFINFO | CVAR_ROM );
 
 ///////////////////////////////////////////////////////////////////////////////

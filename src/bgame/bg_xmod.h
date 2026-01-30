@@ -10,20 +10,37 @@
 #define	M97_SPREAD	700
 
 // g_weapons defines
-#define SBW_FOPS           0x0001 //    1
-#define SBW_MEDIC          0x0002 //    2
-#define SBW_ENGI           0x0004 //    4
-#define SBW_FULLBAR        0x0008 //    8
-#define SBW_HALFBAR        0x0010 //   16
-#define	SBW_HELMET         0x0020 //   32
-#define SBW_DROPBINOCS     0x0040 //   64
-#define SBW_FAIRRIFLES     0x0080 //  128
-#define	SBW_THKNIVES       0x0100 //  256
-#define SBW_PSTHKNIVES     0x0200 //  512
-#define SBW_M97            0x0400 // 1024
-#define SBW_NOADRENALINE   0x0800 // 2048
-#define SBW_MOLOTOV        0x1000 // 4096
-#define SBW_TRIPMINE       0x2000 // 8192
+#define SBW_NOSTEN_HEAT    0x00000001 //       1 - Disable Sten overheating
+#define SBW_NOMG42_HEAT    0x00000002 //       2 - Disable Mobile MG42 overheating
+#define SBW_MG42_HEADSHOTS 0x00000004 //       4 - Allow headshots with Mobile MG42
+#define SBW_FIRE_LEAN      0x00000008 //       8 - Allow players to fire while leaning
+#define SBW_ENGI           0x00000010 //      16 - Allow Medics and Engineers to pick Sten in limbo
+#define SBW_MEDIC          0x00000010 //      16 - (alias for engineers)
+#define SBW_FIRE_UNDERWATER 0x00000020 //     32 - Fire underwater
+#define SBW_FOPS           0x00000040 //      64 - Field-Ops with level 0 battle-sense do not spawn with binoculars
+#define SBW_SYRINGE_WATER  0x00000080 //     128 - syringes function underwater
+#define SBW_PLIERS_WATER   0x00000100 //     256 - pliers function underwater
+#define SBW_ENG_BOMB       0x00000200 //     512 - Level 5 Engineers will spawn with a Bomb
+#define SBW_ENG_MINE_DMG   0x00000400 //    1024 - Level 5 Engineers' landmines inflict +15% damage
+#define SBW_BOMB_MOVERS    0x00000800 //    2048 - Allow Engineer's "Bomb" to damage movers
+#define SBW_FULLBAR        0x00001000 //    4096 - "Too many air strikes requested" will restore used charge bar
+#define SBW_HALFBAR        0x00002000 //    8192 - "Too many air strikes requested" will restore half of used charge bar
+#define SBW_HELMET         0x00004000 //   16384 - ammo packs restore a lost helmet
+#define SBW_DROPBINOCS     0x00008000 //   32768 - players with binoculars drop them upon death
+#define SBW_FAIRRIFLES     0x00010000 //   65536 - allies reload rifles mid-clip
+#define SBW_FASTSHOOTING   0x00020000 //  131072 - Enable fast shooting for MP40, Thompson and Sten
+#define SBW_KNIFE_HEADSHOT 0x00040000 //  262144 - Knife can get headshots
+#define SBW_THKNIFE_HEADSHOT 0x00080000 // 524288 - Throwing knife can get headshots
+#define SBW_PSTHKNIVES     0x00100000 // 1048576 - enable poison throwing knives
+#define SBW_NOADRENALINE   0x00200000 // 2097152 - disable adrenaline
+
+// g_weaponsenable defines
+#define WPEN_MOLOTOV       0x0001 //    1 - Enable Molotov-Cocktails
+#define WPEN_POISONGAS     0x0002 //    2 - Enable poison gas canisters
+#define WPEN_POISONMINE    0x0004 //    4 - Enable poison gas landmines
+#define WPEN_TRIPMINE      0x0008 //    8 - Enable tripmines
+#define WPEN_M97           0x0010 //   16 - enable Winchester M97 (shotgun)
+#define WPEN_THKNIVES      0x0020 //   32 - enable throwing knives
 
 // Class carryovers
 #define SBS_COPS		1
@@ -77,13 +94,25 @@
 #define COPS_DRAWNAME         32
 
 // g_misc defines
-#define MISC_DOUBLEJUMP       0x0001 //  1
-#define MISC_BINOCWAR         0x0002 //  2
-#define MISC_ADMINSONLY       0x0004 //  4
-#define MISC_PACKZ            0x0008 //  8
-#define MISC_UNUSED           0x0010 // 16
-#define MISC_BSREVIVE         0x0020 // 32
-#define MISC_REALAIMSPREAD    0x0040 // 64
+#define MISC_NODISARMDYN      0x0001 //    1 - Don't let teammates disarm dynamite near objective
+#define MISC_BINOCWAR         0x0002 //    2 - binoc-war
+#define MISC_ADMINSONLY       0x0004 //    4 - only admins can connect
+#define MISC_PACKZ            0x0008 //    8 - throw packs vertically
+#define MISC_UNUSED           0x0010 //   16 - unused
+#define MISC_BSREVIVE         0x0020 //   32 - level-4 battle-sense revivees get full health
+#define MISC_REALAIMSPREAD    0x0040 //   64 - more realistic weapons aim-spread
+#define MISC_NODISARMDYN2     0x0080 //  128 - Don't let teammates disarm dynamite (alias)
+#define MISC_NOXPINACTIVE     0x0100 //  256 - No XP for killing inactive players
+#define MISC_NOXPMEDPACKS     0x0200 //  512 - No XP for med packs
+#define MISC_NOXPAMMOPACKS    0x0400 // 1024 - No XP for ammo packs
+#define MISC_VISIBLEMINES     0x0800 // 2048 - Visible enemy landmines red/blue instead of white
+#define MISC_REALISTICLEAN    0x1000 // 4096 - Realistic lean animation
+#define MISC_NODROWREVIVE     0x2000 // 8192 - Drowned players can't be revived
+
+// g_doubleJump values
+#define DJUMP_DISABLED        0      // disabled
+#define DJUMP_XMOD            1      // xmod style (850ms window)
+#define DJUMP_NITMOD          2      // nitmod style (endless delay)
 
 // userinfo JayFlags
 //#define	JAYFLAGS_KILLSPREESOUNDS	1

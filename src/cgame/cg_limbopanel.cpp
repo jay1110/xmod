@@ -3036,7 +3036,7 @@ qboolean CG_LimboPanel_RealWeaponIsDisabled( weapon_t weap ) {
 	// Jaybird - check some specific weapons
 	switch (weap) {
 		case WP_M97:
-			if (!(cvars::bg_weapons.ivalue & SBW_M97))
+			if (!(cvars::bg_weaponsenable.ivalue & WPEN_M97))
 				return qtrue;
 
 			if (cvars::bg_maxM97s.ivalue < 0)

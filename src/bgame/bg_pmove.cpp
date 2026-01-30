@@ -815,7 +815,8 @@ PM_CheckDoubleJump
 */
 static qboolean PM_CheckDoubleJump( void ) {
 
-	if ( !( cvars::bg_misc.ivalue & MISC_DOUBLEJUMP )) {
+	// Check if double jump is enabled (g_doubleJump: 0=disabled, 1=xmod style, 2=nitmod style)
+	if ( cvars::bg_doubleJump.ivalue == DJUMP_DISABLED ) {
 		return qfalse;
 	}
 
@@ -827,9 +828,12 @@ static qboolean PM_CheckDoubleJump( void ) {
 		return qfalse;
 	}
 
-	if( pm->cmd.serverTime - pm->pmext->jumpTime >= 850 ) {
-	//if( pm->ps->velocity[2] <= 0 ) {
-		return qfalse;
+	// For xmod style (mode 1), check the 850ms time window
+	// For nitmod style (mode 2), the delay is endless - no time check
+	if( cvars::bg_doubleJump.ivalue == DJUMP_XMOD ) {
+		if( pm->cmd.serverTime - pm->pmext->jumpTime >= 850 ) {
+			return qfalse;
+		}
 	}
 
 	if ( pm->ps->pm_flags & PMF_RESPAWNED ) {
@@ -853,7 +857,8 @@ static qboolean PM_CheckDoubleJump( void ) {
 	pm->ps->pm_flags |= PMF_JUMP_HELD;
 
 	pm->ps->groundEntityNum = ENTITYNUM_NONE;
-	pm->ps->velocity[2] = JUMP_VELOCITY * 1.4f;
+	// Use g_DJHeight for the jump height multiplier
+	pm->ps->velocity[2] = JUMP_VELOCITY * cvars::bg_DJHeight.fvalue;
 	PM_AddEvent( EV_JUMP );
 	
 	if ( pm->cmd.forwardmove >= 0 ) {
@@ -3567,7 +3572,7 @@ static bool PM_molotov_process() {
     switch (a2->state) {
         case A2_MOLOTOV_IDLE:
             // Do nothing if not enabled.
-            if (!(cvars::bg_weapons.ivalue & SBW_MOLOTOV))
+            if (!(cvars::bg_weaponsenable.ivalue & WPEN_MOLOTOV))
                 return false;
 
             // Block until stateAlarm is satisfied.
@@ -3737,7 +3742,7 @@ static bool PM_throwingKnife_process() {
     switch (a2->state) {
         case A2_THROWINGKNIFE_IDLE:
             // Do nothing if not enabled.
-            if (!(cvars::bg_weapons.ivalue & SBW_THKNIVES))
+            if (!(cvars::bg_weaponsenable.ivalue & WPEN_THKNIVES))
                 return false;
 
             // Block until stateAlarm is satisfied.

@@ -845,10 +845,10 @@ void G_AddClassSpecificTools(gclient_t *client)
 			AddWeaponToPlayer( client, WP_PLIERS, 0, 1, qfalse );
 			AddWeaponToPlayer( client, WP_LANDMINE, GetAmmoTableData(WP_LANDMINE)->defaultStartingAmmo, GetAmmoTableData(WP_LANDMINE)->defaultStartingClip, qfalse );
 
-            if ((cvars::bg_weapons.ivalue & SBW_MOLOTOV) && client->sess.skill[SK_LIGHT_WEAPONS] >= 2)
+            if ((cvars::bg_weaponsenable.ivalue & WPEN_MOLOTOV) && client->sess.skill[SK_LIGHT_WEAPONS] >= 2)
 			    AddWeaponToPlayer(client, WP_MOLOTOV, GetAmmoTableData(WP_MOLOTOV)->defaultStartingAmmo, GetAmmoTableData(WP_MOLOTOV)->defaultStartingClip, qfalse);
 
-            if ((cvars::bg_weapons.ivalue & SBW_TRIPMINE) && client->sess.skill[SK_EXPLOSIVES_AND_CONSTRUCTION] >= 3)
+            if ((cvars::bg_weaponsenable.ivalue & WPEN_TRIPMINE) && client->sess.skill[SK_EXPLOSIVES_AND_CONSTRUCTION] >= 3)
                 AddWeaponToPlayer(client, WP_TRIPMINE, GetAmmoTableData(WP_TRIPMINE)->defaultStartingAmmo, G_TeamMaxTripmines(), qfalse);
 
 			if (client->sess.skill[SK_EXPLOSIVES_AND_CONSTRUCTION] >= 5) {
@@ -890,7 +890,7 @@ void G_AddClassSpecificTools(gclient_t *client)
 			AddWeaponToPlayer(client, WP_AMMO, 0, 1, qfalse);
 			AddWeaponToPlayer( client, WP_SMOKE_MARKER, GetAmmoTableData(WP_SMOKE_MARKER)->defaultStartingAmmo, GetAmmoTableData(WP_SMOKE_MARKER)->defaultStartingClip, qfalse);
 
-            if ((cvars::bg_weapons.ivalue & SBW_MOLOTOV) && client->sess.skill[SK_LIGHT_WEAPONS] >= 2)
+            if ((cvars::bg_weaponsenable.ivalue & WPEN_MOLOTOV) && client->sess.skill[SK_LIGHT_WEAPONS] >= 2)
 			    AddWeaponToPlayer(client, WP_MOLOTOV, GetAmmoTableData(WP_MOLOTOV)->defaultStartingAmmo, GetAmmoTableData(WP_MOLOTOV)->defaultStartingClip, qfalse);
 			break;
 		case PC_MEDIC:
@@ -904,7 +904,7 @@ void G_AddClassSpecificTools(gclient_t *client)
                 }
 			}
 
-            if ((cvars::bg_weapons.ivalue & SBW_MOLOTOV) && client->sess.skill[SK_LIGHT_WEAPONS] >= 2)
+            if ((cvars::bg_weaponsenable.ivalue & WPEN_MOLOTOV) && client->sess.skill[SK_LIGHT_WEAPONS] >= 2)
 			    AddWeaponToPlayer(client, WP_MOLOTOV, GetAmmoTableData(WP_MOLOTOV)->defaultStartingAmmo, GetAmmoTableData(WP_MOLOTOV)->defaultStartingClip, qfalse);
 			break;
 	}

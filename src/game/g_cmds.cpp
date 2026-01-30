@@ -1215,7 +1215,7 @@ qboolean G_IsWeaponDisabled( gentity_t* ent, weapon_t weapon, qboolean quiet ) {
         }
 		break;
 	case WP_M97:
-		if (!(cvars::bg_weapons.ivalue & SBW_M97)) {
+		if (!(cvars::bg_weaponsenable.ivalue & WPEN_M97)) {
 			if (!quiet) {
 				CP("cp \"^7Sorry, but ^1M97s ^7are not enabled on this server.");
 			}
