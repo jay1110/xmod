@@ -4875,7 +4875,7 @@ void CG_FireWeapon( centity_t *cent ) {
 			skipFireSound = qtrue;
 		}
 		// Skip syringe sound underwater when SBW_SYRINGE_WATER is enabled
-		if (ent->weapon == WP_MEDIC_SYRINGE && (cvars::bg_weapons.ivalue & SBW_SYRINGE_WATER)) {
+		else if (ent->weapon == WP_MEDIC_SYRINGE && (cvars::bg_weapons.ivalue & SBW_SYRINGE_WATER)) {
 			skipFireSound = qtrue;
 		}
 	}

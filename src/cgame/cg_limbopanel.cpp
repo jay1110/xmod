@@ -2790,7 +2790,7 @@ int CG_LimboPanel_WeaponCount_ForSlot( int number ) {
 			cnt++;
 		}
 
-		// SBW_ENGI - Add Sten/MP40 to weapon count for Medics and Engineers
+		// SBW_ENGI - Add Sten to weapon count for Medics and Engineers (both teams)
 		if (cvars::bg_weapons.ivalue & SBW_ENGI) {
 			int cls = CG_LimboPanel_GetClass();
 			if (cls == PC_MEDIC || cls == PC_ENGINEER) {
@@ -2857,14 +2857,14 @@ weapon_t CG_LimboPanel_GetWeaponForNumber( int number, int slot, qboolean ignore
 			}
 		}
 		
-		// SBW_ENGI - Return Sten/MP40 for Medics/Engineers if number exceeds normal class weapons
+		// SBW_ENGI - Return Sten for Medics/Engineers if number exceeds normal class weapons
+		// Sten is available to both teams' Covert Ops, so it's available to both teams' Medics/Engineers
 		if (cvars::bg_weapons.ivalue & SBW_ENGI) {
 			int cls = CG_LimboPanel_GetClass();
 			// Check bounds and if this position is empty (beyond normal class weapons)
 			if ((cls == PC_MEDIC || cls == PC_ENGINEER) && 
 				number >= 0 && number < MAX_WEAPS_PER_CLASS && !classInfo->classWeapons[number]) {
-				// Return Sten for Allies, MP40 for Axis
-				return CG_LimboPanel_GetTeam() == TEAM_ALLIES ? WP_STEN : WP_MP40;
+				return WP_STEN;
 			}
 		}
 		
