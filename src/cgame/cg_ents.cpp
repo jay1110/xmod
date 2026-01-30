@@ -820,9 +820,6 @@ CG_Bomb
 ===============
 */
 
-#define TRIPMINE_LASER_ALPHA_TEAMMATE 200  // Laser visibility for teammates (more visible)
-#define TRIPMINE_LASER_ALPHA_ENEMY 80      // Laser visibility for enemies (more transparent)
-
 static void CG_Bomb( centity_t *cent ) {
 	refEntity_t		ent, beam;
 	entityState_t	*s1;
@@ -832,7 +829,6 @@ static void CG_Bomb( centity_t *cent ) {
 	qboolean		isAxisTeam;
 	qboolean		isTeammate;
 	team_t			playerTeam;
-	int				laserAlpha;
 
 	memset(&ent, 0, sizeof(ent));
 
@@ -886,13 +882,6 @@ static void CG_Bomb( centity_t *cent ) {
 	beam.renderfx = RF_NOSHADOW;
 	beam.customShader = cgs.media.railCoreShader;
 	
-	// Set laser visibility - teammates see more visible laser, enemies see more transparent
-	if (isTeammate) {
-		laserAlpha = TRIPMINE_LASER_ALPHA_TEAMMATE;
-	} else {
-		laserAlpha = TRIPMINE_LASER_ALPHA_ENEMY;
-	}
-	
 	// Set laser color based on team
 	if (isAxisTeam) {
 		// Red laser for Axis
@@ -905,7 +894,7 @@ static void CG_Bomb( centity_t *cent ) {
 		beam.shaderRGBA[1] = 0;
 		beam.shaderRGBA[2] = 255;
 	}
-	beam.shaderRGBA[3] = laserAlpha;
+	beam.shaderRGBA[3] = 255;
 
 	AxisClear( beam.axis );
 
