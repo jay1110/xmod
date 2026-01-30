@@ -173,6 +173,39 @@ void Weapon_Knife( gentity_t *ent ) {
 		}
 	}
 
+	// SBW_KNIFE_HEADSHOT - Check for headshot with knife
+	if (traceEnt->client && traceEnt->health > 0 && (cvars::bg_weapons.ivalue & SBW_KNIFE_HEADSHOT)) {
+		// Calculate the height of the hit relative to the target's origin
+		float hitHeight = tr.endpos[2] - traceEnt->r.currentOrigin[2];
+		
+		// Check if target is prone, crouching, or standing
+		float headHeight;
+		if (traceEnt->client->ps.eFlags & EF_PRONE) {
+			headHeight = 12.0f; // Prone head height
+		} else if (traceEnt->client->ps.pm_flags & PMF_DUCKED) {
+			headHeight = 36.0f; // Crouching head height
+		} else {
+			headHeight = 48.0f; // Standing head height
+		}
+		
+		// If hit is in the head region, apply headshot damage
+		if (hitHeight >= headHeight) {
+			if (damage * 2 < 50)
+				damage = 50;
+			else
+				damage *= 2;
+			
+			// Send headshot event
+			if (!(traceEnt->client->ps.eFlags & EF_HEADSHOT)) {
+				vec3_t dir;
+				VectorSubtract(tr.endpos, trx.start, dir);
+				VectorNormalizeFast(dir);
+				G_AddEvent(traceEnt, EV_LOSE_HAT, DirToByte(dir));
+			}
+			traceEnt->client->ps.eFlags |= EF_HEADSHOT;
+		}
+	}
+
 	G_Damage( traceEnt, ent, ent, vec3_origin, tr.endpos, (damage + rand()%5), 0, mod);
 }
 

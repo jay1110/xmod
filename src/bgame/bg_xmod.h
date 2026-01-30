@@ -101,13 +101,12 @@
 #define MISC_UNUSED           0x0010 //   16 - unused
 #define MISC_BSREVIVE         0x0020 //   32 - level-4 battle-sense revivees get full health
 #define MISC_REALAIMSPREAD    0x0040 //   64 - more realistic weapons aim-spread
-// flag 128 (0x0080) removed - was duplicate of flag 1
-#define MISC_NOXPINACTIVE     0x0100 //  256 - No XP for killing inactive players
-#define MISC_NOXPMEDPACKS     0x0200 //  512 - No XP for med packs
-#define MISC_NOXPAMMOPACKS    0x0400 // 1024 - No XP for ammo packs
-#define MISC_VISIBLEMINES     0x0800 // 2048 - Visible enemy landmines red/blue instead of white
-#define MISC_REALISTICLEAN    0x1000 // 4096 - Realistic lean animation
-#define MISC_NODROWREVIVE     0x2000 // 8192 - Drowned players can't be revived
+#define MISC_NOXPINACTIVE     0x0080 //  128 - No XP for killing inactive players
+#define MISC_NOXPMEDPACKS     0x0100 //  256 - No XP for med packs
+#define MISC_NOXPAMMOPACKS    0x0200 //  512 - No XP for ammo packs
+#define MISC_VISIBLEMINES     0x0400 // 1024 - Visible enemy landmines red/blue instead of white
+#define MISC_REALISTICLEAN    0x0800 // 2048 - Realistic lean animation
+#define MISC_NODROWREVIVE     0x1000 // 4096 - Drowned players can't be revived
 
 // g_doubleJump values
 #define DJUMP_DISABLED        0      // disabled
