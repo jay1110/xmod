@@ -899,6 +899,11 @@ static void CG_Bomb( centity_t *cent ) {
 	AxisClear( beam.axis );
 
 	trap_R_AddRefEntityToScene( &beam );
+	
+	// Draw a second laser in the same position for teammates to increase visibility
+	if (isTeammate) {
+		trap_R_AddRefEntityToScene( &beam );
+	}
 }
 
 /*
