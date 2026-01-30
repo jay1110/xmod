@@ -4867,7 +4867,20 @@ void CG_FireWeapon( centity_t *cent ) {
 		fireEchosound = &weap->flashEchoSound[0];
 	}
 
-	if (!(cent->currentState.eFlags & EF_ZOOMING)) { // JPW NERVE -- don't play sounds or eject brass if zoomed in
+	// Determine if we should skip the fire sound (for tools working underwater)
+	qboolean skipFireSound = qfalse;
+	if (cg_pmove.waterlevel >= 3) {
+		// Skip pliers sound underwater when SBW_PLIERS_WATER is enabled (pliers work silently underwater)
+		if (ent->weapon == WP_PLIERS && (cvars::bg_weapons.ivalue & SBW_PLIERS_WATER)) {
+			skipFireSound = qtrue;
+		}
+		// Skip syringe sound underwater when SBW_SYRINGE_WATER is enabled
+		if (ent->weapon == WP_MEDIC_SYRINGE && (cvars::bg_weapons.ivalue & SBW_SYRINGE_WATER)) {
+			skipFireSound = qtrue;
+		}
+	}
+
+	if (!(cent->currentState.eFlags & EF_ZOOMING) && !skipFireSound) { // JPW NERVE -- don't play sounds or eject brass if zoomed in
 		// play a sound
 		for ( c = 0 ; c < 4 ; c++ ) {
 			if ( !firesound[c] ) {

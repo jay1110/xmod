@@ -1155,8 +1155,8 @@ static void CG_PlayerAngles( centity_t *cent, vec3_t legs[3], vec3_t torso[3], v
 	// The lean value is sent from BG_PlayerStateToEntityState
 	if (cent->currentState.angles2[ROLL] != 0) {
 		float leanf = cent->currentState.angles2[ROLL];
-		// Apply lean to torso roll - divide by 2 for realistic lean appearance
-		torsoAngles[ROLL] += leanf / 2.0f;
+		// Apply lean to torso roll - use full lean value for visible lean animation
+		torsoAngles[ROLL] += leanf;
 	}
 
 	// pain twitch

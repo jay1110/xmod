@@ -979,9 +979,11 @@ static bool G_IsPrimaryWeapon(int classnum, team_t teamnum, weapon_t weapnum) {
         switch (weapnum) {
         case WP_M97:
             return true;
-        // SBW_ENGI - Allow Medics to pick Sten (Allies only)
+        // SBW_ENGI - Allow Medics to pick Sten (Allies) or MP40 (Axis)
         case WP_STEN:
             return ((cvars::bg_weapons.ivalue & SBW_ENGI) && teamnum == TEAM_ALLIES);
+        case WP_MP40:
+            return ((cvars::bg_weapons.ivalue & SBW_ENGI) && teamnum == TEAM_AXIS);
         default:
             return false;
         }
@@ -1012,9 +1014,11 @@ static bool G_IsPrimaryWeapon(int classnum, team_t teamnum, weapon_t weapnum) {
             return (teamnum == TEAM_ALLIES);
         case WP_KAR98:
             return (teamnum == TEAM_AXIS);
-        // SBW_ENGI - Allow Engineers to pick Sten (Allies only)
+        // SBW_ENGI - Allow Engineers to pick Sten (Allies) or MP40 (Axis)
         case WP_STEN:
             return ((cvars::bg_weapons.ivalue & SBW_ENGI) && teamnum == TEAM_ALLIES);
+        case WP_MP40:
+            return ((cvars::bg_weapons.ivalue & SBW_ENGI) && teamnum == TEAM_AXIS);
         default:
             return false;
         }
