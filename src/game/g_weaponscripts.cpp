@@ -48,7 +48,7 @@ static const char* weaponFilenames[WP_NUM_WEAPONS] = {
     "satchel_det",         // WP_SATCHEL_DET
     "tripmine",            // WP_TRIPMINE
     "smoke_bomb",          // WP_SMOKE_BOMB
-    "mobile_mg42",         // WP_MOBILE_MG42
+    "mg42",                // WP_MOBILE_MG42 (NoQuarter uses mg42.weap)
     "k43",                 // WP_K43
     "fg42",                // WP_FG42
     "",                    // WP_DUMMY_MG42
@@ -66,7 +66,7 @@ static const char* weaponFilenames[WP_NUM_WEAPONS] = {
     "adrenaline",          // WP_MEDIC_ADRENALINE
     "akimbo_silencedcolt", // WP_AKIMBO_SILENCEDCOLT
     "akimbo_silencedluger",// WP_AKIMBO_SILENCEDLUGER
-    "mobile_mg42_set",     // WP_MOBILE_MG42_SET
+    "mg42_set",            // WP_MOBILE_MG42_SET (shares mg42.weap script via both_altweap)
     "poison",              // WP_POISON_SYRINGE (was poison_syringe)
     "adrenaline_share",    // WP_ADRENALINE_SHARE
     "m97",                 // WP_M97
@@ -326,18 +326,19 @@ static const char* G_ParseWeaponScriptBoth( const char* data, weaponScriptDef_t*
 ==============
 G_GetAltWeapon
 
-Get the alternate (scoped) weapon for a base weapon.
+Get the alternate (scoped/set) weapon for a base weapon.
 Returns -1 if the weapon has no alternate weapon.
 ==============
 */
 static int G_GetAltWeapon( int weapon )
 {
     switch ( weapon ) {
-        case WP_GARAND:     return WP_GARAND_SCOPE;
-        case WP_K43:        return WP_K43_SCOPE;
-        case WP_FG42:       return WP_FG42SCOPE;
-        // Add more mappings as needed
-        default:            return -1;
+        case WP_GARAND:       return WP_GARAND_SCOPE;
+        case WP_K43:          return WP_K43_SCOPE;
+        case WP_FG42:         return WP_FG42SCOPE;
+        case WP_MOBILE_MG42:  return WP_MOBILE_MG42_SET;
+        case WP_MORTAR:       return WP_MORTAR_SET;
+        default:              return -1;
     }
 }
 
