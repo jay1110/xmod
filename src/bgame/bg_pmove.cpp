@@ -4487,31 +4487,12 @@ static void PM_Weapon( void ) {
 
 			// Pliers: controlled by SBW_PLIERS_WATER flag in g_weapons cvar
 			case WP_PLIERS:
-				{
-					char buffer[32];
-#ifdef CGAMEDLL
-					trap_Cvar_VariableStringBuffer("cg_weapons", buffer, sizeof(buffer));
-#else
-					trap_Cvar_VariableStringBuffer("g_weapons", buffer, sizeof(buffer));
-#endif
-					int weapons_flags = atoi(buffer);
-					nofire = !(weapons_flags & SBW_PLIERS_WATER);
-				}
+				nofire = !(cvars::bg_weapons.ivalue & SBW_PLIERS_WATER);
 				break;
 
 			// Syringe: controlled by SBW_SYRINGE_WATER flag in g_weapons cvar
 			case WP_MEDIC_SYRINGE:
-				// Check flag directly from engine to ensure latest value is used
-				{
-					char buffer[32];
-#ifdef CGAMEDLL
-					trap_Cvar_VariableStringBuffer("cg_weapons", buffer, sizeof(buffer));
-#else
-					trap_Cvar_VariableStringBuffer("g_weapons", buffer, sizeof(buffer));
-#endif
-					int weapons_flags = atoi(buffer);
-					nofire = !(weapons_flags & SBW_SYRINGE_WATER);
-				}
+				nofire = !(cvars::bg_weapons.ivalue & SBW_SYRINGE_WATER);
 				break;
 
 			default:

@@ -2952,6 +2952,7 @@ void CG_Init( int serverMessageNum, int serverCommandSequence, int clientNum, qb
 
 	CG_ParseServerinfo();
 	CG_ParseWolfinfo();		// NERVE - SMF
+	CG_ParseWeaponScripts();	// Parse weapon script configstrings
 
 	cgs.campaignInfoLoaded = qfalse;
 	if( cgs.gametype == GT_WOLF_CAMPAIGN ) {

@@ -2996,6 +2996,7 @@ void CG_ParseXmodinfo( void );
 void CG_ParseServerinfo( void );
 void CG_ParseWolfinfo( void );			// NERVE - SMF
 void CG_ParseSpawns( void );
+void CG_ParseWeaponScripts( void );		// Parse weapon script configstrings
 void CG_ParseServerVersionInfo(const char *pszVersionInfo);
 void CG_ParseReinforcementTimes(const char *pszReinfSeedString);
 void CG_SetConfigValues( void );

@@ -2418,10 +2418,8 @@ void CG_EntityEvent( centity_t *cent, vec3_t position ) {
 		{
 			qboolean skipSound = qfalse;
 			
-			// Read cvar DIRECTLY from engine to ensure latest value is used
-			char buffer[32];
-			trap_Cvar_VariableStringBuffer("cg_weapons", buffer, sizeof(buffer));
-			int weapons_flags = atoi(buffer);
+			// Use the bg_weapons cvar value directly
+			int weapons_flags = cvars::bg_weapons.ivalue;
 			
 			// Check weapon sources to cover predicted and server events
 			weapon_t currentWeapon = (weapon_t)cg.predictedPlayerState.weapon;

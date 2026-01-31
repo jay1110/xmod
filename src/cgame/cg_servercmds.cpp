@@ -350,6 +350,19 @@ static void CG_ParseWeaponScript( int weapon ) {
 
 /*
 ==================
+CG_ParseWeaponScripts
+Parse all weapon script configstrings at init time
+==================
+*/
+void CG_ParseWeaponScripts( void ) {
+    int i;
+    for ( i = 0; i < WP_NUM_WEAPONS; i++ ) {
+        CG_ParseWeaponScript( i );
+    }
+}
+
+/*
+==================
 CG_ParseSkillLevels
 Jaybird
 ==================
