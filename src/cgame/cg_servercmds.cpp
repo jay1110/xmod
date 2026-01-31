@@ -136,6 +136,9 @@ void CG_ParseServerinfo( void ) {
 
 	// TTimo - make this available for ingame_callvote	
 	trap_Cvar_Set( "cg_ui_voteFlags", ((authLevel.integer == RL_NONE) ? Info_ValueForKey(info, "voteFlags") : "0"));
+	
+	// Parse custom weapon scripts directory for client-side weapon media loading
+	Q_strncpyz( cgs.weaponScriptsDir, Info_ValueForKey( info, "g_weaponScriptsDir" ), sizeof(cgs.weaponScriptsDir) );
 }
 
 /*

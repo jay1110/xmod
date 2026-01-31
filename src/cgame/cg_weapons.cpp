@@ -1657,7 +1657,16 @@ void CG_RegisterWeapon( int weaponNum, qboolean force ) {
 		default:						CG_Printf( S_COLOR_RED "WARNING: trying to register weapon %i but there is no weapon file entry for it.\n", weaponNum ); return;
 	}
 
-	if( !CG_RegisterWeaponFromWeaponFile( va( "weapons/%s", filename ), weaponInfo ) ) {
+	// Try to load from custom weapons directory first (if set and different from "weapons"),
+	// then fall back to standard "weapons/" folder
+	qboolean loaded = qfalse;
+	
+	if ( cgs.weaponScriptsDir[0] != '\0' && Q_stricmp( cgs.weaponScriptsDir, "weapons" ) != 0 ) {
+		loaded = CG_RegisterWeaponFromWeaponFile( va( "%s/%s", cgs.weaponScriptsDir, filename ), weaponInfo );
+	}
+	
+	// If not loaded from custom dir, try standard "weapons/" folder
+	if ( !loaded && !CG_RegisterWeaponFromWeaponFile( va( "weapons/%s", filename ), weaponInfo ) ) {
 		CG_Printf( S_COLOR_RED "WARNING: failed to register media for weapon %i from %s\n", weaponNum, filename );
 	}
 }

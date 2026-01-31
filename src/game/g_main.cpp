@@ -416,8 +416,8 @@ cvarTable_t		gameCvarTable[] = {
     // Damage weapons (shoot to destroy)
     { &g_damageweapons,     "g_damageweapons",      "0",        CVAR_ARCHIVE },
 
-    // Weapon scripts directory
-    { &g_weaponScriptsDir,  "g_weaponScriptsDir",   "",         CVAR_ARCHIVE },
+    // Weapon scripts directory (SERVERINFO so client can load weapon media from custom folder)
+    { &g_weaponScriptsDir,  "g_weaponScriptsDir",   "",         CVAR_ARCHIVE | CVAR_SERVERINFO },
 
     // Some useful mod-info cvars.
     { NULL, "mod_binary",  XMOD_buildTarget, CVAR_SERVERINFO | CVAR_ROM },

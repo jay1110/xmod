@@ -2196,6 +2196,9 @@ typedef struct {
 		char		killMessage2[128];
 		char		selfKillMessage[128];
 	} weaponScripts[WP_NUM_WEAPONS];
+	
+	// Custom weapon scripts directory from server (for client-side .weap loading)
+	char				weaponScriptsDir[MAX_QPATH];
 } cgs_t;
 
 //==============================================================================
