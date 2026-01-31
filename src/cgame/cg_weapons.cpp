@@ -4868,22 +4868,25 @@ void CG_FireWeapon( centity_t *cent ) {
 	}
 
 	// Determine if we should skip the fire sound (for tools working underwater)
-	// Check if local player is underwater - use predicted state for most accurate check
+	// Check if local player is underwater
 	if (ent->number == cg.snap->ps.clientNum) {
-		// Check water level from predicted player state
+		// Use CG_PointContents with position at view height to check if player's head is underwater
 		vec3_t point;
-		point[0] = cg.predictedPlayerState.origin[0];
-		point[1] = cg.predictedPlayerState.origin[1];
-		point[2] = cg.predictedPlayerState.origin[2] + cg.predictedPlayerState.viewheight;
+		point[0] = cg.snap->ps.origin[0];
+		point[1] = cg.snap->ps.origin[1];
+		point[2] = cg.snap->ps.origin[2] + cg.snap->ps.viewheight;
 		int contents = CG_PointContents(point, cg.snap->ps.clientNum);
 		
-		// Skip pliers sound underwater when SBW_PLIERS_WATER is enabled
-		if (ent->weapon == WP_PLIERS && (cvars::bg_weapons.ivalue & SBW_PLIERS_WATER) && (contents & MASK_WATER)) {
-			return; // Completely skip all sound/effect processing for pliers underwater
-		}
-		// Skip syringe sound underwater when SBW_SYRINGE_WATER is enabled
-		if (ent->weapon == WP_MEDIC_SYRINGE && (cvars::bg_weapons.ivalue & SBW_SYRINGE_WATER) && (contents & MASK_WATER)) {
-			return; // Completely skip all sound/effect processing for syringe underwater
+		// If head is underwater and the relevant flag is enabled, skip sound
+		if (contents & MASK_WATER) {
+			// Skip pliers sound underwater when SBW_PLIERS_WATER is enabled
+			if (ent->weapon == WP_PLIERS && (cvars::bg_weapons.ivalue & SBW_PLIERS_WATER)) {
+				return; // Completely skip all sound/effect processing for pliers underwater
+			}
+			// Skip syringe sound underwater when SBW_SYRINGE_WATER is enabled
+			if (ent->weapon == WP_MEDIC_SYRINGE && (cvars::bg_weapons.ivalue & SBW_SYRINGE_WATER)) {
+				return; // Completely skip all sound/effect processing for syringe underwater
+			}
 		}
 	}
 
