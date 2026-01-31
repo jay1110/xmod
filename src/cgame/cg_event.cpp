@@ -2414,29 +2414,24 @@ void CG_EntityEvent( centity_t *cent, vec3_t position ) {
 
 	case EV_NOFIRE_UNDERWATER:
 		DEBUGNAME("EV_NOFIRE_UNDERWATER");
-		// Don't play click sound for pliers/syringe when they're allowed to work underwater
+		// Check if we should suppress the click sound for syringe (controlled by cvar)
+		// Note: Pliers always work underwater now (NoQuarter behavior) so they never trigger this event
 		{
 			qboolean skipSound = qfalse;
 			
 			// Read cvar DIRECTLY from engine to ensure latest value is used
-			// (the Cvar class cache may be stale during prediction)
 			char buffer[32];
 			trap_Cvar_VariableStringBuffer("cg_weapons", buffer, sizeof(buffer));
 			int weapons_flags = atoi(buffer);
 			
-			// Check ALL possible weapon sources to cover predicted and server events
+			// Check weapon sources to cover predicted and server events
 			weapon_t currentWeapon = (weapon_t)cg.predictedPlayerState.weapon;
 			weapon_t esWeapon = (weapon_t)es->weapon;
 			weapon_t snapWeapon = (weapon_t)cg.snap->ps.weapon;
 			
-			// Skip sound for pliers if SBW_PLIERS_WATER is enabled
-			if ((currentWeapon == WP_PLIERS || esWeapon == WP_PLIERS || snapWeapon == WP_PLIERS) && 
-			    (weapons_flags & SBW_PLIERS_WATER)) {
-				skipSound = qtrue;
-			}
 			// Skip sound for syringe if SBW_SYRINGE_WATER is enabled
-			else if ((currentWeapon == WP_MEDIC_SYRINGE || esWeapon == WP_MEDIC_SYRINGE || snapWeapon == WP_MEDIC_SYRINGE) && 
-			         (weapons_flags & SBW_SYRINGE_WATER)) {
+			if ((currentWeapon == WP_MEDIC_SYRINGE || esWeapon == WP_MEDIC_SYRINGE || snapWeapon == WP_MEDIC_SYRINGE) && 
+			    (weapons_flags & SBW_SYRINGE_WATER)) {
 				skipSound = qtrue;
 			}
 			
