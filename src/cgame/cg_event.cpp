@@ -2340,19 +2340,25 @@ void CG_EntityEvent( centity_t *cent, vec3_t position ) {
 		{
 			qboolean skipSound = qfalse;
 			
-			// Check BOTH es->weapon AND cg.predictedPlayerState.weapon to cover all cases
-			// The event can come from server (uses es->weapon) or client prediction (es->weapon may be stale)
-			weapon_t serverWeapon = (weapon_t)es->weapon;
-			weapon_t predictedWeapon = (weapon_t)cg.predictedPlayerState.weapon;
+			// Read cvar DIRECTLY from engine to ensure latest value is used
+			// (the Cvar class cache may be stale during prediction)
+			char buffer[32];
+			trap_Cvar_VariableStringBuffer("cg_weapons", buffer, sizeof(buffer));
+			int weapons_flags = atoi(buffer);
+			
+			// Check ALL possible weapon sources to cover predicted and server events
+			weapon_t currentWeapon = (weapon_t)cg.predictedPlayerState.weapon;
+			weapon_t esWeapon = (weapon_t)es->weapon;
+			weapon_t snapWeapon = (weapon_t)cg.snap->ps.weapon;
 			
 			// Skip sound for pliers if SBW_PLIERS_WATER is enabled
-			if ((serverWeapon == WP_PLIERS || predictedWeapon == WP_PLIERS) && 
-			    (cvars::bg_weapons.ivalue & SBW_PLIERS_WATER)) {
+			if ((currentWeapon == WP_PLIERS || esWeapon == WP_PLIERS || snapWeapon == WP_PLIERS) && 
+			    (weapons_flags & SBW_PLIERS_WATER)) {
 				skipSound = qtrue;
 			}
 			// Skip sound for syringe if SBW_SYRINGE_WATER is enabled
-			else if ((serverWeapon == WP_MEDIC_SYRINGE || predictedWeapon == WP_MEDIC_SYRINGE) && 
-			         (cvars::bg_weapons.ivalue & SBW_SYRINGE_WATER)) {
+			else if ((currentWeapon == WP_MEDIC_SYRINGE || esWeapon == WP_MEDIC_SYRINGE || snapWeapon == WP_MEDIC_SYRINGE) && 
+			         (weapons_flags & SBW_SYRINGE_WATER)) {
 				skipSound = qtrue;
 			}
 			
