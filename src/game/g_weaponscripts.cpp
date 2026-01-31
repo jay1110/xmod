@@ -434,6 +434,9 @@ void G_ApplyWeaponScript( int weapon )
     }
     
     ammo = GetAmmoTableData( weapon );
+    if ( !ammo ) {
+        return;
+    }
     
     // Apply properties if they were set (non-zero)
     if ( script->maxAmmo > 0 ) {

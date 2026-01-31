@@ -163,7 +163,7 @@ The following weapon script filenames are supported:
 - grenade_pineapple.weap
 - sten.weap
 - syringe.weap
-- silencer.weap
+- silencer.weap (Luger with silencer)
 - dynamite.weap
 - medkit.weap
 - binoculars.weap
@@ -174,6 +174,7 @@ The following weapon script filenames are supported:
 - garand.weap
 - landmine.weap
 - satchel.weap
+- satchel_det.weap
 - tripmine.weap
 - smoke_bomb.weap
 - mobile_mg42.weap
@@ -184,7 +185,7 @@ The following weapon script filenames are supported:
 - akimbo_luger.weap
 - gpg40.weap
 - m7.weap
-- silenced_colt.weap
+- silenced_colt.weap (Colt with silencer)
 - garand_scope.weap
 - k43_scope.weap
 - fg42_scope.weap
@@ -194,6 +195,7 @@ The following weapon script filenames are supported:
 - akimbo_silencedluger.weap
 - mobile_mg42_set.weap
 - poison_syringe.weap
+- adrenaline_share.weap
 - m97.weap
 - poison_gas.weap
 - landmine_bbetty.weap
