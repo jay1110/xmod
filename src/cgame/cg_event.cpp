@@ -2414,8 +2414,9 @@ void CG_EntityEvent( centity_t *cent, vec3_t position ) {
 
 	case EV_NOFIRE_UNDERWATER:
 		DEBUGNAME("EV_NOFIRE_UNDERWATER");
-		// Check if we should suppress the click sound for pliers/syringe (controlled by cvar)
-		{
+		// Rate-limit the sound to prevent flooding during client prediction
+		// Only play the sound if 500ms has passed since last play
+		if (cg.time >= cg.nextNofireSoundTime) {
 			qboolean skipSound = qfalse;
 			
 			// Use the bg_weapons cvar value directly
@@ -2440,6 +2441,9 @@ void CG_EntityEvent( centity_t *cent, vec3_t position ) {
 			if (!skipSound && cgs.media.noFireUnderwater) {
 				trap_S_StartSound (NULL, es->number, CHAN_WEAPON, cgs.media.noFireUnderwater);
 			}
+			
+			// Set next allowed sound time to 500ms from now
+			cg.nextNofireSoundTime = cg.time + 500;
 		}
 		break;
 

@@ -1246,6 +1246,9 @@ typedef struct {
     qboolean allowIncrease;
 
     int server_settings;  // updated via CS_SERVERTOGGLES
+    
+    // Rate-limit underwater nofire sound to prevent flooding during prediction
+    int nextNofireSoundTime;
 } cg_t;
 
 extern bool needClientFlagsUpdated;

@@ -473,43 +473,79 @@ void G_ApplyWeaponScript( int weapon )
 G_LoadWeaponScripts
 
 Load all weapon scripts from the configured directory
+If a weapon script is not found in the custom directory, fall back to "weapons/" folder
 ==============
 */
 void G_LoadWeaponScripts( void )
 {
     char filename[MAX_WEAPONSCRIPT_PATH];
     int i;
-    int loaded = 0;
+    int loadedCustom = 0;
+    int loadedFallback = 0;
+    qboolean useCustomDir = (qboolean)(g_weaponScriptsDir.string[0] != '\0');
+    qboolean useFallback;
+    const char* customDir;
+    const char* fallbackDir = "weapons";
     
-    if ( !g_weaponScriptsDir.string[0] ) {
-        return;
+    // Determine directories to use
+    if ( useCustomDir ) {
+        customDir = g_weaponScriptsDir.string;
+        // Fallback is enabled if custom dir is different from standard "weapons"
+        useFallback = (qboolean)(Q_stricmp( customDir, fallbackDir ) != 0);
+    } else {
+        // No custom dir specified, use standard "weapons" folder as primary
+        customDir = fallbackDir;
+        useFallback = qfalse;
     }
     
-    G_Printf( "Loading weapon scripts from '%s'...\n", g_weaponScriptsDir.string );
+    G_Printf( "Loading weapon scripts from '%s'...\n", customDir );
+    if ( useFallback ) {
+        G_Printf( "  (fallback to '%s/' if not found)\n", fallbackDir );
+    }
     
     // Reset all scripts first
     G_ResetWeaponScripts();
     
     // Try to load a script for each weapon
     for ( i = 0; i < WP_NUM_WEAPONS; i++ ) {
+        qboolean scriptLoaded = qfalse;
+        
         // Skip weapons without a filename
         if ( !weaponFilenames[i][0] ) {
             continue;
         }
         
-        // Build the filename
+        // Try to load from primary directory
         Com_sprintf( filename, sizeof(filename), "%s/%s.weap", 
-                     g_weaponScriptsDir.string, weaponFilenames[i] );
+                     customDir, weaponFilenames[i] );
         
-        // Try to parse it
         if ( G_ParseWeaponScript( filename, i ) ) {
             G_ApplyWeaponScript( i );
             G_Printf( "  Loaded: %s\n", filename );
-            loaded++;
+            loadedCustom++;
+            scriptLoaded = qtrue;
+        }
+        
+        // If not loaded and fallback is enabled, try the fallback directory
+        if ( !scriptLoaded && useFallback ) {
+            Com_sprintf( filename, sizeof(filename), "%s/%s.weap", 
+                         fallbackDir, weaponFilenames[i] );
+            
+            if ( G_ParseWeaponScript( filename, i ) ) {
+                G_ApplyWeaponScript( i );
+                G_Printf( "  Loaded (fallback): %s\n", filename );
+                loadedFallback++;
+            }
         }
     }
     
-    G_Printf( "Loaded %d weapon script(s)\n", loaded );
+    // Print summary
+    if ( useFallback && loadedFallback > 0 ) {
+        G_Printf( "Loaded %d weapon script(s) from '%s', %d from fallback '%s'\n", 
+                  loadedCustom, customDir, loadedFallback, fallbackDir );
+    } else {
+        G_Printf( "Loaded %d weapon script(s)\n", loadedCustom + loadedFallback );
+    }
     
     // Broadcast weapon script data to clients via configstrings
     G_BroadcastWeaponScripts();
