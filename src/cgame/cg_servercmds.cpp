@@ -303,6 +303,53 @@ void CG_ParseXmodinfo( void) {
 
 /*
 ==================
+CG_ParseWeaponScript
+Parse weapon script data from a configstring
+==================
+*/
+static void CG_ParseWeaponScript( int weapon ) {
+    const char* const info = CG_ConfigString( CS_WEAPONSCRIPTS + weapon );
+    const char* val;
+
+    if ( weapon < 0 || weapon >= WP_NUM_WEAPONS ) {
+        return;
+    }
+
+    // Parse name
+    val = Info_ValueForKey( info, "n" );
+    if ( val[0] ) {
+        Q_strncpyz( cgs.weaponScripts[weapon].name, val, sizeof(cgs.weaponScripts[weapon].name) );
+    } else {
+        cgs.weaponScripts[weapon].name[0] = '\0';
+    }
+
+    // Parse killMessage
+    val = Info_ValueForKey( info, "k" );
+    if ( val[0] ) {
+        Q_strncpyz( cgs.weaponScripts[weapon].killMessage, val, sizeof(cgs.weaponScripts[weapon].killMessage) );
+    } else {
+        cgs.weaponScripts[weapon].killMessage[0] = '\0';
+    }
+
+    // Parse killMessage2
+    val = Info_ValueForKey( info, "l" );
+    if ( val[0] ) {
+        Q_strncpyz( cgs.weaponScripts[weapon].killMessage2, val, sizeof(cgs.weaponScripts[weapon].killMessage2) );
+    } else {
+        cgs.weaponScripts[weapon].killMessage2[0] = '\0';
+    }
+
+    // Parse selfKillMessage
+    val = Info_ValueForKey( info, "s" );
+    if ( val[0] ) {
+        Q_strncpyz( cgs.weaponScripts[weapon].selfKillMessage, val, sizeof(cgs.weaponScripts[weapon].selfKillMessage) );
+    } else {
+        cgs.weaponScripts[weapon].selfKillMessage[0] = '\0';
+    }
+}
+
+/*
+==================
 CG_ParseSkillLevels
 Jaybird
 ==================
@@ -765,6 +812,12 @@ void CG_ConfigStringModified( void )
 
         default:
             break;
+    }
+
+    // Handle weapon script configstrings
+    if (index >= CS_WEAPONSCRIPTS && index < CS_WEAPONSCRIPTS + WP_NUM_WEAPONS) {
+        CG_ParseWeaponScript( index - CS_WEAPONSCRIPTS );
+        return;
     }
 
     if (index >= CS_MULTI_SPAWNTARGETS && index < CS_MULTI_SPAWNTARGETS + MAX_MULTI_SPAWNTARGETS) {

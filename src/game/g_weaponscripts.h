@@ -96,6 +96,9 @@ void G_ApplyWeaponScript( int weapon );
 // Reset all weapon scripts to defaults
 void G_ResetWeaponScripts( void );
 
+// Broadcast weapon scripts to clients via configstrings
+void G_BroadcastWeaponScripts( void );
+
 ///////////////////////////////////////////////////////////////////////////////
 
 #endif // GAME_G_WEAPONSCRIPTS_H

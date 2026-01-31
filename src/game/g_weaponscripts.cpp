@@ -510,4 +510,48 @@ void G_LoadWeaponScripts( void )
     }
     
     G_Printf( "Loaded %d weapon script(s)\n", loaded );
+    
+    // Broadcast weapon script data to clients via configstrings
+    G_BroadcastWeaponScripts();
+}
+
+/*
+==============
+G_BroadcastWeaponScripts
+
+Send weapon script data (name, killMessage, killMessage2) to all clients via configstrings
+==============
+*/
+void G_BroadcastWeaponScripts( void )
+{
+    char cs[MAX_INFO_STRING];
+    int i;
+    weaponScriptDef_t* script;
+    
+    for ( i = 0; i < WP_NUM_WEAPONS; i++ ) {
+        script = &weaponScripts[i];
+        
+        // Clear the configstring
+        cs[0] = '\0';
+        
+        if ( script->hasScript ) {
+            // Build configstring with weapon script data
+            // Format: n\<name>\k\<killMessage>\l\<killMessage2>\s\<selfKillMessage>
+            if ( script->name[0] ) {
+                Info_SetValueForKey( cs, "n", script->name );
+            }
+            if ( script->killMessage[0] ) {
+                Info_SetValueForKey( cs, "k", script->killMessage );
+            }
+            if ( script->killMessage2[0] ) {
+                Info_SetValueForKey( cs, "l", script->killMessage2 );
+            }
+            if ( script->selfKillMessage[0] ) {
+                Info_SetValueForKey( cs, "s", script->selfKillMessage );
+            }
+        }
+        
+        // Set the configstring for this weapon
+        trap_SetConfigstring( CS_WEAPONSCRIPTS + i, cs );
+    }
 }

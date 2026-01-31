@@ -2185,6 +2185,14 @@ typedef struct {
 	oidInfo_t			oidInfo[MAX_OID_TRIGGERS];
 
 	qboolean			initing;
+
+	// Weapon script custom data from server
+	struct {
+		char		name[64];
+		char		killMessage[128];
+		char		killMessage2[128];
+		char		selfKillMessage[128];
+	} weaponScripts[WP_NUM_WEAPONS];
 } cgs_t;
 
 //==============================================================================
