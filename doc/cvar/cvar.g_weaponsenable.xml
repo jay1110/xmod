@@ -1,0 +1,76 @@
+<refentry id="cvar.g_weaponsenable">
+
+<refmeta>
+    <refentrytitle>g_weaponsenable</refentrytitle>
+    <manvolnum>cvar</manvolnum>
+</refmeta>
+
+<refnamediv>
+    <refname>g_weaponsenable</refname>
+    <refpurpose>enable/disable special weapons</refpurpose>
+</refnamediv>
+
+<refsynopsisdiv>
+    <cmdsynopsis>
+        <command>g_weaponsenable</command>
+        <arg><replaceable>flags</replaceable></arg>
+    </cmdsynopsis>
+
+<table id="cvar.g_weaponsenable.flags" frame="all">
+<title>g_weaponsenable Flags</title>
+<tgroup cols="2" align="left" colsep="1" rowsep="1">
+    <colspec colnum="1" colwidth="9*" align="center"/>
+    <colspec colnum="2" colwidth="91*"/>
+    <thead>
+        <row>
+            <entry>FLAG</entry>
+            <entry>DESCRIPTION</entry>
+        </row>
+    </thead>
+    <tbody>
+        <row>
+            <entry>1</entry>
+            <entry>Enable Molotov-Cocktails</entry>
+        </row>
+        <row>
+            <entry>2</entry>
+            <entry>Enable poison gas canisters</entry>
+        </row>
+        <row>
+            <entry>4</entry>
+            <entry>Enable poison gas landmines</entry>
+        </row>
+        <row>
+            <entry>8</entry>
+            <entry>Enable tripmines</entry>
+        </row>
+        <row>
+            <entry>16</entry>
+            <entry>Enable Winchester M97 (shotgun)</entry>
+        </row>
+        <row>
+            <entry>32</entry>
+            <entry>Enable throwing knives</entry>
+        </row>
+    </tbody>
+</tgroup>
+</table>
+</refsynopsisdiv>
+
+<refsection>
+<title>Default</title>
+    <cmdsynopsis>
+        <command>g_weaponsenable</command>
+        <arg choice="plain"><literal>0</literal></arg>
+    </cmdsynopsis>
+</refsection>
+
+<refsection>
+<title>Description</title>
+<para>
+    <command>g_weaponsenable</command>
+    sets bitflags to enable or disable special weapons that are not available by default.
+</para>
+</refsection>
+
+</refentry>

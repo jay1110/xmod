@@ -50,6 +50,24 @@ BG_updateAmmoTable()
         ammoTableMP[WP_STEN].nextShotTime     = 110; // RTCW: 110
     }
 
+    // SBW_FASTSHOOTING - Enable fast shooting for MP40, Thompson and Sten (delay lowered from 150ms to 110ms)
+    if (cvars::bg_weapons.ivalue & SBW_FASTSHOOTING) {
+        ammoTableMP[WP_MP40].nextShotTime     = 110;
+        ammoTableMP[WP_THOMPSON].nextShotTime = 110;
+        ammoTableMP[WP_STEN].nextShotTime     = 110;
+    }
+
+    // SBW_NOSTEN_HEAT - Disable Sten overheating
+    if (cvars::bg_weapons.ivalue & SBW_NOSTEN_HEAT) {
+        ammoTableMP[WP_STEN].maxHeat = 0;
+    }
+
+    // SBW_NOMG42_HEAT - Disable Mobile MG42 overheating
+    if (cvars::bg_weapons.ivalue & SBW_NOMG42_HEAT) {
+        ammoTableMP[WP_MOBILE_MG42].maxHeat = 0;
+        ammoTableMP[WP_MOBILE_MG42_SET].maxHeat = 0;
+    }
+
     if (cvars::bg_ammoUnlimited.ivalue) {
         for (int i = 0; i < WP_NUM_WEAPONS; i++) {
             ammoTableMP[i].uses = 0;

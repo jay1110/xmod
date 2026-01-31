@@ -290,6 +290,7 @@ void CG_CheckPlayerstateEvents_wolf( playerState_t *ps, playerState_t *ops ) {
 
 			cent->currentState.event = event;
 			cent->currentState.eventParm = ps->eventParms[ i & (MAX_EVENTS-1) ];
+			cent->currentState.weapon = ps->weapon;  // xmod: set weapon for event handlers
 			CG_EntityEvent( cent, cent->lerpOrigin );
 		}
 	}
@@ -304,6 +305,7 @@ void CG_CheckPlayerstateEvents( playerState_t *ps, playerState_t *ops ) {
 		cent = &cg_entities[ ps->clientNum ];
 		cent->currentState.event = ps->externalEvent;
 		cent->currentState.eventParm = ps->externalEventParm;
+		cent->currentState.weapon = ps->weapon;  // xmod: set weapon for event handlers
 		CG_EntityEvent( cent, cent->lerpOrigin );
 	}
 
@@ -319,6 +321,7 @@ void CG_CheckPlayerstateEvents( playerState_t *ps, playerState_t *ops ) {
 			event = ps->events[ i & (MAX_EVENTS-1) ];
 			cent->currentState.event = event;
 			cent->currentState.eventParm = ps->eventParms[ i & (MAX_EVENTS-1) ];
+			cent->currentState.weapon = ps->weapon;  // xmod: set weapon for event handlers
 			CG_EntityEvent( cent, cent->lerpOrigin );
 
 			cg.predictableEvents[ i & (MAX_PREDICTED_EVENTS-1) ] = event;
@@ -352,6 +355,7 @@ void CG_CheckChangedPredictableEvents( playerState_t *ps ) {
 				event = ps->events[ i & (MAX_EVENTS-1) ];
 				cent->currentState.event = event;
 				cent->currentState.eventParm = ps->eventParms[ i & (MAX_EVENTS-1) ];
+				cent->currentState.weapon = ps->weapon;  // xmod: set weapon for event handlers
 				CG_EntityEvent( cent, cent->lerpOrigin );
 
 				cg.predictableEvents[ i & (MAX_PREDICTED_EVENTS-1) ] = event;

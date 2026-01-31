@@ -1213,9 +1213,28 @@ void CG_Missile( centity_t *cent ) {
 
 						if( distSquared > Square(256) )
 							return;
-						else
-							//ent.customShader = cgs.media.genericConstructionShaderModel;
-							ent.customShader = cgs.media.genericConstructionShader;
+						else {
+							// MISC_VISIBLEMINES - Use colored shader (red/blue) instead of white
+							if (cvars::bg_misc.ivalue & MISC_VISIBLEMINES) {
+								ent.customShader = cgs.media.colorConstructionShader;
+								if( cent->currentState.otherEntityNum2 ) {
+									// Enemy Axis mines appear red
+									ent.shaderRGBA[0] = 255;
+									ent.shaderRGBA[1] = 64;
+									ent.shaderRGBA[2] = 64;
+									ent.shaderRGBA[3] = 200;
+								} else {
+									// Enemy Allied mines appear blue
+									ent.shaderRGBA[0] = 64;
+									ent.shaderRGBA[1] = 64;
+									ent.shaderRGBA[2] = 255;
+									ent.shaderRGBA[3] = 200;
+								}
+							} else {
+								//ent.customShader = cgs.media.genericConstructionShaderModel;
+								ent.customShader = cgs.media.genericConstructionShader;
+							}
+						}
 					} else {
 						return;
 					}

@@ -210,6 +210,43 @@ void G_MissileImpact( gentity_t *ent, trace_t *trace, int impactDamage ) {
 				damage = 10000;
 			}
 
+			// SBW_THKNIFE_HEADSHOT - Check for headshot with throwing knife
+			gentity_t* target = other->dmgparent ? other->dmgparent : other;
+			if (ent->methodOfDeath == MOD_THROWING_KNIFE && target->client && target->health > 0 && 
+				(cvars::bg_weapons.ivalue & SBW_THKNIFE_HEADSHOT)) {
+				// Calculate the height of the hit relative to the target's origin
+				float hitHeight = trace->endpos[2] - target->r.currentOrigin[2];
+				
+				// Player bounding box is 48 units tall (standing), head is roughly top 12 units
+				// Crouching bounding box is ~36 units, head is top ~8 units  
+				// Prone bounding box is ~16 units, head is top ~6 units
+				float headHeight;
+				if (target->client->ps.eFlags & EF_PRONE) {
+					headHeight = 10.0f;  // Prone: headshot if hit is in top portion
+				} else if (target->client->ps.pm_flags & PMF_DUCKED) {
+					headHeight = 28.0f;  // Crouching: headshot above ~28 units
+				} else {
+					headHeight = 36.0f;  // Standing: headshot above ~36 units (top 12 of 48)
+				}
+				
+				// If hit is in the head region, apply headshot damage
+				if (hitHeight >= headHeight) {
+					if (damage * 2 < 50)
+						damage = 50;
+					else
+						damage *= 2;
+					
+					// Send headshot event
+					if (!(target->client->ps.eFlags & EF_HEADSHOT)) {
+						vec3_t dir;
+						VectorCopy(velocity, dir);
+						VectorNormalizeFast(dir);
+						G_AddEvent(target, EV_LOSE_HAT, DirToByte(dir));
+					}
+					target->client->ps.eFlags |= EF_HEADSHOT;
+				}
+			}
+
 			G_Damage( other->dmgparent ? other->dmgparent : other, ent, &g_entities[ent->r.ownerNum], velocity, ent->s.origin, damage, 0, ent->methodOfDeath );
 
 			// Jaybird - added poison throwing knives
@@ -2236,6 +2273,12 @@ gentity_t *fire_grenade (gentity_t *self, vec3_t start, vec3_t dir, int grenadeW
 
 			bolt->r.snapshotCallback	= qtrue;
 
+			// SBW_ENG_MINE_DMG - Level 5 Engineers' landmines inflict +15% damage
+			if ((cvars::bg_weapons.ivalue & SBW_ENG_MINE_DMG) &&
+				self->client->sess.skill[SK_EXPLOSIVES_AND_CONSTRUCTION] >= 5) {
+				bolt->splashDamage = int(bolt->splashDamage * 1.15f);
+			}
+
 			VectorSet(bolt->r.mins, -16, -16, 0);
 			VectorCopy(bolt->r.mins, bolt->r.absmin);
 			VectorSet(bolt->r.maxs, 16, 16, 16);
@@ -2255,6 +2298,12 @@ gentity_t *fire_grenade (gentity_t *self, vec3_t start, vec3_t dir, int grenadeW
 			bolt->r.contents			= CONTENTS_CORPSE;	// (player can walk through)
 
 			bolt->r.snapshotCallback	= qtrue;
+
+			// SBW_ENG_MINE_DMG - Level 5 Engineers' landmines inflict +15% damage
+			if ((cvars::bg_weapons.ivalue & SBW_ENG_MINE_DMG) &&
+				self->client->sess.skill[SK_EXPLOSIVES_AND_CONSTRUCTION] >= 5) {
+				bolt->splashDamage = int(bolt->splashDamage * 1.15f);
+			}
 
 			VectorSet(bolt->r.mins, -16, -16, 0);
 			VectorCopy(bolt->r.mins, bolt->r.absmin);
@@ -2276,6 +2325,12 @@ gentity_t *fire_grenade (gentity_t *self, vec3_t start, vec3_t dir, int grenadeW
 			bolt->r.contents			= CONTENTS_CORPSE;	// (player can walk through)
 
 			bolt->r.snapshotCallback	= qtrue;
+
+			// SBW_ENG_MINE_DMG - Level 5 Engineers' landmines inflict +15% damage
+			if ((cvars::bg_weapons.ivalue & SBW_ENG_MINE_DMG) &&
+				self->client->sess.skill[SK_EXPLOSIVES_AND_CONSTRUCTION] >= 5) {
+				bolt->splashDamage = int(bolt->splashDamage * 1.15f);
+			}
 
 			VectorSet(bolt->r.mins, -16, -16, 0);
 			VectorCopy(bolt->r.mins, bolt->r.absmin);

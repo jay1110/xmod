@@ -2789,6 +2789,15 @@ int CG_LimboPanel_WeaponCount_ForSlot( int number ) {
 
 			cnt++;
 		}
+
+		// SBW_ENGI - Add Sten to weapon count for Medics and Engineers (both teams)
+		if (cvars::bg_weapons.ivalue & SBW_ENGI) {
+			int cls = CG_LimboPanel_GetClass();
+			if (cls == PC_MEDIC || cls == PC_ENGINEER) {
+				cnt++;
+			}
+		}
+
 		return cnt;
 	} else {
 		if( cgs.clientinfo[cg.clientNum].skill[SK_HEAVY_WEAPONS] >= 4 && CG_LimboPanel_GetClass() == PC_SOLDIER ) {
@@ -2845,6 +2854,17 @@ weapon_t CG_LimboPanel_GetWeaponForNumber( int number, int slot, qboolean ignore
 				return WP_NONE;
 			} else {
 				return classInfo->classWeapons[ 0 ];
+			}
+		}
+		
+		// SBW_ENGI - Return Sten for Medics/Engineers if number exceeds normal class weapons
+		// Sten is available to both teams' Covert Ops, so it's available to both teams' Medics/Engineers
+		if (cvars::bg_weapons.ivalue & SBW_ENGI) {
+			int cls = CG_LimboPanel_GetClass();
+			// Check bounds and if this position is empty (beyond normal class weapons)
+			if ((cls == PC_MEDIC || cls == PC_ENGINEER) && 
+				number >= 0 && number < MAX_WEAPS_PER_CLASS && !classInfo->classWeapons[number]) {
+				return WP_STEN;
 			}
 		}
 		
@@ -3036,7 +3056,7 @@ qboolean CG_LimboPanel_RealWeaponIsDisabled( weapon_t weap ) {
 	// Jaybird - check some specific weapons
 	switch (weap) {
 		case WP_M97:
-			if (!(cvars::bg_weapons.ivalue & SBW_M97))
+			if (!(cvars::bg_weaponsenable.ivalue & WPEN_M97))
 				return qtrue;
 
 			if (cvars::bg_maxM97s.ivalue < 0)

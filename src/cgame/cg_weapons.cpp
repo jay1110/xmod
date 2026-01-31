@@ -4867,6 +4867,37 @@ void CG_FireWeapon( centity_t *cent ) {
 		fireEchosound = &weap->flashEchoSound[0];
 	}
 
+	// Determine if we should skip the fire sound (for tools working underwater)
+	// Skip pliers/syringe fire sounds when they're allowed to work underwater
+	// IMPORTANT: Only check for local player (ent->number == cg.snap->ps.clientNum)
+	// and use cg.predictedPlayerState.weapon since ent->weapon can be stale for predicted events
+	if (ent->number == cg.snap->ps.clientNum) {
+		weapon_t currentWeapon = (weapon_t)cg.predictedPlayerState.weapon;
+		
+		if (currentWeapon == WP_PLIERS && (cvars::bg_weapons.ivalue & SBW_PLIERS_WATER)) {
+			// Check if player is underwater using predictedPlayerState position
+			vec3_t point;
+			point[0] = cg.predictedPlayerState.origin[0];
+			point[1] = cg.predictedPlayerState.origin[1];
+			point[2] = cg.predictedPlayerState.origin[2] + cg.predictedPlayerState.viewheight;
+			int contents = CG_PointContents(point, cg.snap->ps.clientNum);
+			if (contents & MASK_WATER) {
+				return; // Skip fire sound for pliers underwater
+			}
+		}
+		else if (currentWeapon == WP_MEDIC_SYRINGE && (cvars::bg_weapons.ivalue & SBW_SYRINGE_WATER)) {
+			// Check if player is underwater using predictedPlayerState position
+			vec3_t point;
+			point[0] = cg.predictedPlayerState.origin[0];
+			point[1] = cg.predictedPlayerState.origin[1];
+			point[2] = cg.predictedPlayerState.origin[2] + cg.predictedPlayerState.viewheight;
+			int contents = CG_PointContents(point, cg.snap->ps.clientNum);
+			if (contents & MASK_WATER) {
+				return; // Skip fire sound for syringe underwater
+			}
+		}
+	}
+
 	if (!(cent->currentState.eFlags & EF_ZOOMING)) { // JPW NERVE -- don't play sounds or eject brass if zoomed in
 		// play a sound
 		for ( c = 0 ; c < 4 ; c++ ) {

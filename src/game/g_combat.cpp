@@ -853,6 +853,25 @@ qboolean IsHeadShotWeapon (int mod) {
         case MOD_FG42:
         case MOD_FG42SCOPE:
 		    return qtrue;
+
+        // SBW_MG42_HEADSHOTS - Allow headshots with Mobile MG42
+        case MOD_MOBILE_MG42:
+            if (cvars::bg_weapons.ivalue & SBW_MG42_HEADSHOTS)
+                return qtrue;
+            return qfalse;
+
+        // SBW_KNIFE_HEADSHOT - Knife can get headshots
+        case MOD_KNIFE:
+            if (cvars::bg_weapons.ivalue & SBW_KNIFE_HEADSHOT)
+                return qtrue;
+            return qfalse;
+
+        // SBW_THKNIFE_HEADSHOT - Throwing knife can get headshots
+        case MOD_THROWING_KNIFE:
+            if (cvars::bg_weapons.ivalue & SBW_THKNIFE_HEADSHOT)
+                return qtrue;
+            return qfalse;
+
         default:
     	    return qfalse;
     }

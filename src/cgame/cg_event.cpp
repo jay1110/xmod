@@ -2235,7 +2235,9 @@ void CG_EntityEvent( centity_t *cent, vec3_t position ) {
 			(es->weapon != WP_SMOKE_BOMB) &&
 			(es->weapon != WP_POISON_GAS) &&
 			(es->weapon != WP_AMMO) &&
-			(es->weapon != WP_MEDKIT))
+			(es->weapon != WP_MEDKIT) &&
+			(es->weapon != WP_PLIERS) &&
+			(es->weapon != WP_MEDIC_SYRINGE))
 			trap_S_StartSound (NULL, es->number, CHAN_AUTO, cgs.media.noAmmoSound );
 
 		if( es->number == cg.snap->ps.clientNum && (
@@ -2334,8 +2336,36 @@ void CG_EntityEvent( centity_t *cent, vec3_t position ) {
 
 	case EV_NOFIRE_UNDERWATER:
 		DEBUGNAME("EV_NOFIRE_UNDERWATER");
-		if(cgs.media.noFireUnderwater)
-			trap_S_StartSound (NULL, es->number, CHAN_WEAPON, cgs.media.noFireUnderwater);
+		// Don't play click sound for pliers/syringe when they're allowed to work underwater
+		{
+			qboolean skipSound = qfalse;
+			
+			// Read cvar DIRECTLY from engine to ensure latest value is used
+			// (the Cvar class cache may be stale during prediction)
+			char buffer[32];
+			trap_Cvar_VariableStringBuffer("cg_weapons", buffer, sizeof(buffer));
+			int weapons_flags = atoi(buffer);
+			
+			// Check ALL possible weapon sources to cover predicted and server events
+			weapon_t currentWeapon = (weapon_t)cg.predictedPlayerState.weapon;
+			weapon_t esWeapon = (weapon_t)es->weapon;
+			weapon_t snapWeapon = (weapon_t)cg.snap->ps.weapon;
+			
+			// Skip sound for pliers if SBW_PLIERS_WATER is enabled
+			if ((currentWeapon == WP_PLIERS || esWeapon == WP_PLIERS || snapWeapon == WP_PLIERS) && 
+			    (weapons_flags & SBW_PLIERS_WATER)) {
+				skipSound = qtrue;
+			}
+			// Skip sound for syringe if SBW_SYRINGE_WATER is enabled
+			else if ((currentWeapon == WP_MEDIC_SYRINGE || esWeapon == WP_MEDIC_SYRINGE || snapWeapon == WP_MEDIC_SYRINGE) && 
+			         (weapons_flags & SBW_SYRINGE_WATER)) {
+				skipSound = qtrue;
+			}
+			
+			if (!skipSound && cgs.media.noFireUnderwater) {
+				trap_S_StartSound (NULL, es->number, CHAN_WEAPON, cgs.media.noFireUnderwater);
+			}
+		}
 		break;
 
 	case EV_PLAYER_TELEPORT_IN:

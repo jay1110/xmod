@@ -95,6 +95,10 @@ namespace objects {
 
     extern Cvar bg_proneDelay;
 
+    extern Cvar bg_doubleJump;
+    extern Cvar bg_djHeight;
+    extern Cvar bg_weaponsenable;
+
     extern Cvar gameState;
 }
 

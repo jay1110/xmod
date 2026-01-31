@@ -157,6 +157,7 @@ void Weapon_Knife( gentity_t *ent ) {
 		damage *= 2;	// Watch it - you could hurt someone with that thing!
 
 	// CHRUKER: b002 - Only do backstabs if the body is standing up (ie. alive)
+	qboolean isBackstab = qfalse;
 	if(traceEnt->client && traceEnt->health > 0) 
 	{
 		AngleVectors (ent->client->ps.viewangles,		pforward, NULL, NULL);
@@ -166,10 +167,54 @@ void Weapon_Knife( gentity_t *ent ) {
 		{
 			damage = 100;	// enough to drop a 'normal' (100 health) human with one jab
 			mod = MOD_KNIFE;
+			isBackstab = qtrue;
 
 			if ( ent->client->sess.skill[SK_MILITARY_INTELLIGENCE_AND_SCOPED_WEAPONS] >= 4 ) {
 				damage = traceEnt->health;
 			}
+		}
+	}
+
+	// SBW_KNIFE_HEADSHOT - Check for headshot with knife (only if not a backstab)
+	// Use hitvol from the trace if available (more accurate)
+	if (!isBackstab && traceEnt->client && traceEnt->health > 0 && (cvars::bg_weapons.ivalue & SBW_KNIFE_HEADSHOT)) {
+		qboolean isHeadshot = qfalse;
+		
+		// Check if we got a headshot via the hit volume system
+		if (trx.hitvol && trx.hitvol->zone == AbstractHitVolume::ZONE_HEAD) {
+			isHeadshot = qtrue;
+		}
+		// Fallback to height-based detection if hitvol not available
+		else if (!trx.hitvol) {
+			float hitHeight = tr.endpos[2] - traceEnt->r.currentOrigin[2];
+			float headHeight;
+			if (traceEnt->client->ps.eFlags & EF_PRONE) {
+				headHeight = 12.0f;
+			} else if (traceEnt->client->ps.pm_flags & PMF_DUCKED) {
+				headHeight = 36.0f;
+			} else {
+				headHeight = 48.0f;
+			}
+			if (hitHeight >= headHeight) {
+				isHeadshot = qtrue;
+			}
+		}
+		
+		// Apply headshot damage and effects
+		if (isHeadshot) {
+			if (damage * 2 < 50)
+				damage = 50;
+			else
+				damage *= 2;
+			
+			// Send headshot event
+			if (!(traceEnt->client->ps.eFlags & EF_HEADSHOT)) {
+				vec3_t dir;
+				VectorSubtract(tr.endpos, trx.start, dir);
+				VectorNormalizeFast(dir);
+				G_AddEvent(traceEnt, EV_LOSE_HAT, DirToByte(dir));
+			}
+			traceEnt->client->ps.eFlags |= EF_HEADSHOT;
 		}
 	}
 
@@ -622,6 +667,13 @@ void Weapon_Syringe(gentity_t *ent) {
 		if (traceEnt->client != NULL) {
 
 			if ( traceEnt->client->ps.pm_type == PM_DEAD && traceEnt->client->sess.sessionTeam == ent->client->sess.sessionTeam ) {
+				// MISC_NODROWREVIVE - Don't allow reviving players who drowned
+				if ((cvars::bg_misc.ivalue & MISC_NODROWREVIVE) && traceEnt->deathType == MOD_WATER) {
+					trap_SendServerCommand( ent-g_entities, "cp \"Cannot revive drowned player!\n\"" );
+					// Return ammo - syringe wasn't used
+					ent->client->ps.ammoclip[BG_FindClipForWeapon(WP_MEDIC_SYRINGE)] += 1;
+					return;
+				}
 				// Mad Doc - TDF moved all the revive stuff into its own function
 				usedSyringe = ReviveEntity( ent, traceEnt );
 

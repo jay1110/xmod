@@ -1136,6 +1136,10 @@ void G_UpdateXmodCS() {
 
     Info_SetValueForKey( cs, "z", cvars::bg_proneDelay.svalue );
 
+    Info_SetValueForKey( cs, "A", cvars::bg_doubleJump.svalue );
+    Info_SetValueForKey( cs, "B", cvars::bg_djHeight.svalue );
+    Info_SetValueForKey( cs, "C", cvars::bg_weaponsenable.svalue );
+
     trap_SetConfigstring( CS_XMODINFO, cs );
 }
 

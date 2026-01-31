@@ -815,7 +815,8 @@ PM_CheckDoubleJump
 */
 static qboolean PM_CheckDoubleJump( void ) {
 
-	if ( !( cvars::bg_misc.ivalue & MISC_DOUBLEJUMP )) {
+	// Check if double jump is enabled (g_doubleJump: 0=disabled, 1=xmod style, 2=nitmod style)
+	if ( cvars::bg_doubleJump.ivalue == DJUMP_DISABLED ) {
 		return qfalse;
 	}
 
@@ -827,9 +828,12 @@ static qboolean PM_CheckDoubleJump( void ) {
 		return qfalse;
 	}
 
-	if( pm->cmd.serverTime - pm->pmext->jumpTime >= 850 ) {
-	//if( pm->ps->velocity[2] <= 0 ) {
-		return qfalse;
+	// For xmod style (mode 1), check the 850ms time window
+	// For nitmod style (mode 2), the delay is endless - no time check
+	if( cvars::bg_doubleJump.ivalue == DJUMP_XMOD ) {
+		if( pm->cmd.serverTime - pm->pmext->jumpTime >= 850 ) {
+			return qfalse;
+		}
 	}
 
 	if ( pm->ps->pm_flags & PMF_RESPAWNED ) {
@@ -853,7 +857,8 @@ static qboolean PM_CheckDoubleJump( void ) {
 	pm->ps->pm_flags |= PMF_JUMP_HELD;
 
 	pm->ps->groundEntityNum = ENTITYNUM_NONE;
-	pm->ps->velocity[2] = JUMP_VELOCITY * 1.4f;
+	// Use g_djHeight for the jump height multiplier
+	pm->ps->velocity[2] = JUMP_VELOCITY * cvars::bg_djHeight.fvalue;
 	PM_AddEvent( EV_JUMP );
 	
 	if ( pm->cmd.forwardmove >= 0 ) {
@@ -3567,7 +3572,7 @@ static bool PM_molotov_process() {
     switch (a2->state) {
         case A2_MOLOTOV_IDLE:
             // Do nothing if not enabled.
-            if (!(cvars::bg_weapons.ivalue & SBW_MOLOTOV))
+            if (!(cvars::bg_weaponsenable.ivalue & WPEN_MOLOTOV))
                 return false;
 
             // Block until stateAlarm is satisfied.
@@ -3737,7 +3742,7 @@ static bool PM_throwingKnife_process() {
     switch (a2->state) {
         case A2_THROWINGKNIFE_IDLE:
             // Do nothing if not enabled.
-            if (!(cvars::bg_weapons.ivalue & SBW_THKNIVES))
+            if (!(cvars::bg_weaponsenable.ivalue & WPEN_THKNIVES))
                 return false;
 
             // Block until stateAlarm is satisfied.
@@ -4420,9 +4425,15 @@ static void PM_Weapon( void ) {
 
 	// check for fire
 	// if not on fire button and there's not a delayed shot this frame...
-	// consider also leaning, with delayed attack reset
-	if((!(pm->cmd.buttons & (BUTTON_ATTACK | WBUTTON_ATTACK2)) && !delayedFire) ||
-	  (pm->ps->leanf != 0 && pm->ps->weapon != WP_GRENADE_LAUNCHER && pm->ps->weapon != WP_GRENADE_PINEAPPLE && pm->ps->weapon != WP_SMOKE_BOMB && pm->ps->weapon != WP_POISON_GAS))
+	// consider also leaning, with delayed attack reset (unless SBW_FIRE_LEAN flag allows it)
+	qboolean blockLeanFire = (qboolean)(pm->ps->leanf != 0 && pm->ps->weapon != WP_GRENADE_LAUNCHER && pm->ps->weapon != WP_GRENADE_PINEAPPLE && pm->ps->weapon != WP_SMOKE_BOMB && pm->ps->weapon != WP_POISON_GAS);
+	
+	// SBW_FIRE_LEAN - Allow players to fire while leaning
+	if (cvars::bg_weapons.ivalue & SBW_FIRE_LEAN) {
+		blockLeanFire = qfalse;
+	}
+	
+	if((!(pm->cmd.buttons & (BUTTON_ATTACK | WBUTTON_ATTACK2)) && !delayedFire) || blockLeanFire)
 	{
 		pm->ps->weaponTime	= 0;
 		pm->ps->weaponDelay	= 0;
@@ -4474,15 +4485,55 @@ static void PM_Weapon( void ) {
 				break;
 
 			case WP_PLIERS:
-				nofire = !(cvars::bg_weapons.ivalue & SBW_ENGI);
+				// Check flag directly from engine to ensure latest value is used
+				{
+					char buffer[32];
+#ifdef CGAMEDLL
+					trap_Cvar_VariableStringBuffer("cg_weapons", buffer, sizeof(buffer));
+#else
+					trap_Cvar_VariableStringBuffer("g_weapons", buffer, sizeof(buffer));
+#endif
+					int weapons_flags = atoi(buffer);
+					nofire = !(weapons_flags & SBW_PLIERS_WATER);
+				}
 				break;
 
 			case WP_MEDIC_SYRINGE:
-				nofire = !(cvars::bg_weapons.ivalue & SBW_MEDIC);
+				// Check flag directly from engine to ensure latest value is used
+				{
+					char buffer[32];
+#ifdef CGAMEDLL
+					trap_Cvar_VariableStringBuffer("cg_weapons", buffer, sizeof(buffer));
+#else
+					trap_Cvar_VariableStringBuffer("g_weapons", buffer, sizeof(buffer));
+#endif
+					int weapons_flags = atoi(buffer);
+					nofire = !(weapons_flags & SBW_SYRINGE_WATER);
+				}
 				break;
 
 			default:
-				nofire = 1;
+				// Allow firing underwater if SBW_FIRE_UNDERWATER flag is set
+				// (except flamers, panzers, rifle grenades, mortars and MG42 which should always be blocked)
+				if (cvars::bg_weapons.ivalue & SBW_FIRE_UNDERWATER) {
+					switch (pm->ps->weapon) {
+						case WP_FLAMETHROWER:
+						case WP_PANZERFAUST:
+						case WP_GPG40:
+						case WP_M7:
+						case WP_MORTAR:
+						case WP_MORTAR_SET:
+						case WP_MOBILE_MG42:
+						case WP_MOBILE_MG42_SET:
+							nofire = 1;
+							break;
+						default:
+							nofire = 0;
+							break;
+					}
+				} else {
+					nofire = 1;
+				}
 				break;
 		}
 
