@@ -67,7 +67,7 @@ static const char* weaponFilenames[WP_NUM_WEAPONS] = {
     "akimbo_silencedcolt", // WP_AKIMBO_SILENCEDCOLT
     "akimbo_silencedluger",// WP_AKIMBO_SILENCEDLUGER
     "mobile_mg42_set",     // WP_MOBILE_MG42_SET
-    "poison_syringe",      // WP_POISON_SYRINGE
+    "poison",              // WP_POISON_SYRINGE (was poison_syringe)
     "adrenaline_share",    // WP_ADRENALINE_SHARE
     "m97",                 // WP_M97
     "poison_gas",          // WP_POISON_GAS

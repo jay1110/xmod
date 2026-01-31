@@ -4521,7 +4521,11 @@ static void PM_Weapon( void ) {
 		}
 
 		if (nofire) {
-			PM_AddEvent(EV_NOFIRE_UNDERWATER); // underwater 'click' for nofire
+			// Only add the nofire event if we haven't recently triggered it
+			// This prevents sound flooding during client prediction
+			if (pm->ps->weaponTime <= 0) {
+				PM_AddEvent(EV_NOFIRE_UNDERWATER); // underwater 'click' for nofire
+			}
 			pm->ps->weaponTime	= 500;
 			pm->ps->weaponDelay	= 0; // avoid insta-fire after water exit on delayed weapon attacks
 			return;
