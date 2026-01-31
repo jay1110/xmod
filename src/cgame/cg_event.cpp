@@ -2235,7 +2235,9 @@ void CG_EntityEvent( centity_t *cent, vec3_t position ) {
 			(es->weapon != WP_SMOKE_BOMB) &&
 			(es->weapon != WP_POISON_GAS) &&
 			(es->weapon != WP_AMMO) &&
-			(es->weapon != WP_MEDKIT))
+			(es->weapon != WP_MEDKIT) &&
+			(es->weapon != WP_PLIERS) &&
+			(es->weapon != WP_MEDIC_SYRINGE))
 			trap_S_StartSound (NULL, es->number, CHAN_AUTO, cgs.media.noAmmoSound );
 
 		if( es->number == cg.snap->ps.clientNum && (
@@ -2335,22 +2337,25 @@ void CG_EntityEvent( centity_t *cent, vec3_t position ) {
 	case EV_NOFIRE_UNDERWATER:
 		DEBUGNAME("EV_NOFIRE_UNDERWATER");
 		// Don't play click sound for pliers/syringe when they're allowed to work underwater
-		// Use cg.predictedPlayerState.weapon for local player since es->weapon can be stale for predicted events
 		{
 			qboolean skipSound = qfalse;
-			weapon_t currentWeapon = (weapon_t)es->weapon;
 			
-			// For local player events, use the predicted weapon which is always current
-			if (es->number == cg.snap->ps.clientNum) {
-				currentWeapon = (weapon_t)cg.predictedPlayerState.weapon;
-			}
+			// Check BOTH es->weapon AND cg.predictedPlayerState.weapon to cover all cases
+			// The event can come from server (uses es->weapon) or client prediction (es->weapon may be stale)
+			weapon_t serverWeapon = (weapon_t)es->weapon;
+			weapon_t predictedWeapon = (weapon_t)cg.predictedPlayerState.weapon;
 			
-			if (currentWeapon == WP_PLIERS && (cvars::bg_weapons.ivalue & SBW_PLIERS_WATER)) {
+			// Skip sound for pliers if SBW_PLIERS_WATER is enabled
+			if ((serverWeapon == WP_PLIERS || predictedWeapon == WP_PLIERS) && 
+			    (cvars::bg_weapons.ivalue & SBW_PLIERS_WATER)) {
 				skipSound = qtrue;
 			}
-			else if (currentWeapon == WP_MEDIC_SYRINGE && (cvars::bg_weapons.ivalue & SBW_SYRINGE_WATER)) {
+			// Skip sound for syringe if SBW_SYRINGE_WATER is enabled
+			else if ((serverWeapon == WP_MEDIC_SYRINGE || predictedWeapon == WP_MEDIC_SYRINGE) && 
+			         (cvars::bg_weapons.ivalue & SBW_SYRINGE_WATER)) {
 				skipSound = qtrue;
 			}
+			
 			if (!skipSound && cgs.media.noFireUnderwater) {
 				trap_S_StartSound (NULL, es->number, CHAN_WEAPON, cgs.media.noFireUnderwater);
 			}

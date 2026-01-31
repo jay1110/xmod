@@ -4485,11 +4485,31 @@ static void PM_Weapon( void ) {
 				break;
 
 			case WP_PLIERS:
-				nofire = !(cvars::bg_weapons.ivalue & SBW_PLIERS_WATER);
+				// Check flag directly from engine to ensure latest value is used
+				{
+					char buffer[32];
+#ifdef CGAMEDLL
+					trap_Cvar_VariableStringBuffer("cg_weapons", buffer, sizeof(buffer));
+#else
+					trap_Cvar_VariableStringBuffer("g_weapons", buffer, sizeof(buffer));
+#endif
+					int weapons_flags = atoi(buffer);
+					nofire = !(weapons_flags & SBW_PLIERS_WATER);
+				}
 				break;
 
 			case WP_MEDIC_SYRINGE:
-				nofire = !(cvars::bg_weapons.ivalue & SBW_SYRINGE_WATER);
+				// Check flag directly from engine to ensure latest value is used
+				{
+					char buffer[32];
+#ifdef CGAMEDLL
+					trap_Cvar_VariableStringBuffer("cg_weapons", buffer, sizeof(buffer));
+#else
+					trap_Cvar_VariableStringBuffer("g_weapons", buffer, sizeof(buffer));
+#endif
+					int weapons_flags = atoi(buffer);
+					nofire = !(weapons_flags & SBW_SYRINGE_WATER);
+				}
 				break;
 
 			default:
