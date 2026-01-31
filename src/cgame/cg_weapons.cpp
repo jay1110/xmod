@@ -4869,54 +4869,32 @@ void CG_FireWeapon( centity_t *cent ) {
 
 	// Determine if we should skip the fire sound (for tools working underwater)
 	// Skip pliers/syringe fire sounds when they're allowed to work underwater
-	// Check if this is the local player using pliers/syringe
-	if (ent->weapon == WP_PLIERS && (cvars::bg_weapons.ivalue & SBW_PLIERS_WATER)) {
-		// Use cg_pmove.waterlevel which is set during prediction
-		// Also use CG_PointContents as backup check
-		qboolean isUnderwater = qfalse;
+	// IMPORTANT: Only check for local player (ent->number == cg.snap->ps.clientNum)
+	// and use cg.predictedPlayerState.weapon since ent->weapon can be stale for predicted events
+	if (ent->number == cg.snap->ps.clientNum) {
+		weapon_t currentWeapon = (weapon_t)cg.predictedPlayerState.weapon;
 		
-		// Method 1: Check cg_pmove.waterlevel (set during prediction)
-		if (cg_pmove.waterlevel == 3) {
-			isUnderwater = qtrue;
-		}
-		
-		// Method 2: Backup check using CG_PointContents
-		if (!isUnderwater) {
+		if (currentWeapon == WP_PLIERS && (cvars::bg_weapons.ivalue & SBW_PLIERS_WATER)) {
+			// Check if player is underwater using predictedPlayerState position
 			vec3_t point;
-			point[0] = cg.snap->ps.origin[0];
-			point[1] = cg.snap->ps.origin[1];
-			point[2] = cg.snap->ps.origin[2] + cg.snap->ps.viewheight;
+			point[0] = cg.predictedPlayerState.origin[0];
+			point[1] = cg.predictedPlayerState.origin[1];
+			point[2] = cg.predictedPlayerState.origin[2] + cg.predictedPlayerState.viewheight;
 			int contents = CG_PointContents(point, cg.snap->ps.clientNum);
 			if (contents & MASK_WATER) {
-				isUnderwater = qtrue;
+				return; // Skip fire sound for pliers underwater
 			}
 		}
-		
-		if (isUnderwater) {
-			return; // Completely skip all sound/effect processing for pliers underwater
-		}
-	}
-	else if (ent->weapon == WP_MEDIC_SYRINGE && (cvars::bg_weapons.ivalue & SBW_SYRINGE_WATER)) {
-		// Same check for syringe
-		qboolean isUnderwater = qfalse;
-		
-		if (cg_pmove.waterlevel == 3) {
-			isUnderwater = qtrue;
-		}
-		
-		if (!isUnderwater) {
+		else if (currentWeapon == WP_MEDIC_SYRINGE && (cvars::bg_weapons.ivalue & SBW_SYRINGE_WATER)) {
+			// Check if player is underwater using predictedPlayerState position
 			vec3_t point;
-			point[0] = cg.snap->ps.origin[0];
-			point[1] = cg.snap->ps.origin[1];
-			point[2] = cg.snap->ps.origin[2] + cg.snap->ps.viewheight;
+			point[0] = cg.predictedPlayerState.origin[0];
+			point[1] = cg.predictedPlayerState.origin[1];
+			point[2] = cg.predictedPlayerState.origin[2] + cg.predictedPlayerState.viewheight;
 			int contents = CG_PointContents(point, cg.snap->ps.clientNum);
 			if (contents & MASK_WATER) {
-				isUnderwater = qtrue;
+				return; // Skip fire sound for syringe underwater
 			}
-		}
-		
-		if (isUnderwater) {
-			return; // Completely skip all sound/effect processing for syringe underwater
 		}
 	}
 
