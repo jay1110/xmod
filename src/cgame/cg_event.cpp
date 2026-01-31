@@ -2335,12 +2335,22 @@ void CG_EntityEvent( centity_t *cent, vec3_t position ) {
 	case EV_NOFIRE_UNDERWATER:
 		DEBUGNAME("EV_NOFIRE_UNDERWATER");
 		// Don't play click sound for pliers/syringe when they're allowed to work underwater
+		// Check both es->weapon AND cg.snap->ps.weapon to handle both server events
+		// and client-side predicted events (which may have stale es->weapon)
 		{
 			qboolean skipSound = qfalse;
-			if (es->weapon == WP_PLIERS && (cvars::bg_weapons.ivalue & SBW_PLIERS_WATER)) {
+			weapon_t currentWeapon = (weapon_t)es->weapon;
+			
+			// For local player events, also check the current predicted weapon
+			// since es->weapon can be stale for predicted events
+			if (es->number == cg.snap->ps.clientNum) {
+				currentWeapon = (weapon_t)cg.snap->ps.weapon;
+			}
+			
+			if (currentWeapon == WP_PLIERS && (cvars::bg_weapons.ivalue & SBW_PLIERS_WATER)) {
 				skipSound = qtrue;
 			}
-			else if (es->weapon == WP_MEDIC_SYRINGE && (cvars::bg_weapons.ivalue & SBW_SYRINGE_WATER)) {
+			else if (currentWeapon == WP_MEDIC_SYRINGE && (cvars::bg_weapons.ivalue & SBW_SYRINGE_WATER)) {
 				skipSound = qtrue;
 			}
 			if (!skipSound && cgs.media.noFireUnderwater) {
