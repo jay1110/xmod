@@ -1531,6 +1531,7 @@ static qboolean CG_RegisterWeaponFromWeaponFile( const char *filename, weaponInf
 {
 	pc_token_t token;
 	int handle;
+	int depth;
 
 	handle = trap_PC_LoadSource( filename );
 
@@ -1557,6 +1558,20 @@ static qboolean CG_RegisterWeaponFromWeaponFile( const char *filename, weaponInf
 		if( !Q_stricmp( token.string, "client" ) ) {
 			if( !CG_RW_ParseClient( handle, weaponInfo ) ) {
 				return qfalse;
+			}
+		} else if( !Q_stricmp( token.string, "both" ) ) {
+			// Skip "both" section - this is for server-side weaponscripts (gameplay properties)
+			// Client doesn't need this data, just skip past the block
+			if( !trap_PC_ReadToken( handle, &token ) || token.string[0] != '{' ) {
+				return CG_RW_ParseError( handle, "expected '{' after 'both'" );
+			}
+			depth = 1;
+			while( depth > 0 ) {
+				if( !trap_PC_ReadToken( handle, &token ) ) {
+					return CG_RW_ParseError( handle, "unexpected end of file in 'both' section" );
+				}
+				if( token.string[0] == '{' ) depth++;
+				else if( token.string[0] == '}' ) depth--;
 			}
 		} else {
 			return CG_RW_ParseError( handle, "unknown token '%s'", token.string );
