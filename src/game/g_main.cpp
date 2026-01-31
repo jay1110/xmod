@@ -5,6 +5,7 @@
 #include <game/jxac/jxac_server.h>
 #include <game/xmod_globals.h>
 #include <game/g_geoip.h>
+#include <game/g_weaponscripts.h>
 
 // Forward declaration for Bot_Event_EntityCreated (defined in g_etbot_interface.cpp)
 void Bot_Event_EntityCreated(gentity_t *pEnt);
@@ -300,6 +301,9 @@ vmCvar_t        g_dualSMG;
 // Damage weapons (shoot to destroy)
 vmCvar_t        g_damageweapons;
 
+// Weapon scripts directory
+vmCvar_t        g_weaponScriptsDir;
+
 /*********************
 * End Xmod Cvars   *
 *********************/
@@ -411,6 +415,9 @@ cvarTable_t		gameCvarTable[] = {
 
     // Damage weapons (shoot to destroy)
     { &g_damageweapons,     "g_damageweapons",      "0",        CVAR_ARCHIVE },
+
+    // Weapon scripts directory
+    { &g_weaponScriptsDir,  "g_weaponScriptsDir",   "",         CVAR_ARCHIVE },
 
     // Some useful mod-info cvars.
     { NULL, "mod_binary",  XMOD_buildTarget, CVAR_SERVERINFO | CVAR_ROM },
@@ -1883,6 +1890,9 @@ void G_InitGame( int levelTime, int randomSeed, int restart ) {
 
     // Load censor word list
     censorDB.load();
+
+    // Load weapon scripts
+    G_InitWeaponScripts();
 
     // We guarantee that this array always points a user object.
     for (int i = 0; i < MAX_CLIENTS; i++)
