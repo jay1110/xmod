@@ -4468,7 +4468,7 @@ static void PM_Weapon( void ) {
 		int nofire = 0;
 
 		switch (pm->ps->weapon) {
-			// Weapons that ALWAYS work underwater without click sound (like NoQuarter)
+			// Weapons that ALWAYS work underwater without click sound
 			case WP_ADRENALINE_SHARE:
 			case WP_DYNAMITE:
 			case WP_GRENADE_LAUNCHER:
@@ -4479,13 +4479,27 @@ static void PM_Weapon( void ) {
 			case WP_LANDMINE_PGAS:
 			case WP_MEDIC_ADRENALINE:
 			case WP_MOLOTOV:
-			case WP_PLIERS:           // Pliers always work underwater (NoQuarter behavior)
 			case WP_POISON_SYRINGE:
 			case WP_SMOKE_BOMB:
 			case WP_TRIPMINE:
 			case WP_POISON_GAS:
 				break;
 
+			// Pliers: controlled by SBW_PLIERS_WATER flag in g_weapons cvar
+			case WP_PLIERS:
+				{
+					char buffer[32];
+#ifdef CGAMEDLL
+					trap_Cvar_VariableStringBuffer("cg_weapons", buffer, sizeof(buffer));
+#else
+					trap_Cvar_VariableStringBuffer("g_weapons", buffer, sizeof(buffer));
+#endif
+					int weapons_flags = atoi(buffer);
+					nofire = !(weapons_flags & SBW_PLIERS_WATER);
+				}
+				break;
+
+			// Syringe: controlled by SBW_SYRINGE_WATER flag in g_weapons cvar
 			case WP_MEDIC_SYRINGE:
 				// Check flag directly from engine to ensure latest value is used
 				{

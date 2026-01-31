@@ -2414,8 +2414,7 @@ void CG_EntityEvent( centity_t *cent, vec3_t position ) {
 
 	case EV_NOFIRE_UNDERWATER:
 		DEBUGNAME("EV_NOFIRE_UNDERWATER");
-		// Check if we should suppress the click sound for syringe (controlled by cvar)
-		// Note: Pliers always work underwater now (NoQuarter behavior) so they never trigger this event
+		// Check if we should suppress the click sound for pliers/syringe (controlled by cvar)
 		{
 			qboolean skipSound = qfalse;
 			
@@ -2429,9 +2428,14 @@ void CG_EntityEvent( centity_t *cent, vec3_t position ) {
 			weapon_t esWeapon = (weapon_t)es->weapon;
 			weapon_t snapWeapon = (weapon_t)cg.snap->ps.weapon;
 			
+			// Skip sound for pliers if SBW_PLIERS_WATER is enabled
+			if ((currentWeapon == WP_PLIERS || esWeapon == WP_PLIERS || snapWeapon == WP_PLIERS) && 
+			    (weapons_flags & SBW_PLIERS_WATER)) {
+				skipSound = qtrue;
+			}
 			// Skip sound for syringe if SBW_SYRINGE_WATER is enabled
-			if ((currentWeapon == WP_MEDIC_SYRINGE || esWeapon == WP_MEDIC_SYRINGE || snapWeapon == WP_MEDIC_SYRINGE) && 
-			    (weapons_flags & SBW_SYRINGE_WATER)) {
+			else if ((currentWeapon == WP_MEDIC_SYRINGE || esWeapon == WP_MEDIC_SYRINGE || snapWeapon == WP_MEDIC_SYRINGE) && 
+			         (weapons_flags & SBW_SYRINGE_WATER)) {
 				skipSound = qtrue;
 			}
 			
