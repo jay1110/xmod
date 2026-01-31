@@ -1559,11 +1559,11 @@ static qboolean CG_RegisterWeaponFromWeaponFile( const char *filename, weaponInf
 			if( !CG_RW_ParseClient( handle, weaponInfo ) ) {
 				return qfalse;
 			}
-		} else if( !Q_stricmp( token.string, "both" ) ) {
-			// Skip "both" section - this is for server-side weaponscripts (gameplay properties)
-			// Client doesn't need this data, just skip past the block
+		} else if( !Q_stricmpn( token.string, "both", 4 ) ) {
+			// Skip "both" and "both_*" sections (e.g. both_altweap) - these are for server-side
+			// weaponscripts (gameplay properties). Client doesn't need this data.
 			if( !trap_PC_ReadToken( handle, &token ) || token.string[0] != '{' ) {
-				return CG_RW_ParseError( handle, "expected '{' after 'both'" );
+				return CG_RW_ParseError( handle, "expected '{' after 'both' section" );
 			}
 			depth = 1;
 			while( depth > 0 ) {
