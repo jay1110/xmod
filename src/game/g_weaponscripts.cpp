@@ -324,6 +324,25 @@ static const char* G_ParseWeaponScriptBoth( const char* data, weaponScriptDef_t*
 
 /*
 ==============
+G_GetAltWeapon
+
+Get the alternate (scoped) weapon for a base weapon.
+Returns -1 if the weapon has no alternate weapon.
+==============
+*/
+static int G_GetAltWeapon( int weapon )
+{
+    switch ( weapon ) {
+        case WP_GARAND:     return WP_GARAND_SCOPE;
+        case WP_K43:        return WP_K43_SCOPE;
+        case WP_FG42:       return WP_FG42SCOPE;
+        // Add more mappings as needed
+        default:            return -1;
+    }
+}
+
+/*
+==============
 G_ParseWeaponScript
 
 Parse a weapon script file
@@ -337,12 +356,19 @@ qboolean G_ParseWeaponScript( const char* filename, int weapon )
     const char* data;
     char token[256];
     weaponScriptDef_t* script;
+    int altWeapon;
+    weaponScriptDef_t* altScript;
+    int depth;
     
     if ( weapon < 0 || weapon >= WP_NUM_WEAPONS ) {
         return qfalse;
     }
     
     script = &weaponScripts[weapon];
+    
+    // Get alt weapon for this weapon (if any)
+    altWeapon = G_GetAltWeapon( weapon );
+    altScript = ( altWeapon >= 0 && altWeapon < WP_NUM_WEAPONS ) ? &weaponScripts[altWeapon] : NULL;
     
     len = trap_FS_FOpenFile( filename, &f, FS_READ );
     if ( len <= 0 ) {
@@ -392,9 +418,29 @@ qboolean G_ParseWeaponScript( const char* filename, int weapon )
         if ( !Q_stricmp( token, "both" ) ) {
             data = G_ParseWeaponScriptBoth( data, script );
         }
+        else if ( !Q_stricmp( token, "both_altweap" ) ) {
+            // Parse alt weapon properties (e.g. scoped mode for K43, FG42, Garand)
+            if ( altScript ) {
+                data = G_ParseWeaponScriptBoth( data, altScript );
+                altScript->hasScript = qtrue;
+            } else {
+                // No alt weapon for this weapon, skip the section
+                depth = 0;
+                data = SkipWhitespace( data );
+                if ( *data == '{' ) {
+                    data++;
+                    depth = 1;
+                    while ( *data && depth > 0 ) {
+                        if ( *data == '{' ) depth++;
+                        else if ( *data == '}' ) depth--;
+                        data++;
+                    }
+                }
+            }
+        }
         else if ( !Q_stricmp( token, "client" ) ) {
             // Skip client section - server doesn't need it
-            int depth = 0;
+            depth = 0;
             data = SkipWhitespace( data );
             if ( *data == '{' ) {
                 data++;
