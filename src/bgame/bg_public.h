@@ -384,12 +384,14 @@ extern const unsigned int aReinfSeeds[MAX_REINFSEEDS];
 #define CS_AVAILABLESTRIKES				42
 #define CS_SKILLLEVELS					43
 
-// Weapon script configstrings - stores custom name, killMessage, killMessage2 per weapon
-// Format: "n\<name>\k\<killMessage>\l\<killMessage2>" where n=name, k=killMessage1, l=killMessage2
+// Weapon script configstrings - stores custom name, killMessage, killMessage2, selfKillMessage per weapon
+// Format: "n\<name>\k\<killMessage>\l\<killMessage2>\s\<selfKillMessage>"
+// Keys: n=name, k=killMessage1, l=killMessage2, s=selfKillMessage
 #define CS_WEAPONSCRIPTS				44
 #define CS_WEAPONSCRIPTS_COUNT			WP_NUM_WEAPONS
 
-#define	CS_MODELS						( 64 + CS_WEAPONSCRIPTS_COUNT )
+// CS_MODELS starts after CS_WEAPONSCRIPTS range ends (44 + WP_NUM_WEAPONS)
+#define	CS_MODELS						( CS_WEAPONSCRIPTS + CS_WEAPONSCRIPTS_COUNT )
 #define	CS_SOUNDS						( CS_MODELS +				MAX_MODELS					)
 #define CS_SHADERS						( CS_SOUNDS +				MAX_SOUNDS					)
 #define CS_SHADERSTATE					( CS_SHADERS +				MAX_CS_SHADERS				) // Gordon: this MUST be after CS_SHADERS

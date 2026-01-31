@@ -398,9 +398,8 @@ static void CG_Obituary( entityState_t *ent ) {
 
 	if( ca ) {
 		// First check for custom kill messages from weaponscripts
-		if ( CG_GetCustomKillMessage( mod, &message, &message2 ) ) {
-			// Custom message found, skip the hardcoded switch
-		} else {
+		if ( !CG_GetCustomKillMessage( mod, &message, &message2 ) ) {
+		// No custom message found, use hardcoded messages
 		switch( mod ) {
 		case MOD_KNIFE:
 			message = "was stabbed by";
