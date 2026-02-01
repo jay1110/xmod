@@ -186,17 +186,35 @@ User::decode( map<string,string>& data )
 
     string& enc = data["xpskills"];
     if ( enc.length() ) {
-        unsigned long crc = base64::crc32( guid.c_str(), guid.length() );
-        char buf[ sizeof(xpSkills) + sizeof(crc) + 1]; // for some reason base64_decode requires +1
-
-        // size must match exactly in order to continue XP decoding
-        int nbytes = base64::decode( (const unsigned char*)enc.c_str(), (unsigned char*)buf, sizeof(buf) );
-        if ( nbytes == sizeof(buf)-1 ) {
-            scramble( buf, sizeof(buf)-1 );
-
-            unsigned long sig = *(unsigned long*)(buf + sizeof(xpSkills));
-            if (sig == crc)
-                memcpy( xpSkills, buf, sizeof(xpSkills) );
+        uint32 crc = base64::crc32( guid.c_str(), guid.length() );
+        bool decoded = false;
+        
+        // Try decoding with current format (uint32 CRC = 4 bytes)
+        {
+            char buf[ sizeof(xpSkills) + sizeof(crc) + 1];
+            int nbytes = base64::decode( (const unsigned char*)enc.c_str(), (unsigned char*)buf, sizeof(buf) );
+            if ( nbytes == sizeof(buf)-1 ) {
+                scramble( buf, sizeof(buf)-1 );
+                uint32 sig = *(uint32*)(buf + sizeof(xpSkills));
+                if (sig == crc) {
+                    memcpy( xpSkills, buf, sizeof(xpSkills) );
+                    decoded = true;
+                }
+            }
+        }
+        
+        // Fallback: try decoding legacy format (unsigned long CRC = 8 bytes on 64-bit Linux)
+        // On little-endian systems (x86/x86-64), the lower 4 bytes contain the CRC32 value
+        if (!decoded) {
+            const size_t legacyCrcSize = 8;
+            char buf[ sizeof(xpSkills) + legacyCrcSize + 1];
+            int nbytes = base64::decode( (const unsigned char*)enc.c_str(), (unsigned char*)buf, sizeof(buf) );
+            if ( nbytes == sizeof(buf)-1 ) {
+                scramble( buf, sizeof(buf)-1 );
+                uint32 sig = *(uint32*)(buf + sizeof(xpSkills));
+                if (sig == crc)
+                    memcpy( xpSkills, buf, sizeof(xpSkills) );
+            }
         }
     }
 
@@ -360,7 +378,7 @@ User::encode( ostream& out, int recnum )
 
     out << '\n' << "guid = " << guid;
 
-    unsigned long crc = base64::crc32( guid.c_str(), guid.length() );
+    uint32 crc = base64::crc32( guid.c_str(), guid.length() );
 #if defined( XMOD_USERDB_DEBUG )
     out << '\n' << "# guid CRC-32 = " << hex << crc << dec;
 #endif // XMOD_USERDB_DEBUG
@@ -665,7 +683,7 @@ User::xpReset()
 std::string
 User::encodeXpSkills(const float* xpSkills, const std::string& guid)
 {
-    unsigned long crc = base64::crc32( guid.c_str(), guid.length() );
+    uint32 crc = base64::crc32( guid.c_str(), guid.length() );
     
     char data[ SK_NUM_SKILLS * sizeof(float) + sizeof(crc) ];
     memcpy( data, xpSkills, SK_NUM_SKILLS * sizeof(float) );
@@ -687,18 +705,40 @@ User::decodeXpSkills(const std::string& encoded, const std::string& guid, float*
     if (encoded.empty())
         return false;
         
-    unsigned long crc = base64::crc32( guid.c_str(), guid.length() );
-    char buf[ SK_NUM_SKILLS * sizeof(float) + sizeof(crc) + 1]; // for some reason base64_decode requires +1
+    uint32 crc = base64::crc32( guid.c_str(), guid.length() );
     
-    // size must match exactly in order to continue XP decoding
-    int nbytes = base64::decode( (const unsigned char*)encoded.c_str(), (unsigned char*)buf, sizeof(buf) );
-    if ( nbytes == sizeof(buf)-1 ) {
-        scramble( buf, sizeof(buf)-1 );
+    // Try decoding with current format (uint32 CRC = 4 bytes)
+    {
+        char buf[ SK_NUM_SKILLS * sizeof(float) + sizeof(crc) + 1]; // +1 for base64_decode
         
-        unsigned long sig = *(unsigned long*)(buf + SK_NUM_SKILLS * sizeof(float));
-        if (sig == crc) {
-            memcpy( xpSkills, buf, SK_NUM_SKILLS * sizeof(float) );
-            return true;
+        int nbytes = base64::decode( (const unsigned char*)encoded.c_str(), (unsigned char*)buf, sizeof(buf) );
+        if ( nbytes == sizeof(buf)-1 ) {
+            scramble( buf, sizeof(buf)-1 );
+            
+            uint32 sig = *(uint32*)(buf + SK_NUM_SKILLS * sizeof(float));
+            if (sig == crc) {
+                memcpy( xpSkills, buf, SK_NUM_SKILLS * sizeof(float) );
+                return true;
+            }
+        }
+    }
+    
+    // Fallback: try decoding legacy format (unsigned long CRC = 8 bytes on 64-bit Linux)
+    // This handles data encoded before the platform-independent fix.
+    // On little-endian systems (x86/x86-64), the lower 4 bytes contain the CRC32 value.
+    {
+        const size_t legacyCrcSize = 8;
+        char buf[ SK_NUM_SKILLS * sizeof(float) + legacyCrcSize + 1];
+        
+        int nbytes = base64::decode( (const unsigned char*)encoded.c_str(), (unsigned char*)buf, sizeof(buf) );
+        if ( nbytes == sizeof(buf)-1 ) {
+            scramble( buf, sizeof(buf)-1 );
+            
+            uint32 sig = *(uint32*)(buf + SK_NUM_SKILLS * sizeof(float));
+            if (sig == crc) {
+                memcpy( xpSkills, buf, SK_NUM_SKILLS * sizeof(float) );
+                return true;
+            }
         }
     }
     
