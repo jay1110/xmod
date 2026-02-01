@@ -208,7 +208,7 @@ ammotable_t ammoTableMP[WP_NUM_WEAPONS] = {
 	{	1,				0,		1,		0,		1,		100,	DELAY_LOW,		100,	0,		0,		MOD_LANDMINE			},	// WP_LANDMINE_BBETTY		// 54
 	{	1,				0,		1,		0,		1,		100,	DELAY_LOW,		100,	0,		0,		MOD_POISON_GAS			},	// WP_LANDMINE_PGAS			// 55
 	{	3,				1,		3,		0,		3,		0,  	DELAY_THROW,	0,	    0,		0,		MOD_MOLOTOV 			},	// WP_MOLOTOV   			// 56
-	{	1,				0,		1,		0,		1,		1000,	DELAY_THROW,	1600,	0,		0,		MOD_BOMB				},	// WP_BOMB					// 57
+	{	1,				1,		1,		0,		1,		1000,	DELAY_THROW,	1600,	0,		0,		MOD_BOMB				},	// WP_BOMB					// 57
 };
 
 //----(SA)	moved in here so both games can get to it

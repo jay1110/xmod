@@ -548,7 +548,8 @@ void G_ExplodeMissile( gentity_t *ent ) {
 			case WP_PANZERFAUST:
 			case WP_SATCHEL:
 			case WP_SMOKE_MARKER:
-			case WP_TRIPMINE: {
+			case WP_TRIPMINE:
+			case WP_BOMB: {
 				gentity_t* tent = G_TempEntity( ent->r.currentOrigin, EV_SHAKE );
 				tent->s.onFireStart = ent->splashDamage * 4;
 				tent->r.svFlags |= SVF_BROADCAST;
