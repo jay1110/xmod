@@ -120,6 +120,9 @@ extern vmCvar_t g_dualSMG;
 // Damage weapons (shoot to destroy)
 extern vmCvar_t g_damageweapons;
 
+// Weapon scripts directory
+extern vmCvar_t g_weaponScriptsDir;
+
 ///////////////////////////////////////////////////////////////////////////////
 
 // g_friendlyFire bitflags

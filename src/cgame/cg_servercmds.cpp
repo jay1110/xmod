@@ -136,6 +136,9 @@ void CG_ParseServerinfo( void ) {
 
 	// TTimo - make this available for ingame_callvote	
 	trap_Cvar_Set( "cg_ui_voteFlags", ((authLevel.integer == RL_NONE) ? Info_ValueForKey(info, "voteFlags") : "0"));
+	
+	// Parse custom weapon scripts directory for client-side weapon media loading
+	Q_strncpyz( cgs.weaponScriptsDir, Info_ValueForKey( info, "g_weaponScriptsDir" ), sizeof(cgs.weaponScriptsDir) );
 }
 
 /*
@@ -299,6 +302,66 @@ void CG_ParseXmodinfo( void) {
 
 	// Dynamite arm time
 	cg.dynamiteTime = cvars::bg_dynamiteTime.ivalue * 1000;
+}
+
+/*
+==================
+CG_ParseWeaponScript
+Parse weapon script data from a configstring
+==================
+*/
+static void CG_ParseWeaponScript( int weapon ) {
+    const char* const info = CG_ConfigString( CS_WEAPONSCRIPTS + weapon );
+    const char* val;
+
+    if ( weapon < 0 || weapon >= WP_NUM_WEAPONS ) {
+        return;
+    }
+
+    // Parse name
+    val = Info_ValueForKey( info, "n" );
+    if ( val[0] ) {
+        Q_strncpyz( cgs.weaponScripts[weapon].name, val, sizeof(cgs.weaponScripts[weapon].name) );
+    } else {
+        cgs.weaponScripts[weapon].name[0] = '\0';
+    }
+
+    // Parse killMessage
+    val = Info_ValueForKey( info, "k" );
+    if ( val[0] ) {
+        Q_strncpyz( cgs.weaponScripts[weapon].killMessage, val, sizeof(cgs.weaponScripts[weapon].killMessage) );
+    } else {
+        cgs.weaponScripts[weapon].killMessage[0] = '\0';
+    }
+
+    // Parse killMessage2
+    val = Info_ValueForKey( info, "l" );
+    if ( val[0] ) {
+        Q_strncpyz( cgs.weaponScripts[weapon].killMessage2, val, sizeof(cgs.weaponScripts[weapon].killMessage2) );
+    } else {
+        cgs.weaponScripts[weapon].killMessage2[0] = '\0';
+    }
+
+    // Parse selfKillMessage
+    val = Info_ValueForKey( info, "s" );
+    if ( val[0] ) {
+        Q_strncpyz( cgs.weaponScripts[weapon].selfKillMessage, val, sizeof(cgs.weaponScripts[weapon].selfKillMessage) );
+    } else {
+        cgs.weaponScripts[weapon].selfKillMessage[0] = '\0';
+    }
+}
+
+/*
+==================
+CG_ParseWeaponScripts
+Parse all weapon script configstrings at init time
+==================
+*/
+void CG_ParseWeaponScripts( void ) {
+    int i;
+    for ( i = 0; i < WP_NUM_WEAPONS; i++ ) {
+        CG_ParseWeaponScript( i );
+    }
 }
 
 /*
@@ -765,6 +828,12 @@ void CG_ConfigStringModified( void )
 
         default:
             break;
+    }
+
+    // Handle weapon script configstrings
+    if (index >= CS_WEAPONSCRIPTS && index < CS_WEAPONSCRIPTS + WP_NUM_WEAPONS) {
+        CG_ParseWeaponScript( index - CS_WEAPONSCRIPTS );
+        return;
     }
 
     if (index >= CS_MULTI_SPAWNTARGETS && index < CS_MULTI_SPAWNTARGETS + MAX_MULTI_SPAWNTARGETS) {

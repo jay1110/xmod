@@ -1246,6 +1246,9 @@ typedef struct {
     qboolean allowIncrease;
 
     int server_settings;  // updated via CS_SERVERTOGGLES
+    
+    // Rate-limit underwater nofire sound to prevent flooding during prediction
+    int nextNofireSoundTime;
 } cg_t;
 
 extern bool needClientFlagsUpdated;
@@ -2185,6 +2188,17 @@ typedef struct {
 	oidInfo_t			oidInfo[MAX_OID_TRIGGERS];
 
 	qboolean			initing;
+
+	// Weapon script custom data from server
+	struct {
+		char		name[64];
+		char		killMessage[128];
+		char		killMessage2[128];
+		char		selfKillMessage[128];
+	} weaponScripts[WP_NUM_WEAPONS];
+	
+	// Custom weapon scripts directory from server (for client-side .weap loading)
+	char				weaponScriptsDir[MAX_QPATH];
 } cgs_t;
 
 //==============================================================================
@@ -2988,6 +3002,7 @@ void CG_ParseXmodinfo( void );
 void CG_ParseServerinfo( void );
 void CG_ParseWolfinfo( void );			// NERVE - SMF
 void CG_ParseSpawns( void );
+void CG_ParseWeaponScripts( void );		// Parse weapon script configstrings
 void CG_ParseServerVersionInfo(const char *pszVersionInfo);
 void CG_ParseReinforcementTimes(const char *pszReinfSeedString);
 void CG_SetConfigValues( void );

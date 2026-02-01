@@ -1531,6 +1531,7 @@ static qboolean CG_RegisterWeaponFromWeaponFile( const char *filename, weaponInf
 {
 	pc_token_t token;
 	int handle;
+	int depth;
 
 	handle = trap_PC_LoadSource( filename );
 
@@ -1557,6 +1558,20 @@ static qboolean CG_RegisterWeaponFromWeaponFile( const char *filename, weaponInf
 		if( !Q_stricmp( token.string, "client" ) ) {
 			if( !CG_RW_ParseClient( handle, weaponInfo ) ) {
 				return qfalse;
+			}
+		} else if( !Q_stricmpn( token.string, "both", 4 ) ) {
+			// Skip "both" and "both_*" sections (e.g. both_altweap) - these are for server-side
+			// weaponscripts (gameplay properties). Client doesn't need this data.
+			if( !trap_PC_ReadToken( handle, &token ) || token.string[0] != '{' ) {
+				return CG_RW_ParseError( handle, "expected '{' after 'both' section" );
+			}
+			depth = 1;
+			while( depth > 0 ) {
+				if( !trap_PC_ReadToken( handle, &token ) ) {
+					return CG_RW_ParseError( handle, "unexpected end of file in 'both' section" );
+				}
+				if( token.string[0] == '{' ) depth++;
+				else if( token.string[0] == '}' ) depth--;
 			}
 		} else {
 			return CG_RW_ParseError( handle, "unknown token '%s'", token.string );
@@ -1657,7 +1672,16 @@ void CG_RegisterWeapon( int weaponNum, qboolean force ) {
 		default:						CG_Printf( S_COLOR_RED "WARNING: trying to register weapon %i but there is no weapon file entry for it.\n", weaponNum ); return;
 	}
 
-	if( !CG_RegisterWeaponFromWeaponFile( va( "weapons/%s", filename ), weaponInfo ) ) {
+	// Try to load from custom weapons directory first (if set and different from "weapons"),
+	// then fall back to standard "weapons/" folder
+	qboolean loaded = qfalse;
+	
+	if ( cgs.weaponScriptsDir[0] != '\0' && Q_stricmp( cgs.weaponScriptsDir, "weapons" ) != 0 ) {
+		loaded = CG_RegisterWeaponFromWeaponFile( va( "%s/%s", cgs.weaponScriptsDir, filename ), weaponInfo );
+	}
+	
+	// If not loaded from custom dir, try standard "weapons/" folder
+	if ( !loaded && !CG_RegisterWeaponFromWeaponFile( va( "weapons/%s", filename ), weaponInfo ) ) {
 		CG_Printf( S_COLOR_RED "WARNING: failed to register media for weapon %i from %s\n", weaponNum, filename );
 	}
 }
@@ -4867,8 +4891,8 @@ void CG_FireWeapon( centity_t *cent ) {
 		fireEchosound = &weap->flashEchoSound[0];
 	}
 
-	// Determine if we should skip the fire sound (for tools working underwater)
-	// Skip pliers/syringe fire sounds when they're allowed to work underwater
+	// Determine if we should skip the fire sound for pliers/syringe working underwater
+	// (controlled by SBW_PLIERS_WATER and SBW_SYRINGE_WATER flags in g_weapons cvar)
 	// IMPORTANT: Only check for local player (ent->number == cg.snap->ps.clientNum)
 	// and use cg.predictedPlayerState.weapon since ent->weapon can be stale for predicted events
 	if (ent->number == cg.snap->ps.clientNum) {

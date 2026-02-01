@@ -127,6 +127,73 @@ static void CG_LosingSpree(int level, int client, int kills) {
 
 /*
 =============
+CG_ModToWeapon
+Map a means-of-death to its corresponding weapon for custom messages
+Returns -1 if no matching weapon found
+=============
+*/
+static int CG_ModToWeapon( int mod ) {
+    int i;
+    for ( i = 0; i < WP_NUM_WEAPONS; i++ ) {
+        if ( ammoTableMP[i].mod == mod ) {
+            return i;
+        }
+    }
+    return -1;
+}
+
+/*
+=============
+CG_GetCustomKillMessage
+Get custom kill message from weaponscript if available
+Returns qtrue if custom message was found, with message and message2 set
+=============
+*/
+static qboolean CG_GetCustomKillMessage( int mod, char **message, char **message2 ) {
+    int weapon = CG_ModToWeapon( mod );
+    
+    if ( weapon < 0 || weapon >= WP_NUM_WEAPONS ) {
+        return qfalse;
+    }
+    
+    // Check if we have a custom kill message for this weapon
+    if ( cgs.weaponScripts[weapon].killMessage[0] ) {
+        *message = cgs.weaponScripts[weapon].killMessage;
+        if ( cgs.weaponScripts[weapon].killMessage2[0] ) {
+            *message2 = cgs.weaponScripts[weapon].killMessage2;
+        } else {
+            *message2 = "";
+        }
+        return qtrue;
+    }
+    
+    return qfalse;
+}
+
+/*
+=============
+CG_GetCustomSelfKillMessage
+Get custom self-kill message from weaponscript if available
+Returns the custom message or NULL if none
+=============
+*/
+static char* CG_GetCustomSelfKillMessage( int mod ) {
+    int weapon = CG_ModToWeapon( mod );
+    
+    if ( weapon < 0 || weapon >= WP_NUM_WEAPONS ) {
+        return NULL;
+    }
+    
+    // Check if we have a custom self kill message for this weapon
+    if ( cgs.weaponScripts[weapon].selfKillMessage[0] ) {
+        return cgs.weaponScripts[weapon].selfKillMessage;
+    }
+    
+    return NULL;
+}
+
+/*
+=============
 CG_Obituary
 =============
 */
@@ -269,9 +336,16 @@ static void CG_Obituary( entityState_t *ent ) {
 		case MOD_MOLOTOV:
 			message = "died in his own inferno";
 			break;
-		default:
-			message = "killed himself";
+		default: {
+			// Check for custom self-kill message from weaponscript
+			char* customMsg = CG_GetCustomSelfKillMessage( mod );
+			if ( customMsg ) {
+				message = customMsg;
+			} else {
+				message = "killed himself";
+			}
 			break;
+		}
 		}
 	}
 
@@ -323,6 +397,9 @@ static void CG_Obituary( entityState_t *ent ) {
 	}
 
 	if( ca ) {
+		// First check for custom kill messages from weaponscripts
+		if ( !CG_GetCustomKillMessage( mod, &message, &message2 ) ) {
+		// No custom message found, use hardcoded messages
 		switch( mod ) {
 		case MOD_KNIFE:
 			message = "was stabbed by";
@@ -541,6 +618,7 @@ static void CG_Obituary( entityState_t *ent ) {
 			message = "was killed by";
 			break;
 		}
+		} // end of else block for custom kill message check
 
 		if( ci->team == ca->team ) {
 			teamkill = "^1TEAM KILL: ^7";
@@ -2336,17 +2414,15 @@ void CG_EntityEvent( centity_t *cent, vec3_t position ) {
 
 	case EV_NOFIRE_UNDERWATER:
 		DEBUGNAME("EV_NOFIRE_UNDERWATER");
-		// Don't play click sound for pliers/syringe when they're allowed to work underwater
-		{
+		// Rate-limit the sound to prevent flooding during client prediction
+		// Only play the sound if 500ms has passed since last play
+		if (cg.time >= cg.nextNofireSoundTime) {
 			qboolean skipSound = qfalse;
 			
-			// Read cvar DIRECTLY from engine to ensure latest value is used
-			// (the Cvar class cache may be stale during prediction)
-			char buffer[32];
-			trap_Cvar_VariableStringBuffer("cg_weapons", buffer, sizeof(buffer));
-			int weapons_flags = atoi(buffer);
+			// Use the bg_weapons cvar value directly
+			int weapons_flags = cvars::bg_weapons.ivalue;
 			
-			// Check ALL possible weapon sources to cover predicted and server events
+			// Check weapon sources to cover predicted and server events
 			weapon_t currentWeapon = (weapon_t)cg.predictedPlayerState.weapon;
 			weapon_t esWeapon = (weapon_t)es->weapon;
 			weapon_t snapWeapon = (weapon_t)cg.snap->ps.weapon;
@@ -2365,6 +2441,9 @@ void CG_EntityEvent( centity_t *cent, vec3_t position ) {
 			if (!skipSound && cgs.media.noFireUnderwater) {
 				trap_S_StartSound (NULL, es->number, CHAN_WEAPON, cgs.media.noFireUnderwater);
 			}
+			
+			// Set next allowed sound time to 500ms from now
+			cg.nextNofireSoundTime = cg.time + 500;
 		}
 		break;
 

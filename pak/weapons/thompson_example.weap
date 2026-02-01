@@ -1,0 +1,87 @@
+// Example weapon script for Thompson
+// This demonstrates the server-side "both" section for customizing weapon properties
+// 
+// To use custom weapon scripts:
+// 1. Set g_weaponScriptsDir cvar to your scripts directory
+// 2. Place .weap files in that directory
+// 3. Restart the map
+//
+weaponDef
+{
+	// Server-side properties (processed by qagame)
+	both {
+		name					"Thompson"
+		statname				"Thompson"
+		damage					18
+		spread					400
+		spreadRatio				0.6
+		headshotWeapon
+		DistanceFalloff
+
+		// Ammo configuration
+		maxammo					90
+		maxclip					30
+		startammo				30
+		startclip				30
+		
+		// Timing (milliseconds)
+		reloadTime				2400
+		fireDelayTime			100
+		nextShotTime			150
+		
+		// Kill messages
+		selfKillMessage			"found a way to shoot himself!"
+		KillMessage				"was killed by"
+		KillMessage2			"'s Thompson."
+	}
+
+	// Client-side properties (processed by cgame)
+	client {
+		standModel				"models/weapons2/thompson/thompson_stand.mdc"
+		pickupModel				"models/weapons2/thompson/thompson.md3"
+		
+		weaponConfig			"models/weapons2/thompson/weapon.cfg"
+		handsModel				"models/weapons2/thompson/v_thompson_hand.mdc"
+		
+		flashDlightColor		1.0 0.6 0.23
+		flashSound				"sound/weapons/thompson/thompson_fire.wav"
+		flashEchoSound			"sound/weapons/thompson/thompson_far.wav"
+		
+		reloadSound				"sound/weapons/thompson/thompson_reload.wav"
+		reloadFastSound			"sound/weapons/thompson/thompson_reload_fast.wav"
+		
+		weaponIcon				"icons/iconw_thompson"
+		weaponSelectedIcon		"icons/iconw_thompson_1_select"
+		
+		ejectBrassFunc			"MachineGunEjectBrass"
+		
+		firstPerson {
+			model				"models/weapons2/thompson/v_thompson.mdc"
+			flashModel			"models/weapons2/thompson/v_thompson_flash.mdc"
+
+			weaponLink
+			{
+				part 0
+				{
+					tag			"tag_barrel"
+					model		"models/weapons2/thompson/v_thompson_barrel.mdc"
+				}
+				part 1
+				{
+					tag			"tag_barrel2"
+					model		"models/weapons2/thompson/v_thompson_barrel2.mdc"
+				}
+				part 2
+				{
+					tag			"tag_barrel3"
+					model		"models/weapons2/thompson/v_thompson_barrel3.mdc"
+				}
+			}
+		}
+
+		thirdPerson {
+			model				"models/weapons2/thompson/thompson_3rd.md3"
+			flashmodel			"models/weapons2/thompson/thompson_flash.mdc"
+		}
+	}
+}
