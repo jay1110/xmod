@@ -2443,10 +2443,6 @@ gentity_t *fire_grenade (gentity_t *self, vec3_t start, vec3_t dir, int grenadeW
 				bolt->takedamage = qtrue;
 				bolt->die = G_MissileDie;
 			}
-			// g_canisterKick: Add collision bounds if not already set
-			else if( g_canisterKick.integer ) {
-				bolt->r.contents = CONTENTS_CORPSE;
-			}
 
 			break;
 	}
