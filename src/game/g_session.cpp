@@ -301,6 +301,10 @@ void G_ReadSessionData( gclient_t *client )
 			&client->sess.medals[6]
 			);
 
+		// If session stats are empty (player disconnected), try to restore from database
+		if (g_xpSave.integer && !*s) {
+			g_clientObjects[ client-g_clients ].xpRestore();
+		}
 	}
 
 	G_CalcRank( client );

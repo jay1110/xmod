@@ -805,8 +805,6 @@ Client::xpBackup()
         if (xmod::g_database->getUserData(user.guid, userData)) {
             xmod::g_database->setXpSkills(userData.id, encodedXp);
             xmod::g_database->updateLastSeen(userData.id, time(NULL));
-            G_DPrintf("[SQLite] XP saved for user %d (%s): %s\n", 
-                     userData.id, user.name.c_str(), encodedXp.c_str());
         }
     }
     
@@ -898,7 +896,6 @@ Client::xpRestore()
                         }
                         
                         restored = true;
-                        G_DPrintf("[SQLite] XP restored for user %d from xmod.db (encoded)\n", userData.id);
                     }
                 }
             }

@@ -95,6 +95,13 @@ qboolean OnClientCommand(int clientNum, const char* cmd) {
 					newUser.fakeguid = false;
 					connectedUsers[clientNum] = &newUser;
 					G_LogPrintf("[Auth] Client %d: Updated connectedUsers with GUID %.8s... (fakeguid=false)\n", clientNum, guid);
+					
+					// Now that we have the real GUID, try to restore XP from database
+					// This is needed because G_InitSessionData() called xpRestore() earlier
+					// with PENDING guid before authentication completed
+					if (g_xpSave.integer) {
+						g_clientObjects[clientNum].xpRestore();
+					}
 				} else {
 					// If we can't create a new user entry, at least mark current user as not fake
 					// so admin commands will work
