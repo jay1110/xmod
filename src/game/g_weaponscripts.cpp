@@ -74,6 +74,7 @@ static const char* weaponFilenames[WP_NUM_WEAPONS] = {
     "landmine_bbetty",         // WP_LANDMINE_BBETTY
     "landmine_pgas",           // WP_LANDMINE_PGAS
     "molotov",                 // WP_MOLOTOV
+    "bomb",                    // WP_BOMB
 };
 
 ///////////////////////////////////////////////////////////////////////////////

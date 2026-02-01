@@ -575,6 +575,7 @@ void player_die( gentity_t *self, gentity_t *inflictor, gentity_t *attacker, int
 			case WP_MOLOTOV:
 			case WP_SATCHEL:
 			case WP_TRIPMINE:
+			case WP_BOMB:
 				break;
 
 			default: {

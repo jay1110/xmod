@@ -102,6 +102,7 @@ void G_BounceMissile( gentity_t *ent, trace_t *trace ) {
 				case WP_SATCHEL:
 				case WP_SMOKE_BOMB:
 				case WP_TRIPMINE:
+				case WP_BOMB:
 					ent->r.ownerNum = ENTITYNUM_WORLD;
 					break;
 
@@ -686,6 +687,7 @@ void Landmine_Check_Ground (gentity_t *self)
 			case WP_SATCHEL:
 			case WP_SMOKE_BOMB:
 			case WP_SMOKE_MARKER:
+			case WP_BOMB:
 				if (!self->s.pos.trDelta[0] && !self->s.pos.trDelta[1] && !self->s.pos.trDelta[2])
 					self->clipmask &= ~CONTENTS_BODY;
 				break;
@@ -758,6 +760,7 @@ void G_RunMissile( gentity_t *ent ) {
 			case WP_SATCHEL:
 			case WP_SMOKE_BOMB:
 			case WP_SMOKE_MARKER:
+			case WP_BOMB:
 				if (!ent->s.pos.trDelta[0] && !ent->s.pos.trDelta[1] && !ent->s.pos.trDelta[2])
 					ent->clipmask &= ~CONTENTS_BODY;
 				break;
@@ -2417,11 +2420,32 @@ gentity_t *fire_grenade (gentity_t *self, vec3_t start, vec3_t dir, int grenadeW
 			VectorSet(bolt->r.maxs, 12, 12, 20);
 			VectorCopy(bolt->r.maxs, bolt->r.absmax);
 
-			// g_damageweapons: Bombs/dynamite can be damaged
+			break;
+		case WP_BOMB:
+			bolt->classname				= "bomb";
+			bolt->splashRadius			= 400;
+			bolt->methodOfDeath			= MOD_BOMB;
+			bolt->splashMethodOfDeath	= MOD_BOMB;
+			bolt->s.eFlags				= EF_BOUNCE_HALF | EF_BOUNCE;
+			bolt->nextthink				= level.time + 4000;	// explodes in 4 seconds
+
+			bolt->r.contents			= CONTENTS_CORPSE;	// (player can walk through)
+
+			// small target cube
+			VectorSet(bolt->r.mins, -6, -6, 0);
+			VectorCopy(bolt->r.mins, bolt->r.absmin);
+			VectorSet(bolt->r.maxs, 6, 6, 12);
+			VectorCopy(bolt->r.maxs, bolt->r.absmax);
+
+			// g_damageweapons: Bombs can be damaged
 			if( g_damageweapons.integer & DW_BOMBS ) {
 				bolt->health = 50;
 				bolt->takedamage = qtrue;
 				bolt->die = G_MissileDie;
+			}
+			// g_canisterKick: Add collision bounds if not already set
+			else if( g_canisterKick.integer ) {
+				bolt->r.contents = CONTENTS_CORPSE;
 			}
 
 			break;

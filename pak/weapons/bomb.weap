@@ -1,0 +1,41 @@
+weaponDef
+{
+//Custom stuff start here.
+    both {
+        // Available parameters.
+        name "Bomb"
+        damage 400
+        splashdamage 400
+        splashdamage_radius 400
+        KillMessage "was detonated by^7"
+        KillMessage2 "'s Bomb^7"
+        selfKillMessage "killed himself^7"
+        HeadshotWeapon no
+        GibbingWeapon yes
+        movementSpeedScale 0
+        DistanceFalloff no
+    }
+//End of custom stuff
+
+// This is from the original .weap files (found in etmain/pak0.pk3 
+// or nitmod/nitmod_*.*.pk3.
+// MUST BE ADDED IN EVERY WEAPON SCRIPT
+
+    client {
+        weaponConfig        "models/multiplayer/smokebomb/weapon.cfg"
+        handsModel          "models/multiplayer/smokebomb/v_smokebomb_hand.mdc"
+               
+        flashDlightColor    1 0.7 0.5
+        weaponSelectedIcon  "icons/iconw_bomb.tga"
+        missileModel        "models/multiplayer/bomb/bomb.md3"
+        missileTrailFunc    "GrenadeTrail"
+
+        firstPerson {
+            model           "models/multiplayer/bomb/v_bomb.md3"
+            
+        }
+        thirdPerson {
+            model           "models/multiplayer/bomb/bomb.md3"
+        }
+    }
+}

@@ -633,6 +633,8 @@ toString( weapon_t type, string& out )
         case WP_STEN:                  out = "STEN";                  return out;
         case WP_THOMPSON:              out = "THOMPSON";              return out;
         case WP_TRIPMINE:              out = "TRIPMINE";              return out;
+        case WP_MOLOTOV:               out = "MOLOTOV";               return out;
+        case WP_BOMB:                  out = "BOMB";                  return out;
 
         default:
             break;

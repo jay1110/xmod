@@ -4430,6 +4430,7 @@ void CalcMuzzlePoint ( gentity_t *ent, int weapon, vec3_t forward, vec3_t right,
 		case WP_LANDMINE:
 		case WP_LANDMINE_BBETTY:
 		case WP_LANDMINE_PGAS:
+		case WP_BOMB:
 			VectorMA( muzzlePoint, 20, right, muzzlePoint );
 			break;
 		case WP_AKIMBO_COLT:
@@ -4619,6 +4620,7 @@ void FireWeapon( gentity_t *ent ) {
 			case WP_SATCHEL_DET:
 			case WP_SMOKE_BOMB:
 			case WP_POISON_GAS:
+			case WP_BOMB:
 				break;
 
 			case WP_AKIMBO_SILENCEDCOLT:
@@ -4864,6 +4866,11 @@ void FireWeapon( gentity_t *ent ) {
 
 	case WP_GRENADE_LAUNCHER:
 	case WP_GRENADE_PINEAPPLE:
+		pFiredShot = weapon_grenadelauncher_fire( ent, ent->s.weapon );
+		break;
+
+	case WP_BOMB:
+		// Bomb - 1 per life, no charge needed
 		pFiredShot = weapon_grenadelauncher_fire( ent, ent->s.weapon );
 		break;
 
