@@ -17,63 +17,63 @@ static weaponScriptDef_t weaponScripts[WP_NUM_WEAPONS];
 
 // Weapon filename mappings
 static const char* weaponFilenames[WP_NUM_WEAPONS] = {
-    "",                     // WP_NONE
-    "knife",               // WP_KNIFE
-    "luger",               // WP_LUGER
-    "mp40",                // WP_MP40
-    "grenade",             // WP_GRENADE_LAUNCHER
-    "panzerfaust",         // WP_PANZERFAUST
-    "flamethrower",        // WP_FLAMETHROWER
-    "colt",                // WP_COLT
-    "thompson",            // WP_THOMPSON
-    "grenade_pineapple",   // WP_GRENADE_PINEAPPLE
-    "sten",                // WP_STEN
-    "syringe",             // WP_MEDIC_SYRINGE
-    "ammo",                // WP_AMMO
-    "arty",                // WP_ARTY
-    "silencer",            // WP_SILENCER
-    "dynamite",            // WP_DYNAMITE
-    "",                    // WP_SMOKETRAIL
-    "",                    // WP_MAPMORTAR
-    "",                    // VERYBIGEXPLOSION
-    "medkit",              // WP_MEDKIT
-    "binoculars",          // WP_BINOCULARS
-    "pliers",              // WP_PLIERS
-    "smoke_marker",        // WP_SMOKE_MARKER
-    "kar98",               // WP_KAR98
-    "carbine",             // WP_CARBINE
-    "garand",              // WP_GARAND
-    "landmine",            // WP_LANDMINE
-    "satchel",             // WP_SATCHEL
-    "satchel_det",         // WP_SATCHEL_DET
-    "tripmine",            // WP_TRIPMINE
-    "smoke_bomb",          // WP_SMOKE_BOMB
-    "mg42",                // WP_MOBILE_MG42 (NoQuarter uses mg42.weap)
-    "k43",                 // WP_K43
-    "fg42",                // WP_FG42
-    "",                    // WP_DUMMY_MG42
-    "mortar",              // WP_MORTAR
-    "",                    // WP_LOCKPICK
-    "akimbo_colt",         // WP_AKIMBO_COLT
-    "akimbo_luger",        // WP_AKIMBO_LUGER
-    "gpg40",               // WP_GPG40
-    "m7",                  // WP_M7
-    "silenced_colt",       // WP_SILENCED_COLT
-    "garand_scope",        // WP_GARAND_SCOPE
-    "k43_scope",           // WP_K43_SCOPE
-    "fg42_scope",          // WP_FG42SCOPE
-    "mortar_set",          // WP_MORTAR_SET
-    "adrenaline",          // WP_MEDIC_ADRENALINE
-    "akimbo_silencedcolt", // WP_AKIMBO_SILENCEDCOLT
-    "akimbo_silencedluger",// WP_AKIMBO_SILENCEDLUGER
-    "mg42_set",            // WP_MOBILE_MG42_SET (shares mg42.weap script via both_altweap)
-    "poison",              // WP_POISON_SYRINGE (was poison_syringe)
-    "adrenaline_share",    // WP_ADRENALINE_SHARE
-    "m97",                 // WP_M97
-    "poison_gas",          // WP_POISON_GAS
-    "landmine_bbetty",     // WP_LANDMINE_BBETTY
-    "landmine_pgas",       // WP_LANDMINE_PGAS
-    "molotov",             // WP_MOLOTOV
+    "",                        // WP_NONE
+    "knife",                   // WP_KNIFE
+    "luger",                   // WP_LUGER
+    "mp40",                    // WP_MP40
+    "grenade",                 // WP_GRENADE_LAUNCHER
+    "panzerfaust",             // WP_PANZERFAUST
+    "flamethrower",            // WP_FLAMETHROWER
+    "colt",                    // WP_COLT
+    "thompson",                // WP_THOMPSON
+    "pineapple",               // WP_GRENADE_PINEAPPLE (NQ: pineapple.weap)
+    "sten",                    // WP_STEN
+    "syringe",                 // WP_MEDIC_SYRINGE
+    "ammopack",                // WP_AMMO (NQ: ammopack.weap)
+    "arty",                    // WP_ARTY
+    "silenced_luger",          // WP_SILENCER (NQ: silenced_luger.weap)
+    "dynamite",                // WP_DYNAMITE
+    "",                        // WP_SMOKETRAIL
+    "",                        // WP_MAPMORTAR
+    "",                        // VERYBIGEXPLOSION
+    "medpack",                 // WP_MEDKIT (NQ: medpack.weap)
+    "binocs",                  // WP_BINOCULARS (NQ: binocs.weap)
+    "pliers",                  // WP_PLIERS
+    "smokemarker",             // WP_SMOKE_MARKER (NQ: smokemarker.weap)
+    "kar98",                   // WP_KAR98
+    "carbine",                 // WP_CARBINE
+    "m1_garand",               // WP_GARAND (NQ: m1_garand.weap)
+    "landmine",                // WP_LANDMINE
+    "satchel",                 // WP_SATCHEL
+    "satchel_det",             // WP_SATCHEL_DET
+    "tripmine",                // WP_TRIPMINE
+    "smokegrenade",            // WP_SMOKE_BOMB (NQ: smokegrenade.weap)
+    "mg42",                    // WP_MOBILE_MG42 (NQ: mg42.weap)
+    "k43",                     // WP_K43
+    "fg42",                    // WP_FG42
+    "",                        // WP_DUMMY_MG42
+    "mortar",                  // WP_MORTAR
+    "",                        // WP_LOCKPICK
+    "akimbo_colt",             // WP_AKIMBO_COLT
+    "akimbo_luger",            // WP_AKIMBO_LUGER
+    "gpg40",                   // WP_GPG40
+    "m7",                      // WP_M7
+    "silenced_colt",           // WP_SILENCED_COLT
+    "m1_garand_s",             // WP_GARAND_SCOPE (NQ: m1_garand_s.weap)
+    "k43",                     // WP_K43_SCOPE (shares k43.weap, uses both_altweap)
+    "fg42",                    // WP_FG42SCOPE (shares fg42.weap, uses both_altweap)
+    "mortar_set",              // WP_MORTAR_SET
+    "adrenaline",              // WP_MEDIC_ADRENALINE
+    "akimbo_silenced_colt",    // WP_AKIMBO_SILENCEDCOLT (NQ: akimbo_silenced_colt.weap)
+    "akimbo_silenced_luger",   // WP_AKIMBO_SILENCEDLUGER (NQ: akimbo_silenced_luger.weap)
+    "mg42",                    // WP_MOBILE_MG42_SET (shares mg42.weap, uses both_altweap)
+    "poison",                  // WP_POISON_SYRINGE
+    "adrenaline_share",        // WP_ADRENALINE_SHARE
+    "m97",                     // WP_M97
+    "poison_gas",              // WP_POISON_GAS
+    "landmine_bbetty",         // WP_LANDMINE_BBETTY
+    "landmine_pgas",           // WP_LANDMINE_PGAS
+    "molotov",                 // WP_MOLOTOV
 };
 
 ///////////////////////////////////////////////////////////////////////////////
