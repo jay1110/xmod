@@ -5392,6 +5392,7 @@ void CG_MissileHitWall( int weapon, int clientNum, vec3_t origin, vec3_t dir, in
 
 	case WP_DYNAMITE:
 	case WP_TRIPMINE:
+	case WP_BOMB:
 		shader = cgs.media.rocketExplosionShader;
 		sfx = cgs.media.sfx_dynamiteexp;
 		sfx2 = cgs.media.sfx_dynamiteexpDist;
