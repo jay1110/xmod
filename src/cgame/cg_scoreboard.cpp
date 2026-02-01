@@ -837,13 +837,22 @@ static int WM_TeamScoreboard( int x, int y, team_t team, float fade, int maxrows
 	// save off y val
 	tempy = y;
 	
-	// draw color bands
+	// draw color bands - team-specific colors
 	for ( i = 0; i < maxrows; i++ ) {
-		if ( i % 2 == 0 )
-			VectorSet( hcolor, (80.f/255.f), (80.f/255.f), (80.f/255.f) );// LIGHT BLUE
-		else
-			VectorSet( hcolor, (0.f/255.f), (0.f/255.f), (0.f/255.f) ); // DARK BLUE
-		hcolor[3] = fade * 0.3;
+		if ( team == TEAM_ALLIES ) {
+			// Allies: light blue / dark blue alternating
+			if ( i % 2 == 0 )
+				VectorSet( hcolor, (70.f/255.f), (100.f/255.f), (150.f/255.f) );  // Light blue
+			else
+				VectorSet( hcolor, (30.f/255.f), (50.f/255.f), (90.f/255.f) );    // Dark blue
+		} else {
+			// Axis: light red / dark red alternating
+			if ( i % 2 == 0 )
+				VectorSet( hcolor, (150.f/255.f), (70.f/255.f), (70.f/255.f) );   // Light red
+			else
+				VectorSet( hcolor, (90.f/255.f), (30.f/255.f), (30.f/255.f) );    // Dark red
+		}
+		hcolor[3] = fade * 0.4;
 		
 		if ( use_mini_chars ) {
 			// CHRUKER: b076 - Adjusted y height, and changed to DrawBottom instead of DrawTopBottom
