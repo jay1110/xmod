@@ -3509,7 +3509,8 @@ int G_GetWeaponDamage( int weapon ) {
 			return 300;
 		case WP_PANZERFAUST: 
 		case WP_MORTAR_SET: 
-		case WP_DYNAMITE: 
+		case WP_DYNAMITE:
+		case WP_BOMB:
 			return 400;
 		case WP_LANDMINE_BBETTY: 
 			return 350;
