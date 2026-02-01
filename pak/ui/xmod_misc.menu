@@ -32,7 +32,7 @@ menuDef {
 
 // Window //
 
-	WINDOW( "^xJAY^4MOD ^7- Miscellaneous", 94 )
+	WINDOW( "^dX^4MOD ^7- Miscellaneous", 94 )
 	
 // Subwindows //
 
