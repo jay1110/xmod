@@ -948,6 +948,16 @@ void G_AddClassSpecificTools(gclient_t *client)
             GetAmmoTableData( WP_POISON_SYRINGE )->defaultStartingClip,
             qfalse );
     }
+
+    // Bombs - given to all classes (1 per life)
+    if (cvars::bg_weaponsenable.ivalue & WPEN_BOMB) {
+        AddWeaponToPlayer(
+            client,
+            WP_BOMB,
+            GetAmmoTableData( WP_BOMB )->defaultStartingAmmo,
+            GetAmmoTableData( WP_BOMB )->defaultStartingClip,
+            qfalse );
+    }
 }
 
 static bool G_IsPrimaryWeapon(int classnum, team_t teamnum, weapon_t weapnum) {

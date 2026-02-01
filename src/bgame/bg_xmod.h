@@ -41,6 +41,7 @@
 #define WPEN_TRIPMINE      0x0008 //    8 - Enable tripmines
 #define WPEN_M97           0x0010 //   16 - enable Winchester M97 (shotgun)
 #define WPEN_THKNIVES      0x0020 //   32 - enable throwing knives
+#define WPEN_BOMB          0x0040 //   64 - enable bombs
 
 // Class carryovers
 #define SBS_COPS		1
