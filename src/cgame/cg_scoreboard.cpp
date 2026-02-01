@@ -4,6 +4,10 @@
 
 #define	SCOREBOARD_WIDTH	(31*BIGCHAR_WIDTH)
 
+// Ping thresholds for color coding
+#define PING_THRESHOLD_GOOD		100		// 0-99: Green
+#define PING_THRESHOLD_AVERAGE	251		// 100-250: Yellow, 251+: Red
+
 vec4_t clrUiBack = { 0.f, 0.f, 0.f, .6f };
 vec4_t clrUiBar = { .16f, .2f, .17f, .8f };
 
@@ -61,8 +65,8 @@ Returns qtrue if the icon was drawn
 */
 static qboolean CG_DrawClassIcon(float x, float y, float fade, int playerClass) {
 	if (playerClass >= PC_SOLDIER && playerClass < NUM_PLAYER_CLASSES) {
-		float alpha[4] = { 1.f, 1.f, 1.f, fade };
-		trap_R_SetColor(alpha);
+		vec4_t iconColor = { 1.f, 1.f, 1.f, fade };
+		trap_R_SetColor(iconColor);
 		CG_DrawPic(x, y, 14, 14, cgs.media.limboClassButtons[playerClass]);
 		trap_R_SetColor(NULL);
 		return qtrue;
@@ -428,9 +432,9 @@ static void WM_DrawClientScore( int x, int y, score_t *score, float *color, floa
 	} else {
 		// Color-coded ping display
 		vec4_t pingColor;
-		if (score->ping < 100) {
+		if (score->ping < PING_THRESHOLD_GOOD) {
 			VectorCopy(clrPingGreen, pingColor);
-		} else if (score->ping < 251) {
+		} else if (score->ping < PING_THRESHOLD_AVERAGE) {
 			VectorCopy(clrPingYellow, pingColor);
 		} else {
 			VectorCopy(clrPingRed, pingColor);
@@ -635,9 +639,9 @@ static void WM_DrawClientScore_Small( int x, int y, score_t *score, float *color
 	} else {
 		// Color-coded ping display
 		vec4_t pingColor;
-		if (score->ping < 100) {
+		if (score->ping < PING_THRESHOLD_GOOD) {
 			VectorCopy(clrPingGreen, pingColor);
-		} else if (score->ping < 251) {
+		} else if (score->ping < PING_THRESHOLD_AVERAGE) {
 			VectorCopy(clrPingYellow, pingColor);
 		} else {
 			VectorCopy(clrPingRed, pingColor);
@@ -702,13 +706,11 @@ static int WM_DrawInfoLine( int x, int y, float fade ) {
 static int WM_TeamScoreboard( int x, int y, team_t team, float fade, int maxrows, int absmaxrows ) {
 	vec4_t hcolor;
 	float tempx, tempy;
-	int height, width;
+	int width;
 	int i;
 	int count = 0;
 	qboolean use_mini_chars = qfalse; // CHRUKER: b035 - Needed to check if using mini chars
-	vec4_t tclr =	{ 0.6f,		0.6f,		0.6f,		1.0f };
 
-	height = SMALLCHAR_HEIGHT * maxrows;
 	width = INFO_PLAYER_WIDTH + INFO_CLASS_WIDTH + INFO_KD_WIDTH + INFO_XP_WIDTH + INFO_LATENCY_WIDTH;
 
 	// Jaybird - 10 px change
