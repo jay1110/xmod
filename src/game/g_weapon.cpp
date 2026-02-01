@@ -79,6 +79,11 @@ int G_GetWeaponClassForMOD( meansOfDeath_t mod )
 			return 1;
 		case MOD_DYNAMITE:
 			return 2;
+		case MOD_BOMB:
+			// Only damages movers if SBW_BOMB_MOVERS flag is set
+			if (cvars::bg_weapons.ivalue & SBW_BOMB_MOVERS)
+				return 2;	// Same damage class as dynamite
+			return -1;
 		default:
 			return -1;
 	}
