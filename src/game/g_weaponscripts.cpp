@@ -41,16 +41,16 @@ static const char* weaponFilenames[WP_NUM_WEAPONS] = {
     "pliers",                  // WP_PLIERS
     "smokemarker",             // WP_SMOKE_MARKER (NQ: smokemarker.weap)
     "kar98",                   // WP_KAR98
-    "carbine",                 // WP_CARBINE
-    "m1_garand",               // WP_GARAND (NQ: m1_garand.weap)
+    "m1_garand",               // WP_CARBINE (NQ: m1_garand.weap - Engineer rifle grenade)
+    "m1_garand_s",             // WP_GARAND (NQ: m1_garand_s.weap - Sniper base, uses both)
     "landmine",                // WP_LANDMINE
     "satchel",                 // WP_SATCHEL
     "satchel_det",             // WP_SATCHEL_DET
     "tripmine",                // WP_TRIPMINE
     "smokegrenade",            // WP_SMOKE_BOMB (NQ: smokegrenade.weap)
     "mg42",                    // WP_MOBILE_MG42 (NQ: mg42.weap)
-    "k43",                     // WP_K43
-    "fg42",                    // WP_FG42
+    "k43",                     // WP_K43 (NQ: k43.weap - CovertOps base, uses both)
+    "fg42",                    // WP_FG42 (NQ: fg42.weap - base, uses both)
     "",                        // WP_DUMMY_MG42
     "mortar",                  // WP_MORTAR
     "",                        // WP_LOCKPICK
@@ -59,7 +59,7 @@ static const char* weaponFilenames[WP_NUM_WEAPONS] = {
     "gpg40",                   // WP_GPG40
     "m7",                      // WP_M7
     "silenced_colt",           // WP_SILENCED_COLT
-    "m1_garand_s",             // WP_GARAND_SCOPE (NQ: m1_garand_s.weap)
+    "m1_garand_s",             // WP_GARAND_SCOPE (shares m1_garand_s.weap, uses both_altweap)
     "k43",                     // WP_K43_SCOPE (shares k43.weap, uses both_altweap)
     "fg42",                    // WP_FG42SCOPE (shares fg42.weap, uses both_altweap)
     "mortar_set",              // WP_MORTAR_SET
@@ -328,6 +328,12 @@ G_GetAltWeapon
 
 Get the alternate (scoped/set) weapon for a base weapon.
 Returns -1 if the weapon has no alternate weapon.
+
+NoQuarter pattern: scoped/set weapons share same .weap file with base weapon:
+- WP_GARAND (base) + WP_GARAND_SCOPE (altweap) → m1_garand_s.weap
+- WP_K43 (base) + WP_K43_SCOPE (altweap) → k43.weap
+- WP_FG42 (base) + WP_FG42SCOPE (altweap) → fg42.weap
+- WP_MOBILE_MG42 (base) + WP_MOBILE_MG42_SET (altweap) → mg42.weap
 ==============
 */
 static int G_GetAltWeapon( int weapon )
