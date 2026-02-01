@@ -786,16 +786,26 @@ Client::xpBackup()
 {
     User& user = *connectedUsers[slot];
 
-    if (user.fakeguid || !g_xpSave.integer)
+    G_Printf("[XP_SAVE] xpBackup called for slot %d, guid=%.8s..., fakeguid=%d, g_xpSave=%d\n",
+             slot, user.guid.c_str(), user.fakeguid ? 1 : 0, g_xpSave.integer);
+
+    if (user.fakeguid || !g_xpSave.integer) {
+        G_Printf("[XP_SAVE] Skipping: fakeguid=%d, g_xpSave=%d\n", user.fakeguid ? 1 : 0, g_xpSave.integer);
         return;
+    }
 
     // Save XP to xmod.db only (not legacy user.db)
     if (xmod::g_database && xmod::g_database->isOpened()) {
         // Copy current XP to array
         float currentXp[SK_NUM_SKILLS];
+        float totalXp = 0;
         for (int i = 0; i < SK_NUM_SKILLS; i++) {
             currentXp[i] = gclient.sess.skillpoints[i];
+            totalXp += currentXp[i];
         }
+        
+        G_Printf("[XP_SAVE] Saving total XP: %.0f for user %s (guid: %.8s...)\n",
+                 totalXp, user.name.c_str(), user.guid.c_str());
         
         // Encode XP skills using same format as legacy user.db (base64 + scramble + CRC)
         std::string encodedXp = User::encodeXpSkills(currentXp, user.guid);
@@ -805,9 +815,13 @@ Client::xpBackup()
         if (xmod::g_database->getUserData(user.guid, userData)) {
             xmod::g_database->setXpSkills(userData.id, encodedXp);
             xmod::g_database->updateLastSeen(userData.id, time(NULL));
-            G_DPrintf("[SQLite] XP saved for user %d (%s): %s\n", 
+            G_Printf("[XP_SAVE] SUCCESS: XP saved for user %d (%s): %s\n", 
                      userData.id, user.name.c_str(), encodedXp.c_str());
+        } else {
+            G_Printf("[XP_SAVE] FAILED: User not found in database (guid: %.8s...)\n", user.guid.c_str());
         }
+    } else {
+        G_Printf("[XP_SAVE] FAILED: Database not available\n");
     }
     
     // Update timestamp in user object (for timeout tracking)
@@ -866,8 +880,13 @@ Client::xpRestore()
 {
     User& user = *connectedUsers[slot];
 
-    if (user.fakeguid || !g_xpSave.integer)
+    G_Printf("[XP_RESTORE] xpRestore called for slot %d, guid=%.8s..., fakeguid=%d, g_xpSave=%d\n",
+             slot, user.guid.c_str(), user.fakeguid ? 1 : 0, g_xpSave.integer);
+
+    if (user.fakeguid || !g_xpSave.integer) {
+        G_Printf("[XP_RESTORE] Skipping: fakeguid=%d, g_xpSave=%d\n", user.fakeguid ? 1 : 0, g_xpSave.integer);
         return;
+    }
 
     const int timeout = str::toSeconds( g_xpSaveTimeout.string );
 
@@ -878,6 +897,9 @@ Client::xpRestore()
     if (xmod::g_database && xmod::g_database->isOpened()) {
         xmod::UserData userData;
         if (xmod::g_database->getUserData(user.guid, userData)) {
+            G_Printf("[XP_RESTORE] Found user %d in database, xp_skills=%s\n",
+                     userData.id, userData.xp_skills.empty() ? "(empty)" : userData.xp_skills.c_str());
+            
             if (!userData.xp_skills.empty()) {
                 // Decode XP skills using same format as legacy user.db (base64 + scramble + CRC)
                 float xpValues[SK_NUM_SKILLS] = {0};
@@ -892,17 +914,30 @@ Client::xpRestore()
                         gclient.ps.stats[STAT_XP] = 0;
                         
                         // Restore individual XP levels
+                        float totalXp = 0;
                         for (int i = 0; i < SK_NUM_SKILLS; i++) {
                             gclient.sess.skillpoints[i] = xpValues[i];
                             gclient.ps.stats[STAT_XP] += static_cast<int>(xpValues[i]);
+                            totalXp += xpValues[i];
                         }
                         
                         restored = true;
-                        G_DPrintf("[SQLite] XP restored for user %d from xmod.db (encoded)\n", userData.id);
+                        G_Printf("[XP_RESTORE] SUCCESS: Restored %.0f total XP for user %d\n", totalXp, userData.id);
+                    } else {
+                        G_Printf("[XP_RESTORE] FAILED: Timeout exceeded (timeout=%d, elapsed=%ld)\n", 
+                                 timeout, (long)(time(NULL) - lastSeen));
                     }
+                } else {
+                    G_Printf("[XP_RESTORE] FAILED: decodeXpSkills failed for user %d\n", userData.id);
                 }
+            } else {
+                G_Printf("[XP_RESTORE] FAILED: xp_skills is empty for user %d\n", userData.id);
             }
+        } else {
+            G_Printf("[XP_RESTORE] FAILED: User not found in database (guid: %.8s...)\n", user.guid.c_str());
         }
+    } else {
+        G_Printf("[XP_RESTORE] FAILED: Database not available\n");
     }
 
     if (!restored) {
