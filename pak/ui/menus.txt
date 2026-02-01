@@ -79,5 +79,6 @@
 	loadMenu { "ui/ingame_vote_generic.menu" }
 	loadMenu { "ui/ingame_privatemessage.menu" }
 	loadMenu { "ui/credits_xmod.menu" }
+	loadMenu { "ui/credits_jaymod.menu" }
 	
 }
