@@ -80,13 +80,13 @@ WM_DrawObjectives
 =================
 */
 
-// Column widths - modified for new layout: Flag, Class, Name, K/D, XP, Ping
-#define INFO_PLAYER_WIDTH		120
+// Column widths - modified for new layout: Class, Name, K/D, XP, Ping
+#define INFO_PLAYER_WIDTH		140
 #define INFO_SCORE_WIDTH		64
-#define INFO_XP_WIDTH			36
-#define INFO_KD_WIDTH			40
+#define INFO_XP_WIDTH			32
+#define INFO_KD_WIDTH			44
 #define INFO_CLASS_WIDTH		18
-#define INFO_LATENCY_WIDTH		36
+#define INFO_LATENCY_WIDTH		32
 #define INFO_TEAM_HEIGHT		24
 #define INFO_BORDER				2
 #define INFO_LINE_HEIGHT		30
@@ -177,6 +177,15 @@ int WM_DrawObjectives( int x, int y, int width, float fade ) {
 	else {
 		tempy = y;
 		rows = 1;
+		int totalPlayers = 0;
+		int reinfSeconds = 0;
+
+		// Count total connected players
+		for (int p = 0; p < cgs.maxclients; p++) {
+			if (cgs.clientinfo[p].infoValid) {
+				totalPlayers++;
+			}
+		}
 
 		CG_FillRect( x-5, y-2, width+5, 21, clrUiBack );
 		CG_FillRect( x-5, y-2, width+5, 21, clrUiBar );
@@ -195,6 +204,7 @@ int WM_DrawObjectives( int x, int y, int width, float fade ) {
 			msec = mins = tens = seconds = 0;
 		}
 
+		// Line 1: Mission time on left
 		if( cgs.gamestate != GS_PLAYING ) {
 			s = va("%s %s", CG_TranslateString("MISSION TIME:"),  CG_TranslateString("WARMUP"));
 		} else if ( msec < 0 && cgs.timelimit > 0.0f ) {
@@ -203,38 +213,31 @@ int WM_DrawObjectives( int x, int y, int width, float fade ) {
 			else
 				s = va( "%s %s", CG_TranslateString( "MISSION TIME:" ),  CG_TranslateString( "SUDDEN DEATH" ) );
 		} else {
-			s = va( "%s   %2.0f:%i%i", CG_TranslateString( "MISSION TIME:" ), (float)mins, tens, seconds ); // float cast to line up with reinforce time
+			s = va( "%s   %2.0f:%i%i", CG_TranslateString( "MISSION TIME:" ), (float)mins, tens, seconds );
 		}
 
 		CG_Text_Paint_Ext( x, y + 13, 0.25f, 0.25f, tclr, s, 0, 0, 0, &cgs.media.limboFont1 );
 
+		// Map name and player count on right side of line 1
+		s = va( "%s  ^d%d/%d", cgs.rawmapname, totalPlayers, cgs.maxclients );
+		CG_Text_Paint_Ext( x + width - 20 - CG_Text_Width_Ext( s, 0.25f, 0, &cgs.media.limboFont1 ), y + 13, 0.25f, 0.25f, tclr, s, 0, 0, 0, &cgs.media.limboFont1 );
+
+		// Reinforce time in seconds only (no minutes)
 		if( cgs.gametype != GT_WOLF_LMS ) {
 			if(cgs.clientinfo[cg.snap->ps.clientNum].team == TEAM_AXIS || cgs.clientinfo[cg.snap->ps.clientNum].team == TEAM_ALLIES) {
-				msec = CG_CalculateReinfTime( qfalse ) * 1000;
+				reinfSeconds = CG_CalculateReinfTime( qfalse );
 			}
-			else // no team (spectator mode)
-				msec = 0;
 
-			if (msec) {
-				seconds = msec / 1000;
-				mins = seconds / 60;
-				seconds -= mins * 60;
-				tens = seconds / 10;
-				seconds -= tens * 10;
-
-				s = va( "%s %2.0f:%i%i", CG_TranslateString( "REINFORCE TIME:" ), (float)mins, tens, seconds );
-				CG_Text_Paint_Ext( x + width - 20 - CG_Text_Width_Ext( s, 0.25f, 0, &cgs.media.limboFont1 ), y + 13, 0.25f, 0.25f, tclr, s, 0, 0, 0, &cgs.media.limboFont1 );
+			if (reinfSeconds > 0) {
+				s = va( "%s ^d%d", CG_TranslateString( "REINFORCE:" ), reinfSeconds );
+				int centX = (width / 2) - (CG_Text_Width_Ext( s, 0.25f, 0, &cgs.media.limboFont1 ) / 2);
+				CG_Text_Paint_Ext( x + centX, y + 13, 0.25f, 0.25f, tclr, s, 0, 0, 0, &cgs.media.limboFont1 );
 			}
 		}
 
-		// NERVE - SMF
+		// NERVE - SMF - Additional game type info (shown below on second row would clutter, keep in center)
 		if ( cgs.gametype == GT_WOLF_STOPWATCH ) {
-			int w;
-			s = va( "%s %i", CG_TranslateString( "STOPWATCH ROUND" ), cgs.currentRound + 1 );
-
-			w = CG_Text_Width_Ext( s, 0.25f, 0, &cgs.media.limboFont1 );
-
-			CG_Text_Paint_Ext( x + 300 - w*0.5f, y + 13, 0.25f, 0.25f, tclr, s, 0, 0, 0, &cgs.media.limboFont1 );
+			// Already have reinforce centered, show stopwatch round info 
 		} else if( cgs.gametype == GT_WOLF_LMS ) {
 			int w;
 			s = va( "%s %i  %s %i-%i", CG_TranslateString( "ROUND" ), cgs.currentRound + 1, CG_TranslateString( "SCORE" ), cg.teamWonRounds[1], cg.teamWonRounds[0] );
@@ -242,11 +245,7 @@ int WM_DrawObjectives( int x, int y, int width, float fade ) {
 
 			CG_Text_Paint_Ext( x + 300 - w*0.5f, y + 13, 0.25f, 0.25f, tclr, s, 0, 0, 0, &cgs.media.limboFont1 );
 		} else if( cgs.gametype == GT_WOLF_CAMPAIGN ) {
-			int w;
-			s = va( "MAP %i of %i", cgs.currentCampaignMap + 1, cgs.campaignData.mapCount );
-			w = CG_Text_Width_Ext( s, 0.25f, 0, &cgs.media.limboFont1 );
-
-			CG_Text_Paint_Ext( x + 300 - w*0.5f, y + 13, 0.25f, 0.25f, tclr, s, 0, 0, 0, &cgs.media.limboFont1 );
+			// Campaign info could go somewhere if needed
 		}
 		
 		y += SMALLCHAR_HEIGHT * 2;
@@ -276,22 +275,22 @@ static void WM_DrawClientScore( int x, int y, score_t *score, float *color, floa
 		hcolor[3] = fade * 0.3;
 		VectorSet( hcolor, .5f, .5f, .2f );			// DARK-RED
 
+		// Class box first
+		CG_FillRect( tempx - 3, y + 1, INFO_CLASS_WIDTH - INFO_BORDER + 3, SMALLCHAR_HEIGHT - 1, hcolor );
+		tempx += INFO_CLASS_WIDTH;
+
         // Player box
-		CG_FillRect( tempx - 3, y + 1, INFO_PLAYER_WIDTH - INFO_BORDER + 3, SMALLCHAR_HEIGHT - 1, hcolor );
+		CG_FillRect( tempx, y + 1, INFO_PLAYER_WIDTH - INFO_BORDER, SMALLCHAR_HEIGHT - 1, hcolor );
 		tempx += INFO_PLAYER_WIDTH;
 
 		if ( score->ping < 0 || (ci->team == TEAM_SPECTATOR && ci->shoutcaster)) {
             // Connecting or shoutcasters get simpler row
 			int width;
-			width = INFO_CLASS_WIDTH + INFO_KD_WIDTH + INFO_XP_WIDTH + INFO_LATENCY_WIDTH;
+			width = INFO_KD_WIDTH + INFO_XP_WIDTH + INFO_LATENCY_WIDTH;
 
 			CG_FillRect( tempx, y + 1, width - INFO_BORDER, SMALLCHAR_HEIGHT - 1, hcolor );
 			tempx += width;
 		} else {
-            // Class box
-			CG_FillRect( tempx, y + 1, INFO_CLASS_WIDTH - INFO_BORDER, SMALLCHAR_HEIGHT - 1, hcolor );
-			tempx += INFO_CLASS_WIDTH;
-
 			if( cg_gameType.integer == GT_WOLF_LMS ) {
                 // LMS gets score
 				CG_FillRect( tempx, y + 1, INFO_SCORE_WIDTH - INFO_BORDER, SMALLCHAR_HEIGHT - 1, hcolor );
@@ -317,14 +316,23 @@ static void WM_DrawClientScore( int x, int y, score_t *score, float *color, floa
 	VectorSet( hcolor, 1, 1, 1 );
 	hcolor[3] = fade;
 
-	maxchars = 14;
+	// Draw class icon FIRST (before name)
+	if ( ci->team == TEAM_SPECTATOR) {
+		// Spectators show nothing for class
+	}
+	else if ( cg.snap->ps.persistant[PERS_TEAM] == ci->team || CG_mvMergedClientLocate(score->client) ) {
+		CG_DrawClassIcon(tempx + 2, y + 1, fade, score->playerClass);
+	}
+	tempx += INFO_CLASS_WIDTH;
+
+	maxchars = 16;
 	offset = 0;
 
     // Icons - draw in order: special status icons first
 	if ( ci->team != TEAM_SPECTATOR ) {
         // Have the objective
 		if ( ci->powerups & ( (1 << PW_REDFLAG) | (1 << PW_BLUEFLAG) ) ) {
-			CG_DrawPic( tempx - 3, y + 1, 14, 14, cgs.media.objectiveShader );
+			CG_DrawPic( tempx, y + 1, 14, 14, cgs.media.objectiveShader );
 			offset += 14;
 			tempx += 14;
 			maxchars -= 2;
@@ -332,7 +340,7 @@ static void WM_DrawClientScore( int x, int y, score_t *score, float *color, floa
 
 		// Uniformed (don't shoot!)
 		else if( cgs.clientinfo[cg.clientNum].team != TEAM_SPECTATOR && ci->team == cgs.clientinfo[cg.clientNum].team && ci->powerups & ((1 << PW_OPS_DISGUISED))) { 
-			CG_DrawPic( tempx -3, y + 1, 14, 14, cgs.media.friendShader ); 
+			CG_DrawPic( tempx, y + 1, 14, 14, cgs.media.friendShader ); 
 			offset += 14; 
 			tempx += 14; 
 			maxchars -= 2; 
@@ -340,14 +348,14 @@ static void WM_DrawClientScore( int x, int y, score_t *score, float *color, floa
 
 		// Dead
 		else if( score->respawnsLeft == -2 || (cgs.clientinfo[cg.clientNum].team != TEAM_SPECTATOR && ci->team == cgs.clientinfo[cg.clientNum].team && cgs.clientinfo[score->client].health == -1 ) ) {
-			CG_DrawPic( tempx - 3, y + 1, 14, 14, cgs.media.scoreEliminatedShader );
+			CG_DrawPic( tempx, y + 1, 14, 14, cgs.media.scoreEliminatedShader );
 			offset += 14;
 			tempx += 14;
 			maxchars -= 2;
 
         // Need revive
 		} else if( cgs.clientinfo[cg.clientNum].team != TEAM_SPECTATOR && ci->team == cgs.clientinfo[cg.clientNum].team && cgs.clientinfo[score->client].health == 0 ) {
-			CG_DrawPic( tempx - 3, y + 1, 14, 14, cgs.media.medicIcon );
+			CG_DrawPic( tempx, y + 1, 14, 14, cgs.media.medicIcon );
 			offset += 14;
 			tempx += 14;
 			maxchars -= 2;			
@@ -355,7 +363,7 @@ static void WM_DrawClientScore( int x, int y, score_t *score, float *color, floa
 
         // Jaybird - muted icon
         else if (ci->muted) {
-            CG_DrawPic( tempx - 3, y + 1, 14, 14, cgs.media.mutedShader );
+            CG_DrawPic( tempx, y + 1, 14, 14, cgs.media.mutedShader );
             offset += 14;
             tempx += 14;
             maxchars -= 2;
@@ -364,7 +372,7 @@ static void WM_DrawClientScore( int x, int y, score_t *score, float *color, floa
 
 	// Country flag - draw for all players if enabled
 	if (cg_countryflags.integer && score->ping != -1 && score->ping != 999) {
-		if (CG_DrawFlag(tempx - 3, y + 1, fade, score->client)) {
+		if (CG_DrawFlag(tempx, y + 1, fade, score->client)) {
 			offset += 14;
 			tempx += 14;
 			maxchars -= 2;
@@ -392,7 +400,7 @@ static void WM_DrawClientScore( int x, int y, score_t *score, float *color, floa
 		const char *s;
 		int w, totalwidth;
 
-		totalwidth = INFO_CLASS_WIDTH + INFO_KD_WIDTH + INFO_XP_WIDTH + INFO_LATENCY_WIDTH - 8;
+		totalwidth = INFO_KD_WIDTH + INFO_XP_WIDTH + INFO_LATENCY_WIDTH - 8;
 
 		s = CG_TranslateString( (ci->team == TEAM_SPECTATOR && ci->shoutcaster)?"^3SHOUTCASTER":"^2CONNECTING" );
 		w = CG_DrawStrlen( s ) * SMALLCHAR_WIDTH;
@@ -401,22 +409,23 @@ static void WM_DrawClientScore( int x, int y, score_t *score, float *color, floa
 		return;
 	}
 
-	// Draw class icon instead of text
-	if ( ci->team == TEAM_SPECTATOR) {
-		// Spectators show nothing for class (icon slot empty)
-	}
-	else if ( cg.snap->ps.persistant[PERS_TEAM] == ci->team || CG_mvMergedClientLocate(score->client) ) {
-		CG_DrawClassIcon(tempx + 2, y + 1, fade, score->playerClass);
-	}
-	tempx += INFO_CLASS_WIDTH;
-
 	if( cg_gameType.integer == GT_WOLF_LMS ) {
 		// LMS: Score only
 		CG_DrawSmallString( int(tempx), y, va( "%5i", score->score ), fade );
 		tempx += INFO_SCORE_WIDTH;
 	} else {
-		// K/D ratio
-		CG_DrawSmallString( int(tempx), y, va( "%i/%i", ci->kills, ci->deaths ), fade );
+		// K/D ratio with colored kills (green) and deaths (red)
+		vec4_t killColor = { 0.2f, 0.8f, 0.2f, fade };
+		vec4_t deathColor = { 0.9f, 0.2f, 0.2f, fade };
+		char killStr[16], deathStr[16];
+		int killWidth;
+
+		Com_sprintf(killStr, sizeof(killStr), "%i", ci->kills);
+		Com_sprintf(deathStr, sizeof(deathStr), "/%i", ci->deaths);
+		
+		CG_DrawStringExt( int(tempx), y, killStr, killColor, qfalse, qfalse, SMALLCHAR_WIDTH, SMALLCHAR_HEIGHT, 0 );
+		killWidth = CG_DrawStrlen(killStr) * SMALLCHAR_WIDTH;
+		CG_DrawStringExt( int(tempx + killWidth), y, deathStr, deathColor, qfalse, qfalse, SMALLCHAR_WIDTH, SMALLCHAR_HEIGHT, 0 );
 		tempx += INFO_KD_WIDTH;
 
 		// XP
@@ -479,19 +488,20 @@ static void WM_DrawClientScore_Small( int x, int y, score_t *score, float *color
 		hcolor[3] = fade * 0.3;
 		VectorSet( hcolor, .5f, .5f, .2f );			// DARK-RED
 
-		CG_FillRect( tempx - 3, y + 1, INFO_PLAYER_WIDTH - INFO_BORDER + 3, MINICHAR_HEIGHT - 1, hcolor );
+		// Class box first
+		CG_FillRect( tempx - 3, y + 1, INFO_CLASS_WIDTH - INFO_BORDER + 3, MINICHAR_HEIGHT - 1, hcolor );
+		tempx += INFO_CLASS_WIDTH;
+
+		CG_FillRect( tempx, y + 1, INFO_PLAYER_WIDTH - INFO_BORDER, MINICHAR_HEIGHT - 1, hcolor );
 		tempx += INFO_PLAYER_WIDTH;
 
 		if ( score->ping < 0 || (ci->team == TEAM_SPECTATOR && ci->shoutcaster)) {
 			int width;
-			width = INFO_CLASS_WIDTH + INFO_KD_WIDTH + INFO_XP_WIDTH + INFO_LATENCY_WIDTH;
+			width = INFO_KD_WIDTH + INFO_XP_WIDTH + INFO_LATENCY_WIDTH;
 
 			CG_FillRect( tempx, y + 1, width - INFO_BORDER, MINICHAR_HEIGHT - 1, hcolor );
 			tempx += width;
 		} else {
-			CG_FillRect( tempx, y + 1, INFO_CLASS_WIDTH - INFO_BORDER, MINICHAR_HEIGHT - 1, hcolor );
-			tempx += INFO_CLASS_WIDTH;
-
 			if( cg_gameType.integer == GT_WOLF_LMS ) {
 				CG_FillRect( tempx, y + 1, INFO_SCORE_WIDTH - INFO_BORDER, MINICHAR_HEIGHT - 1, hcolor );
 				tempx += INFO_SCORE_WIDTH;
@@ -515,8 +525,17 @@ static void WM_DrawClientScore_Small( int x, int y, score_t *score, float *color
 	VectorSet( hcolor, 1, 1, 1 );
 	hcolor[3] = fade;
 
+	// Draw class icon FIRST (before name)
+	if ( ci->team == TEAM_SPECTATOR) {
+		// Spectators show nothing for class
+	}
+	else if ( cg.snap->ps.persistant[PERS_TEAM] == ci->team ) {
+		CG_DrawClassIcon(tempx + 2, y, fade, score->playerClass);
+	}
+	tempx += INFO_CLASS_WIDTH;
+
 	// CHRUKER: b033 - Corrected to draw medals
-	maxchars = 14;
+	maxchars = 16;
 	offset = 0;
 
 	if ( ci->team != TEAM_SPECTATOR ) {
@@ -597,7 +616,7 @@ static void WM_DrawClientScore_Small( int x, int y, score_t *score, float *color
 		const char *s;
 		int w, totalwidth;
 
-		totalwidth = INFO_CLASS_WIDTH + INFO_KD_WIDTH + INFO_XP_WIDTH + INFO_LATENCY_WIDTH - 8;
+		totalwidth = INFO_KD_WIDTH + INFO_XP_WIDTH + INFO_LATENCY_WIDTH - 8;
 
 		s = CG_TranslateString( (ci->team == TEAM_SPECTATOR && ci->shoutcaster)?"^3SHOUTCASTER":"^2CONNECTING" );
 		w = CG_DrawStrlen( s ) * MINICHAR_WIDTH;
@@ -608,22 +627,23 @@ static void WM_DrawClientScore_Small( int x, int y, score_t *score, float *color
 		return;
 	}
 
-	// Draw class icon instead of text
-	if ( ci->team == TEAM_SPECTATOR) {
-		// Spectators show nothing for class
-	}
-	else if ( cg.snap->ps.persistant[PERS_TEAM] == ci->team ) {
-		CG_DrawClassIcon(tempx + 2, y, fade, score->playerClass);
-	}
-	tempx += INFO_CLASS_WIDTH;
-
 	if( cg_gameType.integer == GT_WOLF_LMS ) {
 		// LMS: Score only
 		CG_DrawStringExt( int(tempx), y, va( "%5i", score->score ), hcolor, qfalse, qfalse, MINICHAR_WIDTH, MINICHAR_HEIGHT, 0 );
 		tempx += INFO_SCORE_WIDTH;
 	} else {
-		// K/D ratio
-		CG_DrawStringExt( int(tempx), y, va( "%i/%i", ci->kills, ci->deaths ), hcolor, qfalse, qfalse, MINICHAR_WIDTH, MINICHAR_HEIGHT, 0 );
+		// K/D ratio with colored kills (green) and deaths (red)
+		vec4_t killColor = { 0.2f, 0.8f, 0.2f, fade };
+		vec4_t deathColor = { 0.9f, 0.2f, 0.2f, fade };
+		char killStr[16], deathStr[16];
+		int killWidth;
+
+		Com_sprintf(killStr, sizeof(killStr), "%i", ci->kills);
+		Com_sprintf(deathStr, sizeof(deathStr), "/%i", ci->deaths);
+		
+		CG_DrawStringExt( int(tempx), y, killStr, killColor, qfalse, qfalse, MINICHAR_WIDTH, MINICHAR_HEIGHT, 0 );
+		killWidth = CG_DrawStrlen(killStr) * MINICHAR_WIDTH;
+		CG_DrawStringExt( int(tempx + killWidth), y, deathStr, deathColor, qfalse, qfalse, MINICHAR_WIDTH, MINICHAR_HEIGHT, 0 );
 		tempx += INFO_KD_WIDTH;
 
 		// XP
@@ -710,8 +730,25 @@ static int WM_TeamScoreboard( int x, int y, team_t team, float fade, int maxrows
 	int i;
 	int count = 0;
 	qboolean use_mini_chars = qfalse; // CHRUKER: b035 - Needed to check if using mini chars
+	vec4_t tclr = { 0.6f, 0.6f, 0.6f, 1.0f };
+	float avgPing = 0;
+	int numPings = 0;
 
 	width = INFO_PLAYER_WIDTH + INFO_CLASS_WIDTH + INFO_KD_WIDTH + INFO_XP_WIDTH + INFO_LATENCY_WIDTH;
+
+	// Calculate average ping
+	for( i = 0; i < cg.numScores; i++ ) {
+		if( team != cgs.clientinfo[ cg.scores[i].client ].team ) {
+			continue;
+		}
+		if( cg.scores[i].ping > 0 && cg.scores[i].ping < 999 ) {
+			avgPing += cg.scores[i].ping;
+			numPings++;
+		}
+	}
+	if (numPings > 0) {
+		avgPing = avgPing / numPings;
+	}
 
 	// Jaybird - 10 px change
 	CG_FillRect( x-5, y-12, width+5, 31, clrUiBack );
@@ -720,26 +757,30 @@ static int WM_TeamScoreboard( int x, int y, team_t team, float fade, int maxrows
 	Vector4Set( hcolor, 0, 0, 0, fade );
 	CG_DrawRect_FixedBorder( x-5, y-12, width+5, 31, 1, colorBlack );
 
-	// draw header with team-colored text
+	// draw header with team-colored text and avg ping
 	if( cg_gameType.integer == GT_WOLF_LMS ) {
 		char *s;
 		if ( team == TEAM_AXIS ) {
-			s = va( "%s [%d] (%d %s)", CG_TranslateString( "AXIS" ), cg.teamScores[0], cg.teamPlayers[team], CG_TranslateString("PLAYERS") );
+			s = va( "%s [%d] (%d)", CG_TranslateString( "AXIS" ), cg.teamScores[0], cg.teamPlayers[team] );
 			s = va( "%s ^3%s", s, cg.teamFirstBlood == TEAM_AXIS ? CG_TranslateString("FIRST BLOOD") : "" );
 
 			CG_Text_Paint_Ext( x, y + 13, 0.25f, 0.25f, clrAxisRed, s, 0, 0, 0, &cgs.media.limboFont1 );
 		} else if ( team == TEAM_ALLIES ) {
-			s = va( "%s [%d] (%d %s)", CG_TranslateString( "ALLIES" ), cg.teamScores[1], cg.teamPlayers[team], CG_TranslateString("PLAYERS") );
+			s = va( "%s [%d] (%d)", CG_TranslateString( "ALLIES" ), cg.teamScores[1], cg.teamPlayers[team] );
 			s = va( "%s ^3%s", s, cg.teamFirstBlood == TEAM_ALLIES ? CG_TranslateString("FIRST BLOOD") : "" );
 
 			CG_Text_Paint_Ext( x, y + 13, 0.25f, 0.25f, clrAlliesBlue, s, 0, 0, 0, &cgs.media.limboFont1 );
 		}
 	} else {
+		const char *avgStr;
 		if ( team == TEAM_AXIS ) {
-			CG_Text_Paint_Ext( x, y + 13, 0.25f, 0.25f, clrAxisRed, va( "%s [%d] (%d %s)", CG_TranslateString( "AXIS" ), cg.teamScores[0], cg.teamPlayers[team], CG_TranslateString("PLAYERS") ), 0, 0, 0, &cgs.media.limboFont1 );
+			CG_Text_Paint_Ext( x, y + 13, 0.25f, 0.25f, clrAxisRed, va( "%s [%d] (%d)", CG_TranslateString( "AXIS" ), cg.teamScores[0], cg.teamPlayers[team] ), 0, 0, 0, &cgs.media.limboFont1 );
 		} else if ( team == TEAM_ALLIES ) {
-			CG_Text_Paint_Ext( x, y + 13, 0.25f, 0.25f, clrAlliesBlue, va( "%s [%d] (%d %s)", CG_TranslateString( "ALLIES" ), cg.teamScores[1], cg.teamPlayers[team], CG_TranslateString("PLAYERS") ), 0, 0, 0, &cgs.media.limboFont1 );
+			CG_Text_Paint_Ext( x, y + 13, 0.25f, 0.25f, clrAlliesBlue, va( "%s [%d] (%d)", CG_TranslateString( "ALLIES" ), cg.teamScores[1], cg.teamPlayers[team] ), 0, 0, 0, &cgs.media.limboFont1 );
 		}
+		// AVG Ping on the right
+		avgStr = va( "AVG Ping: %.0f", avgPing );
+		CG_Text_Paint_Ext( x + width - 5 - CG_Text_Width_Ext( avgStr, 0.2f, 0, &cgs.media.limboFont1 ), y + 13, 0.2f, 0.2f, tclr, avgStr, 0, 0, 0, &cgs.media.limboFont1 );
 	}
 
 	y += SMALLCHAR_HEIGHT + 3;
@@ -752,13 +793,13 @@ static int WM_TeamScoreboard( int x, int y, team_t team, float fade, int maxrows
 	CG_DrawBottom_NoScale( x-5, y, width+5, 18, 1 );
 	trap_R_SetColor( NULL );
 
-	// draw player info headings - new order: Name, Class icon, K/D, XP, Ping
-	CG_DrawSmallString( int(tempx), y, CG_TranslateString( "Name" ), fade );
-	tempx += INFO_PLAYER_WIDTH;
-
+	// draw player info headings - new order: Class, Name, K/D, XP, Ping
 	// Class icon header (small C for class)
 	CG_DrawSmallString( int(tempx), y, "C", fade );
 	tempx += INFO_CLASS_WIDTH;
+
+	CG_DrawSmallString( int(tempx), y, CG_TranslateString( "Name" ), fade );
+	tempx += INFO_PLAYER_WIDTH;
 
 	if( cgs.gametype == GT_WOLF_LMS ) {
 		CG_DrawSmallString( int(tempx), y, CG_TranslateString( "Score" ), fade );
@@ -888,7 +929,8 @@ qboolean CG_DrawScoreboard( void ) {
 	int		width;  // scoreboard width based on 640 virtual screen
 
 	// ETLegacy approach: use fixed 640-based positions, then offset for widescreen
-	x = 20;
+	// Reduced x from 20 to 10 to bring teams closer together
+	x = 10;
 	y = 10;
 	x_right = 640 - x - (INFO_TOTAL_WIDTH - 5);
 	width = 640 - 2 * x + 5;
