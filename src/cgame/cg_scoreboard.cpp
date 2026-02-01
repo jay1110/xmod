@@ -706,7 +706,7 @@ static int WM_TeamScoreboard( int x, int y, team_t team, float fade, int maxrows
 			}
 			stdDeviation = sqrt(total/numPings);
 		}
-		CG_Text_Paint_Ext( x, y, 0.2f, 0.2f, tclr, va( "AVERAGE PING: %.2fms � %.2fms", mean, stdDeviation ), 0, 0, 0, &cgs.media.limboFont1 );
+		CG_Text_Paint_Ext( x, y, 0.2f, 0.2f, tclr, va( "AVERAGE PING: %.2fms ± %.2fms", mean, stdDeviation ), 0, 0, 0, &cgs.media.limboFont1 );
 	}
 
 	// draw header
