@@ -95,7 +95,7 @@ int weapBanksMultiPlayer[MAX_WEAP_BANKS_MP][MAX_WEAPS_IN_BANK_MP] = {
 	{WP_KNIFE,				0,						0,					0,							0,						0,							0,			0,			0,			0,		0,				0,			0,			0,			0			},
 	{WP_LUGER,				WP_COLT,				WP_AKIMBO_COLT,		WP_AKIMBO_LUGER,			WP_AKIMBO_SILENCEDCOLT,	WP_AKIMBO_SILENCEDLUGER,	0,			0,			0,			0,		0,				0,			0,			0,			0			},
 	{WP_PANZERFAUST,		WP_FLAMETHROWER,		WP_MOBILE_MG42,		WP_MORTAR,					WP_GARAND,				WP_CARBINE,					WP_STEN,	WP_FG42,	WP_K43,		WP_KAR98,	WP_M97,		WP_MP40,	WP_THOMPSON,0,			0			},	// Jaybird - rearranged so SMG can be modified on-the-fly
-	{WP_GRENADE_LAUNCHER,	WP_GRENADE_PINEAPPLE,	WP_BOMB,			WP_MOLOTOV,         		WP_POISON_SYRINGE,		0,							0,			0,			0,			0,		0,				0,			0,			0,			0			},
+	{WP_GRENADE_LAUNCHER,	WP_GRENADE_PINEAPPLE,	WP_BOMB,			WP_MOLOTOV,					WP_POISON_SYRINGE,		0,							0,			0,			0,			0,		0,				0,			0,			0,			0			},
 	{WP_MEDIC_SYRINGE,		WP_PLIERS,				WP_SMOKE_MARKER,	WP_SMOKE_BOMB,				WP_POISON_GAS,			0,							0,			0,			0,			0,		0,				0,			0,			0,			0			},
 	{WP_DYNAMITE,			WP_MEDKIT,				WP_AMMO,			WP_SATCHEL,					WP_SATCHEL_DET,			0,							0,			0,			0,			0,		0,				0,			0,			0,			0			},
 	{WP_LANDMINE,			WP_LANDMINE_BBETTY,		WP_LANDMINE_PGAS,	WP_TRIPMINE,				WP_MEDIC_ADRENALINE,	0,							0,			0,			0,			0,		0,				0,			0,			0,			0			},
