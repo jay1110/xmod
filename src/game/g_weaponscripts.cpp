@@ -350,6 +350,28 @@ static int G_GetAltWeapon( int weapon )
 
 /*
 ==============
+G_IsAltWeapon
+
+Check if a weapon is an "alt" weapon that gets its script from both_altweap.
+These weapons should NOT be loaded directly - they share their base weapon's file.
+==============
+*/
+static qboolean G_IsAltWeapon( int weapon )
+{
+    switch ( weapon ) {
+        case WP_GARAND_SCOPE:    // Gets data from m1_garand_s.weap both_altweap
+        case WP_K43_SCOPE:       // Gets data from k43.weap both_altweap
+        case WP_FG42SCOPE:       // Gets data from fg42.weap both_altweap
+        case WP_MOBILE_MG42_SET: // Gets data from mg42.weap both_altweap
+        case WP_MORTAR_SET:      // Gets data from mortar.weap both_altweap
+            return qtrue;
+        default:
+            return qfalse;
+    }
+}
+
+/*
+==============
 G_ParseWeaponScript
 
 Parse a weapon script file
@@ -568,12 +590,22 @@ void G_LoadWeaponScripts( void )
             continue;
         }
         
+        // Skip alt weapons - they get their data from both_altweap section of base weapon
+        if ( G_IsAltWeapon( i ) ) {
+            continue;
+        }
+        
         // Try to load from primary directory
         Com_sprintf( filename, sizeof(filename), "%s/%s.weap", 
                      customDir, weaponFilenames[i] );
         
         if ( G_ParseWeaponScript( filename, i ) ) {
             G_ApplyWeaponScript( i );
+            // Also apply script to alt weapon if it was loaded via both_altweap
+            int altWeapon = G_GetAltWeapon( i );
+            if ( altWeapon >= 0 && weaponScripts[altWeapon].hasScript ) {
+                G_ApplyWeaponScript( altWeapon );
+            }
             G_Printf( "  Loaded: %s\n", filename );
             loadedCustom++;
             scriptLoaded = qtrue;
@@ -586,6 +618,11 @@ void G_LoadWeaponScripts( void )
             
             if ( G_ParseWeaponScript( filename, i ) ) {
                 G_ApplyWeaponScript( i );
+                // Also apply script to alt weapon if it was loaded via both_altweap
+                int altWeapon = G_GetAltWeapon( i );
+                if ( altWeapon >= 0 && weaponScripts[altWeapon].hasScript ) {
+                    G_ApplyWeaponScript( altWeapon );
+                }
                 G_Printf( "  Loaded (fallback): %s\n", filename );
                 loadedFallback++;
             }
