@@ -856,6 +856,8 @@ void G_AddClassSpecificTools(gclient_t *client)
 					AddWeaponToPlayer(client, WP_LANDMINE_BBETTY, GetAmmoTableData(WP_LANDMINE_BBETTY)->defaultStartingAmmo, GetAmmoTableData(WP_LANDMINE_BBETTY)->defaultStartingClip, qfalse );
 				if ((cvars::bg_sk5_eng.ivalue & SK5_ENG_LM_PGAS) || (cvars::bg_weaponsenable.ivalue & WPEN_POISONMINE))
 					AddWeaponToPlayer(client, WP_LANDMINE_PGAS, GetAmmoTableData(WP_LANDMINE_PGAS)->defaultStartingAmmo, GetAmmoTableData(WP_LANDMINE_PGAS)->defaultStartingClip, qfalse );
+				if (cvars::bg_weapons.ivalue & SBW_ENG_BOMB)
+					AddWeaponToPlayer(client, WP_BOMB, GetAmmoTableData(WP_BOMB)->defaultStartingAmmo, GetAmmoTableData(WP_BOMB)->defaultStartingClip, qfalse );
 			}
 			break;
 		case PC_COVERTOPS:

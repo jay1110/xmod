@@ -1012,6 +1012,7 @@ typedef enum {
 	WP_LANDMINE_BBETTY,		// 54 - bouncing betty
 	WP_LANDMINE_PGAS,		// 55 - poison gas
 	WP_MOLOTOV,	        	// 56 - molotov cocktail
+	WP_BOMB,				// 57 - bomb (like red smoke bomb, explodes like dynamite)
 
 	WP_NUM_WEAPONS			// WolfMP: 32 WolfXP: 50
 							// NOTE: this cannot be larger than 64 for AI/player weapons!
@@ -1397,6 +1398,7 @@ typedef enum extWeaponStats_s
 	WS_POISON_GAS,			// 25
     WS_GOOMBA,              // 26
     WS_MOLOTOV,             // 27 // molotov cocktail
+	WS_BOMB,				// 28 // bomb
 
 	WS_MAX
 } extWeaponStats_t;
@@ -1504,6 +1506,7 @@ typedef enum {
 	MOD_M97,
 	MOD_POISON_GAS,
 	MOD_MOLOTOV,
+	MOD_BOMB,
 
     MOD_SHOVED,
 

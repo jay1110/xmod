@@ -4427,6 +4427,7 @@ static void G_LuaRegisterConstants(lua_State* L)
     lua_regconstinteger(L, WP_LANDMINE_BBETTY);
     lua_regconstinteger(L, WP_LANDMINE_PGAS);
     lua_regconstinteger(L, WP_MOLOTOV);
+    lua_regconstinteger(L, WP_BOMB);
     
     // Pop the et table
     lua_pop(L, 1);

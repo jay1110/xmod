@@ -95,7 +95,7 @@ int weapBanksMultiPlayer[MAX_WEAP_BANKS_MP][MAX_WEAPS_IN_BANK_MP] = {
 	{WP_KNIFE,				0,						0,					0,							0,						0,							0,			0,			0,			0,		0,				0,			0,			0,			0			},
 	{WP_LUGER,				WP_COLT,				WP_AKIMBO_COLT,		WP_AKIMBO_LUGER,			WP_AKIMBO_SILENCEDCOLT,	WP_AKIMBO_SILENCEDLUGER,	0,			0,			0,			0,		0,				0,			0,			0,			0			},
 	{WP_PANZERFAUST,		WP_FLAMETHROWER,		WP_MOBILE_MG42,		WP_MORTAR,					WP_GARAND,				WP_CARBINE,					WP_STEN,	WP_FG42,	WP_K43,		WP_KAR98,	WP_M97,		WP_MP40,	WP_THOMPSON,0,			0			},	// Jaybird - rearranged so SMG can be modified on-the-fly
-	{WP_GRENADE_LAUNCHER,	WP_GRENADE_PINEAPPLE,	WP_MOLOTOV,         WP_POISON_SYRINGE,	        0,						0,							0,			0,			0,			0,		0,				0,			0,			0,			0			},
+	{WP_GRENADE_LAUNCHER,	WP_GRENADE_PINEAPPLE,	WP_BOMB,			WP_MOLOTOV,					WP_POISON_SYRINGE,		0,							0,			0,			0,			0,		0,				0,			0,			0,			0			},
 	{WP_MEDIC_SYRINGE,		WP_PLIERS,				WP_SMOKE_MARKER,	WP_SMOKE_BOMB,				WP_POISON_GAS,			0,							0,			0,			0,			0,		0,				0,			0,			0,			0			},
 	{WP_DYNAMITE,			WP_MEDKIT,				WP_AMMO,			WP_SATCHEL,					WP_SATCHEL_DET,			0,							0,			0,			0,			0,		0,				0,			0,			0,			0			},
 	{WP_LANDMINE,			WP_LANDMINE_BBETTY,		WP_LANDMINE_PGAS,	WP_TRIPMINE,				WP_MEDIC_ADRENALINE,	0,							0,			0,			0,			0,		0,				0,			0,			0,			0			},
@@ -208,6 +208,7 @@ ammotable_t ammoTableMP[WP_NUM_WEAPONS] = {
 	{	1,				0,		1,		0,		1,		100,	DELAY_LOW,		100,	0,		0,		MOD_LANDMINE			},	// WP_LANDMINE_BBETTY		// 54
 	{	1,				0,		1,		0,		1,		100,	DELAY_LOW,		100,	0,		0,		MOD_POISON_GAS			},	// WP_LANDMINE_PGAS			// 55
 	{	3,				1,		3,		0,		3,		0,  	DELAY_THROW,	0,	    0,		0,		MOD_MOLOTOV 			},	// WP_MOLOTOV   			// 56
+	{	1,				1,		1,		0,		1,		1000,	DELAY_THROW,	1600,	0,		0,		MOD_BOMB				},	// WP_BOMB					// 57
 };
 
 //----(SA)	moved in here so both games can get to it
@@ -274,6 +275,7 @@ int weapAlts[] = {
 	WP_NONE,			// 54 WP_LANDMINE_BBETTY
 	WP_NONE,			// 55 WP_LANDMINE_PGAS
 	WP_NONE,			// 56 WP_MOLOTOV
+	WP_NONE,			// 57 WP_BOMB
 };
 
 
@@ -3048,6 +3050,7 @@ qboolean BG_WeaponInWolfMP( int weapon ) {
 	case WP_STEN:
 	case WP_THOMPSON:
 	case WP_TRIPMINE:
+	case WP_BOMB:
 		return qtrue;
 
 	default:

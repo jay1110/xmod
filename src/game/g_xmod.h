@@ -142,7 +142,7 @@ extern vmCvar_t g_weaponScriptsDir;
 #define DW_SATCHEL                 2    // Satchel charges can be damaged
 #define DW_AIRSTRIKE               4    // Airstrike markers can be damaged
 #define DW_SMOKE                   8    // Smoke canisters can be damaged
-#define DW_BOMBS                  16    // Bombs can be damaged
+#define DW_BOMBS                  16    // Bombs (WP_BOMB) can be damaged
 #define DW_TRIPMINES              32    // Tripmines can be damaged
 #define DW_POISONGAS              64    // Poison gas canisters can be damaged
 #define DW_PANZER                128    // Panzer projectiles can be damaged
