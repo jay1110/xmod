@@ -386,8 +386,8 @@ static void WM_DrawClientScore( int x, int y, score_t *score, float *color, floa
         }
 	}
 
-	// Draw name with SMALLCHAR
-	CG_DrawStringExt( int(tempx), y, ci->name, hcolor, qfalse, qfalse, SMALLCHAR_WIDTH, SMALLCHAR_HEIGHT, maxchars );
+	// Draw name with SMALLCHAR (with shadow)
+	CG_DrawStringExt( int(tempx), y, ci->name, hcolor, qfalse, qtrue, SMALLCHAR_WIDTH, SMALLCHAR_HEIGHT, maxchars );
 	maxchars -= CG_DrawStrlen( ci->name );
 
 	// Draw medals
@@ -398,7 +398,7 @@ static void WM_DrawClientScore( int x, int y, score_t *score, float *color, floa
 	}
 	maxchars--;
 	if (maxchars > 0)
-		CG_DrawStringExt( int(tempx + (BG_drawStrlen(ci->name) * SMALLCHAR_WIDTH + SMALLCHAR_WIDTH)), y, buf, hcolor, qfalse, qfalse, SMALLCHAR_WIDTH, SMALLCHAR_HEIGHT, maxchars );
+		CG_DrawStringExt( int(tempx + (BG_drawStrlen(ci->name) * SMALLCHAR_WIDTH + SMALLCHAR_WIDTH)), y, buf, hcolor, qfalse, qtrue, SMALLCHAR_WIDTH, SMALLCHAR_HEIGHT, maxchars );
 
 	tempx += INFO_PLAYER_WIDTH - offset;
 
@@ -421,7 +421,7 @@ static void WM_DrawClientScore( int x, int y, score_t *score, float *color, floa
 		CG_DrawSmallString( int(tempx), y, va( "%5i", score->score ), fade );
 		tempx += INFO_SCORE_WIDTH;
 	} else {
-		// K/D ratio with colored kills (green), white slash, deaths (red)
+		// K/D ratio with colored kills (green), white slash, deaths (red) - with shadow
 		vec4_t killColor = { 0.2f, 0.8f, 0.2f, fade };
 		vec4_t slashColor = { 1.0f, 1.0f, 1.0f, fade };
 		vec4_t deathColor = { 0.9f, 0.2f, 0.2f, fade };
@@ -432,11 +432,11 @@ static void WM_DrawClientScore( int x, int y, score_t *score, float *color, floa
 		Com_sprintf(slashStr, sizeof(slashStr), "/");
 		Com_sprintf(deathStr, sizeof(deathStr), "%i", ci->deaths);
 		
-		CG_DrawStringExt( int(tempx), y, killStr, killColor, qfalse, qfalse, SMALLCHAR_WIDTH, SMALLCHAR_HEIGHT, 0 );
+		CG_DrawStringExt( int(tempx), y, killStr, killColor, qfalse, qtrue, SMALLCHAR_WIDTH, SMALLCHAR_HEIGHT, 0 );
 		killWidth = CG_DrawStrlen(killStr) * SMALLCHAR_WIDTH;
-		CG_DrawStringExt( int(tempx + killWidth), y, slashStr, slashColor, qfalse, qfalse, SMALLCHAR_WIDTH, SMALLCHAR_HEIGHT, 0 );
+		CG_DrawStringExt( int(tempx + killWidth), y, slashStr, slashColor, qfalse, qtrue, SMALLCHAR_WIDTH, SMALLCHAR_HEIGHT, 0 );
 		slashWidth = CG_DrawStrlen(slashStr) * SMALLCHAR_WIDTH;
-		CG_DrawStringExt( int(tempx + killWidth + slashWidth), y, deathStr, deathColor, qfalse, qfalse, SMALLCHAR_WIDTH, SMALLCHAR_HEIGHT, 0 );
+		CG_DrawStringExt( int(tempx + killWidth + slashWidth), y, deathStr, deathColor, qfalse, qtrue, SMALLCHAR_WIDTH, SMALLCHAR_HEIGHT, 0 );
 		tempx += INFO_KD_WIDTH;
 
 		// XP
@@ -444,11 +444,11 @@ static void WM_DrawClientScore( int x, int y, score_t *score, float *color, floa
 		tempx += INFO_XP_WIDTH;
 	}
 
-    // Ping - with color coding and BOT display
+    // Ping - with color coding and BOT display (with shadow)
 	if (ci->botSkill > 0) {
 		// Show BOT for bots instead of ping
 		vec4_t botColor = { 0.7f, 0.7f, 0.7f, fade };
-		CG_DrawStringExt( int(tempx), y, " BOT", botColor, qfalse, qfalse, SMALLCHAR_WIDTH, SMALLCHAR_HEIGHT, 0 );
+		CG_DrawStringExt( int(tempx), y, " BOT", botColor, qfalse, qtrue, SMALLCHAR_WIDTH, SMALLCHAR_HEIGHT, 0 );
 	} else {
 		// Color-coded ping display
 		vec4_t pingColor;
@@ -460,7 +460,7 @@ static void WM_DrawClientScore( int x, int y, score_t *score, float *color, floa
 			VectorCopy(clrPingRed, pingColor);
 		}
 		pingColor[3] = fade;
-		CG_DrawStringExt( int(tempx), y, va( "%4i", score->ping ), pingColor, qfalse, qfalse, SMALLCHAR_WIDTH, SMALLCHAR_HEIGHT, 0 );
+		CG_DrawStringExt( int(tempx), y, va( "%4i", score->ping ), pingColor, qfalse, qtrue, SMALLCHAR_WIDTH, SMALLCHAR_HEIGHT, 0 );
 	}
 	tempx += INFO_LATENCY_WIDTH;
 }
@@ -602,8 +602,8 @@ static void WM_DrawClientScore_Small( int x, int y, score_t *score, float *color
         }
 	}
 
-	// draw name
-	CG_DrawStringExt( int(tempx), y, ci->name, hcolor, qfalse, qfalse, MINICHAR_WIDTH, MINICHAR_HEIGHT, maxchars );
+	// draw name (with shadow)
+	CG_DrawStringExt( int(tempx), y, ci->name, hcolor, qfalse, qtrue, MINICHAR_WIDTH, MINICHAR_HEIGHT, maxchars );
 
 	// CHRUKER: b033 - Added to draw medals
 	maxchars -= CG_DrawStrlen( ci->name );
@@ -616,7 +616,7 @@ static void WM_DrawClientScore_Small( int x, int y, score_t *score, float *color
 	maxchars--;
 	
 	if (maxchars > 0)
-		CG_DrawStringExt( int(tempx + (BG_drawStrlen(ci->name) * MINICHAR_WIDTH + MINICHAR_WIDTH)), y, buf, hcolor, qfalse, qfalse, MINICHAR_WIDTH, MINICHAR_HEIGHT, maxchars );
+		CG_DrawStringExt( int(tempx + (BG_drawStrlen(ci->name) * MINICHAR_WIDTH + MINICHAR_WIDTH)), y, buf, hcolor, qfalse, qtrue, MINICHAR_WIDTH, MINICHAR_HEIGHT, maxchars );
 	// b033
 
 	// Jaybird
@@ -634,18 +634,18 @@ static void WM_DrawClientScore_Small( int x, int y, score_t *score, float *color
 		s = CG_TranslateString( (ci->team == TEAM_SPECTATOR && ci->shoutcaster)?"^3SHOUTCASTER":"^2CONNECTING" );
 		w = CG_DrawStrlen( s ) * MINICHAR_WIDTH;
 
-		// CHRUKER: b034 - Using the mini char height
-		CG_DrawStringExt( int(tempx + totalwidth - w), y, s, hcolor, qfalse, qfalse, MINICHAR_WIDTH, MINICHAR_HEIGHT, 0 );
+		// CHRUKER: b034 - Using the mini char height (with shadow)
+		CG_DrawStringExt( int(tempx + totalwidth - w), y, s, hcolor, qfalse, qtrue, MINICHAR_WIDTH, MINICHAR_HEIGHT, 0 );
 
 		return;
 	}
 
 	if( cg_gameType.integer == GT_WOLF_LMS ) {
-		// LMS: Score only
-		CG_DrawStringExt( int(tempx), y, va( "%5i", score->score ), hcolor, qfalse, qfalse, MINICHAR_WIDTH, MINICHAR_HEIGHT, 0 );
+		// LMS: Score only (with shadow)
+		CG_DrawStringExt( int(tempx), y, va( "%5i", score->score ), hcolor, qfalse, qtrue, MINICHAR_WIDTH, MINICHAR_HEIGHT, 0 );
 		tempx += INFO_SCORE_WIDTH;
 	} else {
-		// K/D ratio with colored kills (green), white slash, deaths (red)
+		// K/D ratio with colored kills (green), white slash, deaths (red) - with shadow
 		vec4_t killColor = { 0.2f, 0.8f, 0.2f, fade };
 		vec4_t slashColor = { 1.0f, 1.0f, 1.0f, fade };
 		vec4_t deathColor = { 0.9f, 0.2f, 0.2f, fade };
@@ -656,23 +656,23 @@ static void WM_DrawClientScore_Small( int x, int y, score_t *score, float *color
 		Com_sprintf(slashStr, sizeof(slashStr), "/");
 		Com_sprintf(deathStr, sizeof(deathStr), "%i", ci->deaths);
 		
-		CG_DrawStringExt( int(tempx), y, killStr, killColor, qfalse, qfalse, MINICHAR_WIDTH, MINICHAR_HEIGHT, 0 );
+		CG_DrawStringExt( int(tempx), y, killStr, killColor, qfalse, qtrue, MINICHAR_WIDTH, MINICHAR_HEIGHT, 0 );
 		killWidth = CG_DrawStrlen(killStr) * MINICHAR_WIDTH;
-		CG_DrawStringExt( int(tempx + killWidth), y, slashStr, slashColor, qfalse, qfalse, MINICHAR_WIDTH, MINICHAR_HEIGHT, 0 );
+		CG_DrawStringExt( int(tempx + killWidth), y, slashStr, slashColor, qfalse, qtrue, MINICHAR_WIDTH, MINICHAR_HEIGHT, 0 );
 		slashWidth = CG_DrawStrlen(slashStr) * MINICHAR_WIDTH;
-		CG_DrawStringExt( int(tempx + killWidth + slashWidth), y, deathStr, deathColor, qfalse, qfalse, MINICHAR_WIDTH, MINICHAR_HEIGHT, 0 );
+		CG_DrawStringExt( int(tempx + killWidth + slashWidth), y, deathStr, deathColor, qfalse, qtrue, MINICHAR_WIDTH, MINICHAR_HEIGHT, 0 );
 		tempx += INFO_KD_WIDTH;
 
-		// XP
-		CG_DrawStringExt( int(tempx), y, va( "%4i", score->score ), hcolor, qfalse, qfalse, MINICHAR_WIDTH, MINICHAR_HEIGHT, 0 );
+		// XP (with shadow)
+		CG_DrawStringExt( int(tempx), y, va( "%4i", score->score ), hcolor, qfalse, qtrue, MINICHAR_WIDTH, MINICHAR_HEIGHT, 0 );
 		tempx += INFO_XP_WIDTH;
 	}
 
-	// Ping - with color coding and BOT display
+	// Ping - with color coding and BOT display (with shadow)
 	if (ci->botSkill > 0) {
 		// Show BOT for bots instead of ping
 		vec4_t botColor = { 0.7f, 0.7f, 0.7f, fade };
-		CG_DrawStringExt( int(tempx), y, " BOT", botColor, qfalse, qfalse, MINICHAR_WIDTH, MINICHAR_HEIGHT, 0 );
+		CG_DrawStringExt( int(tempx), y, " BOT", botColor, qfalse, qtrue, MINICHAR_WIDTH, MINICHAR_HEIGHT, 0 );
 	} else {
 		// Color-coded ping display
 		vec4_t pingColor;
@@ -684,7 +684,7 @@ static void WM_DrawClientScore_Small( int x, int y, score_t *score, float *color
 			VectorCopy(clrPingRed, pingColor);
 		}
 		pingColor[3] = fade;
-		CG_DrawStringExt( int(tempx), y, va( "%4i", score->ping ), pingColor, qfalse, qfalse, MINICHAR_WIDTH, MINICHAR_HEIGHT, 0 );
+		CG_DrawStringExt( int(tempx), y, va( "%4i", score->ping ), pingColor, qfalse, qtrue, MINICHAR_WIDTH, MINICHAR_HEIGHT, 0 );
 	}
 	tempx += INFO_LATENCY_WIDTH;
 }
