@@ -36,13 +36,50 @@ CustomCommand::doExecute( Context& txt )
     // Substitute variables in the exec string
     string cmdStr = substituteVariables( _exec, txt );
     
-    // Execute the command on the server console
-    if ( !cmdStr.empty() ) {
-        // Ensure the command ends with a newline
-        if ( cmdStr[cmdStr.length()-1] != '\n' ) {
-            cmdStr += '\n';
+    if ( cmdStr.empty() ) {
+        return PA_NONE;
+    }
+    
+    // Split the command string by semicolons and process each part
+    // This allows mixing server console commands with admin ! commands
+    size_t start = 0;
+    size_t pos = 0;
+    
+    while ( pos <= cmdStr.length() ) {
+        // Find next semicolon or end of string
+        pos = cmdStr.find( ';', start );
+        if ( pos == string::npos ) {
+            pos = cmdStr.length();
         }
-        trap_SendConsoleCommand( EXEC_APPEND, cmdStr.c_str() );
+        
+        // Extract this command segment
+        string segment = cmdStr.substr( start, pos - start );
+        
+        // Trim leading/trailing whitespace
+        size_t first = segment.find_first_not_of( " \t\r\n" );
+        if ( first != string::npos ) {
+            size_t last = segment.find_last_not_of( " \t\r\n" );
+            segment = segment.substr( first, last - first + 1 );
+        }
+        else {
+            segment.clear();
+        }
+        
+        if ( !segment.empty() ) {
+            // Check if this is an admin command (starts with !)
+            if ( segment[0] == '!' ) {
+                // Process as an admin command through cmd::process
+                // Pass the command as the actor's command (simulates them typing it)
+                process( txt._client, false, &segment );
+            }
+            else {
+                // Send to server console
+                segment += '\n';
+                trap_SendConsoleCommand( EXEC_APPEND, segment.c_str() );
+            }
+        }
+        
+        start = pos + 1;
     }
     
     return PA_NONE;
