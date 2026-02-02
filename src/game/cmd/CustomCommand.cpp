@@ -97,7 +97,7 @@ CustomCommand::substituteVariables( const string& str, Context& txt )
     // [1], [2], [3] etc. - Command arguments
     for ( size_t i = 1; i < txt._args.size() && i <= 9; i++ ) {
         char placeholder[4];
-        snprintf( placeholder, sizeof(placeholder), "[%zu]", i );
+        snprintf( placeholder, sizeof(placeholder), "[%d]", static_cast<int>(i) );
         size_t pos = 0;
         while ( (pos = result.find( placeholder, pos )) != string::npos ) {
             result.replace( pos, 3, txt._args[i] );
