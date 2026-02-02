@@ -1442,7 +1442,8 @@ void G_FadeItems(gentity_t* ent, int modType) {
 			continue;
 		}
 
-		if ( e->s.eType != ET_MISSILE) {
+		// Check for ET_MISSILE (landmines, etc.) and ET_BOMB (tripmines)
+		if ( e->s.eType != ET_MISSILE && e->s.eType != ET_BOMB) {
 			continue;
 		}
 
