@@ -1018,11 +1018,11 @@ qboolean CG_DrawScoreboard( void ) {
  		fade = fadeColor[3];
 	}
 
-	// Draw dark background with frame around entire scoreboard
+	// Draw dark background with frame around entire scoreboard (full screen height)
 	bgColor[3] = 0.7f * fade;
 	borderColor[3] = 0.8f * fade;
-	CG_FillRect( x - 10, y - 5, width + 15, 470, bgColor );
-	CG_DrawRect_FixedBorder( x - 10, y - 5, width + 15, 470, 2, borderColor );
+	CG_FillRect( x - 10, 0, width + 15, 480, bgColor );
+	CG_DrawRect_FixedBorder( x - 10, 0, width + 15, 480, 2, borderColor );
 
 	y = WM_DrawObjectives( x, y, width, fade );
 
