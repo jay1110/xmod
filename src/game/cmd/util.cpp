@@ -233,8 +233,13 @@ process( Client* actor, bool silent, string* str )
     AbstractCommand::Context txt( actor );
 
     // populate args
-    if (str)
+    if (str) {
         Engine::args( txt._args, *str );
+        G_Printf( "cmd::process with string: '%s' -> %zu args\n", str->c_str(), txt._args.size() );
+        for (size_t i = 0; i < txt._args.size(); i++) {
+            G_Printf( "  arg[%zu] = '%s'\n", i, txt._args[i].c_str() );
+        }
+    }
     else
         Engine::args( txt._args );
 
