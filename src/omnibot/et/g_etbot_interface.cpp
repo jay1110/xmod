@@ -4614,7 +4614,7 @@ public:
 					gentity_t *targ = EntityFromHandle(pMsg->m_Target);
 					if(targ)
 					{
-						trap_EA_Command(pEnt-g_entities, va("fireteam invite %i", (targ-g_entities)+1));
+						trap_EA_Command(pEnt-g_entities, va("fireteam invite %i", (int)((targ-g_entities)+1)));
 					}
 				}
 				break;
@@ -4627,7 +4627,7 @@ public:
 					gentity_t *targ = EntityFromHandle(pMsg->m_Target);
 					if(targ)
 					{
-						trap_EA_Command(pEnt-g_entities, va("fireteam warn %i", (targ-g_entities)+1));
+						trap_EA_Command(pEnt-g_entities, va("fireteam warn %i", (int)((targ-g_entities)+1)));
 					}
 				}
 				break;
@@ -4640,7 +4640,7 @@ public:
 					gentity_t *targ = EntityFromHandle(pMsg->m_Target);
 					if(targ)
 					{
-						trap_EA_Command(pEnt-g_entities, va("fireteam kick %i", (targ-g_entities)+1));
+						trap_EA_Command(pEnt-g_entities, va("fireteam kick %i", (int)((targ-g_entities)+1)));
 					}
 				}
 				break;
@@ -4653,7 +4653,7 @@ public:
 					gentity_t *targ = EntityFromHandle(pMsg->m_Target);
 					if(targ)
 					{
-						trap_EA_Command(pEnt-g_entities, va("fireteam propose %i", (targ-g_entities)+1));
+						trap_EA_Command(pEnt-g_entities, va("fireteam propose %i", (int)((targ-g_entities)+1)));
 					}
 				}
 				break;

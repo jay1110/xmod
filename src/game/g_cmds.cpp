@@ -1607,7 +1607,7 @@ void G_SayTo( gentity_t *ent, gentity_t *other, int mode, int color, const strin
 
 	// Jaybird - admin permission
 	if( other->client->sess.sessionTeam == TEAM_SPECTATOR && cmd::entityHasPermission( other, priv::base::specChat )) {
-		trap_SendServerCommand( other-g_entities, va("chat \"%s%c%c%s\" %i %i %i", name.c_str(), Q_COLOR_ESCAPE, color, message.c_str(), ent-g_entities, localize, ent->client->sess.sessionTeam ));
+		trap_SendServerCommand( other-g_entities, va("chat \"%s%c%c%s\" %i %i %i", name.c_str(), Q_COLOR_ESCAPE, color, message.c_str(), (int)(ent-g_entities), localize, ent->client->sess.sessionTeam ));
 		return;
 	}
 
@@ -1636,7 +1636,7 @@ void G_SayTo( gentity_t *ent, gentity_t *other, int mode, int color, const strin
 			}
 		}
 
-		trap_SendServerCommand( other-g_entities, va("%s \"%s%c%c%s\" %i %i %i", mode == SAY_TEAM || mode == SAY_BUDDY ? "tchat" : "chat", name.c_str(), Q_COLOR_ESCAPE, color, message.c_str(), ent-g_entities, localize, ent->client->sess.sessionTeam ));
+		trap_SendServerCommand( other-g_entities, va("%s \"%s%c%c%s\" %i %i %i", mode == SAY_TEAM || mode == SAY_BUDDY ? "tchat" : "chat", name.c_str(), Q_COLOR_ESCAPE, color, message.c_str(), (int)(ent-g_entities), localize, ent->client->sess.sessionTeam ));
 
 		// Omni-bot: Tell the bot about the chat message
 		Bot_Event_ChatMessage(other-g_entities, ent, mode, message.c_str());
@@ -1795,9 +1795,9 @@ void G_VoiceTo( gentity_t *ent, gentity_t *other, int mode, const char *id, qboo
 	}
 
 	if( mode == SAY_TEAM || mode == SAY_BUDDY ) {
-		CPx( other-g_entities, va("%s %d %d %d %d %s \"%s\" %i %i %i", cmd, voiceonly, ent - g_entities, color, ent->client->sess.sessionTeam, id, msg.c_str(), (int)ent->s.pos.trBase[0], (int)ent->s.pos.trBase[1], (int)ent->s.pos.trBase[2] ));
+		CPx( other-g_entities, va("%s %d %d %d %d %s \"%s\" %i %i %i", cmd, voiceonly, (int)(ent - g_entities), color, ent->client->sess.sessionTeam, id, msg.c_str(), (int)ent->s.pos.trBase[0], (int)ent->s.pos.trBase[1], (int)ent->s.pos.trBase[2] ));
 	} else {
-		CPx( other-g_entities, va("%s %d %d %d %d %s \"%s\"", cmd, voiceonly, ent - g_entities, color, ent->client->sess.sessionTeam, id, msg.c_str() ));
+		CPx( other-g_entities, va("%s %d %d %d %d %s \"%s\"", cmd, voiceonly, (int)(ent - g_entities), color, ent->client->sess.sessionTeam, id, msg.c_str() ));
 	}
 }
 

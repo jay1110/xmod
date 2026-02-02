@@ -692,7 +692,7 @@ void Weapon_Syringe(gentity_t *ent) {
 
 				// OSP - syringe "hit"
 				if(cvars::gameState.ivalue == GS_PLAYING) ent->client->sess.aWeaponStats[WS_SYRINGE].hits++;
-				if(ent && ent->client) G_LogPrintf("Medic_Revive: %d %d\n", ent - g_entities, traceEnt - g_entities);	// OSP
+				if(ent && ent->client) G_LogPrintf("Medic_Revive: %d %d\n", (int)(ent - g_entities), (int)(traceEnt - g_entities));	// OSP
 
 				if( !traceEnt->isProp ) { // Gordon: flag for if they were teamkilled or not
 					AddScore(ent, WOLF_MEDIC_BONUS); // JPW NERVE props to the medic for the swift and dexterous bit o healitude
@@ -1766,7 +1766,7 @@ void Weapon_Engineer( gentity_t *ent ) {
 				traceEnt->health = MG42_MULTIPLAYER_HEALTH;
 			}
 
-			G_LogPrintf("Repair: %d\n", ent - g_entities);	// OSP
+			G_LogPrintf("Repair: %d\n", (int)(ent - g_entities));	// OSP
 
 			if( traceEnt->sound3to2 != ent->client->sess.sessionTeam ) {
 				AddScore( ent, WOLF_REPAIR_BONUS ); // JPW NERVE props to the E for the fixin'
@@ -2301,7 +2301,7 @@ evilbanigoto:
 							if ( !(hit->spawnflags & OBJECTIVE_DESTROYED) ) {
 								AddScore(traceEnt->parent, WOLF_DYNAMITE_PLANT); // give drop score to guy who dropped it
 								if(traceEnt->parent && traceEnt->parent->client) {
-									G_LogPrintf("Dynamite_Plant: %d\n", traceEnt->parent - g_entities);	// OSP
+									G_LogPrintf("Dynamite_Plant: %d\n", (int)(traceEnt->parent - g_entities));	// OSP
 								}
 								traceEnt->parent = ent; // give explode score to guy who armed it
 							}
@@ -2375,7 +2375,7 @@ evilbanigoto:
 								hit->s.teamNum && (hit->s.teamNum == ent->client->sess.sessionTeam) ) {	// ==, as it's inverse
 								AddScore(traceEnt->parent, WOLF_DYNAMITE_PLANT); // give drop score to guy who dropped it
 								if( traceEnt->parent && traceEnt->parent->client ) {
-									G_LogPrintf("Dynamite_Plant: %d\n", traceEnt->parent - g_entities);	// OSP
+									G_LogPrintf("Dynamite_Plant: %d\n", (int)(traceEnt->parent - g_entities));	// OSP
 								}
 								traceEnt->parent = ent; // give explode score to guy who armed it
 							}
@@ -2609,7 +2609,7 @@ evilbanigoto:
 							if (ent->client->sess.sessionTeam == TEAM_AXIS) {
 								if ( hit->s.teamNum == TEAM_AXIS && (!scored)) {
 									AddScore(ent,WOLF_DYNAMITE_DIFFUSE);
-									if(ent && ent->client) G_LogPrintf("Dynamite_Diffuse: %d\n", ent - g_entities);	// OSP
+									if(ent && ent->client) G_LogPrintf("Dynamite_Diffuse: %d\n", (int)(ent - g_entities));	// OSP
 									G_AddSkillPoints( ent, SK_EXPLOSIVES_AND_CONSTRUCTION, 6.f );
 									G_DebugAddSkillPoints( ent, SK_EXPLOSIVES_AND_CONSTRUCTION, 6.f, "defusing enemy dynamite" );
 									scored++;
@@ -2627,7 +2627,7 @@ evilbanigoto:
 							} else { // TEAM_ALLIES
 								if ( hit->s.teamNum == TEAM_ALLIES && (!scored)) {
 									AddScore(ent,WOLF_DYNAMITE_DIFFUSE);
-									if(ent && ent->client) G_LogPrintf("Dynamite_Diffuse: %d\n", ent - g_entities);	// OSP
+									if(ent && ent->client) G_LogPrintf("Dynamite_Diffuse: %d\n", (int)(ent - g_entities));	// OSP
 									G_AddSkillPoints( ent, SK_EXPLOSIVES_AND_CONSTRUCTION, 6.f );
 									G_DebugAddSkillPoints( ent, SK_EXPLOSIVES_AND_CONSTRUCTION, 6.f, "defusing enemy dynamite" );
 									scored++; 
