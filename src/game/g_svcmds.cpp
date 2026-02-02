@@ -1316,13 +1316,13 @@ qboolean ConsoleChat(qboolean chatClient) {
 				line));
 	}
 	if(chatClient) {
-		G_LogPrintf(va("chat(client): %d: %s\n",
+		G_LogPrintf("chat(client): %d: %s\n",
 			clientNum,
-			ConcatArgs(1)));
+			ConcatArgs(1));
 	}
 	else {
-		G_LogPrintf(va("chat(client): %s\n", 
-			ConcatArgs(1)));
+		G_LogPrintf("chat(client): %s\n", 
+			ConcatArgs(1));
 	}
 	return qtrue;
 }

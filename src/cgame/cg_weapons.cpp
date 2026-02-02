@@ -30,8 +30,8 @@ static void CG_StartWeaponAnim( int anim ) {
 	if ( cg.predictedPlayerState.pm_type >= PM_DEAD )
 		return;
 	
-    if (cg.predictedPlayerState.eFlags & EF_PLAYDEAD)
-        return;
+	if (cg.predictedPlayerState.eFlags & EF_PLAYDEAD)
+		return;
 
 	if ( cg.pmext.weapAnimTimer > 0 )
 		return;
