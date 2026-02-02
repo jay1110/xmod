@@ -92,34 +92,18 @@ CustomCommand::substituteVariables( const string& str, Context& txt )
 {
     string result = str;
     
-    // [n] - Executing player's name (colored, for display)
-    // [#] - Executing player's slot number (for admin commands - works with names containing spaces)
+    // [n] - Executing player's name (colored)
     if ( txt._client ) {
-        // [#] - Slot number (guaranteed to work for player lookup)
-        char slotStr[8];
-        snprintf( slotStr, sizeof(slotStr), "%d", txt._client->slot );
-        size_t pos = 0;
-        while ( (pos = result.find( "[#]", pos )) != string::npos ) {
-            result.replace( pos, 3, slotStr );
-            pos += strlen( slotStr );
-        }
-        
-        // [n] - Player name (for display in chat messages)
         string namex = txt._client->gclient.pers.netname;
-        pos = 0;
+        size_t pos = 0;
         while ( (pos = result.find( "[n]", pos )) != string::npos ) {
             result.replace( pos, 3, namex );
             pos += namex.length();
         }
     }
     else {
-        // Replace [#] with empty for console commands
-        size_t pos = 0;
-        while ( (pos = result.find( "[#]", pos )) != string::npos ) {
-            result.erase( pos, 3 );
-        }
         // Replace [n] with "Server" for console commands
-        pos = 0;
+        size_t pos = 0;
         while ( (pos = result.find( "[n]", pos )) != string::npos ) {
             result.replace( pos, 3, "Server" );
             pos += 6;
