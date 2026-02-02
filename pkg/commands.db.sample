@@ -17,16 +17,14 @@
 ##       levels = Admin levels that can use this command (comma or space separated)
 ##
 ## VARIABLE SUBSTITUTIONS in exec:
-##   [n] = Name of the player executing the command (colored, for display)
-##   [s] = Slot number of the player executing the command (for admin commands)
+##   [n] = Name of the player executing the command (works with colored names)
 ##   [d] = Name of the first argument if it's a valid player
 ##   [1] = First argument
 ##   [2] = Second argument
 ##   [3] = Third argument (and so on up to [9])
 ##
-## NOTE: When using admin commands like !put, !slap, etc. in exec strings,
-##       prefer using [s] (slot number) instead of [n] (name) for reliable
-##       player matching, especially for players with colored names.
+## NOTE: Color codes in player names are automatically handled - admin commands
+##       like !putteam will correctly match players even with colored names.
 ##
 ###############################################################################
 
@@ -40,14 +38,14 @@ levels  = 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 999
 **********
 
 name    = afk
-exec    = chat "^1[n] ^7is going AFK. Back soon!";!putteam [s] s
+exec    = chat "^1[n] ^7is going AFK. Back soon!";!putteam [n] s
 desc    = Puts yourself in spectator with AFK message
 levels  = 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 999
 
 **********
 
 name    = brb
-exec    = chat "^1[n] ^7will be right back!";!putteam [s] s
+exec    = chat "^1[n] ^7will be right back!";!putteam [n] s
 desc    = Puts yourself in spectator with BRB message
 levels  = 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 999
 
