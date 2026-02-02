@@ -1891,12 +1891,12 @@ void G_InitGame( int levelTime, int randomSeed, int restart ) {
     // Load censor word list
     censorDB.load();
 
-    // Load weapon scripts
-    G_InitWeaponScripts();
+	// Load weapon scripts
+	G_InitWeaponScripts();
 
-    // We guarantee that this array always points a user object.
-    for (int i = 0; i < MAX_CLIENTS; i++)
-        connectedUsers[i] = &User::BAD;
+	// We guarantee that this array always points a user object.
+	for (int i = 0; i < MAX_CLIENTS; i++)
+		connectedUsers[i] = &User::BAD;
 
 	// Xian enforcemaxlives stuff	
 	/*
@@ -1919,9 +1919,9 @@ void G_InitGame( int levelTime, int randomSeed, int restart ) {
 	// Reset static entity free list to prevent stale data from previous map loads
 	G_ResetEntityFreeList();
 
-    // NERVE - SMF - intialize gamestate
-    if (cvars::gameState.ivalue == GS_INITIALIZE)
-        cvars::gameState.set( cvars::g_warmup.ivalue ? GS_WARMUP : GS_PLAYING );
+	// NERVE - SMF - intialize gamestate
+	if (cvars::gameState.ivalue == GS_INITIALIZE)
+		cvars::gameState.set( cvars::g_warmup.ivalue ? GS_WARMUP : GS_PLAYING );
 
 	// set some level globals
 	i = level.server_settings;
@@ -2143,8 +2143,8 @@ void G_InitGame( int levelTime, int randomSeed, int restart ) {
 		}
 	}
 
-    for (i = 0; i < MAX_GENTITIES; i++)
-        g_entityObjects[i].init();
+	for (i = 0; i < MAX_GENTITIES; i++)
+		g_entityObjects[i].init();
 
 	// set client fields on player ents
 	for (i = 0; i < level.maxclients ; i++ )
@@ -2165,13 +2165,13 @@ void G_InitGame( int levelTime, int randomSeed, int restart ) {
 	// reserve some spots for dead player bodies
 	InitBodyQue();
 
-    // Jaybird
-    // If this is campaign mode and it's a new campaign with the reset xp flag set,
-    // reset all XP in the SQLite database.
-    if (g_gametype.integer == GT_WOLF_CAMPAIGN && level.newCampaign)
-        if (g_xpSave.integer & XPSAVE_RESETCAMPAIGN)
-            if (xmod::g_database && xmod::g_database->isOpened())
-                xmod::g_database->resetAllXp();
+	// Jaybird
+	// If this is campaign mode and it's a new campaign with the reset xp flag set,
+	// reset all XP in the SQLite database.
+	if (g_gametype.integer == GT_WOLF_CAMPAIGN && level.newCampaign)
+		if (g_xpSave.integer & XPSAVE_RESETCAMPAIGN)
+			if (xmod::g_database && xmod::g_database->isOpened())
+				xmod::g_database->resetAllXp();
 
 	numSplinePaths = 0 ;
 	numPathCorners = 0;
