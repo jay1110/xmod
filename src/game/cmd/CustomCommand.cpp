@@ -107,6 +107,7 @@ CustomCommand::substituteVariables( const string& str, Context& txt )
         size_t pos = 0;
         while ( (pos = result.find( "[d]", pos )) != string::npos ) {
             result.erase( pos, 3 );
+            // Don't increment pos - next search starts at same position after string shrinks
         }
     }
     
@@ -128,6 +129,7 @@ CustomCommand::substituteVariables( const string& str, Context& txt )
         size_t pos = 0;
         while ( (pos = result.find( placeholder, pos )) != string::npos ) {
             result.erase( pos, 3 );
+            // Don't increment pos - next search starts at same position after string shrinks
         }
     }
     
