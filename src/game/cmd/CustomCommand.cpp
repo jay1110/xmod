@@ -55,13 +55,23 @@ CustomCommand::substituteVariables( const string& str, Context& txt )
 {
     string result = str;
     
-    // [n] - Executing player's name (colored)
+    // [n] - Executing player's name (colored, for display in chat)
     if ( txt._client ) {
         const std::string& namex = getPlayerNamex( txt._client->slot );
         size_t pos = 0;
         while ( (pos = result.find( "[n]", pos )) != string::npos ) {
             result.replace( pos, 3, namex );
             pos += namex.length();
+        }
+        
+        // [s] - Executing player's slot number (for use in admin commands)
+        ostringstream oss;
+        oss << txt._client->slot;
+        const string slotStr = oss.str();
+        pos = 0;
+        while ( (pos = result.find( "[s]", pos )) != string::npos ) {
+            result.replace( pos, 3, slotStr );
+            pos += slotStr.length();
         }
     }
     else {
@@ -70,6 +80,12 @@ CustomCommand::substituteVariables( const string& str, Context& txt )
         while ( (pos = result.find( "[n]", pos )) != string::npos ) {
             result.replace( pos, 3, "Server" );
             pos += 6;
+        }
+        // Remove [s] for console commands (no slot)
+        pos = 0;
+        while ( (pos = result.find( "[s]", pos )) != string::npos ) {
+            result.erase( pos, 3 );
+            // Don't increment pos - next search starts at same position
         }
     }
     
@@ -90,7 +106,7 @@ CustomCommand::substituteVariables( const string& str, Context& txt )
     {
         size_t pos = 0;
         while ( (pos = result.find( "[d]", pos )) != string::npos ) {
-            result.replace( pos, 3, "" );
+            result.erase( pos, 3 );
         }
     }
     
@@ -111,7 +127,7 @@ CustomCommand::substituteVariables( const string& str, Context& txt )
         snprintf( placeholder, sizeof(placeholder), "[%d]", i );
         size_t pos = 0;
         while ( (pos = result.find( placeholder, pos )) != string::npos ) {
-            result.replace( pos, 3, "" );
+            result.erase( pos, 3 );
         }
     }
     

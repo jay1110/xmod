@@ -239,18 +239,21 @@ levels  = 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 999
 **Variable Substitutions:**
 | Variable | Description |
 |----------|-------------|
-| `[n]` | Name of the player executing the command |
+| `[n]` | Name of the player executing the command (colored, for display) |
+| `[s]` | Slot number of the player executing the command (for admin commands) |
 | `[d]` | Name of the first argument if it's a valid player |
 | `[1]` | First command argument |
 | `[2]` | Second command argument |
 | `[3]-[9]` | Additional command arguments |
+
+**Note:** When using admin commands like `!putteam`, `!slap`, etc. in exec strings, prefer using `[s]` (slot number) instead of `[n]` (name) for reliable player matching, especially for players with colored names.
 
 **Example Commands:**
 ```
 # AFK command - puts yourself in spectator
 **********
 name    = afk
-exec    = chat "^1[n] ^7is going AFK!";!put [n] s
+exec    = chat "^1[n] ^7is going AFK!";!putteam [s] s
 desc    = Puts yourself in spectator with AFK message
 levels  = 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 999
 
