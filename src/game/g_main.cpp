@@ -2309,6 +2309,9 @@ void G_ShutdownGame( int restart ) {
 	// Shutdown xmod
 	xmod::shutdownXmod();
 
+    // Clear custom commands before further shutdown
+    customCommandDB.clear();
+
     // Free any ghosts that still may be alive.
     AbstractHitModel::ghostCleanup();
 
