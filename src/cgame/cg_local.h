@@ -54,6 +54,10 @@
 #define STAT_MINUS			10	// num frame for '-' stats digit
 
 #define	ICON_SIZE			48
+// Undefine CHAR_WIDTH if already defined by system headers (e.g., limits.h)
+#ifdef CHAR_WIDTH
+#undef CHAR_WIDTH
+#endif
 #define	CHAR_WIDTH			32
 #define	CHAR_HEIGHT			48
 #define	TEXT_ICON_SPACE		4

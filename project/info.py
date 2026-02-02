@@ -339,8 +339,12 @@ class Project:
             print('#define XMOD_packageBasev   "' + this.packageBasev + '"')
             print('#define XMOD_pk3            "' + this.pk3 + '"')
             print()
+            print('#ifndef XMOD_' + this.platformNamef.upper())
             print('#define XMOD_' + this.platformNamef.upper())
+            print('#endif')
+            print('#ifndef XMOD_' + this.buildStability.upper())
             print('#define XMOD_' + this.buildStability.upper())
+            print('#endif')
 
         if (mode == 3):
             print('define(<<__name>>, <<'           + this.name                + '>>)dnl')

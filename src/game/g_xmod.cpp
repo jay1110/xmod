@@ -324,15 +324,15 @@ G_PrivateMessage
 */
 void G_PrivateMessage( gentity_t *ent ) 
 {
-    // Just for good measure
-    if (!ent || !ent->client)
-        return;
+	// Just for good measure
+	if (!ent || !ent->client)
+		return;
 
 	// No private messages
 	if (!g_privateMessages.integer)
 		return;
 
-    int clientIndex = ent - g_entities;
+	int clientIndex = ent - g_entities;
     
     // Get sender info using session helpers
     int senderLevel = ::xmod::getClientLevel(clientIndex);

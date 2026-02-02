@@ -30,8 +30,8 @@ static void CG_StartWeaponAnim( int anim ) {
 	if ( cg.predictedPlayerState.pm_type >= PM_DEAD )
 		return;
 	
-    if (cg.predictedPlayerState.eFlags & EF_PLAYDEAD)
-        return;
+	if (cg.predictedPlayerState.eFlags & EF_PLAYDEAD)
+		return;
 
 	if ( cg.pmext.weapAnimTimer > 0 )
 		return;
@@ -3157,13 +3157,12 @@ static int getPrevWeapInBank( int bank, int cycle ) {
 	if(cycle < 0)
 		cycle = MAX_WEAPS_IN_BANK_MP - 1;
 
-	
-		while(!weapBanksMultiPlayer[bank][cycle]) {
-			cycle--;
+	while(!weapBanksMultiPlayer[bank][cycle]) {
+		cycle--;
 
-			if(cycle < 0)
+		if(cycle < 0)
 			cycle = MAX_WEAPS_IN_BANK_MP - 1;
-		}
+	}
 	return weapBanksMultiPlayer[bank][cycle];
 }
 
@@ -4225,9 +4224,9 @@ void CG_WeaponBank_f(void) {
 		return;
 	}
 
-    // Jaybird - not while playing dead
-    if (cg.snap->ps.eFlags & EF_PLAYDEAD)
-        return;
+	// Jaybird - not while playing dead
+	if (cg.snap->ps.eFlags & EF_PLAYDEAD)
+		return;
 
 	cg.weaponSelectTime = cg.time;	// flash the current weapon icon
 

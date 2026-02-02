@@ -23,6 +23,7 @@ private:
     time_t sessionStartTime;
     bool initialized;
     bool authenticated;
+    Database* db;
 
     // Additional attributes from User class for session tracking
     bool muted;
@@ -38,8 +39,6 @@ private:
     time_t timestamp;  // time of last activity
     std::string greetingText;
     std::string greetingAudio;
-
-    Database* db;
 
     bool validateGuid(const std::string& guid);
     bool validateHwid(const std::string& hwid);

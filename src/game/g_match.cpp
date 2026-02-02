@@ -447,7 +447,7 @@ char *G_createStats(gentity_t *refEnt, bool logPrint)
 		}
 	}
 
-	return(va("%d %d %d%s %d%s", refEnt - g_entities,
+	return(va("%d %d %d%s %d%s", (int)(refEnt - g_entities),
 								 refEnt->client->sess.rounds,
 								 dwWeaponMask,
 								 strWeapInfo,

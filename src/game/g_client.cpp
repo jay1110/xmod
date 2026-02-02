@@ -1937,7 +1937,7 @@ ClientConnect( string& outmsg, int clientNum, qboolean firstTime, qboolean isBot
 	if( ent->inuse ) {
 		ostringstream msg;
 		msg	<< "Reconnection happened too soon, cleaning data: client " << clientNum << "\n";
-		G_LogPrintf( msg.str().c_str() );
+		G_LogPrintf( "%s", msg.str().c_str() );
         ClientDisconnect( clientNum );
 	}
 
@@ -2153,7 +2153,7 @@ ClientConnect( string& outmsg, int clientNum, qboolean firstTime, qboolean isBot
 	            	ostringstream msg;
 					msg	<< "Duplicate GUID already in use by client " << clientNum2
 						<< ", disconnecting: client " << clientNum << "\n";
-					G_LogPrintf( msg.str().c_str() );
+					G_LogPrintf( "%s", msg.str().c_str() );
 					outmsg = "Duplicate GUID detected.";
 					return true;
 				}
