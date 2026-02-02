@@ -336,4 +336,5 @@ void G_DbLoad()
 
     mapDB.load();
     censorDB.load();
+    customCommandDB.load();
 }

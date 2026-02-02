@@ -1891,6 +1891,9 @@ void G_InitGame( int levelTime, int randomSeed, int restart ) {
     // Load censor word list
     censorDB.load();
 
+    // Load custom admin commands
+    customCommandDB.load();
+
 	// Load weapon scripts
 	G_InitWeaponScripts();
 
@@ -2305,6 +2308,9 @@ void G_ShutdownGame( int restart ) {
 
 	// Shutdown xmod
 	xmod::shutdownXmod();
+
+    // Clear custom commands before further shutdown
+    customCommandDB.clear();
 
     // Free any ghosts that still may be alive.
     AbstractHitModel::ghostCleanup();

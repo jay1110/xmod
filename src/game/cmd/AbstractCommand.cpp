@@ -296,19 +296,17 @@ AbstractCommand::lookupPLAYER( const string& name, vector<Client*>& out, string&
         }
     }
 
-    string lname = name;
-    str::toLower( lname );
+    // Sanitize the search name - strip color codes and convert to lowercase
+    string lname = SanitizeString( name, true );
 
     // search connected users
-    // Phase 4: Prefer session data when available
     for (int i = 0; i < MAX_CLIENTS; i++) {
         Client& client = g_clientObjects[i];
         if (client.gclient.pers.connected != CON_CONNECTED)
             continue;
 
-        // Get player name from session (already has User fallback built-in)
-        string cname = getPlayerName(i);
-        str::toLower( cname );
+        // Get player name directly from gclient and sanitize it (strip color codes, lowercase)
+        string cname = SanitizeString( string(client.gclient.pers.netname), true );
         if (cname.find( lname ) != string::npos)
             out.push_back( &client );
     }

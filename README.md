@@ -55,6 +55,7 @@ Xmod includes a powerful admin system with multi-level permissions:
 - **User database** - Persistent storage of admin accounts and bans
 - **Ban system** - IP and GUID-based banning with duration support
 - **Admin logging** - Track all admin actions
+- **Custom Commands** - Define your own admin commands via `commands.db`
 
 Enable with: `g_admin 1`
 
@@ -216,6 +217,50 @@ Admin commands use the `!` prefix (e.g., `!kick player`).
 | `!uptime` | Show server uptime | `!uptime` |
 | `!finger` | Show player info | `!finger <player>` |
 | `!seen` | When player was last seen | `!seen <name>` |
+
+### Custom Commands
+
+Xmod supports user-defined admin commands via a `commands.db` file. This allows server administrators to create custom commands without modifying the mod code.
+
+**Setup:**
+1. Create a `commands.db` file in your xmod folder (e.g., `etmain/xmod/commands.db`)
+2. See `pkg/commands.db.sample` for format and examples
+
+**File Format:**
+```
+**********
+
+name    = beer
+exec    = qsay [n] ^7gives everyone a cold ^3Beer!!!
+desc    = Announce beer time
+levels  = 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 999
+```
+
+**Variable Substitutions:**
+| Variable | Description |
+|----------|-------------|
+| `[n]` | Name of the player executing the command |
+| `[d]` | Name of the first argument if it's a valid player |
+| `[1]` | First command argument |
+| `[2]` | Second command argument |
+| `[3]-[9]` | Additional command arguments |
+
+**Example Commands:**
+```
+# AFK command - puts yourself in spectator
+**********
+name    = afk
+exec    = chat "^1[n] ^7is going AFK!";!putteam [n] s
+desc    = Puts yourself in spectator with AFK message
+levels  = 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 999
+
+# Screenshot command - take screenshot of a player
+**********
+name    = ss
+exec    = getss [1]
+desc    = Takes screenshot from selected player
+levels  = 8, 9, 10, 11, 999
+```
 
 ---
 
