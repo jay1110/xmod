@@ -693,10 +693,18 @@ qboolean SetTeam( gentity_t* ent, const char* teamName, qboolean force, weapon_t
 		return qfalse;
 	}
 
-	// Disallow if it's been less than a second since the last team switch
-	if (!force && level.time - client->pers.joinedTeamTime < 1000 && oldTeam != TEAM_SPECTATOR) {
-		CP("cp \"You recently switched teams.\n\"");
-		return qfalse;
+	// g_teamChangeDelay: Team change flood protection
+	// Players can always move to spec without delay if they're on Axis or Allies
+	if (!force && oldTeam != TEAM_SPECTATOR && team != TEAM_SPECTATOR) {
+		int delay = g_teamChangeDelay.integer > 0 ? g_teamChangeDelay.integer : 1000;
+		if (level.time - client->pers.joinedTeamTime < delay) {
+			if (g_teamChangeDelay.integer > 0) {
+				CP(va("cp \"Team change delay: wait %d ms.\n\"", delay - (level.time - client->pers.joinedTeamTime)));
+			} else {
+				CP("cp \"You recently switched teams.\n\"");
+			}
+			return qfalse;
+		}
 	}
 
 	// NERVE - SMF - prevent players from switching to regain deployments

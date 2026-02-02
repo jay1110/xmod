@@ -3174,6 +3174,12 @@ PM_WeaponUseAmmo
 void PM_WeaponUseAmmo( int wp, int amount ) {
 	int takeweapon;
 
+	// g_noReload: If enabled, auto-refill clip to max immediately
+	if (cvars::g_noReload.ivalue) {
+		// Don't consume ammo at all - clips stay full
+		return;
+	}
+
 	if(pm->noWeapClips)
 		pm->ps->ammo[ BG_FindAmmoForWeapon( (weapon_t)wp )] -= amount;
 	else {
@@ -4290,7 +4296,8 @@ static void PM_Weapon( void ) {
 				return;
 
 			// Jaybird - Panzer War handling
-			if (!cvars::bg_panzerWar.ivalue) {
+			// g_noCharge: Skip charge check if enabled
+			if (!cvars::bg_panzerWar.ivalue && !cvars::g_noCharge.ivalue) {
 				if( pm->skill[SK_HEAVY_WEAPONS] >= 1 ) {
 					if (pm->cmd.serverTime - pm->ps->classWeaponTime < pm->soldierChargeTime * 0.66f)
 						return;
@@ -4302,18 +4309,24 @@ static void PM_Weapon( void ) {
 
 		case WP_GPG40:
 		case WP_M7:
-			if (pm->cmd.serverTime - pm->ps->classWeaponTime < (pm->engineerChargeTime*0.5f))
-				return;
+			// g_noCharge: Skip charge check if enabled
+			if (!cvars::g_noCharge.ivalue) {
+				if (pm->cmd.serverTime - pm->ps->classWeaponTime < (pm->engineerChargeTime*0.5f))
+					return;
+			}
 			break;
 
 		case WP_MORTAR_SET:
-			if( pm->skill[SK_HEAVY_WEAPONS] >= 1 ) {
-				// CHRUKER: b069 - Was using "0.5f*(1-0.3f)", however the 0.33f is used everywhere else, and is more precise
-				if( pm->cmd.serverTime - pm->ps->classWeaponTime < (pm->soldierChargeTime*0.33f) ) {
+			// g_noCharge: Skip charge check if enabled
+			if (!cvars::g_noCharge.ivalue) {
+				if( pm->skill[SK_HEAVY_WEAPONS] >= 1 ) {
+					// CHRUKER: b069 - Was using "0.5f*(1-0.3f)", however the 0.33f is used everywhere else, and is more precise
+					if( pm->cmd.serverTime - pm->ps->classWeaponTime < (pm->soldierChargeTime*0.33f) ) {
+						return;
+					}
+				} else if( pm->cmd.serverTime - pm->ps->classWeaponTime < (pm->soldierChargeTime*0.5f) ) {
 					return;
 				}
-			} else if( pm->cmd.serverTime - pm->ps->classWeaponTime < (pm->soldierChargeTime*0.5f) ) {
-				return;
 			}
 		
 			if( !delayedFire ) {
@@ -4324,11 +4337,14 @@ static void PM_Weapon( void ) {
 		case WP_POISON_GAS:
 		case WP_SATCHEL:
 		case WP_SMOKE_BOMB:
-			if( pm->skill[SK_MILITARY_INTELLIGENCE_AND_SCOPED_WEAPONS] >= 2 ) {
-				if (pm->cmd.serverTime - pm->ps->classWeaponTime < (pm->covertopsChargeTime*0.66f))
+			// g_noCharge: Skip charge check if enabled
+			if (!cvars::g_noCharge.ivalue) {
+				if( pm->skill[SK_MILITARY_INTELLIGENCE_AND_SCOPED_WEAPONS] >= 2 ) {
+					if (pm->cmd.serverTime - pm->ps->classWeaponTime < (pm->covertopsChargeTime*0.66f))
+						return;
+				} else if (pm->cmd.serverTime - pm->ps->classWeaponTime < pm->covertopsChargeTime) {
 					return;
-			} else if (pm->cmd.serverTime - pm->ps->classWeaponTime < pm->covertopsChargeTime) {
-				return;
+				}
 			}
 			break;
 
@@ -4337,90 +4353,108 @@ static void PM_Weapon( void ) {
 		case WP_LANDMINE_PGAS:
 		case WP_TRIPMINE:
 			// CHRUKER: b026 - Skill should first kick in at level 3
-			if( pm->skill[SK_EXPLOSIVES_AND_CONSTRUCTION] >= 3 ) {
-				if( pm->cmd.serverTime - pm->ps->classWeaponTime < (pm->engineerChargeTime*0.33f) ) {
+			// g_noCharge: Skip charge check if enabled
+			if (!cvars::g_noCharge.ivalue) {
+				if( pm->skill[SK_EXPLOSIVES_AND_CONSTRUCTION] >= 3 ) {
+					if( pm->cmd.serverTime - pm->ps->classWeaponTime < (pm->engineerChargeTime*0.33f) ) {
+						return;
+					}
+				} else if( pm->cmd.serverTime - pm->ps->classWeaponTime < (pm->engineerChargeTime*0.5f) ) {
 					return;
 				}
-			} else if( pm->cmd.serverTime - pm->ps->classWeaponTime < (pm->engineerChargeTime*0.5f) ) {
-				return;
 			}
 			break;
 
 		case WP_DYNAMITE:
-			if (pm->skill[SK_EXPLOSIVES_AND_CONSTRUCTION] >= 3 ) {
-				if (pm->cmd.serverTime - pm->ps->classWeaponTime < (pm->engineerChargeTime*0.66f))
+			// g_noCharge: Skip charge check if enabled
+			if (!cvars::g_noCharge.ivalue) {
+				if (pm->skill[SK_EXPLOSIVES_AND_CONSTRUCTION] >= 3 ) {
+					if (pm->cmd.serverTime - pm->ps->classWeaponTime < (pm->engineerChargeTime*0.66f))
+						return;
+				} else if (pm->cmd.serverTime - pm->ps->classWeaponTime < pm->engineerChargeTime) {
 					return;
-			} else if (pm->cmd.serverTime - pm->ps->classWeaponTime < pm->engineerChargeTime) {
-				return;
+				}
 			}
 			break;
 
 		case WP_AMMO:
-			if (pm->skill[SK_SIGNALS] >= 1 ) {
-				if( pm->cmd.serverTime - pm->ps->classWeaponTime < (pm->ltChargeTime*0.15f) ) {
+			// g_noCharge: Skip charge check if enabled
+			if (!cvars::g_noCharge.ivalue) {
+				if (pm->skill[SK_SIGNALS] >= 1 ) {
+					if( pm->cmd.serverTime - pm->ps->classWeaponTime < (pm->ltChargeTime*0.15f) ) {
+						if( pm->cmd.buttons & BUTTON_ATTACK ) {
+							BG_AnimScriptEvent( pm->ps, pm->character->animModelInfo, ANIM_ET_NOPOWER, qtrue, qfalse );
+						}
+						return;
+					}
+				} else if (pm->cmd.serverTime - pm->ps->classWeaponTime < (pm->ltChargeTime*0.25f)) {
+					// rain - #202 - ^^ properly check ltChargeTime here, not medicChargeTime
 					if( pm->cmd.buttons & BUTTON_ATTACK ) {
 						BG_AnimScriptEvent( pm->ps, pm->character->animModelInfo, ANIM_ET_NOPOWER, qtrue, qfalse );
 					}
 					return;
 				}
-			} else if (pm->cmd.serverTime - pm->ps->classWeaponTime < (pm->ltChargeTime*0.25f)) {
-				// rain - #202 - ^^ properly check ltChargeTime here, not medicChargeTime
-				if( pm->cmd.buttons & BUTTON_ATTACK ) {
-					BG_AnimScriptEvent( pm->ps, pm->character->animModelInfo, ANIM_ET_NOPOWER, qtrue, qfalse );
-				}
-				return;
 			}
 			break;
 
 		case WP_MEDKIT:
-			if (pm->skill[SK_FIRST_AID] >= 2 ) {
-				if( pm->cmd.serverTime - pm->ps->classWeaponTime < (pm->medicChargeTime*0.15f) ) {
+			// g_noCharge: Skip charge check if enabled
+			if (!cvars::g_noCharge.ivalue) {
+				if (pm->skill[SK_FIRST_AID] >= 2 ) {
+					if( pm->cmd.serverTime - pm->ps->classWeaponTime < (pm->medicChargeTime*0.15f) ) {
+						if( pm->cmd.buttons & BUTTON_ATTACK ) {
+							BG_AnimScriptEvent( pm->ps, pm->character->animModelInfo, ANIM_ET_NOPOWER, qtrue, qfalse );		
+						}
+						return;
+					}
+				} else if (pm->cmd.serverTime - pm->ps->classWeaponTime < (pm->medicChargeTime*0.25f)) {
 					if( pm->cmd.buttons & BUTTON_ATTACK ) {
-						BG_AnimScriptEvent( pm->ps, pm->character->animModelInfo, ANIM_ET_NOPOWER, qtrue, qfalse );		
+						BG_AnimScriptEvent( pm->ps, pm->character->animModelInfo, ANIM_ET_NOPOWER, qtrue, qfalse );
 					}
 					return;
 				}
-			} else if (pm->cmd.serverTime - pm->ps->classWeaponTime < (pm->medicChargeTime*0.25f)) {
-				if( pm->cmd.buttons & BUTTON_ATTACK ) {
-					BG_AnimScriptEvent( pm->ps, pm->character->animModelInfo, ANIM_ET_NOPOWER, qtrue, qfalse );
-				}
-				return;
 			}
 			break;
 
 		case WP_SMOKE_MARKER:
-			if( pm->skill[SK_SIGNALS] >= 2 ) {
-				if(pm->cmd.serverTime - pm->ps->classWeaponTime < (pm->ltChargeTime*0.66f) ) {
+			// g_noCharge: Skip charge check if enabled
+			if (!cvars::g_noCharge.ivalue) {
+				if( pm->skill[SK_SIGNALS] >= 2 ) {
+					if(pm->cmd.serverTime - pm->ps->classWeaponTime < (pm->ltChargeTime*0.66f) ) {
+						return;
+					}
+				} else if( pm->cmd.serverTime - pm->ps->classWeaponTime < pm->ltChargeTime ) {
 					return;
 				}
-			} else if( pm->cmd.serverTime - pm->ps->classWeaponTime < pm->ltChargeTime ) {
-				return;
 			}
 			break;
 
 		case WP_ADRENALINE_SHARE:
 		case WP_MEDIC_ADRENALINE: {
-			int chargeTime = 0;
-			switch (pm->ps->stats[STAT_PLAYER_CLASS]) {
-			case PC_MEDIC:
-				chargeTime = pm->medicChargeTime;
-				break;
-			case PC_FIELDOPS:
-				chargeTime = pm->ltChargeTime;
-				break;
-			case PC_SOLDIER:
-				chargeTime = pm->soldierChargeTime;
-				break;
-			case PC_COVERTOPS:
-				chargeTime = pm->covertopsChargeTime;
-				break;
-			case PC_ENGINEER:
-				chargeTime = pm->engineerChargeTime;
-				break;
-			}
+			// g_noCharge: Skip charge check if enabled
+			if (!cvars::g_noCharge.ivalue) {
+				int chargeTime = 0;
+				switch (pm->ps->stats[STAT_PLAYER_CLASS]) {
+				case PC_MEDIC:
+					chargeTime = pm->medicChargeTime;
+					break;
+				case PC_FIELDOPS:
+					chargeTime = pm->ltChargeTime;
+					break;
+				case PC_SOLDIER:
+					chargeTime = pm->soldierChargeTime;
+					break;
+				case PC_COVERTOPS:
+					chargeTime = pm->covertopsChargeTime;
+					break;
+				case PC_ENGINEER:
+					chargeTime = pm->engineerChargeTime;
+					break;
+				}
 
-			if (pm->cmd.serverTime - pm->ps->classWeaponTime < chargeTime)
-				return;
+				if (pm->cmd.serverTime - pm->ps->classWeaponTime < chargeTime)
+					return;
+			}
 			break;
 		}
 

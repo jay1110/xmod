@@ -100,6 +100,10 @@ namespace objects {
     extern Cvar bg_weaponsenable;
 
     extern Cvar gameState;
+
+    // g_noReload and g_noCharge are server-synced via SERVERINFO
+    extern Cvar g_noReload;
+    extern Cvar g_noCharge;
 }
 
 ///////////////////////////////////////////////////////////////////////////////

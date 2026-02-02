@@ -297,6 +297,10 @@ void CG_ParseXmodinfo( void) {
     cvars::bg_djHeight.set        ( Info_ValueForKey( info, "B" ));
     cvars::bg_weaponsenable.set   ( Info_ValueForKey( info, "C" ));
 
+    // g_noReload and g_noCharge synced for bgame
+    cvars::g_noReload.set         ( Info_ValueForKey( info, "D" ));
+    cvars::g_noCharge.set         ( Info_ValueForKey( info, "E" ));
+
     ammoTableNeedsUpdate = true;
     BG_updateAmmoTable();
 

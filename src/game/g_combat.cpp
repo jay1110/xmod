@@ -647,6 +647,18 @@ void player_die( gentity_t *self, gentity_t *inflictor, gentity_t *attacker, int
 			G_UpdateLastKill(attacker);
 			G_AddMultiKill(attacker);
 
+			// g_revenge: Check if this kill is a revenge (killing the last player who killed you)
+			if (g_revenge.integer && attacker->client->lastkilledby_client >= 0 &&
+			    attacker->client->lastkilledby_client == self->s.number) {
+				// Show "REVENGE!" message
+				trap_SendServerCommand(attacker->s.number, "cp \"^1REVENGE!^7\n\"");
+				// Award 1 XP for revenge kill
+				G_AddSkillPoints(attacker, SK_BATTLE_SENSE, 1.f);
+				G_DebugAddSkillPoints(attacker, SK_BATTLE_SENSE, 1.f, "revenge kill");
+				// Reset lastkilledby_client since revenge is complete
+				attacker->client->lastkilledby_client = -1;
+			}
+
 			if( g_gametype.integer == GT_WOLF_LMS ) {
 				if( level.firstbloodTeam == -1 )
 					level.firstbloodTeam = attacker->client->sess.sessionTeam;

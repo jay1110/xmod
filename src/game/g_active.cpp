@@ -1049,14 +1049,26 @@ void ClientEvents( gentity_t *ent, int oldEventSequence ) {
 		case EV_FIRE_WEAPON:
 		case EV_FIRE_WEAPONB:
 		case EV_FIRE_WEAPON_LASTSHOT:
+			// g_noAttackInvul: Remove spawn invulnerability when player attacks
+			if (g_noAttackInvul.integer && ent->client->ps.powerups[PW_INVULNERABLE] > level.time) {
+				ent->client->ps.powerups[PW_INVULNERABLE] = 0;
+			}
 			FireWeapon( ent );
 			break;
 
 		case EV_THROW_KNIFE:
+			// g_noAttackInvul: Remove spawn invulnerability when player attacks
+			if (g_noAttackInvul.integer && ent->client->ps.powerups[PW_INVULNERABLE] > level.time) {
+				ent->client->ps.powerups[PW_INVULNERABLE] = 0;
+			}
 			G_ThrowingKnife_launch( *ent, eventParm );
 			break;
 
 		case EV_THROW_MOLOTOV:
+			// g_noAttackInvul: Remove spawn invulnerability when player attacks
+			if (g_noAttackInvul.integer && ent->client->ps.powerups[PW_INVULNERABLE] > level.time) {
+				ent->client->ps.powerups[PW_INVULNERABLE] = 0;
+			}
 			molotov::launch( *ent, eventParm );
 			break;
 
@@ -1819,6 +1831,10 @@ void SpectatorClientEndFrame( gentity_t *ent )
 
 		// Players can respawn quickly in warmup
 		if(cvars::gameState.ivalue != GS_PLAYING && ent->client->respawnTime <= level.timeCurrent &&
+		  ent->client->sess.sessionTeam != TEAM_SPECTATOR) {
+			do_respawn = qtrue;
+		// g_instantSpawn: Players respawn instantly, ignoring limbo times
+		} else if(g_instantSpawn.integer && ent->client->respawnTime <= level.timeCurrent &&
 		  ent->client->sess.sessionTeam != TEAM_SPECTATOR) {
 			do_respawn = qtrue;
 		} else if(ent->client->sess.sessionTeam == TEAM_AXIS) {
