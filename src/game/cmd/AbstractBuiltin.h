@@ -93,6 +93,7 @@ private:
 #include <game/cmd/UserEdit.h>
 #include <game/cmd/UserInfo.h>
 #include <game/cmd/UserList.h>
+#include <game/cmd/CustomCommand.h>
 
 ///////////////////////////////////////////////////////////////////////////////
 

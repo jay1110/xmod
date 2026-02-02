@@ -2695,6 +2695,7 @@ qboolean G_LandmineSnapshotCallback( int entityNum, int clientNum );
 #include <game/UserManager.h>
 #include <game/MapDB.h>
 #include <game/CensorDB.h>
+#include <game/CustomCommandDB.h>
 
 #include <game/MapEntity.h>
 #include <game/MapEntityList.h>

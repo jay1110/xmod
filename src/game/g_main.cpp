@@ -1891,6 +1891,9 @@ void G_InitGame( int levelTime, int randomSeed, int restart ) {
     // Load censor word list
     censorDB.load();
 
+    // Load custom admin commands
+    customCommandDB.load();
+
 	// Load weapon scripts
 	G_InitWeaponScripts();
 

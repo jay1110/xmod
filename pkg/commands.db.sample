@@ -1,0 +1,86 @@
+###############################################################################
+##
+## xmod - Custom Admin Commands Example Configuration
+##
+## This file allows server administrators to define custom admin commands
+## that can be executed via the !command syntax.
+##
+## FILE LOCATION: Place this file in your xmod folder (e.g., etmain/xmod/)
+##
+## FILE FORMAT:
+##   - Each command starts with a delimiter line of 10 asterisks: **********
+##   - Lines starting with # are comments
+##   - Each command has these fields:
+##       name   = Command name (lowercase, no spaces)
+##       exec   = Server command(s) to execute
+##       desc   = Description shown in !help
+##       levels = Admin levels that can use this command (comma or space separated)
+##
+## VARIABLE SUBSTITUTIONS in exec:
+##   [n] = Name of the player executing the command
+##   [d] = Name of the first argument if it's a valid player
+##   [1] = First argument
+##   [2] = Second argument
+##   [3] = Third argument (and so on up to [9])
+##
+###############################################################################
+
+**********
+
+name    = beer
+exec    = qsay [n] ^7gives everyone a cold ^3Beer!!!
+desc    = Announce beer time
+levels  = 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 999
+
+**********
+
+name    = afk
+exec    = chat "^1[n] ^7is going AFK. Back soon!";!put [n] s
+desc    = Puts yourself in spectator with AFK message
+levels  = 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 999
+
+**********
+
+name    = brb
+exec    = chat "^1[n] ^7will be right back!";!put [n] s
+desc    = Puts yourself in spectator with BRB message
+levels  = 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 999
+
+**********
+
+name    = coffee
+exec    = chat "^5-> ^7[n]^6 requests a good tasty coffee!"
+desc    = Request coffee break
+levels  = 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 999
+
+**********
+
+name    = ss
+exec    = getss [1]
+desc    = Takes screenshot from selected player (!ss name or !ss id)
+levels  = 8, 9, 10, 11, 999
+
+**********
+
+name    = maxbots
+exec    = bot maxbots [1]
+desc    = Sets the maximum number of bots on the server
+levels  = 999
+
+**********
+
+name    = minbots
+exec    = bot minbots [1]
+desc    = Sets the minimum number of bots on the server
+levels  = 999
+
+**********
+
+name    = addbot
+exec    = bot addbot [1] [2] [3]
+desc    = Adds a bot (!addbot team skill name)
+levels  = 10, 11, 999
+
+###############################################################################
+## End of custom commands
+###############################################################################
