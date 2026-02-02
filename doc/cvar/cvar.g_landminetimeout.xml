@@ -7,7 +7,7 @@
 
 <refnamediv>
     <refname>g_landminetimeout</refname>
-    <refpurpose>enable/disable landmine cleanup upon owner disconnect</refpurpose>
+    <refpurpose>enable/disable landmine and tripmine cleanup upon owner disconnect</refpurpose>
 </refnamediv>
 
 <refsynopsisdiv>
@@ -30,7 +30,7 @@
 <title>Description</title>
 <para>
     <command>g_landminetimeout</command>
-    enables or disables landmine cleanup when the player who planted them disconnects from server.
+    enables or disables landmine and tripmine cleanup when the player who planted them disconnects from server.
 </para>
 </refsection>
 
