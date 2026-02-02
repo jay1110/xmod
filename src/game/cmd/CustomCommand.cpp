@@ -93,10 +93,9 @@ CustomCommand::substituteVariables( const string& str, Context& txt )
     string result = str;
     
     // [n] - Executing player's name (colored)
-    // Note: The lookupPLAYER function sanitizes color codes, so colored names
-    // work correctly with admin commands like !putteam [n] s
+    // Use netname directly for reliability - lookupPLAYER sanitizes color codes
     if ( txt._client ) {
-        const std::string& namex = getPlayerNamex( txt._client->slot );
+        string namex = txt._client->gclient.pers.netname;
         size_t pos = 0;
         while ( (pos = result.find( "[n]", pos )) != string::npos ) {
             result.replace( pos, 3, namex );
@@ -117,7 +116,7 @@ CustomCommand::substituteVariables( const string& str, Context& txt )
         Client* target = NULL;
         Buffer dummy;
         if ( !matchClient( txt._args[1], target, dummy ) && target ) {
-            const std::string& targetName = getPlayerNamex( target->slot );
+            string targetName = target->gclient.pers.netname;
             size_t pos = 0;
             while ( (pos = result.find( "[d]", pos )) != string::npos ) {
                 result.replace( pos, 3, targetName );
