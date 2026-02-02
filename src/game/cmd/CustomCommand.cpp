@@ -69,7 +69,6 @@ CustomCommand::doExecute( Context& txt )
             if ( segment[0] == '!' ) {
                 // Process as an admin command through cmd::process
                 // Pass the command as the actor's command (simulates them typing it)
-                G_Printf( "CustomCommand: executing admin command: '%s'\n", segment.c_str() );
                 process( txt._client, false, &segment );
             }
             else {
