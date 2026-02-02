@@ -65,7 +65,8 @@ DbLoad::doExecute( Context& txt )
     Buffer buf;
     buf << "loaded: " << xvalue( int(levelDB.mapLEVEL.size()) ) << " level records"
         << '\n' << "SQLite: " << xvalue( userCount ) << " users, " << xvalue( banCount ) << " bans"
-        << '\n' << "loaded: " << xvalue( int(mapDB.mapNAME.size()) ) << " map records";
+        << '\n' << "loaded: " << xvalue( int(mapDB.mapNAME.size()) ) << " map records"
+        << '\n' << "loaded: " << xvalue( customCommandDB.count() ) << " custom commands";
 
     if (g_censor.integer)
         buf << '\n' << "loaded: " << xvalue( int(censorDB.wordSet.size()) ) << " censor records";

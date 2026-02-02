@@ -106,8 +106,11 @@ CustomCommandDB::load()
         }
     }
     
+    // Begin timing and logging (same format as level.db, map.db)
+    process.beginCriticalSection();
+    Process::mstime_t startTime = process.mstime();
     ostringstream msg;
-    msg << "Loading custom commands from: " << fname << endl;
+    msg << "Reading: " << fname;
     trap_Printf( msg.str().c_str() );
     
     string line;
@@ -234,9 +237,12 @@ CustomCommandDB::load()
     
     file.close();
     
+    // End timing and logging (same format as level.db, map.db)
+    Process::mstime_t elapsed = process.mstime() - startTime;
     msg.str( "" );
-    msg << "Loaded " << loadedCount << " custom command(s)." << endl;
+    msg << ", " << loadedCount << " commands (" << elapsed << "ms)" << endl;
     trap_Printf( msg.str().c_str() );
+    process.endCriticalSection();
     
     return loadedCount;
 }
