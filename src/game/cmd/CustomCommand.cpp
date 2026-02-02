@@ -43,11 +43,10 @@ CustomCommand::doExecute( Context& txt )
     // Split the command string by semicolons and process each part
     // This allows mixing server console commands with admin ! commands
     size_t start = 0;
-    size_t pos = 0;
     
-    while ( pos <= cmdStr.length() ) {
+    while ( start < cmdStr.length() ) {
         // Find next semicolon or end of string
-        pos = cmdStr.find( ';', start );
+        size_t pos = cmdStr.find( ';', start );
         if ( pos == string::npos ) {
             pos = cmdStr.length();
         }
@@ -79,6 +78,7 @@ CustomCommand::doExecute( Context& txt )
             }
         }
         
+        // Move past the semicolon (or end of string)
         start = pos + 1;
     }
     
