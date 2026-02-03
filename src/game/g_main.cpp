@@ -430,9 +430,9 @@ cvarTable_t		gameCvarTable[] = {
 
     // New gameplay cvars
     { &g_noAttackInvul,     "g_noAttackInvul",      "0",        CVAR_ARCHIVE },
-    { &g_spectatorNames,    "g_spectatorNames",     "0",        CVAR_ARCHIVE | CVAR_SERVERINFO },
+    { &g_spectatorNames,    "g_spectatorNames",     "1",        CVAR_ARCHIVE | CVAR_SERVERINFO },
     { &g_teamChangeDelay,   "g_teamChangeDelay",    "0",        CVAR_ARCHIVE },
-    { &g_revenge,           "g_revenge",            "0",        CVAR_ARCHIVE },
+    { &g_revenge,           "g_revenge",            "1",        CVAR_ARCHIVE },
     { &g_noReload,          "g_noReload",           "0",        CVAR_ARCHIVE | CVAR_SERVERINFO },
     { &g_noCharge,          "g_noCharge",           "0",        CVAR_ARCHIVE | CVAR_SERVERINFO },
     { &g_instantSpawn,      "g_instantSpawn",       "0",        CVAR_ARCHIVE | CVAR_SERVERINFO },
