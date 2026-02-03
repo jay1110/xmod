@@ -139,6 +139,9 @@ void CG_ParseServerinfo( void ) {
 	
 	// Parse custom weapon scripts directory for client-side weapon media loading
 	Q_strncpyz( cgs.weaponScriptsDir, Info_ValueForKey( info, "g_weaponScriptsDir" ), sizeof(cgs.weaponScriptsDir) );
+	
+	// Parse g_spectatorNames for spectator name display like shoutcaster
+	cgs.spectatorNames = atoi( Info_ValueForKey( info, "g_spectatorNames" ) );
 }
 
 /*

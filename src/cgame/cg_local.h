@@ -2203,6 +2203,9 @@ typedef struct {
 	
 	// Custom weapon scripts directory from server (for client-side .weap loading)
 	char				weaponScriptsDir[MAX_QPATH];
+	
+	// g_spectatorNames: Spectators can see player names like shoutcasters
+	int					spectatorNames;
 } cgs_t;
 
 //==============================================================================

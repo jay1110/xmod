@@ -5344,6 +5344,10 @@ void CG_DrawActive( stereoFrame_t stereoView ) {
 		if( cgs.clientinfo[ cg.snap->ps.clientNum ].team == TEAM_SPECTATOR && cgs.clientinfo[cg.snap->ps.clientNum].shoutcaster ) {
 			CG_ShoutcasterItems();
 		}
+		// g_spectatorNames: Show player names for non-shoutcaster spectators too
+		else if( cgs.clientinfo[ cg.snap->ps.clientNum ].team == TEAM_SPECTATOR && cgs.spectatorNames ) {
+			CG_ShoutcasterItems();
+		}
 
 
 	} else {

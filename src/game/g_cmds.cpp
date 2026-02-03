@@ -694,15 +694,12 @@ qboolean SetTeam( gentity_t* ent, const char* teamName, qboolean force, weapon_t
 	}
 
 	// g_teamChangeDelay: Team change flood protection
-	// Players can always move to spec without delay if they're on Axis or Allies
-	if (!force && oldTeam != TEAM_SPECTATOR && team != TEAM_SPECTATOR) {
-		int delay = g_teamChangeDelay.integer > 0 ? g_teamChangeDelay.integer : 1000;
-		if (level.time - client->pers.joinedTeamTime < delay) {
-			if (g_teamChangeDelay.integer > 0) {
-				CP(va("cp \"Team change delay: wait %d ms.\n\"", delay - (level.time - client->pers.joinedTeamTime)));
-			} else {
-				CP("cp \"You recently switched teams.\n\"");
-			}
+	// Only apply delay when trying to join a playing team (not when going to spectator)
+	// This allows players to go to spec freely, but enforces delay for joining Axis/Allies
+	if (!force && team != TEAM_SPECTATOR && g_teamChangeDelay.integer > 0) {
+		if (level.time - client->pers.joinedTeamTime < g_teamChangeDelay.integer) {
+			int remaining = g_teamChangeDelay.integer - (level.time - client->pers.joinedTeamTime);
+			CP(va("cp \"Team change delay: wait %d ms.\n\"", remaining));
 			return qfalse;
 		}
 	}

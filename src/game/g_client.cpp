@@ -2984,6 +2984,11 @@ void ClientSpawn( gentity_t *ent, qboolean revived )
 	// Jaybird - Reset (init) poison events
 	G_ResetPoisonEvents(ent);
 
+	// Initialize lastkilledby_client for g_revenge feature
+	if (!revived) {
+		client->lastkilledby_client = -1;
+	}
+
 	// Call Lua et_ClientSpawn callback
 	// Note: teamChange and restoreHealth are set to qfalse for now
 	G_LuaHook_ClientSpawn(ent - g_entities, revived, qfalse, qfalse);
