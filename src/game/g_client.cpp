@@ -2224,7 +2224,8 @@ ClientConnect( string& outmsg, int clientNum, qboolean firstTime, qboolean isBot
 		G_InitSessionData( client, userinfo );
 		client->pers.enterTime = level.time;
 		client->ps.persistant[PERS_SCORE] = 0;
-		// Initialize lastkilledby_client for g_revenge feature (only on first connect)
+		// Initialize lastkilledby_client for g_revenge feature
+		// -1 means "no one killed me yet"
 		client->lastkilledby_client = -1;
 	} else {
 		G_ReadSessionData( client );
@@ -2986,8 +2987,9 @@ void ClientSpawn( gentity_t *ent, qboolean revived )
 	// Jaybird - Reset (init) poison events
 	G_ResetPoisonEvents(ent);
 
-	// Note: lastkilledby_client is initialized in ClientConnect (firstTime)
-	// and should NOT be reset here, as players need to track revenge across respawns
+	// Note: We do NOT reset lastkilledby_client here on respawn.
+	// The revenge feature requires remembering who killed you across respawns.
+	// It's only reset when: 1) Player gets revenge (g_combat.cpp), 2) Player first connects (uninitialized)
 
 	// Call Lua et_ClientSpawn callback
 	// Note: teamChange and restoreHealth are set to qfalse for now

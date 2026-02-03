@@ -697,9 +697,8 @@ qboolean SetTeam( gentity_t* ent, const char* teamName, qboolean force, weapon_t
 	// Only apply delay when trying to join a playing team (not when going to spectator)
 	// This allows players to go to spec freely, but enforces delay for joining Axis/Allies
 	if (!force && team != TEAM_SPECTATOR && g_teamChangeDelay.integer > 0) {
-		int elapsed = level.time - client->pers.joinedTeamTime;
-		if (elapsed < g_teamChangeDelay.integer) {
-			int remaining = g_teamChangeDelay.integer - elapsed;
+		if (level.time - client->pers.joinedTeamTime < g_teamChangeDelay.integer) {
+			int remaining = g_teamChangeDelay.integer - (level.time - client->pers.joinedTeamTime);
 			CP(va("cp \"Team change delay: wait %d ms.\n\"", remaining));
 			return qfalse;
 		}

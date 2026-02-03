@@ -766,10 +766,7 @@ void Weapon_AdrenalineShare(gentity_t *ent) {
 
 			// Jaybird - playdead check
 			if ( ISONTEAM(traceEnt) && OnSameTeam(ent, traceEnt) && traceEnt->client->ps.stats[STAT_HEALTH] > 0 && !traceEnt->client->ps.powerups[PW_ADRENALINE]) {
-				// g_noCharge: Only consume charge if g_noCharge is disabled
-				if (!g_noCharge.integer) {
-					ent->client->ps.classWeaponTime = level.time;
-				}
+				ent->client->ps.classWeaponTime = level.time;
 				Weapon_AdrenalineSyringe(traceEnt);
 				te = G_TempEntity( traceEnt->r.currentOrigin, EV_GENERAL_SOUND );
 				te->s.eventParm = G_SoundIndex( "sound/misc/vo_revive.wav" );
