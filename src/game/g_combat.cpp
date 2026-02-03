@@ -663,9 +663,10 @@ void player_die( gentity_t *self, gentity_t *inflictor, gentity_t *attacker, int
 			trap_SendServerCommand(attacker->s.number, 
 				va("xkill %d %d", self->s.number, isRevenge ? 1 : 0));
 			
-			// Send custom death notification to victim (includes if they were revenged)
+			// Send custom death notification to victim (includes if they were revenged and attacker's HP)
+			int attackerHP = attacker->health;
 			trap_SendServerCommand(self->s.number,
-				va("xdeath %d %d", attacker->s.number, isRevenge ? 1 : 0));
+				va("xdeath %d %d %d", attacker->s.number, isRevenge ? 1 : 0, attackerHP));
 
 			if( g_gametype.integer == GT_WOLF_LMS ) {
 				if( level.firstbloodTeam == -1 )

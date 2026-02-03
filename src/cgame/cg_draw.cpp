@@ -1538,11 +1538,11 @@ CG_SetDeathNotification
 Set death notification message when player is killed
 ==============
 */
-void CG_SetDeathNotification( const char *killerName, qboolean wasRevenged ) {
+void CG_SetDeathNotification( const char *killerName, qboolean wasRevenged, int attackerHP ) {
 	if ( wasRevenged ) {
-		Com_sprintf( cg.deathNotifyText, sizeof(cg.deathNotifyText), "^1Revenged^7 by %s", killerName );
+		Com_sprintf( cg.deathNotifyText, sizeof(cg.deathNotifyText), "^1Revenged^7 by %s / %dHP left", killerName, attackerHP );
 	} else {
-		Com_sprintf( cg.deathNotifyText, sizeof(cg.deathNotifyText), "Killed by %s", killerName );
+		Com_sprintf( cg.deathNotifyText, sizeof(cg.deathNotifyText), "Killed by %s / %dHP left", killerName, attackerHP );
 	}
 	cg.deathNotifyTime = cg.time;
 	cg.deathNotifyIsRevenged = wasRevenged;

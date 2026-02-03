@@ -367,19 +367,21 @@ static void CG_Obituary( entityState_t *ent ) {
 	}
 
 	// check for kill messages from the current clientNum
+	// NOTE: Old centerprint "You killed" message removed - now using custom xkill notification
 	if( attacker == cg.snap->ps.clientNum ) {
 		char	*s;
 
+		// Only show centerprint for team kills and swap places
 		if ( ci->team == ca->team ) {
 			if (mod == MOD_SWAP_PLACES) {
 				s = va("%s %s", CG_TranslateString( "You swapped places with" ), targetName );
+				CG_PriorityCenterPrint( s, int(SCREEN_HEIGHT * 0.75f), int(BIGCHAR_WIDTH * 0.6f), 1 );
 			} else {
 				s = va("%s %s", CG_TranslateString( "You killed ^1TEAMMATE^7" ), targetName );
+				CG_PriorityCenterPrint( s, int(SCREEN_HEIGHT * 0.75f), int(BIGCHAR_WIDTH * 0.6f), 1 );
 			}
-		} else {
-			s = va("%s %s", CG_TranslateString( "You killed" ), targetName );
 		}
-		CG_PriorityCenterPrint( s, int(SCREEN_HEIGHT * 0.75f), int(BIGCHAR_WIDTH * 0.6f), 1 );
+		// Normal kills handled by xkill command, no centerprint here
 		// print the text message as well
 	}
 

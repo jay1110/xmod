@@ -2512,14 +2512,15 @@ static void CG_ServerCommand( void ) {
 		return;
 	}
 
-	// xdeath: Custom death notification (includes if enemy got revenge)
-	// Format: xdeath <killer_clientNum> <wasRevenged (0/1)>
+	// xdeath: Custom death notification (includes if enemy got revenge and attacker HP)
+	// Format: xdeath <killer_clientNum> <wasRevenged (0/1)> <attackerHP>
 	if( !Q_stricmp( cmd, "xdeath" )) {
 		int killerNum = atoi(CG_Argv(1));
 		qboolean wasRevenged = (qboolean)(atoi(CG_Argv(2)) != 0);
+		int attackerHP = atoi(CG_Argv(3));
 		
 		if( killerNum >= 0 && killerNum < MAX_CLIENTS && cgs.clientinfo[killerNum].infoValid ) {
-			CG_SetDeathNotification( cgs.clientinfo[killerNum].name, wasRevenged );
+			CG_SetDeathNotification( cgs.clientinfo[killerNum].name, wasRevenged, attackerHP );
 		}
 		return;
 	}

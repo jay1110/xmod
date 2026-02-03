@@ -2637,7 +2637,7 @@ qboolean PointVisible( vec3_t point );
 void CG_KillSpreeMessages( const char *client, int kills, const char *message );
 void CG_DrawKillNotifications( void );
 void CG_SetKillNotification( const char *victimName, qboolean isRevenge );
-void CG_SetDeathNotification( const char *killerName, qboolean wasRevenged );
+void CG_SetDeathNotification( const char *killerName, qboolean wasRevenged, int attackerHP );
 
 
 //
