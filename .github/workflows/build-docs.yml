@@ -1,0 +1,47 @@
+name: Build Documentation
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build-docs:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+      
+    - name: Install DocBook dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y \
+          docbook-xsl \
+          xsltproc \
+          fop \
+          libxml2-utils \
+          python3 \
+          m4
+    
+    - name: Build documentation
+      run: make doc
+      
+    - name: Upload HTML documentation
+      uses: actions/upload-artifact@v4
+      with:
+        name: documentation-html
+        path: build/doc/en/html/
+        retention-days: 30
+        
+    - name: Upload PDF documentation
+      uses: actions/upload-artifact@v4
+      with:
+        name: documentation-pdf
+        path: build/doc/en/*.pdf
+        retention-days: 30
+        
+    - name: Upload single-page HTML
+      uses: actions/upload-artifact@v4
+      with:
+        name: documentation-html-single
+        path: build/doc/en/book.html
+        retention-days: 30
