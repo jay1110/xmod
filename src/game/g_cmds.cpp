@@ -630,12 +630,6 @@ qboolean SetTeam( gentity_t* ent, const char* teamName, qboolean force, weapon_t
 	int					specClient;
 	int					respawnsLeft;
 
-	// Jaybird
-	// if the team changing player is a shrubbot admin with the
-	// '5' flag, they can switch teams regardless of balance
-	if (cmd::entityHasPermission( ent, priv::base::balanceImmunity ))
-		force = qtrue;
-
 	//
 	// see what change is requested
 	//
@@ -648,6 +642,24 @@ qboolean SetTeam( gentity_t* ent, const char* teamName, qboolean force, weapon_t
 	respawnsLeft = client->ps.persistant[ PERS_RESPAWNS_LEFT ];
 	
 	G_TeamDataForString( teamName, client - level.clients, &team, &specState, &specClient );
+
+	// g_teamChangeDelay: Team change flood protection
+	// Apply BEFORE admin force override - even admins should have a delay to prevent abuse
+	// Only apply when trying to join a playing team (not when going to spectator)
+	if (team != TEAM_SPECTATOR && g_teamChangeDelay.integer > 0) {
+		int elapsed = level.time - client->pers.joinedTeamTime;
+		if (elapsed < g_teamChangeDelay.integer) {
+			int remaining = g_teamChangeDelay.integer - elapsed;
+			CP(va("cp \"Team change delay: wait %d ms.\n\"", remaining));
+			return qfalse;
+		}
+	}
+
+	// Jaybird
+	// if the team changing player is a shrubbot admin with the
+	// '5' flag, they can switch teams regardless of balance
+	if (cmd::entityHasPermission( ent, priv::base::balanceImmunity ))
+		force = qtrue;
 
 	if( team != TEAM_SPECTATOR ) {
 		// Ensure the player can join
@@ -691,22 +703,6 @@ qboolean SetTeam( gentity_t* ent, const char* teamName, qboolean force, weapon_t
 	oldTeam = client->sess.sessionTeam;
 	if ( team == oldTeam && team != TEAM_SPECTATOR ) {
 		return qfalse;
-	}
-
-	// g_teamChangeDelay: Team change flood protection
-	// Only apply delay when trying to join a playing team (not when going to spectator)
-	// This allows players to go to spec freely, but enforces delay for joining Axis/Allies
-	G_Printf("[TEAM_DEBUG] SetTeam: force=%d, team=%d, g_teamChangeDelay=%d, level.time=%d, joinedTeamTime=%d\n",
-		force, team, g_teamChangeDelay.integer, level.time, client->pers.joinedTeamTime);
-	if (!force && team != TEAM_SPECTATOR && g_teamChangeDelay.integer > 0) {
-		int elapsed = level.time - client->pers.joinedTeamTime;
-		G_Printf("[TEAM_DEBUG] Checking delay: elapsed=%d, required=%d\n", elapsed, g_teamChangeDelay.integer);
-		if (elapsed < g_teamChangeDelay.integer) {
-			int remaining = g_teamChangeDelay.integer - elapsed;
-			G_Printf("[TEAM_DEBUG] BLOCKING team change! remaining=%d ms\n", remaining);
-			CP(va("cp \"Team change delay: wait %d ms.\n\"", remaining));
-			return qfalse;
-		}
 	}
 
 	// NERVE - SMF - prevent players from switching to regain deployments
