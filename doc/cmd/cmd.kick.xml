@@ -1,0 +1,28 @@
+<refentry id="cmd.kick">
+
+<refmeta>
+    <refentrytitle>kick</refentrytitle>
+    <manvolnum>1</manvolnum>
+</refmeta>
+
+<refnamediv>
+    <refname>kick</refname>
+    <refpurpose>Kick a player off the server.</refpurpose>
+</refnamediv>
+
+<refsynopsisdiv>
+    <cmdsynopsis>
+        <command>!kick</command>
+        <arg><replaceable>REASON</replaceable></arg>
+    </cmdsynopsis>
+</refsynopsisdiv>
+
+<refsection>
+<title>Description</title>
+<para>
+    <command>kick</command>
+    Kick a player off the server.
+</para>
+</refsection>
+
+</refentry>

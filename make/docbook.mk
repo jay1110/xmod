@@ -19,21 +19,16 @@ DOCBOOK.path = \
 	$(PROJECT/)doc/cmd \
 	$(PROJECT/)doc/sample
 
-DOCBOOK.catalog.xml = /opt/docbook-xml-4.5/catalog.xml
-DOCBOOK.catalog.xsl = /opt/docbook-xsl-1.72.0/catalog.xml
+DOCBOOK.catalog.xml = /etc/xml/catalog
+DOCBOOK.catalog.xsl = /etc/xml/catalog
 
 DOCBOOK.fnCatalogs = $(call fnDelimit,:,$(DOCBOOK.catalogs) $($(DOCBOOK.inherit).catalogs))
 DOCBOOK.fnPath     = $(call fnDelimit,:,$(DOCBOOK.path) $($(DOCBOOK.inherit).path))
 
 ###############################################################################
 
-#DOCBOOK.fop/ = /opt/fop-0.20.5/
-#DOCBOOK.fop  = $(DOCBOOK.fop/)fop.sh
-
-#DOCBOOK.fop/ = /opt/fop-0.92beta/
-#DOCBOOK.fop/ = /local/mike/work/fop/trunk/
-DOCBOOK.fop/ = /opt/fop-0.93/
-DOCBOOK.fop  = $(DOCBOOK.fop/)fop
+# Use system-installed fop
+DOCBOOK.fop = fop
 
 ###############################################################################
 

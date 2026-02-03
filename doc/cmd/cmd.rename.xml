@@ -1,0 +1,27 @@
+<refentry id="cmd.rename">
+
+<refmeta>
+    <refentrytitle>rename</refentrytitle>
+    <manvolnum>1</manvolnum>
+</refmeta>
+
+<refnamediv>
+    <refname>rename</refname>
+    <refpurpose>Change a specific player's name.</refpurpose>
+</refnamediv>
+
+<refsynopsisdiv>
+    <cmdsynopsis>
+        <command>!rename</command>
+    </cmdsynopsis>
+</refsynopsisdiv>
+
+<refsection>
+<title>Description</title>
+<para>
+    <command>rename</command>
+    Change a specific player's name.
+</para>
+</refsection>
+
+</refentry>

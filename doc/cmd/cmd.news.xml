@@ -1,0 +1,28 @@
+<refentry id="cmd.news">
+
+<refmeta>
+    <refentrytitle>news</refentrytitle>
+    <manvolnum>1</manvolnum>
+</refmeta>
+
+<refnamediv>
+    <refname>news</refname>
+    <refpurpose>Plays the 'news' for the current or specified map.</refpurpose>
+</refnamediv>
+
+<refsynopsisdiv>
+    <cmdsynopsis>
+        <command>!news</command>
+        <arg><replaceable>MAPNAME</replaceable></arg>
+    </cmdsynopsis>
+</refsynopsisdiv>
+
+<refsection>
+<title>Description</title>
+<para>
+    <command>news</command>
+    Plays the 'news' for the current or specified map.
+</para>
+</refsection>
+
+</refentry>

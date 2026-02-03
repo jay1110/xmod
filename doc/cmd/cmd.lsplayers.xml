@@ -1,0 +1,27 @@
+<refentry id="cmd.lsplayers">
+
+<refmeta>
+    <refentrytitle>lsplayers</refentrytitle>
+    <manvolnum>1</manvolnum>
+</refmeta>
+
+<refnamediv>
+    <refname>lsplayers</refname>
+    <refpurpose>Display all players connected, their client numbers and admin levels.</refpurpose>
+</refnamediv>
+
+<refsynopsisdiv>
+    <cmdsynopsis>
+        <command>!lsplayers</command>
+    </cmdsynopsis>
+</refsynopsisdiv>
+
+<refsection>
+<title>Description</title>
+<para>
+    <command>lsplayers</command>
+    Display all players connected, their client numbers and admin levels.
+</para>
+</refsection>
+
+</refentry>

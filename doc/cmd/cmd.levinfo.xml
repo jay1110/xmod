@@ -1,0 +1,27 @@
+<refentry id="cmd.levinfo">
+
+<refmeta>
+    <refentrytitle>levinfo</refentrytitle>
+    <manvolnum>1</manvolnum>
+</refmeta>
+
+<refnamediv>
+    <refname>levinfo</refname>
+    <refpurpose>Show admin level details.</refpurpose>
+</refnamediv>
+
+<refsynopsisdiv>
+    <cmdsynopsis>
+        <command>!levinfo</command>
+    </cmdsynopsis>
+</refsynopsisdiv>
+
+<refsection>
+<title>Description</title>
+<para>
+    <command>levinfo</command>
+    Show admin level details.
+</para>
+</refsection>
+
+</refentry>

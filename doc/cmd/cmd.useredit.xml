@@ -1,0 +1,27 @@
+<refentry id="cmd.useredit">
+
+<refmeta>
+    <refentrytitle>useredit</refentrytitle>
+    <manvolnum>1</manvolnum>
+</refmeta>
+
+<refnamediv>
+    <refname>useredit</refname>
+    <refpurpose>Edit an admin level.</refpurpose>
+</refnamediv>
+
+<refsynopsisdiv>
+    <cmdsynopsis>
+        <command>!useredit</command>
+    </cmdsynopsis>
+</refsynopsisdiv>
+
+<refsection>
+<title>Description</title>
+<para>
+    <command>useredit</command>
+    Edit an admin level.
+</para>
+</refsection>
+
+</refentry>

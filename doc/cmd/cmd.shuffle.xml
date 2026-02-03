@@ -1,0 +1,27 @@
+<refentry id="cmd.shuffle">
+
+<refmeta>
+    <refentrytitle>shuffle</refentrytitle>
+    <manvolnum>1</manvolnum>
+</refmeta>
+
+<refnamediv>
+    <refname>shuffle</refname>
+    <refpurpose>Shuffles the teams based on the rate of XP gain.</refpurpose>
+</refnamediv>
+
+<refsynopsisdiv>
+    <cmdsynopsis>
+        <command>!shuffle</command>
+    </cmdsynopsis>
+</refsynopsisdiv>
+
+<refsection>
+<title>Description</title>
+<para>
+    <command>shuffle</command>
+    Shuffles the teams based on the rate of XP gain.
+</para>
+</refsection>
+
+</refentry>

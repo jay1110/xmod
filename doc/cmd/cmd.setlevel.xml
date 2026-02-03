@@ -1,0 +1,27 @@
+<refentry id="cmd.setlevel">
+
+<refmeta>
+    <refentrytitle>setlevel</refentrytitle>
+    <manvolnum>1</manvolnum>
+</refmeta>
+
+<refnamediv>
+    <refname>setlevel</refname>
+    <refpurpose>Change a specific player's admin level.</refpurpose>
+</refnamediv>
+
+<refsynopsisdiv>
+    <cmdsynopsis>
+        <command>!setlevel</command>
+    </cmdsynopsis>
+</refsynopsisdiv>
+
+<refsection>
+<title>Description</title>
+<para>
+    <command>setlevel</command>
+    Change a specific player's admin level.
+</para>
+</refsection>
+
+</refentry>

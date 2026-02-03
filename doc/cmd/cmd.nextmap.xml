@@ -1,0 +1,27 @@
+<refentry id="cmd.nextmap">
+
+<refmeta>
+    <refentrytitle>nextmap</refentrytitle>
+    <manvolnum>1</manvolnum>
+</refmeta>
+
+<refnamediv>
+    <refname>nextmap</refname>
+    <refpurpose>Ends the current map and advances to the next map.</refpurpose>
+</refnamediv>
+
+<refsynopsisdiv>
+    <cmdsynopsis>
+        <command>!nextmap</command>
+    </cmdsynopsis>
+</refsynopsisdiv>
+
+<refsection>
+<title>Description</title>
+<para>
+    <command>nextmap</command>
+    Ends the current map and advances to the next map.
+</para>
+</refsection>
+
+</refentry>

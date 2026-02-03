@@ -1,0 +1,27 @@
+<refentry id="cmd.levedit">
+
+<refmeta>
+    <refentrytitle>levedit</refentrytitle>
+    <manvolnum>1</manvolnum>
+</refmeta>
+
+<refnamediv>
+    <refname>levedit</refname>
+    <refpurpose>Edit an admin level.</refpurpose>
+</refnamediv>
+
+<refsynopsisdiv>
+    <cmdsynopsis>
+        <command>!levedit</command>
+    </cmdsynopsis>
+</refsynopsisdiv>
+
+<refsection>
+<title>Description</title>
+<para>
+    <command>levedit</command>
+    Edit an admin level.
+</para>
+</refsection>
+
+</refentry>

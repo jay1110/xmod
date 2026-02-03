@@ -1,0 +1,27 @@
+<refentry id="cmd.swap">
+
+<refmeta>
+    <refentrytitle>swap</refentrytitle>
+    <manvolnum>1</manvolnum>
+</refmeta>
+
+<refnamediv>
+    <refname>swap</refname>
+    <refpurpose>Put all Axis on Allies, and all Allies on Axis. Spectators stay Spectator.</refpurpose>
+</refnamediv>
+
+<refsynopsisdiv>
+    <cmdsynopsis>
+        <command>!swap</command>
+    </cmdsynopsis>
+</refsynopsisdiv>
+
+<refsection>
+<title>Description</title>
+<para>
+    <command>swap</command>
+    Put all Axis on Allies, and all Allies on Axis. Spectators stay Spectator.
+</para>
+</refsection>
+
+</refentry>

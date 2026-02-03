@@ -1,0 +1,28 @@
+<refentry id="cmd.jxac_screenshotall">
+
+<refmeta>
+    <refentrytitle>jxac_screenshotall</refentrytitle>
+    <manvolnum>1</manvolnum>
+</refmeta>
+
+<refnamediv>
+    <refname>jxac_screenshotall</refname>
+    <refpurpose>Request screenshot from all connected players (JXAC).</refpurpose>
+</refnamediv>
+
+<refsynopsisdiv>
+    <cmdsynopsis>
+        <command>!jxac_screenshotall</command>
+        <arg><replaceable>QUALITY</replaceable></arg>
+    </cmdsynopsis>
+</refsynopsisdiv>
+
+<refsection>
+<title>Description</title>
+<para>
+    <command>jxac_screenshotall</command>
+    Request screenshot from all connected players (JXAC).
+</para>
+</refsection>
+
+</refentry>

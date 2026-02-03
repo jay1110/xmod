@@ -1,0 +1,28 @@
+<refentry id="cmd.launcha">
+
+<refmeta>
+    <refentrytitle>launcha</refentrytitle>
+    <manvolnum>1</manvolnum>
+</refmeta>
+
+<refnamediv>
+    <refname>launcha</refname>
+    <refpurpose>Launch all players straight up.</refpurpose>
+</refnamediv>
+
+<refsynopsisdiv>
+    <cmdsynopsis>
+        <command>!launcha</command>
+        <arg><replaceable>DISTANCE</replaceable></arg>
+    </cmdsynopsis>
+</refsynopsisdiv>
+
+<refsection>
+<title>Description</title>
+<para>
+    <command>launcha</command>
+    Launch all players straight up.
+</para>
+</refsection>
+
+</refentry>

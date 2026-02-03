@@ -1,0 +1,27 @@
+<refentry id="cmd.restart">
+
+<refmeta>
+    <refentrytitle>restart</refentrytitle>
+    <manvolnum>1</manvolnum>
+</refmeta>
+
+<refnamediv>
+    <refname>restart</refname>
+    <refpurpose>Restart the current map and keep all of the XP gained during the map.</refpurpose>
+</refnamediv>
+
+<refsynopsisdiv>
+    <cmdsynopsis>
+        <command>!restart</command>
+    </cmdsynopsis>
+</refsynopsisdiv>
+
+<refsection>
+<title>Description</title>
+<para>
+    <command>restart</command>
+    Restart the current map and keep all of the XP gained during the map.
+</para>
+</refsection>
+
+</refentry>

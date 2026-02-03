@@ -1,0 +1,27 @@
+<refentry id="cmd.cancelvote">
+
+<refmeta>
+    <refentrytitle>cancelvote</refentrytitle>
+    <manvolnum>1</manvolnum>
+</refmeta>
+
+<refnamediv>
+    <refname>cancelvote</refname>
+    <refpurpose>Voids the current vote.</refpurpose>
+</refnamediv>
+
+<refsynopsisdiv>
+    <cmdsynopsis>
+        <command>!cancelvote</command>
+    </cmdsynopsis>
+</refsynopsisdiv>
+
+<refsection>
+<title>Description</title>
+<para>
+    <command>cancelvote</command>
+    Voids the current vote.
+</para>
+</refsection>
+
+</refentry>

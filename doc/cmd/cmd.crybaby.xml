@@ -1,0 +1,27 @@
+<refentry id="cmd.crybaby">
+
+<refmeta>
+    <refentrytitle>crybaby</refentrytitle>
+    <manvolnum>1</manvolnum>
+</refmeta>
+
+<refnamediv>
+    <refname>crybaby</refname>
+    <refpurpose>Make a player cry like a baby.</refpurpose>
+</refnamediv>
+
+<refsynopsisdiv>
+    <cmdsynopsis>
+        <command>!crybaby</command>
+    </cmdsynopsis>
+</refsynopsisdiv>
+
+<refsection>
+<title>Description</title>
+<para>
+    <command>crybaby</command>
+    Make a player cry like a baby.
+</para>
+</refsection>
+
+</refentry>

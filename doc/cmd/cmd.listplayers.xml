@@ -1,0 +1,27 @@
+<refentry id="cmd.listplayers">
+
+<refmeta>
+    <refentrytitle>listplayers</refentrytitle>
+    <manvolnum>1</manvolnum>
+</refmeta>
+
+<refnamediv>
+    <refname>listplayers</refname>
+    <refpurpose>Display all players connected, their client numbers and admin levels.</refpurpose>
+</refnamediv>
+
+<refsynopsisdiv>
+    <cmdsynopsis>
+        <command>!listplayers</command>
+    </cmdsynopsis>
+</refsynopsisdiv>
+
+<refsection>
+<title>Description</title>
+<para>
+    <command>listplayers</command>
+    Display all players connected, their client numbers and admin levels.
+</para>
+</refsection>
+
+</refentry>

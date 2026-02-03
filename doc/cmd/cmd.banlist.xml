@@ -1,0 +1,28 @@
+<refentry id="cmd.banlist">
+
+<refmeta>
+    <refentrytitle>banlist</refentrytitle>
+    <manvolnum>1</manvolnum>
+</refmeta>
+
+<refnamediv>
+    <refname>banlist</refname>
+    <refpurpose>List banned users.</refpurpose>
+</refnamediv>
+
+<refsynopsisdiv>
+    <cmdsynopsis>
+        <command>!banlist</command>
+        <arg><replaceable>-name NAME</replaceable></arg>
+    </cmdsynopsis>
+</refsynopsisdiv>
+
+<refsection>
+<title>Description</title>
+<para>
+    <command>banlist</command>
+    List banned users.
+</para>
+</refsection>
+
+</refentry>

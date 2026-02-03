@@ -1,0 +1,27 @@
+<refentry id="cmd.panzerwar">
+
+<refmeta>
+    <refentrytitle>panzerwar</refentrytitle>
+    <manvolnum>1</manvolnum>
+</refmeta>
+
+<refnamediv>
+    <refname>panzerwar</refname>
+    <refpurpose>A panzerfaust frag-fest. No argument reports status.</refpurpose>
+</refnamediv>
+
+<refsynopsisdiv>
+    <cmdsynopsis>
+        <command>!panzerwar</command>
+    </cmdsynopsis>
+</refsynopsisdiv>
+
+<refsection>
+<title>Description</title>
+<para>
+    <command>panzerwar</command>
+    A panzerfaust frag-fest. No argument reports status.
+</para>
+</refsection>
+
+</refentry>

@@ -1,0 +1,27 @@
+<refentry id="cmd.reset">
+
+<refmeta>
+    <refentrytitle>reset</refentrytitle>
+    <manvolnum>1</manvolnum>
+</refmeta>
+
+<refnamediv>
+    <refname>reset</refname>
+    <refpurpose>Restart the current map and also reset XP to what it was when map started.</refpurpose>
+</refnamediv>
+
+<refsynopsisdiv>
+    <cmdsynopsis>
+        <command>!reset</command>
+    </cmdsynopsis>
+</refsynopsisdiv>
+
+<refsection>
+<title>Description</title>
+<para>
+    <command>reset</command>
+    Restart the current map and also reset XP to what it was when map started.
+</para>
+</refsection>
+
+</refentry>

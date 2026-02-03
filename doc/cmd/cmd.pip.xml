@@ -1,0 +1,28 @@
+<refentry id="cmd.pip">
+
+<refmeta>
+    <refentrytitle>pip</refentrytitle>
+    <manvolnum>1</manvolnum>
+</refmeta>
+
+<refnamediv>
+    <refname>pip</refname>
+    <refpurpose>Make players glitter like a little elf.</refpurpose>
+</refnamediv>
+
+<refsynopsisdiv>
+    <cmdsynopsis>
+        <command>!pip</command>
+        <arg><replaceable>PLAYER_FILTER</replaceable></arg>
+    </cmdsynopsis>
+</refsynopsisdiv>
+
+<refsection>
+<title>Description</title>
+<para>
+    <command>pip</command>
+    Make players glitter like a little elf.
+</para>
+</refsection>
+
+</refentry>

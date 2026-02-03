@@ -1,0 +1,27 @@
+<refentry id="cmd.time">
+
+<refmeta>
+    <refentrytitle>time</refentrytitle>
+    <manvolnum>1</manvolnum>
+</refmeta>
+
+<refnamediv>
+    <refname>time</refname>
+    <refpurpose>show server time</refpurpose>
+</refnamediv>
+
+<refsynopsisdiv>
+    <cmdsynopsis>
+        <command>!time</command>
+    </cmdsynopsis>
+</refsynopsisdiv>
+
+<refsection>
+<title>Description</title>
+<para>
+    <command>time</command>
+    shows the current local (server) time.
+</para>
+</refsection>
+
+</refentry>

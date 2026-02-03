@@ -1,0 +1,28 @@
+<refentry id="cmd.smite">
+
+<refmeta>
+    <refentrytitle>smite</refentrytitle>
+    <manvolnum>1</manvolnum>
+</refmeta>
+
+<refnamediv>
+    <refname>smite</refname>
+    <refpurpose>Set players on fire.</refpurpose>
+</refnamediv>
+
+<refsynopsisdiv>
+    <cmdsynopsis>
+        <command>!smite</command>
+        <arg><replaceable>PLAYER_FILTER</replaceable></arg>
+    </cmdsynopsis>
+</refsynopsisdiv>
+
+<refsection>
+<title>Description</title>
+<para>
+    <command>smite</command>
+    Set players on fire.
+</para>
+</refsection>
+
+</refentry>

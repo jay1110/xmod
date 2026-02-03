@@ -1,0 +1,29 @@
+<refentry id="cmd.slap">
+
+<refmeta>
+    <refentrytitle>slap</refentrytitle>
+    <manvolnum>1</manvolnum>
+</refmeta>
+
+<refnamediv>
+    <refname>slap</refname>
+    <refpurpose>Slap players around.</refpurpose>
+</refnamediv>
+
+<refsynopsisdiv>
+    <cmdsynopsis>
+        <command>!slap</command>
+        <arg><replaceable>PLAYER_FILTER</replaceable></arg>
+        <arg><replaceable>DAMAGE</replaceable></arg>
+    </cmdsynopsis>
+</refsynopsisdiv>
+
+<refsection>
+<title>Description</title>
+<para>
+    <command>slap</command>
+    Slap players around.
+</para>
+</refsection>
+
+</refentry>

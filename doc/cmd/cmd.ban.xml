@@ -1,0 +1,29 @@
+<refentry id="cmd.ban">
+
+<refmeta>
+    <refentrytitle>ban</refentrytitle>
+    <manvolnum>1</manvolnum>
+</refmeta>
+
+<refnamediv>
+    <refname>ban</refname>
+    <refpurpose>Ban an online player.</refpurpose>
+</refnamediv>
+
+<refsynopsisdiv>
+    <cmdsynopsis>
+        <command>!ban</command>
+        <arg><replaceable>SECONDS</replaceable></arg>
+        <arg><replaceable>REASON</replaceable></arg>
+    </cmdsynopsis>
+</refsynopsisdiv>
+
+<refsection>
+<title>Description</title>
+<para>
+    <command>ban</command>
+    Ban an online player.
+</para>
+</refsection>
+
+</refentry>

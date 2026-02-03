@@ -1,0 +1,27 @@
+<refentry id="cmd.about">
+
+<refmeta>
+    <refentrytitle>about</refentrytitle>
+    <manvolnum>1</manvolnum>
+</refmeta>
+
+<refnamediv>
+    <refname>about</refname>
+    <refpurpose>show mod information</refpurpose>
+</refnamediv>
+
+<refsynopsisdiv>
+    <cmdsynopsis>
+        <command>!about</command>
+    </cmdsynopsis>
+</refsynopsisdiv>
+
+<refsection>
+<title>Description</title>
+<para>
+    <command>about</command>
+    displays information about the xmod modification including version, authors, and features.
+</para>
+</refsection>
+
+</refentry>

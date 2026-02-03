@@ -1,0 +1,27 @@
+<refentry id="cmd.unlock">
+
+<refmeta>
+    <refentrytitle>unlock</refentrytitle>
+    <manvolnum>1</manvolnum>
+</refmeta>
+
+<refnamediv>
+    <refname>unlock</refname>
+    <refpurpose>Unlock a team so players can enter it again.</refpurpose>
+</refnamediv>
+
+<refsynopsisdiv>
+    <cmdsynopsis>
+        <command>!unlock</command>
+    </cmdsynopsis>
+</refsynopsisdiv>
+
+<refsection>
+<title>Description</title>
+<para>
+    <command>unlock</command>
+    Unlock a team so players can enter it again.
+</para>
+</refsection>
+
+</refentry>

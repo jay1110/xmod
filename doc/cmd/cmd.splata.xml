@@ -1,0 +1,27 @@
+<refentry id="cmd.splata">
+
+<refmeta>
+    <refentrytitle>splata</refentrytitle>
+    <manvolnum>1</manvolnum>
+</refmeta>
+
+<refnamediv>
+    <refname>splata</refname>
+    <refpurpose>M-m-m-monster splat...!</refpurpose>
+</refnamediv>
+
+<refsynopsisdiv>
+    <cmdsynopsis>
+        <command>!splata</command>
+    </cmdsynopsis>
+</refsynopsisdiv>
+
+<refsection>
+<title>Description</title>
+<para>
+    <command>splata</command>
+    M-m-m-monster splat...!
+</para>
+</refsection>
+
+</refentry>

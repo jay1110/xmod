@@ -1,0 +1,27 @@
+<refentry id="cmd.putteam">
+
+<refmeta>
+    <refentrytitle>putteam</refentrytitle>
+    <manvolnum>1</manvolnum>
+</refmeta>
+
+<refnamediv>
+    <refname>putteam</refname>
+    <refpurpose>Put a specific player on a different team.</refpurpose>
+</refnamediv>
+
+<refsynopsisdiv>
+    <cmdsynopsis>
+        <command>!putteam</command>
+    </cmdsynopsis>
+</refsynopsisdiv>
+
+<refsection>
+<title>Description</title>
+<para>
+    <command>putteam</command>
+    Put a specific player on a different team.
+</para>
+</refsection>
+
+</refentry>

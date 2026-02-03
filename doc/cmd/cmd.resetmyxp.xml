@@ -1,0 +1,27 @@
+<refentry id="cmd.resetmyxp">
+
+<refmeta>
+    <refentrytitle>resetmyxp</refentrytitle>
+    <manvolnum>1</manvolnum>
+</refmeta>
+
+<refnamediv>
+    <refname>resetmyxp</refname>
+    <refpurpose>Completely reset your own XP.</refpurpose>
+</refnamediv>
+
+<refsynopsisdiv>
+    <cmdsynopsis>
+        <command>!resetmyxp</command>
+    </cmdsynopsis>
+</refsynopsisdiv>
+
+<refsection>
+<title>Description</title>
+<para>
+    <command>resetmyxp</command>
+    Completely reset your own XP.
+</para>
+</refsection>
+
+</refentry>

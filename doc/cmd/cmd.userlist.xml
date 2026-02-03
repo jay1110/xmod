@@ -1,0 +1,28 @@
+<refentry id="cmd.userlist">
+
+<refmeta>
+    <refentrytitle>userlist</refentrytitle>
+    <manvolnum>1</manvolnum>
+</refmeta>
+
+<refnamediv>
+    <refname>userlist</refname>
+    <refpurpose>List users in database.</refpurpose>
+</refnamediv>
+
+<refsynopsisdiv>
+    <cmdsynopsis>
+        <command>!userlist</command>
+        <arg><replaceable>-name NAME</replaceable></arg>
+    </cmdsynopsis>
+</refsynopsisdiv>
+
+<refsection>
+<title>Description</title>
+<para>
+    <command>userlist</command>
+    List users in database.
+</para>
+</refsection>
+
+</refentry>

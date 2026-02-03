@@ -1,0 +1,27 @@
+<refentry id="cmd.lock">
+
+<refmeta>
+    <refentrytitle>lock</refentrytitle>
+    <manvolnum>1</manvolnum>
+</refmeta>
+
+<refnamediv>
+    <refname>lock</refname>
+    <refpurpose>Lock a team so players cannot enter it.</refpurpose>
+</refnamediv>
+
+<refsynopsisdiv>
+    <cmdsynopsis>
+        <command>!lock</command>
+    </cmdsynopsis>
+</refsynopsisdiv>
+
+<refsection>
+<title>Description</title>
+<para>
+    <command>lock</command>
+    Lock a team so players cannot enter it.
+</para>
+</refsection>
+
+</refentry>

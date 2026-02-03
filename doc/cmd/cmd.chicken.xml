@@ -1,0 +1,27 @@
+<refentry id="cmd.chicken">
+
+<refmeta>
+    <refentrytitle>chicken</refentrytitle>
+    <manvolnum>1</manvolnum>
+</refmeta>
+
+<refnamediv>
+    <refname>chicken</refname>
+    <refpurpose>Call a player a chicken.</refpurpose>
+</refnamediv>
+
+<refsynopsisdiv>
+    <cmdsynopsis>
+        <command>!chicken</command>
+    </cmdsynopsis>
+</refsynopsisdiv>
+
+<refsection>
+<title>Description</title>
+<para>
+    <command>chicken</command>
+    Call a player a chicken.
+</para>
+</refsection>
+
+</refentry>

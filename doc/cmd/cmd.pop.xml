@@ -1,0 +1,28 @@
+<refentry id="cmd.pop">
+
+<refmeta>
+    <refentrytitle>pop</refentrytitle>
+    <manvolnum>1</manvolnum>
+</refmeta>
+
+<refnamediv>
+    <refname>pop</refname>
+    <refpurpose>Let all players pop off their helmets.</refpurpose>
+</refnamediv>
+
+<refsynopsisdiv>
+    <cmdsynopsis>
+        <command>!pop</command>
+        <arg><replaceable>PLAYER_FILTER</replaceable></arg>
+    </cmdsynopsis>
+</refsynopsisdiv>
+
+<refsection>
+<title>Description</title>
+<para>
+    <command>pop</command>
+    Let all players pop off their helmets.
+</para>
+</refsection>
+
+</refentry>

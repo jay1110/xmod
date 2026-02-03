@@ -1,0 +1,27 @@
+<refentry id="cmd.baninfo">
+
+<refmeta>
+    <refentrytitle>baninfo</refentrytitle>
+    <manvolnum>1</manvolnum>
+</refmeta>
+
+<refnamediv>
+    <refname>baninfo</refname>
+    <refpurpose>Show ban details.</refpurpose>
+</refnamediv>
+
+<refsynopsisdiv>
+    <cmdsynopsis>
+        <command>!baninfo</command>
+    </cmdsynopsis>
+</refsynopsisdiv>
+
+<refsection>
+<title>Description</title>
+<para>
+    <command>baninfo</command>
+    Show ban details.
+</para>
+</refsection>
+
+</refentry>
