@@ -1461,6 +1461,95 @@ void CG_KillSpreeMessages( const char *client, int kills, const char *message ) 
 
 /*
 ==============
+CG_DrawKillNotifications
+Custom kill/death notifications with fixed position and limboFont1
+Position: Between crosshair and top edge of screen
+==============
+*/
+#define KILL_NOTIFY_DURATION 3000
+#define KILL_NOTIFY_Y_POS 120  // Y position - between crosshair (~240) and top
+#define KILL_NOTIFY_FONT_SCALE 0.22f
+#define KILL_NOTIFY_SPACING 18  // Vertical spacing between kill and death notifications
+
+void CG_DrawKillNotifications( void ) {
+	float *color;
+	float w;
+	float x, y;
+	vec4_t textColor;
+
+	// Draw kill notification (when you killed someone)
+	if ( cg.killNotifyTime ) {
+		color = CG_FadeColor( cg.killNotifyTime, KILL_NOTIFY_DURATION );
+		if ( !color ) {
+			cg.killNotifyTime = 0;
+		} else {
+			// Position - centered horizontally, at custom Y position
+			y = KILL_NOTIFY_Y_POS;
+			w = CG_Text_Width_Ext( cg.killNotifyText, KILL_NOTIFY_FONT_SCALE, 0, &cgs.media.limboFont1 );
+			x = ( SCREEN_WIDTH - w ) / 2;
+
+			// Set color - white with fade
+			Vector4Copy( color, textColor );
+
+			// Draw using limboFont1 (same as spectatorNames)
+			CG_Text_Paint_Ext( x, y, KILL_NOTIFY_FONT_SCALE, KILL_NOTIFY_FONT_SCALE, textColor, cg.killNotifyText, 0, 0, ITEM_TEXTSTYLE_SHADOWED, &cgs.media.limboFont1 );
+		}
+	}
+
+	// Draw death notification (when you were killed)
+	if ( cg.deathNotifyTime ) {
+		color = CG_FadeColor( cg.deathNotifyTime, KILL_NOTIFY_DURATION );
+		if ( !color ) {
+			cg.deathNotifyTime = 0;
+		} else {
+			// Position - centered horizontally, below the kill notification
+			y = KILL_NOTIFY_Y_POS + KILL_NOTIFY_SPACING;
+			w = CG_Text_Width_Ext( cg.deathNotifyText, KILL_NOTIFY_FONT_SCALE, 0, &cgs.media.limboFont1 );
+			x = ( SCREEN_WIDTH - w ) / 2;
+
+			// Set color - white with fade
+			Vector4Copy( color, textColor );
+
+			// Draw using limboFont1 (same as spectatorNames)
+			CG_Text_Paint_Ext( x, y, KILL_NOTIFY_FONT_SCALE, KILL_NOTIFY_FONT_SCALE, textColor, cg.deathNotifyText, 0, 0, ITEM_TEXTSTYLE_SHADOWED, &cgs.media.limboFont1 );
+		}
+	}
+}
+
+/*
+==============
+CG_SetKillNotification
+Set kill notification message when player kills someone
+==============
+*/
+void CG_SetKillNotification( const char *victimName, qboolean isRevenge ) {
+	if ( isRevenge ) {
+		Com_sprintf( cg.killNotifyText, sizeof(cg.killNotifyText), "^1Revenge^7: You killed %s", victimName );
+	} else {
+		Com_sprintf( cg.killNotifyText, sizeof(cg.killNotifyText), "You killed %s", victimName );
+	}
+	cg.killNotifyTime = cg.time;
+	cg.killNotifyIsRevenge = isRevenge;
+}
+
+/*
+==============
+CG_SetDeathNotification
+Set death notification message when player is killed
+==============
+*/
+void CG_SetDeathNotification( const char *killerName, qboolean wasRevenged ) {
+	if ( wasRevenged ) {
+		Com_sprintf( cg.deathNotifyText, sizeof(cg.deathNotifyText), "^1Revenged^7 by %s", killerName );
+	} else {
+		Com_sprintf( cg.deathNotifyText, sizeof(cg.deathNotifyText), "Killed by %s", killerName );
+	}
+	cg.deathNotifyTime = cg.time;
+	cg.deathNotifyIsRevenged = wasRevenged;
+}
+
+/*
+==============
 CG_BPrint
 Jaybird
 The following 3 functions are derived from their CP counterparts
@@ -5070,6 +5159,7 @@ static void CG_Draw2D( void ) {
 		CG_DrawCenterString();
 		CG_DrawBCenterString();
 		CG_DrawKillSpreeMessages();
+		CG_DrawKillNotifications();  // Custom kill/death notifications
 		CG_DrawPMItems();
 		CG_DrawPMItemsBig();
 

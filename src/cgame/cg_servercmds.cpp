@@ -2500,6 +2500,30 @@ static void CG_ServerCommand( void ) {
 		return;
 	}
 
+	// xkill: Custom kill notification (includes revenge status)
+	// Format: xkill <victim_clientNum> <isRevenge (0/1)>
+	if( !Q_stricmp( cmd, "xkill" )) {
+		int victimNum = atoi(CG_Argv(1));
+		qboolean isRevenge = (qboolean)(atoi(CG_Argv(2)) != 0);
+		
+		if( victimNum >= 0 && victimNum < MAX_CLIENTS && cgs.clientinfo[victimNum].infoValid ) {
+			CG_SetKillNotification( cgs.clientinfo[victimNum].name, isRevenge );
+		}
+		return;
+	}
+
+	// xdeath: Custom death notification (includes if enemy got revenge)
+	// Format: xdeath <killer_clientNum> <wasRevenged (0/1)>
+	if( !Q_stricmp( cmd, "xdeath" )) {
+		int killerNum = atoi(CG_Argv(1));
+		qboolean wasRevenged = (qboolean)(atoi(CG_Argv(2)) != 0);
+		
+		if( killerNum >= 0 && killerNum < MAX_CLIENTS && cgs.clientinfo[killerNum].infoValid ) {
+			CG_SetDeathNotification( cgs.clientinfo[killerNum].name, wasRevenged );
+		}
+		return;
+	}
+
 	if( !Q_stricmp( cmd, "reqforcespawn" ) ) {
 		if( cg_instanttapout.integer ) {
 			CG_ForceTapOut_f();
