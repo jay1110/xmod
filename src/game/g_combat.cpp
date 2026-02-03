@@ -557,6 +557,11 @@ void player_die( gentity_t *self, gentity_t *inflictor, gentity_t *attacker, int
     if (attacker && attacker->client) {
 		Q_strncpyz(attacker->client->pers.lastkill, self->client->pers.netname, sizeof(attacker->client->pers.lastkill));
         self->client->lastkilledby_client = attacker->s.number;
+        // Debug logging for revenge feature
+        G_Printf("[REVENGE_DEBUG] DEATH: self=%d (%s) killed by attacker=%d (%s). Set lastkilledby_client=%d\n",
+            self->s.number, self->client->pers.netname,
+            attacker->s.number, attacker->client->pers.netname,
+            self->client->lastkilledby_client);
     }
 
 	//self->client->ps.persistant[PERS_KILLED]++;
@@ -649,14 +654,26 @@ void player_die( gentity_t *self, gentity_t *inflictor, gentity_t *attacker, int
 
 			// g_revenge: Check if this kill is a revenge (killing the last player who killed you)
 			qboolean isRevenge = qfalse;
+			
+			// Debug logging for revenge feature
+			G_Printf("[REVENGE_DEBUG] attacker=%d (%s) killed self=%d (%s)\n", 
+				attacker->s.number, attacker->client->pers.netname,
+				self->s.number, self->client->pers.netname);
+			G_Printf("[REVENGE_DEBUG] g_revenge=%d, attacker->lastkilledby_client=%d\n",
+				g_revenge.integer, attacker->client->lastkilledby_client);
+			
 			if (g_revenge.integer && attacker->client->lastkilledby_client >= 0 &&
 			    attacker->client->lastkilledby_client == self->s.number) {
 				isRevenge = qtrue;
+				G_Printf("[REVENGE_DEBUG] REVENGE DETECTED!\n");
 				// Award 1 XP for revenge kill
 				G_AddSkillPoints(attacker, SK_BATTLE_SENSE, 1.f);
 				G_DebugAddSkillPoints(attacker, SK_BATTLE_SENSE, 1.f, "revenge kill");
 				// Reset lastkilledby_client since revenge is complete
 				attacker->client->lastkilledby_client = -1;
+			} else {
+				G_Printf("[REVENGE_DEBUG] NOT REVENGE: g_revenge=%d, lastkilledby=%d, self->s.number=%d\n",
+					g_revenge.integer, attacker->client->lastkilledby_client, self->s.number);
 			}
 
 			// Send custom kill notification to attacker (includes revenge status)
