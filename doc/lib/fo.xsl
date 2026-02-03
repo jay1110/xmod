@@ -4,7 +4,7 @@
 
 <!-- ###################################################################### -->
 
-<xsl:import href="http://docbook.sourceforge.net/release/xsl/1.72.0/fo/docbook.xsl"/>
+<xsl:import href="/usr/share/xml/docbook/stylesheet/docbook-xsl/fo/docbook.xsl"/>
 
 <!-- ###################################################################### -->
 
