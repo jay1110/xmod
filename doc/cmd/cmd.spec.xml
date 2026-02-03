@@ -1,0 +1,28 @@
+<refentry id="cmd.spec">
+
+<refmeta>
+    <refentrytitle>spec</refentrytitle>
+    <manvolnum>1</manvolnum>
+</refmeta>
+
+<refnamediv>
+    <refname>spec</refname>
+    <refpurpose>spectate a player</refpurpose>
+</refnamediv>
+
+<refsynopsisdiv>
+    <cmdsynopsis>
+        <command>!spec</command>
+        <arg><replaceable>PLAYER</replaceable></arg>
+    </cmdsynopsis>
+</refsynopsisdiv>
+
+<refsection>
+<title>Description</title>
+<para>
+    <command>spec</command>
+    instantly switches you to the Spectator team and follows the specified player.
+</para>
+</refsection>
+
+</refentry>

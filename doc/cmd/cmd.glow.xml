@@ -1,0 +1,27 @@
+<refentry id="cmd.glow">
+
+<refmeta>
+    <refentrytitle>glow</refentrytitle>
+    <manvolnum>1</manvolnum>
+</refmeta>
+
+<refnamediv>
+    <refname>glow</refname>
+    <refpurpose>All players emit a colored glow. No argument reports status.</refpurpose>
+</refnamediv>
+
+<refsynopsisdiv>
+    <cmdsynopsis>
+        <command>!glow</command>
+    </cmdsynopsis>
+</refsynopsisdiv>
+
+<refsection>
+<title>Description</title>
+<para>
+    <command>glow</command>
+    All players emit a colored glow. No argument reports status.
+</para>
+</refsection>
+
+</refentry>

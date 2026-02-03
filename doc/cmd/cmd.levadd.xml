@@ -1,0 +1,27 @@
+<refentry id="cmd.levadd">
+
+<refmeta>
+    <refentrytitle>levadd</refentrytitle>
+    <manvolnum>1</manvolnum>
+</refmeta>
+
+<refnamediv>
+    <refname>levadd</refname>
+    <refpurpose>Create a new admin level.</refpurpose>
+</refnamediv>
+
+<refsynopsisdiv>
+    <cmdsynopsis>
+        <command>!levadd</command>
+    </cmdsynopsis>
+</refsynopsisdiv>
+
+<refsection>
+<title>Description</title>
+<para>
+    <command>levadd</command>
+    Create a new admin level.
+</para>
+</refsection>
+
+</refentry>

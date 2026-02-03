@@ -1,0 +1,27 @@
+<refentry id="cmd.finger">
+
+<refmeta>
+    <refentrytitle>finger</refentrytitle>
+    <manvolnum>1</manvolnum>
+</refmeta>
+
+<refnamediv>
+    <refname>finger</refname>
+    <refpurpose>Get information about a player.</refpurpose>
+</refnamediv>
+
+<refsynopsisdiv>
+    <cmdsynopsis>
+        <command>!finger</command>
+    </cmdsynopsis>
+</refsynopsisdiv>
+
+<refsection>
+<title>Description</title>
+<para>
+    <command>finger</command>
+    Get information about a player.
+</para>
+</refsection>
+
+</refentry>

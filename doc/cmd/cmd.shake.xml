@@ -1,0 +1,29 @@
+<refentry id="cmd.shake">
+
+<refmeta>
+    <refentrytitle>shake</refentrytitle>
+    <manvolnum>1</manvolnum>
+</refmeta>
+
+<refnamediv>
+    <refname>shake</refname>
+    <refpurpose>Make players screen shake for a chosen period of time. Default is 1 second.</refpurpose>
+</refnamediv>
+
+<refsynopsisdiv>
+    <cmdsynopsis>
+        <command>!shake</command>
+        <arg><replaceable>PLAYER_FILTER</replaceable></arg>
+        <arg><replaceable>SECONDS</replaceable></arg>
+    </cmdsynopsis>
+</refsynopsisdiv>
+
+<refsection>
+<title>Description</title>
+<para>
+    <command>shake</command>
+    Make players screen shake for a chosen period of time. Default is 1 second.
+</para>
+</refsection>
+
+</refentry>

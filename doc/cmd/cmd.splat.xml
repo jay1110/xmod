@@ -1,0 +1,27 @@
+<refentry id="cmd.splat">
+
+<refmeta>
+    <refentrytitle>splat</refentrytitle>
+    <manvolnum>1</manvolnum>
+</refmeta>
+
+<refnamediv>
+    <refname>splat</refname>
+    <refpurpose>Make a specified player go Splat!</refpurpose>
+</refnamediv>
+
+<refsynopsisdiv>
+    <cmdsynopsis>
+        <command>!splat</command>
+    </cmdsynopsis>
+</refsynopsisdiv>
+
+<refsection>
+<title>Description</title>
+<para>
+    <command>splat</command>
+    Make a specified player go Splat!
+</para>
+</refsection>
+
+</refentry>

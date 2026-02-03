@@ -1,0 +1,28 @@
+<refentry id="cmd.levdelete">
+
+<refmeta>
+    <refentrytitle>levdelete</refentrytitle>
+    <manvolnum>1</manvolnum>
+</refmeta>
+
+<refnamediv>
+    <refname>levdelete</refname>
+    <refpurpose>Remove the admin level specified by </refpurpose>
+</refnamediv>
+
+<refsynopsisdiv>
+    <cmdsynopsis>
+        <command>!levdelete</command>
+        <arg><replaceable>MIGRATE_LEVEL</replaceable></arg>
+    </cmdsynopsis>
+</refsynopsisdiv>
+
+<refsection>
+<title>Description</title>
+<para>
+    <command>levdelete</command>
+    Remove the admin level specified by 
+</para>
+</refsection>
+
+</refentry>

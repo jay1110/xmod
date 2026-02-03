@@ -1,0 +1,29 @@
+<refentry id="cmd.banuser">
+
+<refmeta>
+    <refentrytitle>banuser</refentrytitle>
+    <manvolnum>1</manvolnum>
+</refmeta>
+
+<refnamediv>
+    <refname>banuser</refname>
+    <refpurpose>Ban a user. Useful for banning players which are not connected.</refpurpose>
+</refnamediv>
+
+<refsynopsisdiv>
+    <cmdsynopsis>
+        <command>!banuser</command>
+        <arg><replaceable>SECONDS</replaceable></arg>
+        <arg><replaceable>REASON</replaceable></arg>
+    </cmdsynopsis>
+</refsynopsisdiv>
+
+<refsection>
+<title>Description</title>
+<para>
+    <command>banuser</command>
+    Ban a user. Useful for banning players which are not connected.
+</para>
+</refsection>
+
+</refentry>

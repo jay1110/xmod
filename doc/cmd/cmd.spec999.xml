@@ -1,0 +1,27 @@
+<refentry id="cmd.spec999">
+
+<refmeta>
+    <refentrytitle>spec999</refentrytitle>
+    <manvolnum>1</manvolnum>
+</refmeta>
+
+<refnamediv>
+    <refname>spec999</refname>
+    <refpurpose>Put everyone with 999 ping to Spectator team.</refpurpose>
+</refnamediv>
+
+<refsynopsisdiv>
+    <cmdsynopsis>
+        <command>!spec999</command>
+    </cmdsynopsis>
+</refsynopsisdiv>
+
+<refsection>
+<title>Description</title>
+<para>
+    <command>spec999</command>
+    Put everyone with 999 ping to Spectator team.
+</para>
+</refsection>
+
+</refentry>

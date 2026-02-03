@@ -1,0 +1,29 @@
+<refentry id="cmd.help">
+
+<refmeta>
+    <refentrytitle>help</refentrytitle>
+    <manvolnum>1</manvolnum>
+</refmeta>
+
+<refnamediv>
+    <refname>help</refname>
+    <refpurpose>show command help</refpurpose>
+</refnamediv>
+
+<refsynopsisdiv>
+    <cmdsynopsis>
+        <command>!help</command>
+        <arg><replaceable>COMMAND</replaceable></arg>
+    </cmdsynopsis>
+</refsynopsisdiv>
+
+<refsection>
+<title>Description</title>
+<para>
+    <command>help</command>
+    shows all Admin System commands you are authorized to use, and gives descriptions.
+    If a specific command name is provided, detailed help for that command is displayed.
+</para>
+</refsection>
+
+</refentry>

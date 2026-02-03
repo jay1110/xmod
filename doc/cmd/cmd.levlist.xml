@@ -1,0 +1,28 @@
+<refentry id="cmd.levlist">
+
+<refmeta>
+    <refentrytitle>levlist</refentrytitle>
+    <manvolnum>1</manvolnum>
+</refmeta>
+
+<refnamediv>
+    <refname>levlist</refname>
+    <refpurpose>List admin levels in database.</refpurpose>
+</refnamediv>
+
+<refsynopsisdiv>
+    <cmdsynopsis>
+        <command>!levlist</command>
+        <arg><replaceable>-name NAME</replaceable></arg>
+    </cmdsynopsis>
+</refsynopsisdiv>
+
+<refsection>
+<title>Description</title>
+<para>
+    <command>levlist</command>
+    List admin levels in database.
+</para>
+</refsection>
+
+</refentry>

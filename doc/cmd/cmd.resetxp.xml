@@ -1,0 +1,27 @@
+<refentry id="cmd.resetxp">
+
+<refmeta>
+    <refentrytitle>resetxp</refentrytitle>
+    <manvolnum>1</manvolnum>
+</refmeta>
+
+<refnamediv>
+    <refname>resetxp</refname>
+    <refpurpose>Completely reset a specific player's XP.</refpurpose>
+</refnamediv>
+
+<refsynopsisdiv>
+    <cmdsynopsis>
+        <command>!resetxp</command>
+    </cmdsynopsis>
+</refsynopsisdiv>
+
+<refsection>
+<title>Description</title>
+<para>
+    <command>resetxp</command>
+    Completely reset a specific player's XP.
+</para>
+</refsection>
+
+</refentry>

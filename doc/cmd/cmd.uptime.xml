@@ -1,0 +1,27 @@
+<refentry id="cmd.uptime">
+
+<refmeta>
+    <refentrytitle>uptime</refentrytitle>
+    <manvolnum>1</manvolnum>
+</refmeta>
+
+<refnamediv>
+    <refname>uptime</refname>
+    <refpurpose>show server uptime</refpurpose>
+</refnamediv>
+
+<refsynopsisdiv>
+    <cmdsynopsis>
+        <command>!uptime</command>
+    </cmdsynopsis>
+</refsynopsisdiv>
+
+<refsection>
+<title>Description</title>
+<para>
+    <command>uptime</command>
+    shows how long the server has been running.
+</para>
+</refsection>
+
+</refentry>

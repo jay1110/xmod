@@ -1,0 +1,28 @@
+<refentry id="cmd.jxac_status">
+
+<refmeta>
+    <refentrytitle>jxac_status</refentrytitle>
+    <manvolnum>1</manvolnum>
+</refmeta>
+
+<refnamediv>
+    <refname>jxac_status</refname>
+    <refpurpose>Show JXAC status for all players or a specific player.</refpurpose>
+</refnamediv>
+
+<refsynopsisdiv>
+    <cmdsynopsis>
+        <command>!jxac_status</command>
+        <arg><replaceable>PLAYER</replaceable></arg>
+    </cmdsynopsis>
+</refsynopsisdiv>
+
+<refsection>
+<title>Description</title>
+<para>
+    <command>jxac_status</command>
+    Show JXAC status for all players or a specific player.
+</para>
+</refsection>
+
+</refentry>

@@ -1,0 +1,27 @@
+<refentry id="cmd.unban">
+
+<refmeta>
+    <refentrytitle>unban</refentrytitle>
+    <manvolnum>1</manvolnum>
+</refmeta>
+
+<refnamediv>
+    <refname>unban</refname>
+    <refpurpose>Unban a specific player.</refpurpose>
+</refnamediv>
+
+<refsynopsisdiv>
+    <cmdsynopsis>
+        <command>!unban</command>
+    </cmdsynopsis>
+</refsynopsisdiv>
+
+<refsection>
+<title>Description</title>
+<para>
+    <command>unban</command>
+    Unban a specific player.
+</para>
+</refsection>
+
+</refentry>

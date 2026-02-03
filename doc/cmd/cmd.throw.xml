@@ -1,0 +1,28 @@
+<refentry id="cmd.throw">
+
+<refmeta>
+    <refentrytitle>throw</refentrytitle>
+    <manvolnum>1</manvolnum>
+</refmeta>
+
+<refnamediv>
+    <refname>throw</refname>
+    <refpurpose>Throw a specific player straight ahead.</refpurpose>
+</refnamediv>
+
+<refsynopsisdiv>
+    <cmdsynopsis>
+        <command>!throw</command>
+        <arg><replaceable>DISTANCE</replaceable></arg>
+    </cmdsynopsis>
+</refsynopsisdiv>
+
+<refsection>
+<title>Description</title>
+<para>
+    <command>throw</command>
+    Throw a specific player straight ahead.
+</para>
+</refsection>
+
+</refentry>

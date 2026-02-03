@@ -1,0 +1,27 @@
+<refentry id="cmd.orient">
+
+<refmeta>
+    <refentrytitle>orient</refentrytitle>
+    <manvolnum>1</manvolnum>
+</refmeta>
+
+<refnamediv>
+    <refname>orient</refname>
+    <refpurpose>Orients a player's view.</refpurpose>
+</refnamediv>
+
+<refsynopsisdiv>
+    <cmdsynopsis>
+        <command>!orient</command>
+    </cmdsynopsis>
+</refsynopsisdiv>
+
+<refsection>
+<title>Description</title>
+<para>
+    <command>orient</command>
+    Orients a player's view.
+</para>
+</refsection>
+
+</refentry>

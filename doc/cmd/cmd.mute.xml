@@ -1,0 +1,28 @@
+<refentry id="cmd.mute">
+
+<refmeta>
+    <refentrytitle>mute</refentrytitle>
+    <manvolnum>1</manvolnum>
+</refmeta>
+
+<refnamediv>
+    <refname>mute</refname>
+    <refpurpose>Mute someone so he/she cannot talk. No voice commands, nor chat, nor admin commands.</refpurpose>
+</refnamediv>
+
+<refsynopsisdiv>
+    <cmdsynopsis>
+        <command>!mute</command>
+        <arg><replaceable>REASON</replaceable></arg>
+    </cmdsynopsis>
+</refsynopsisdiv>
+
+<refsection>
+<title>Description</title>
+<para>
+    <command>mute</command>
+    Mute someone so he/she cannot talk. No voice commands, nor chat, nor admin commands.
+</para>
+</refsection>
+
+</refentry>

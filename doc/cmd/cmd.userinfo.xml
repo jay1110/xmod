@@ -1,0 +1,27 @@
+<refentry id="cmd.userinfo">
+
+<refmeta>
+    <refentrytitle>userinfo</refentrytitle>
+    <manvolnum>1</manvolnum>
+</refmeta>
+
+<refnamediv>
+    <refname>userinfo</refname>
+    <refpurpose>Show user details.</refpurpose>
+</refnamediv>
+
+<refsynopsisdiv>
+    <cmdsynopsis>
+        <command>!userinfo</command>
+    </cmdsynopsis>
+</refsynopsisdiv>
+
+<refsection>
+<title>Description</title>
+<para>
+    <command>userinfo</command>
+    Show user details.
+</para>
+</refsection>
+
+</refentry>

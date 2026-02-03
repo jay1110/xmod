@@ -1,0 +1,27 @@
+<refentry id="cmd.seen">
+
+<refmeta>
+    <refentrytitle>seen</refentrytitle>
+    <manvolnum>1</manvolnum>
+</refmeta>
+
+<refnamediv>
+    <refname>seen</refname>
+    <refpurpose>Find the last time a specific admin was seen on the server.</refpurpose>
+</refnamediv>
+
+<refsynopsisdiv>
+    <cmdsynopsis>
+        <command>!seen</command>
+    </cmdsynopsis>
+</refsynopsisdiv>
+
+<refsection>
+<title>Description</title>
+<para>
+    <command>seen</command>
+    Find the last time a specific admin was seen on the server.
+</para>
+</refsection>
+
+</refentry>

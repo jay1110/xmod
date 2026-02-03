@@ -1,0 +1,27 @@
+<refentry id="cmd.pause">
+
+<refmeta>
+    <refentrytitle>pause</refentrytitle>
+    <manvolnum>1</manvolnum>
+</refmeta>
+
+<refnamediv>
+    <refname>pause</refname>
+    <refpurpose>Pause the game.</refpurpose>
+</refnamediv>
+
+<refsynopsisdiv>
+    <cmdsynopsis>
+        <command>!pause</command>
+    </cmdsynopsis>
+</refsynopsisdiv>
+
+<refsection>
+<title>Description</title>
+<para>
+    <command>pause</command>
+    Pause the game.
+</para>
+</refsection>
+
+</refentry>

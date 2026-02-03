@@ -1,0 +1,28 @@
+<refentry id="cmd.revive">
+
+<refmeta>
+    <refentrytitle>revive</refentrytitle>
+    <manvolnum>1</manvolnum>
+</refmeta>
+
+<refnamediv>
+    <refname>revive</refname>
+    <refpurpose>Revive yourself, or revive a different player.</refpurpose>
+</refnamediv>
+
+<refsynopsisdiv>
+    <cmdsynopsis>
+        <command>!revive</command>
+        <arg><replaceable>PLAYER</replaceable></arg>
+    </cmdsynopsis>
+</refsynopsisdiv>
+
+<refsection>
+<title>Description</title>
+<para>
+    <command>revive</command>
+    Revive yourself, or revive a different player.
+</para>
+</refsection>
+
+</refentry>

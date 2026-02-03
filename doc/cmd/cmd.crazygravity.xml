@@ -1,0 +1,27 @@
+<refentry id="cmd.crazygravity">
+
+<refmeta>
+    <refentrytitle>crazygravity</refentrytitle>
+    <manvolnum>1</manvolnum>
+</refmeta>
+
+<refnamediv>
+    <refname>crazygravity</refname>
+    <refpurpose>Change to a new random gravity every 30 seconds.  No argument reports status.</refpurpose>
+</refnamediv>
+
+<refsynopsisdiv>
+    <cmdsynopsis>
+        <command>!crazygravity</command>
+    </cmdsynopsis>
+</refsynopsisdiv>
+
+<refsection>
+<title>Description</title>
+<para>
+    <command>crazygravity</command>
+    Change to a new random gravity every 30 seconds.  No argument reports status.
+</para>
+</refsection>
+
+</refentry>

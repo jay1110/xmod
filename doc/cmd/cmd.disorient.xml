@@ -1,0 +1,27 @@
+<refentry id="cmd.disorient">
+
+<refmeta>
+    <refentrytitle>disorient</refentrytitle>
+    <manvolnum>1</manvolnum>
+</refmeta>
+
+<refnamediv>
+    <refname>disorient</refname>
+    <refpurpose>Disorients (flips) a player's view.</refpurpose>
+</refnamediv>
+
+<refsynopsisdiv>
+    <cmdsynopsis>
+        <command>!disorient</command>
+    </cmdsynopsis>
+</refsynopsisdiv>
+
+<refsection>
+<title>Description</title>
+<para>
+    <command>disorient</command>
+    Disorients (flips) a player's view.
+</para>
+</refsection>
+
+</refentry>

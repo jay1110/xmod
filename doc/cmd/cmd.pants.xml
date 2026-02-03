@@ -1,0 +1,27 @@
+<refentry id="cmd.pants">
+
+<refmeta>
+    <refentrytitle>pants</refentrytitle>
+    <manvolnum>1</manvolnum>
+</refmeta>
+
+<refnamediv>
+    <refname>pants</refname>
+    <refpurpose>Strip a player of their pants.</refpurpose>
+</refnamediv>
+
+<refsynopsisdiv>
+    <cmdsynopsis>
+        <command>!pants</command>
+    </cmdsynopsis>
+</refsynopsisdiv>
+
+<refsection>
+<title>Description</title>
+<para>
+    <command>pants</command>
+    Strip a player of their pants.
+</para>
+</refsection>
+
+</refentry>

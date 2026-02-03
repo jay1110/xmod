@@ -1,0 +1,27 @@
+<refentry id="cmd.admintest">
+
+<refmeta>
+    <refentrytitle>admintest</refentrytitle>
+    <manvolnum>1</manvolnum>
+</refmeta>
+
+<refnamediv>
+    <refname>admintest</refname>
+    <refpurpose>test admin privileges</refpurpose>
+</refnamediv>
+
+<refsynopsisdiv>
+    <cmdsynopsis>
+        <command>!admintest</command>
+    </cmdsynopsis>
+</refsynopsisdiv>
+
+<refsection>
+<title>Description</title>
+<para>
+    <command>admintest</command>
+    tests whether you have admin privileges and displays your current admin level.
+</para>
+</refsection>
+
+</refentry>

@@ -1,0 +1,27 @@
+<refentry id="cmd.dbsave">
+
+<refmeta>
+    <refentrytitle>dbsave</refentrytitle>
+    <manvolnum>1</manvolnum>
+</refmeta>
+
+<refnamediv>
+    <refname>dbsave</refname>
+    <refpurpose>Save the Admin System database (SQLite auto-saves).</refpurpose>
+</refnamediv>
+
+<refsynopsisdiv>
+    <cmdsynopsis>
+        <command>!dbsave</command>
+    </cmdsynopsis>
+</refsynopsisdiv>
+
+<refsection>
+<title>Description</title>
+<para>
+    <command>dbsave</command>
+    Save the Admin System database (SQLite auto-saves).
+</para>
+</refsection>
+
+</refentry>

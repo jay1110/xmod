@@ -1,0 +1,27 @@
+<refentry id="cmd.dbload">
+
+<refmeta>
+    <refentrytitle>dbload</refentrytitle>
+    <manvolnum>1</manvolnum>
+</refmeta>
+
+<refnamediv>
+    <refname>dbload</refname>
+    <refpurpose>Reload the Admin System database files. Use 'migrate' to import legacy userDB to SQLite.</refpurpose>
+</refnamediv>
+
+<refsynopsisdiv>
+    <cmdsynopsis>
+        <command>!dbload</command>
+    </cmdsynopsis>
+</refsynopsisdiv>
+
+<refsection>
+<title>Description</title>
+<para>
+    <command>dbload</command>
+    Reload the Admin System database files. Use 'migrate' to import legacy userDB to SQLite.
+</para>
+</refsection>
+
+</refentry>

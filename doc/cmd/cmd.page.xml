@@ -1,0 +1,28 @@
+<refentry id="cmd.page">
+
+<refmeta>
+    <refentrytitle>page</refentrytitle>
+    <manvolnum>1</manvolnum>
+</refmeta>
+
+<refnamediv>
+    <refname>page</refname>
+    <refpurpose>page an administrator</refpurpose>
+</refnamediv>
+
+<refsynopsisdiv>
+    <cmdsynopsis>
+        <command>!page</command>
+        <arg><replaceable>MESSAGE</replaceable></arg>
+    </cmdsynopsis>
+</refsynopsisdiv>
+
+<refsection>
+<title>Description</title>
+<para>
+    <command>page</command>
+    sends a message to all online administrators to get their attention.
+</para>
+</refsection>
+
+</refentry>

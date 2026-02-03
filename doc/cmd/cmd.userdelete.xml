@@ -1,0 +1,27 @@
+<refentry id="cmd.userdelete">
+
+<refmeta>
+    <refentrytitle>userdelete</refentrytitle>
+    <manvolnum>1</manvolnum>
+</refmeta>
+
+<refnamediv>
+    <refname>userdelete</refname>
+    <refpurpose>Remove the user specified by </refpurpose>
+</refnamediv>
+
+<refsynopsisdiv>
+    <cmdsynopsis>
+        <command>!userdelete</command>
+    </cmdsynopsis>
+</refsynopsisdiv>
+
+<refsection>
+<title>Description</title>
+<para>
+    <command>userdelete</command>
+    Remove the user specified by 
+</para>
+</refsection>
+
+</refentry>

@@ -1,0 +1,27 @@
+<refentry id="cmd.sniperwar">
+
+<refmeta>
+    <refentrytitle>sniperwar</refentrytitle>
+    <manvolnum>1</manvolnum>
+</refmeta>
+
+<refnamediv>
+    <refname>sniperwar</refname>
+    <refpurpose>A sniper shootout. No argument reports status.</refpurpose>
+</refnamediv>
+
+<refsynopsisdiv>
+    <cmdsynopsis>
+        <command>!sniperwar</command>
+    </cmdsynopsis>
+</refsynopsisdiv>
+
+<refsection>
+<title>Description</title>
+<para>
+    <command>sniperwar</command>
+    A sniper shootout. No argument reports status.
+</para>
+</refsection>
+
+</refentry>

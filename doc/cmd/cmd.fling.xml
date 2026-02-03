@@ -1,0 +1,28 @@
+<refentry id="cmd.fling">
+
+<refmeta>
+    <refentrytitle>fling</refentrytitle>
+    <manvolnum>1</manvolnum>
+</refmeta>
+
+<refnamediv>
+    <refname>fling</refname>
+    <refpurpose>Fling a player randomly into the air.</refpurpose>
+</refnamediv>
+
+<refsynopsisdiv>
+    <cmdsynopsis>
+        <command>!fling</command>
+        <arg><replaceable>DISTANCE</replaceable></arg>
+    </cmdsynopsis>
+</refsynopsisdiv>
+
+<refsection>
+<title>Description</title>
+<para>
+    <command>fling</command>
+    Fling a player randomly into the air.
+</para>
+</refsection>
+
+</refentry>

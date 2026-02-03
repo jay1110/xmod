@@ -1,0 +1,27 @@
+<refentry id="cmd.ftime">
+
+<refmeta>
+    <refentrytitle>ftime</refentrytitle>
+    <manvolnum>1</manvolnum>
+</refmeta>
+
+<refnamediv>
+    <refname>ftime</refname>
+    <refpurpose>Shows the current Central Time in a FUN way.</refpurpose>
+</refnamediv>
+
+<refsynopsisdiv>
+    <cmdsynopsis>
+        <command>!ftime</command>
+    </cmdsynopsis>
+</refsynopsisdiv>
+
+<refsection>
+<title>Description</title>
+<para>
+    <command>ftime</command>
+    Shows the current Central Time in a FUN way.
+</para>
+</refsection>
+
+</refentry>

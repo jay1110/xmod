@@ -1,0 +1,27 @@
+<refentry id="cmd.unmute">
+
+<refmeta>
+    <refentrytitle>unmute</refentrytitle>
+    <manvolnum>1</manvolnum>
+</refmeta>
+
+<refnamediv>
+    <refname>unmute</refname>
+    <refpurpose>Allow a player to talk again.</refpurpose>
+</refnamediv>
+
+<refsynopsisdiv>
+    <cmdsynopsis>
+        <command>!unmute</command>
+    </cmdsynopsis>
+</refsynopsisdiv>
+
+<refsection>
+<title>Description</title>
+<para>
+    <command>unmute</command>
+    Allow a player to talk again.
+</para>
+</refsection>
+
+</refentry>
