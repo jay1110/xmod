@@ -27,14 +27,6 @@ DOCBOOK.fnPath     = $(call fnDelimit,:,$(DOCBOOK.path) $($(DOCBOOK.inherit).pat
 
 ###############################################################################
 
-#DOCBOOK.fop/ = /opt/fop-0.20.5/
-#DOCBOOK.fop  = $(DOCBOOK.fop/)fop.sh
-
-#DOCBOOK.fop/ = /opt/fop-0.92beta/
-#DOCBOOK.fop/ = /local/mike/work/fop/trunk/
-#DOCBOOK.fop/ = /opt/fop-0.93/
-#DOCBOOK.fop  = $(DOCBOOK.fop/)fop
-
 # Use system-installed fop
 DOCBOOK.fop = fop
 
