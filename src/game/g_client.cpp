@@ -1912,9 +1912,6 @@ restarts.
 bool
 ClientConnect( string& outmsg, int clientNum, qboolean firstTime, qboolean isBot ) {
     outmsg.clear();
-    
-	// DEBUG: Log ClientConnect parameters
-	G_Printf("[CLIENT_CONNECT] clientNum=%d, firstTime=%d, isBot=%d\n", clientNum, firstTime, isBot);
 
 	gclient_t	*client;
 	char		userinfo[MAX_INFO_STRING];
@@ -2224,12 +2221,17 @@ ClientConnect( string& outmsg, int clientNum, qboolean firstTime, qboolean isBot
 		G_InitSessionData( client, userinfo );
 		client->pers.enterTime = level.time;
 		client->ps.persistant[PERS_SCORE] = 0;
-		// Initialize lastkilledby_client for g_revenge feature
-		// -1 means "no one killed me yet"
-		client->lastkilledby_client = -1;
 	} else {
 		G_ReadSessionData( client );
 	}
+	
+	// Initialize lastkilledby_client for g_revenge feature ALWAYS on connect
+	// -1 means "no one killed me yet"
+	// This must be done outside the firstTime block because:
+	// 1. The global g_clients array is zero-initialized (not -1)
+	// 2. On map change, firstTime may be false but we need a clean slate
+	// 3. Bots might have different firstTime behavior
+	client->lastkilledby_client = -1;
 
 	// Jaybird - by this point they should have already hit
 	// the minimums (if they have them), unless it was changed in their absence.

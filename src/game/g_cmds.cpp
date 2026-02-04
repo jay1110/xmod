@@ -630,6 +630,12 @@ qboolean SetTeam( gentity_t* ent, const char* teamName, qboolean force, weapon_t
 	int					specClient;
 	int					respawnsLeft;
 
+	// Jaybird
+	// if the team changing player is a shrubbot admin with the
+	// '5' flag, they can switch teams regardless of balance
+	if (cmd::entityHasPermission( ent, priv::base::balanceImmunity ))
+		force = qtrue;
+
 	//
 	// see what change is requested
 	//
@@ -644,22 +650,16 @@ qboolean SetTeam( gentity_t* ent, const char* teamName, qboolean force, weapon_t
 	G_TeamDataForString( teamName, client - level.clients, &team, &specState, &specClient );
 
 	// g_teamChangeDelay: Team change flood protection
-	// Apply BEFORE admin force override - even admins should have a delay to prevent abuse
 	// Only apply when trying to join a playing team (not when going to spectator)
-	if (team != TEAM_SPECTATOR && g_teamChangeDelay.integer > 0) {
+	// Admins with balanceImmunity can bypass this delay
+	if (!force && team != TEAM_SPECTATOR && g_teamChangeDelay.integer > 0) {
 		int elapsed = level.time - client->pers.joinedTeamTime;
 		if (elapsed < g_teamChangeDelay.integer) {
-			int remaining = g_teamChangeDelay.integer - elapsed;
-			CP(va("cp \"Team change delay: wait %d ms.\n\"", remaining));
+			int remainingSeconds = (g_teamChangeDelay.integer - elapsed + 999) / 1000; // Round up to seconds
+			CP(va("cp \"Team change delay: wait %d second%s.\n\"", remainingSeconds, remainingSeconds == 1 ? "" : "s"));
 			return qfalse;
 		}
 	}
-
-	// Jaybird
-	// if the team changing player is a shrubbot admin with the
-	// '5' flag, they can switch teams regardless of balance
-	if (cmd::entityHasPermission( ent, priv::base::balanceImmunity ))
-		force = qtrue;
 
 	if( team != TEAM_SPECTATOR ) {
 		// Ensure the player can join
