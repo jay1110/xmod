@@ -80,6 +80,10 @@ namespace objects {
     Cvar bg_djHeight        ( "cg_djHeight",           "1.4", CVAR_ROM );
     Cvar bg_weaponsenable   ( "cg_weaponsenable",      "0",   CVAR_ROM );
 
+    // g_noReload and g_noCharge synced from server
+    Cvar g_noReload         ( "cg_noReload",           "0",   CVAR_ROM );
+    Cvar g_noCharge         ( "cg_noCharge",           "0",   CVAR_ROM );
+
     Cvar gameState( "gameState", "-1", CVAR_ROM );
 
 ///////////////////////////////////////////////////////////////////////////////

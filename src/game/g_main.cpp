@@ -304,6 +304,15 @@ vmCvar_t        g_damageweapons;
 // Weapon scripts directory
 vmCvar_t        g_weaponScriptsDir;
 
+// New gameplay cvars
+vmCvar_t        g_noAttackInvul;     // Lose spawn protection when attacking
+vmCvar_t        g_spectatorNames;    // Spectators see names above players
+vmCvar_t        g_teamChangeDelay;   // Minimum delay in ms before team change
+vmCvar_t        g_revenge;           // Show "REVENGE!" and award 1XP
+vmCvar_t        g_noReload;          // Unlimited ammo, clips auto-refill
+vmCvar_t        g_noCharge;          // No charge usage
+vmCvar_t        g_instantSpawn;      // Players respawn instantly
+
 /*********************
 * End Xmod Cvars   *
 *********************/
@@ -418,6 +427,15 @@ cvarTable_t		gameCvarTable[] = {
 
     // Weapon scripts directory (SERVERINFO so client can load weapon media from custom folder)
     { &g_weaponScriptsDir,  "g_weaponScriptsDir",   "",         CVAR_ARCHIVE | CVAR_SERVERINFO },
+
+    // New gameplay cvars
+    { &g_noAttackInvul,     "g_noAttackInvul",      "0",        CVAR_ARCHIVE },
+    { &g_spectatorNames,    "g_spectatorNames",     "1",        CVAR_ARCHIVE | CVAR_SERVERINFO },
+    { &g_teamChangeDelay,   "g_teamChangeDelay",    "0",        CVAR_ARCHIVE },
+    { &g_revenge,           "g_revenge",            "0",        CVAR_ARCHIVE },
+    { &g_noReload,          "g_noReload",           "0",        CVAR_ARCHIVE | CVAR_SERVERINFO },
+    { &g_noCharge,          "g_noCharge",           "0",        CVAR_ARCHIVE | CVAR_SERVERINFO },
+    { &g_instantSpawn,      "g_instantSpawn",       "0",        CVAR_ARCHIVE | CVAR_SERVERINFO },
 
     // Some useful mod-info cvars.
     { NULL, "mod_binary",  XMOD_buildTarget, CVAR_SERVERINFO | CVAR_ROM },

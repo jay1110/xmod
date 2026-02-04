@@ -916,6 +916,14 @@ typedef struct {
 	int			ksNumber;
 	char		ksMessage[150];
 
+	// Kill/Death notifications (custom position between crosshair and top)
+	int			killNotifyTime;          // Time when kill notification was shown
+	char		killNotifyText[256];     // Kill notification text
+	qboolean	killNotifyIsRevenge;     // Was this a revenge kill?
+	int			deathNotifyTime;         // Time when death notification was shown
+	char		deathNotifyText[256];    // Death notification text
+	qboolean	deathNotifyIsRevenged;   // Did enemy get revenge on me?
+
 	// fade in/out
 	int			fadeTime;
 	float		fadeRate;
@@ -2203,6 +2211,9 @@ typedef struct {
 	
 	// Custom weapon scripts directory from server (for client-side .weap loading)
 	char				weaponScriptsDir[MAX_QPATH];
+	
+	// g_spectatorNames: Spectators can see player names like shoutcasters
+	int					spectatorNames;
 } cgs_t;
 
 //==============================================================================
@@ -2624,6 +2635,9 @@ void CG_ShoutcasterPlayer( int num );
 void CG_ShoutcasterDynamite( int num );
 qboolean PointVisible( vec3_t point );
 void CG_KillSpreeMessages( const char *client, int kills, const char *message );
+void CG_DrawKillNotifications( void );
+void CG_SetKillNotification( const char *victimName, qboolean isRevenge );
+void CG_SetDeathNotification( const char *killerName, qboolean wasRevenged, int attackerHP );
 
 
 //

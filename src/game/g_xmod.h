@@ -123,6 +123,15 @@ extern vmCvar_t g_damageweapons;
 // Weapon scripts directory
 extern vmCvar_t g_weaponScriptsDir;
 
+// New gameplay cvars
+extern vmCvar_t g_noAttackInvul;     // Lose spawn protection when attacking
+extern vmCvar_t g_spectatorNames;    // Spectators see names above players
+extern vmCvar_t g_teamChangeDelay;   // Minimum delay in ms before team change
+extern vmCvar_t g_revenge;           // Show "REVENGE!" and award 1XP
+extern vmCvar_t g_noReload;          // Unlimited ammo, clips auto-refill
+extern vmCvar_t g_noCharge;          // No charge usage
+extern vmCvar_t g_instantSpawn;      // Players respawn instantly
+
 ///////////////////////////////////////////////////////////////////////////////
 
 // g_friendlyFire bitflags

@@ -139,6 +139,9 @@ void CG_ParseServerinfo( void ) {
 	
 	// Parse custom weapon scripts directory for client-side weapon media loading
 	Q_strncpyz( cgs.weaponScriptsDir, Info_ValueForKey( info, "g_weaponScriptsDir" ), sizeof(cgs.weaponScriptsDir) );
+	
+	// Parse g_spectatorNames for spectator name display like shoutcaster
+	cgs.spectatorNames = atoi( Info_ValueForKey( info, "g_spectatorNames" ) );
 }
 
 /*
@@ -296,6 +299,10 @@ void CG_ParseXmodinfo( void) {
     cvars::bg_doubleJump.set      ( Info_ValueForKey( info, "A" ));
     cvars::bg_djHeight.set        ( Info_ValueForKey( info, "B" ));
     cvars::bg_weaponsenable.set   ( Info_ValueForKey( info, "C" ));
+
+    // g_noReload and g_noCharge synced for bgame
+    cvars::g_noReload.set         ( Info_ValueForKey( info, "D" ));
+    cvars::g_noCharge.set         ( Info_ValueForKey( info, "E" ));
 
     ammoTableNeedsUpdate = true;
     BG_updateAmmoTable();
@@ -2490,6 +2497,31 @@ static void CG_ServerCommand( void ) {
 
 	if( !Q_stricmp( cmd, "ksmsg" )) {
 		CG_KillSpreeMessages( CG_TranslateString(CG_Argv(1)), atoi(CG_Argv(2)), CG_TranslateString(CG_Argv(3)));
+		return;
+	}
+
+	// xkill: Custom kill notification (includes revenge status)
+	// Format: xkill <victim_clientNum> <isRevenge (0/1)>
+	if( !Q_stricmp( cmd, "xkill" )) {
+		int victimNum = atoi(CG_Argv(1));
+		qboolean isRevenge = (qboolean)(atoi(CG_Argv(2)) != 0);
+		
+		if( victimNum >= 0 && victimNum < MAX_CLIENTS && cgs.clientinfo[victimNum].infoValid ) {
+			CG_SetKillNotification( cgs.clientinfo[victimNum].name, isRevenge );
+		}
+		return;
+	}
+
+	// xdeath: Custom death notification (includes if enemy got revenge and attacker HP)
+	// Format: xdeath <killer_clientNum> <wasRevenged (0/1)> <attackerHP>
+	if( !Q_stricmp( cmd, "xdeath" )) {
+		int killerNum = atoi(CG_Argv(1));
+		qboolean wasRevenged = (qboolean)(atoi(CG_Argv(2)) != 0);
+		int attackerHP = atoi(CG_Argv(3));
+		
+		if( killerNum >= 0 && killerNum < MAX_CLIENTS && cgs.clientinfo[killerNum].infoValid ) {
+			CG_SetDeathNotification( cgs.clientinfo[killerNum].name, wasRevenged, attackerHP );
+		}
 		return;
 	}
 

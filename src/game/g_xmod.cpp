@@ -1140,6 +1140,10 @@ void G_UpdateXmodCS() {
     Info_SetValueForKey( cs, "B", cvars::bg_djHeight.svalue );
     Info_SetValueForKey( cs, "C", cvars::bg_weaponsenable.svalue );
 
+    // g_noReload and g_noCharge for bgame
+    Info_SetValueForKey( cs, "D", cvars::g_noReload.svalue );
+    Info_SetValueForKey( cs, "E", cvars::g_noCharge.svalue );
+
     trap_SetConfigstring( CS_XMODINFO, cs );
 }
 

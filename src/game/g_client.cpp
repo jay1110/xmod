@@ -1912,9 +1912,6 @@ restarts.
 bool
 ClientConnect( string& outmsg, int clientNum, qboolean firstTime, qboolean isBot ) {
     outmsg.clear();
-    
-	// DEBUG: Log ClientConnect parameters
-	G_Printf("[CLIENT_CONNECT] clientNum=%d, firstTime=%d, isBot=%d\n", clientNum, firstTime, isBot);
 
 	gclient_t	*client;
 	char		userinfo[MAX_INFO_STRING];
@@ -2227,6 +2224,14 @@ ClientConnect( string& outmsg, int clientNum, qboolean firstTime, qboolean isBot
 	} else {
 		G_ReadSessionData( client );
 	}
+	
+	// Initialize lastkilledby_client for g_revenge feature ALWAYS on connect
+	// -1 means "no one killed me yet"
+	// This must be done outside the firstTime block because:
+	// 1. The global g_clients array is zero-initialized (not -1)
+	// 2. On map change, firstTime may be false but we need a clean slate
+	// 3. Bots might have different firstTime behavior
+	client->lastkilledby_client = -1;
 
 	// Jaybird - by this point they should have already hit
 	// the minimums (if they have them), unless it was changed in their absence.
@@ -2709,6 +2714,9 @@ void ClientSpawn( gentity_t *ent, qboolean revived )
 	string savedAuthGuid = clientObject.authGuid;
 	string savedAuthHwid = clientObject.authHwid;
 	
+	// Save revenge tracking - must persist across spawns for g_revenge feature
+	int savedLastKilledByClient = client->lastkilledby_client;
+	
 	clientObject.reset();
 	
 	// Restore authentication state
@@ -2716,6 +2724,9 @@ void ClientSpawn( gentity_t *ent, qboolean revived )
 	clientObject.authWarningShown = savedAuthWarningShown;
 	clientObject.authGuid = savedAuthGuid;
 	clientObject.authHwid = savedAuthHwid;
+	
+	// Restore revenge tracking - player should remember who killed them even after respawn
+	client->lastkilledby_client = savedLastKilledByClient;
 
 	client->maxlivescalced = client->maxlivescalced;
 
@@ -2983,6 +2994,10 @@ void ClientSpawn( gentity_t *ent, qboolean revived )
 
 	// Jaybird - Reset (init) poison events
 	G_ResetPoisonEvents(ent);
+
+	// Note: We do NOT reset lastkilledby_client here on respawn.
+	// The revenge feature requires remembering who killed you across respawns.
+	// It's only reset when: 1) Player gets revenge (g_combat.cpp), 2) Player first connects (uninitialized)
 
 	// Call Lua et_ClientSpawn callback
 	// Note: teamChange and restoreHealth are set to qfalse for now

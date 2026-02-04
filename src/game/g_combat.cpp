@@ -556,7 +556,11 @@ void player_die( gentity_t *self, gentity_t *inflictor, gentity_t *attacker, int
 	Q_strncpyz(self->client->pers.lastkilled, killerName, sizeof(self->client->pers.lastkilled));
     if (attacker && attacker->client) {
 		Q_strncpyz(attacker->client->pers.lastkill, self->client->pers.netname, sizeof(attacker->client->pers.lastkill));
-        self->client->lastkilledby_client = attacker->s.number;
+		// Only set lastkilledby_client if killed by a different entity (not suicide/team switch)
+		// This preserves the revenge target when player suicides or switches teams
+		if (attacker != self) {
+			self->client->lastkilledby_client = attacker->s.number;
+		}
     }
 
 	//self->client->ps.persistant[PERS_KILLED]++;
@@ -646,6 +650,27 @@ void player_die( gentity_t *self, gentity_t *inflictor, gentity_t *attacker, int
 			G_FirstBlood(attacker);
 			G_UpdateLastKill(attacker);
 			G_AddMultiKill(attacker);
+
+			// g_revenge: Check if this kill is a revenge (killing the last player who killed you)
+			qboolean isRevenge = qfalse;
+			if (g_revenge.integer && attacker->client->lastkilledby_client >= 0 &&
+			    attacker->client->lastkilledby_client == self->s.number) {
+				isRevenge = qtrue;
+				// Award 1 XP for revenge kill
+				G_AddSkillPoints(attacker, SK_BATTLE_SENSE, 1.f);
+				G_DebugAddSkillPoints(attacker, SK_BATTLE_SENSE, 1.f, "revenge kill");
+				// Reset lastkilledby_client since revenge is complete
+				attacker->client->lastkilledby_client = -1;
+			}
+
+			// Send custom kill notification to attacker (includes revenge status)
+			trap_SendServerCommand(attacker->s.number, 
+				va("xkill %d %d", self->s.number, isRevenge ? 1 : 0));
+			
+			// Send custom death notification to victim (includes if they were revenged and attacker's HP)
+			int attackerHP = attacker->health;
+			trap_SendServerCommand(self->s.number,
+				va("xdeath %d %d %d", attacker->s.number, isRevenge ? 1 : 0, attackerHP));
 
 			if( g_gametype.integer == GT_WOLF_LMS ) {
 				if( level.firstbloodTeam == -1 )

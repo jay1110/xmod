@@ -649,6 +649,18 @@ qboolean SetTeam( gentity_t* ent, const char* teamName, qboolean force, weapon_t
 	
 	G_TeamDataForString( teamName, client - level.clients, &team, &specState, &specClient );
 
+	// g_teamChangeDelay: Team change flood protection
+	// Only apply when trying to join a playing team (not when going to spectator)
+	// Admins with balanceImmunity can bypass this delay
+	if (!force && team != TEAM_SPECTATOR && g_teamChangeDelay.integer > 0) {
+		int elapsed = level.time - client->pers.joinedTeamTime;
+		if (elapsed < g_teamChangeDelay.integer) {
+			int remainingSeconds = (g_teamChangeDelay.integer - elapsed + 999) / 1000; // Round up to seconds
+			CP(va("cp \"Team change delay: wait %d second%s.\n\"", remainingSeconds, remainingSeconds == 1 ? "" : "s"));
+			return qfalse;
+		}
+	}
+
 	if( team != TEAM_SPECTATOR ) {
 		// Ensure the player can join
 		if(!G_teamJoinCheck(team, ent) && !force) {
@@ -690,12 +702,6 @@ qboolean SetTeam( gentity_t* ent, const char* teamName, qboolean force, weapon_t
 	//
 	oldTeam = client->sess.sessionTeam;
 	if ( team == oldTeam && team != TEAM_SPECTATOR ) {
-		return qfalse;
-	}
-
-	// Disallow if it's been less than a second since the last team switch
-	if (!force && level.time - client->pers.joinedTeamTime < 1000 && oldTeam != TEAM_SPECTATOR) {
-		CP("cp \"You recently switched teams.\n\"");
 		return qfalse;
 	}
 
