@@ -560,6 +560,10 @@ void player_die( gentity_t *self, gentity_t *inflictor, gentity_t *attacker, int
 		// This preserves the revenge target when player suicides or switches teams
 		if (attacker != self) {
 			self->client->lastkilledby_client = attacker->s.number;
+			G_Printf("[REVENGE_SET] victim=%d (%s) killed by attacker=%d (%s), setting lastkilledby_client=%d\n",
+				self->s.number, self->client->pers.netname,
+				attacker->s.number, attacker->client->pers.netname,
+				self->client->lastkilledby_client);
 		}
     }
 
@@ -653,14 +657,22 @@ void player_die( gentity_t *self, gentity_t *inflictor, gentity_t *attacker, int
 
 			// g_revenge: Check if this kill is a revenge (killing the last player who killed you)
 			qboolean isRevenge = qfalse;
+			G_Printf("[REVENGE] attacker=%d (%s), victim=%d (%s), attacker->lastkilledby_client=%d\n",
+				attacker->s.number, attacker->client->pers.netname,
+				self->s.number, self->client->pers.netname,
+				attacker->client->lastkilledby_client);
 			if (g_revenge.integer && attacker->client->lastkilledby_client >= 0 &&
 			    attacker->client->lastkilledby_client == self->s.number) {
 				isRevenge = qtrue;
+				G_Printf("[REVENGE] REVENGE DETECTED! Awarding 1 XP\n");
 				// Award 1 XP for revenge kill
 				G_AddSkillPoints(attacker, SK_BATTLE_SENSE, 1.f);
 				G_DebugAddSkillPoints(attacker, SK_BATTLE_SENSE, 1.f, "revenge kill");
 				// Reset lastkilledby_client since revenge is complete
 				attacker->client->lastkilledby_client = -1;
+			} else {
+				G_Printf("[REVENGE] NOT revenge: g_revenge=%d, lastkilledby=%d, victim.s.number=%d\n",
+					g_revenge.integer, attacker->client->lastkilledby_client, self->s.number);
 			}
 
 			// Send custom kill notification to attacker (includes revenge status)
