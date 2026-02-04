@@ -2714,6 +2714,9 @@ void ClientSpawn( gentity_t *ent, qboolean revived )
 	string savedAuthGuid = clientObject.authGuid;
 	string savedAuthHwid = clientObject.authHwid;
 	
+	// Save revenge tracking - must persist across spawns for g_revenge feature
+	int savedLastKilledByClient = client->lastkilledby_client;
+	
 	clientObject.reset();
 	
 	// Restore authentication state
@@ -2721,6 +2724,9 @@ void ClientSpawn( gentity_t *ent, qboolean revived )
 	clientObject.authWarningShown = savedAuthWarningShown;
 	clientObject.authGuid = savedAuthGuid;
 	clientObject.authHwid = savedAuthHwid;
+	
+	// Restore revenge tracking - player should remember who killed them even after respawn
+	client->lastkilledby_client = savedLastKilledByClient;
 
 	client->maxlivescalced = client->maxlivescalced;
 
