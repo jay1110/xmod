@@ -2140,11 +2140,17 @@ static void CG_AddWeaponWithPowerups( refEntity_t *gun, int powerups, playerStat
 	// Only apply to first-person weapon (when ps is not NULL and not rendering third person)
 	if (ps && !cg.renderingThirdPerson && cg_drawGun.integer >= DRAWGUN_COLOR_MIN && cg_drawGun.integer <= DRAWGUN_COLOR_MAX) {
 		int colorIndex = cg_drawGun.integer - DRAWGUN_COLOR_MIN;
+		int alpha = cg_drawGunAlpha.integer;
+		
+		// Clamp alpha to valid range
+		if (alpha < 0) alpha = 0;
+		if (alpha > 255) alpha = 255;
+		
 		gun->customShader = cgs.media.transparentWeaponShader;
 		gun->shaderRGBA[0] = drawGunColors[colorIndex][0];
 		gun->shaderRGBA[1] = drawGunColors[colorIndex][1];
 		gun->shaderRGBA[2] = drawGunColors[colorIndex][2];
-		gun->shaderRGBA[3] = 128; // Alpha for transparency
+		gun->shaderRGBA[3] = (byte)alpha;
 	}
 
 	// add powerup effects

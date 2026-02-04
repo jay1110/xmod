@@ -454,12 +454,16 @@ void G_ProcessRevive( gentity_t *medic, gentity_t *patient ) {
 		multiReviveLevel = 4;
 
 	// Announce revives if enabled (1 = double, 2 = triple, 3 = multi, 4+ = monster)
+	// Use ksmsg command to display in the same location/style as killing sprees
 	if ((g_reviveSpreeOptions.integer & REVIVESPREE_ANNOUNCE) && multiReviveLevel >= 1) {
-		const char *multiNames[] = { "DOUBLE", "TRIPLE", "MULTI", "MONSTER" };
+		const char *multiNames[] = { "^2DOUBLE REVIVE!", "^2TRIPLE REVIVE!", "^2MULTI REVIVE!", "^2MONSTER REVIVE!" };
 		int nameIndex = multiReviveLevel - 1;
 		if (nameIndex > 3) nameIndex = 3;
-		trap_SendServerCommand(-1, va("cp \"%s ^2%s REVIVE!\" 1", 
-			medic->client->pers.netname, multiNames[nameIndex]));
+		// Send ksmsg command to all clients (broadcasts to everyone)
+		// Format: ksmsg "player name" "revive count" "message"
+		// The revive count is passed as positive to display on right side (kill spree style)
+		trap_SendServerCommand(-1, va("ksmsg \"%s\" \"%i\" \"%s\"", 
+			medic->client->pers.netname, multiReviveLevel + 1, multiNames[nameIndex]));
 	}
 
 	// Play sound - paths: sound/multirevive/mr1.wav through mr4.wav

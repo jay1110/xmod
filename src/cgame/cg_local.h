@@ -2270,6 +2270,7 @@ extern	vmCvar_t		cg_gun_x;
 extern	vmCvar_t		cg_gun_y;
 extern	vmCvar_t		cg_gun_z;
 extern	vmCvar_t		cg_drawGun;
+extern	vmCvar_t		cg_drawGunAlpha;
 extern	vmCvar_t		cg_cursorHints;
 extern	vmCvar_t		cg_letterbox;	//----(SA)	added
 extern	vmCvar_t		cg_tracerChance;
