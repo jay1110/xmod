@@ -324,7 +324,6 @@ void G_ProcessKillAssistance( gentity_t *victim, gentity_t *killer, int meansOfD
 	int killerSlot = -1;
 	qboolean isSuicide = qfalse;
 	qboolean isTeamKill = qfalse;
-	int assistCount = 0;
 
 	if (!victim || !victim->client)
 		return;
@@ -395,8 +394,6 @@ void G_ProcessKillAssistance( gentity_t *victim, gentity_t *killer, int meansOfD
 				continue;  // Skip non-teamkill assistants
 			}
 		}
-
-		assistCount++;
 
 		// Award XP (use battle sense skill)
 		G_AddSkillPoints(assistant, SK_BATTLE_SENSE, xpAward);
