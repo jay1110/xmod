@@ -324,9 +324,23 @@ void G_ProcessKillAssistance( gentity_t *victim, gentity_t *killer, int meansOfD
 	int killerSlot = -1;
 	qboolean isSuicide = qfalse;
 	qboolean isTeamKill = qfalse;
+	int totalDamageRecorded = 0;
 
 	if (!victim || !victim->client)
 		return;
+
+	// Debug: Count total damage recorded for this victim
+	for (i = 0; i < MAX_CLIENTS; i++) {
+		totalDamageRecorded += victim->client->damageReceivedFrom[i];
+	}
+
+	G_LogPrintf("KillAssist DEBUG: victim=%i killer=%s killerslot=%i totalDamage=%i g_killAssistances=%i gameState=%i\n",
+		victim->s.number, 
+		(killer && killer->client) ? killer->client->pers.netname : "NULL",
+		(killer && killer->client) ? killer->s.number : -1,
+		totalDamageRecorded,
+		g_killAssistances.integer,
+		cvars::gameState.ivalue);
 
 	// Check if kill assistance is enabled
 	if (!g_killAssistances.integer)
