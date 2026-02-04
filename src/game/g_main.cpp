@@ -312,7 +312,7 @@ vmCvar_t        g_revenge;           // Show "REVENGE!" and award 1XP
 vmCvar_t        g_noReload;          // Unlimited ammo, clips auto-refill
 vmCvar_t        g_noCharge;          // No charge usage
 vmCvar_t        g_instantSpawn;      // Players respawn instantly
-vmCvar_t        g_spawnInvulNoClip;  // Teammates can pass through during spawn invul
+vmCvar_t        g_spawnInvulNoClip;  // Players can pass through bodies during spawn invul
 
 // Kill Assistance
 vmCvar_t        g_killAssistances;   // Enable kill assistance XP and notifications

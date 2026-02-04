@@ -430,8 +430,9 @@ void G_ProcessRevive( gentity_t *medic, gentity_t *patient ) {
 	if (level.time - medic->client->lastReviveTime <= g_multiReviveTime.integer) {
 		medic->client->multiReviveCount++;
 	} else {
-		// Announce spree end if enabled and count was high
-		if ((g_reviveSpreeOptions.integer & REVIVESPREE_ANNOUNCE_END) && medic->client->multiReviveCount >= 2) {
+		// Announce spree end if enabled and count was high (2+ revives in quick succession)
+		if ((g_reviveSpreeOptions.integer & REVIVESPREE_ANNOUNCE_END) && medic->client->multiReviveCount >= 1) {
+			// Display the actual count (multiReviveCount represents consecutive revives after the first)
 			trap_SendServerCommand(medic - g_entities, va("cp \"Revive spree ended! (%d revives)\" 2", medic->client->multiReviveCount + 1));
 		}
 		medic->client->multiReviveCount = 0;
@@ -439,18 +440,21 @@ void G_ProcessRevive( gentity_t *medic, gentity_t *patient ) {
 
 	medic->client->lastReviveTime = level.time;
 
-	// Determine multi-revive level (0-based, so 0 = double, 1 = triple, etc.)
+	// multiReviveCount is the number of consecutive revives after the first one
+	// So 1 = double revive, 2 = triple revive, etc.
 	multiReviveLevel = medic->client->multiReviveCount;
 
 	// Cap at 4 levels (mr1.wav through mr4.wav)
-	if (multiReviveLevel > 3)
-		multiReviveLevel = 3;
+	if (multiReviveLevel > 4)
+		multiReviveLevel = 4;
 
-	// Announce revives if enabled
+	// Announce revives if enabled (1 = double, 2 = triple, 3 = multi, 4+ = mega)
 	if ((g_reviveSpreeOptions.integer & REVIVESPREE_ANNOUNCE) && multiReviveLevel >= 1) {
 		const char *multiNames[] = { "DOUBLE", "TRIPLE", "MULTI", "MEGA" };
+		int nameIndex = multiReviveLevel - 1;
+		if (nameIndex > 3) nameIndex = 3;
 		trap_SendServerCommand(-1, va("cp \"%s ^2%s REVIVE!\" 1", 
-			medic->client->pers.netname, multiNames[multiReviveLevel - 1]));
+			medic->client->pers.netname, multiNames[nameIndex]));
 	}
 
 	// Play sound - hardcoded paths: sound/xmod/mr1.wav through mr4.wav

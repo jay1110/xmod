@@ -1481,7 +1481,8 @@ void ClientThink_real( gentity_t *ent, bool skipServerTime ) {
         // Normal player mask
 		pm.tracemask = MASK_PLAYERSOLID;
 
-		// g_spawnInvulNoClip - Allow teammates to pass through each other during spawn invulnerability
+		// g_spawnInvulNoClip - Allow player to pass through other players during spawn invulnerability
+		// This prevents spawn camping by allowing invulnerable players to clip through all bodies
 		if (g_spawnInvulNoClip.integer && client->ps.powerups[PW_INVULNERABLE] > level.time) {
 			pm.tracemask &= ~CONTENTS_BODY;
 		}

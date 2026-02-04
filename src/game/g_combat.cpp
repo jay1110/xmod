@@ -1283,7 +1283,9 @@ void G_Damage( gentity_t *targ, gentity_t *inflictor, gentity_t *attacker, const
 		targ->client->lasthurt_mod = mod;
 		targ->client->lasthurt_time = level.time;
 
-		// Kill assistance tracking - only for player attackers
+		// Kill assistance tracking - only for valid player-to-player damage
+		// attacker->client ensures the attacker is a player entity with client data
+		// The s.number bounds checks ensure we don't access array out of bounds
 		if (attacker->client && attacker->s.number < MAX_CLIENTS && targ->s.number < MAX_CLIENTS) {
 			targ->client->damageReceivedFrom[attacker->s.number] += take;
 		}
