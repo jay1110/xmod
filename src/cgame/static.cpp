@@ -41,6 +41,7 @@ namespace objects {
     Cvar bg_sniperWar      ( "cg_sniperWar",      "0", CVAR_ROM );
     Cvar bg_weapons        ( "cg_weapons",        "0", CVAR_ROM );
     Cvar bg_wolfrof        ( "cg_wolfrof",        "0", CVAR_ROM );
+    Cvar bg_spawnInvulNoClip ( "cg_spawnInvulNoClip", "0", CVAR_ROM );
 
     Cvar bg_maxEngineers   ( "cg_maxEngineers", "-1", CVAR_ROM );
     Cvar bg_maxMedics      ( "cg_maxMedics",    "-1", CVAR_ROM );

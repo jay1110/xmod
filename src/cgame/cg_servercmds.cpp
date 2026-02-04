@@ -304,6 +304,9 @@ void CG_ParseXmodinfo( void) {
     cvars::g_noReload.set         ( Info_ValueForKey( info, "D" ));
     cvars::g_noCharge.set         ( Info_ValueForKey( info, "E" ));
 
+    // g_spawnInvulNoClip for client-side prediction
+    cvars::bg_spawnInvulNoClip.set( Info_ValueForKey( info, "F" ));
+
     ammoTableNeedsUpdate = true;
     BG_updateAmmoTable();
 

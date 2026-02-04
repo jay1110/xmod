@@ -447,7 +447,7 @@ cvarTable_t		gameCvarTable[] = {
     { &g_noReload,          "g_noReload",           "0",        CVAR_ARCHIVE | CVAR_SERVERINFO },
     { &g_noCharge,          "g_noCharge",           "0",        CVAR_ARCHIVE | CVAR_SERVERINFO },
     { &g_instantSpawn,      "g_instantSpawn",       "0",        CVAR_ARCHIVE | CVAR_SERVERINFO },
-    { &g_spawnInvulNoClip,  "g_spawnInvulNoClip",   "0",        CVAR_ARCHIVE },
+    { &g_spawnInvulNoClip,  "g_spawnInvulNoClip",   "0",        CVAR_ARCHIVE | CVAR_XMODINFO },
 
     // Kill Assistance
     { &g_killAssistances,   "g_killAssistances",    "1",        CVAR_ARCHIVE },

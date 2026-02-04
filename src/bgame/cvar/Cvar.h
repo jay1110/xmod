@@ -60,6 +60,7 @@ namespace objects {
     extern Cvar bg_sniperWar;
     extern Cvar bg_weapons;
     extern Cvar bg_wolfrof;
+    extern Cvar bg_spawnInvulNoClip;
 
     extern Cvar bg_maxEngineers;
     extern Cvar bg_maxMedics;

@@ -1241,6 +1241,9 @@ void G_UpdateXmodCS() {
     Info_SetValueForKey( cs, "D", cvars::g_noReload.svalue );
     Info_SetValueForKey( cs, "E", cvars::g_noCharge.svalue );
 
+    // g_spawnInvulNoClip for client-side prediction
+    Info_SetValueForKey( cs, "F", va("%i", g_spawnInvulNoClip.integer) );
+
     trap_SetConfigstring( CS_XMODINFO, cs );
 }
 
