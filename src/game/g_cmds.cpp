@@ -1737,6 +1737,9 @@ void Cmd_Say_f( gentity_t *ent, int mode, qboolean arg0 )
 	// Jaybird - private messaging
 	if(g_privateMessages.integer && strstr(Q_SayConcatArgs(0), "say /m ")) {
 		G_PrivateMessage(ent);
+    } else if(g_adminChat.integer && strstr(Q_SayConcatArgs(0), "say /ma ")) {
+		// Admin chat
+		G_AdminChat(ent);
     } else {
 		G_Say(ent, NULL, mode, ConcatArgs(((arg0) ? 0 : 1)));
     }
@@ -3709,6 +3712,12 @@ void ClientCommand( int clientNum ) {
 	// Jaybird - private messaging
 	if (!Q_stricmp(cmd, "m")) {
 		G_PrivateMessage(ent);
+		return;
+	}
+
+	// Admin chat
+	if (!Q_stricmp(cmd, "ma")) {
+		G_AdminChat(ent);
 		return;
 	}
 

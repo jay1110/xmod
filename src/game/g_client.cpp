@@ -2869,6 +2869,11 @@ void ClientSpawn( gentity_t *ent, qboolean revived )
  			client->ps.powerups[PW_INVULNERABLE] = level.time + 3000; 
 		else
 			client->ps.powerups[PW_INVULNERABLE] = level.time + (g_spawnInvul.integer * 1000);
+
+		// Reset damage tracking on fresh spawn (not revive)
+		if (!revived) {
+			G_ResetDamageTracking(ent);
+		}
 	}
 	// End Xian
 

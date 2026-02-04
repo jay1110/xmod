@@ -489,6 +489,103 @@ void G_PrivateMessage( gentity_t *ent )
 
 /*
 ====================
+G_AdminChat
+
+Admin-only chat command (/ma)
+Sends a message to all admins with the adminChat privilege
+====================
+*/
+void G_AdminChat( gentity_t *ent ) 
+{
+	// Just for good measure
+	if (!ent || !ent->client)
+		return;
+
+	// Admin chat disabled
+	if (!g_adminChat.integer)
+		return;
+
+	int clientIndex = ent - g_entities;
+    
+    // Check if sender has admin chat privilege
+    if (!::xmod::hasClientPrivilege(clientIndex, priv::base::adminChat)) {
+        trap_SendServerCommand( clientIndex, "chat \"^1You do not have permission to use admin chat.\"" );
+        return;
+    }
+    
+    // Get sender info using session helpers
+    const std::string& senderNamex = ::xmod::getClientNamex(clientIndex);
+    const std::string& senderName = ::xmod::getClientName(clientIndex);
+    Client& actor = g_clientObjects[clientIndex];
+
+	// Disallow when muted - use session helper
+	if (::xmod::isClientMuted(clientIndex))
+		return;
+
+	// Get the arguments
+    vector<string> args;
+    Engine::args( args );
+
+    // Chop off first arg if say
+    string s = args[0];
+    str::toLower( s );
+    if (s.find( "say" ) != string::npos)
+        args.erase( args.begin() );
+
+    using namespace text;
+    Buffer ebuf;
+    ebuf << xfail( args[0] + " error: " );
+
+    // At this point, we can enforce usage
+	if (args.size() < 2) {
+		ebuf << ' ' << xvalue( "MESSAGE..." );
+        cmd::printChat( &actor, ebuf );
+		return;
+	}
+
+	// Message
+    string message;
+    str::concatArgs( args, message, 1 );
+
+    // Build admin list
+    set<int> admins;
+
+    for (int i = 0; i < level.numConnectedClients; i++) {
+        Client& c = g_clientObjects[level.sortedClients[i]];
+
+        // skip if bot
+        if (c.gentity.r.svFlags & SVF_BOT)
+            continue;
+
+        // skip if no privilege
+        if (!::xmod::hasClientPrivilege(c.slot, priv::base::adminChat))
+            continue;
+
+        admins.insert( c.slot );
+    }
+
+    // bail if no admins
+    if (admins.empty())
+        return;
+
+	// Send to all admins
+    {
+        const set<int>::iterator max = admins.end();
+        for ( set<int>::iterator it = admins.begin(); it != max; it++ ) {
+            Client& c = g_clientObjects[*it];
+
+            Buffer buf;
+            buf << "^3[AdminChat] " << xvalue( senderNamex ) << "^3: " << xcbold << message;
+            cmd::printChat( &c, buf );
+        }
+    }
+
+    // Also log the admin chat
+	G_LogPrintf( "adminchat: %s: %s\n", senderName.c_str(), message.c_str() );
+}
+
+/*
+====================
 G_PlayDead
 ====================
 */

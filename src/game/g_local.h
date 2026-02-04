@@ -1023,6 +1023,13 @@ struct gclient_s {
 	qboolean		hasaward;
 	qboolean		wantsscore;
 	qboolean		maxlivescalced;
+
+	// Kill assistance tracking
+	int				damageReceivedFrom[MAX_CLIENTS];  // Damage received from each client
+
+	// Multi-revive tracking
+	int				lastReviveTime;    // Time of last revive
+	int				multiReviveCount;  // Count of consecutive revives
 };
 
 typedef struct {

@@ -298,3 +298,172 @@ void G_AddMultiKill( gentity_t *ent ) {
 	tent->s.eventParm = ent - g_entities;
 	tent->r.svFlags = SVF_SINGLECLIENT | SVF_BROADCAST;
 }
+
+/*
+====================
+G_ResetDamageTracking
+Reset damage tracking for a player (called on spawn)
+====================
+*/
+void G_ResetDamageTracking( gentity_t *ent ) {
+	if (!ent || !ent->client)
+		return;
+
+	memset(ent->client->damageReceivedFrom, 0, sizeof(ent->client->damageReceivedFrom));
+}
+
+/*
+====================
+G_ProcessKillAssistance
+Process kill assistances when a player dies
+Awards XP and sends notification to assistants
+====================
+*/
+void G_ProcessKillAssistance( gentity_t *victim, gentity_t *killer, int meansOfDeath ) {
+	int i;
+	int killerSlot = -1;
+	qboolean isSuicide = qfalse;
+	qboolean isTeamKill = qfalse;
+
+	if (!victim || !victim->client)
+		return;
+
+	// Check if kill assistance is enabled
+	if (!g_killAssistances.integer)
+		goto cleanup;
+
+	// Not during warmup
+	if (cvars::gameState.ivalue != GS_PLAYING)
+		goto cleanup;
+
+	// Determine kill type
+	if (killer && killer->client) {
+		killerSlot = killer->s.number;
+		if (killer == victim) {
+			isSuicide = qtrue;
+		} else if (OnSameTeam(victim, killer)) {
+			isTeamKill = qtrue;
+		}
+	}
+
+	// Check if the appropriate bitflag is set
+	if (isSuicide && !(g_killAssistances.integer & KILLASSIST_SUICIDE))
+		goto cleanup;
+	if (isTeamKill && !(g_killAssistances.integer & KILLASSIST_TEAMKILL))
+		goto cleanup;
+	if (!isSuicide && !isTeamKill && !(g_killAssistances.integer & KILLASSIST_ENABLE))
+		goto cleanup;
+
+	// Process each client's damage contribution
+	for (i = 0; i < MAX_CLIENTS; i++) {
+		int damage = victim->client->damageReceivedFrom[i];
+		gentity_t *assistant;
+		float xpAward;
+
+		// Skip if no damage
+		if (damage <= 0)
+			continue;
+
+		// Skip if this is the killer
+		if (i == killerSlot)
+			continue;
+
+		// Get assistant entity
+		assistant = &g_entities[i];
+		if (!assistant->client || !assistant->inuse)
+			continue;
+
+		// Calculate XP award: +1 for <50 damage, +2 for >=50 damage
+		if (damage < 50) {
+			xpAward = 1.0f;
+		} else {
+			xpAward = 2.0f;
+		}
+
+		// For teamkill assistances, XP is lost instead of gained
+		if (isTeamKill) {
+			// Only award negative XP to assistants on the same team as killer
+			if (killer && killer->client && OnSameTeam(assistant, killer)) {
+				xpAward = -xpAward;
+			} else {
+				continue;  // Skip non-teamkill assistants
+			}
+		}
+
+		// Award XP (use battle sense skill)
+		G_AddSkillPoints(assistant, SK_BATTLE_SENSE, xpAward);
+
+		// Send notification to the assistant
+		if (xpAward > 0) {
+			trap_SendServerCommand(i, va("cp \"^2Kill Assist! ^7(+%.0fXP)\" 1", xpAward));
+		} else {
+			trap_SendServerCommand(i, va("cp \"^1TK Assist! ^7(%.0fXP)\" 1", xpAward));
+		}
+
+		G_LogPrintf("KillAssist: %i assisted killing %i (damage: %i, xp: %.0f)\n", 
+			i, victim->s.number, damage, xpAward);
+	}
+
+cleanup:
+	// Reset damage tracking
+	G_ResetDamageTracking(victim);
+}
+
+/*
+====================
+G_ProcessRevive
+Process revive for multi-revive tracking and announcements
+====================
+*/
+void G_ProcessRevive( gentity_t *medic, gentity_t *patient ) {
+	int multiReviveLevel;
+	char *soundPath = NULL;
+
+	if (!medic || !medic->client || !patient || !patient->client)
+		return;
+
+	// Check if revive spree options are enabled
+	if (!(g_reviveSpreeOptions.integer & REVIVESPREE_ENABLE))
+		return;
+
+	// Check for multi-revive timing
+	if (level.time - medic->client->lastReviveTime <= g_multiReviveTime.integer) {
+		medic->client->multiReviveCount++;
+	} else {
+		// Announce spree end if enabled and count was high
+		if ((g_reviveSpreeOptions.integer & REVIVESPREE_ANNOUNCE_END) && medic->client->multiReviveCount >= 2) {
+			trap_SendServerCommand(medic - g_entities, va("cp \"Revive spree ended! (%d revives)\" 2", medic->client->multiReviveCount + 1));
+		}
+		medic->client->multiReviveCount = 0;
+	}
+
+	medic->client->lastReviveTime = level.time;
+
+	// Determine multi-revive level (0-based, so 0 = double, 1 = triple, etc.)
+	multiReviveLevel = medic->client->multiReviveCount;
+
+	// Cap at 4 levels (mr1.wav through mr4.wav)
+	if (multiReviveLevel > 3)
+		multiReviveLevel = 3;
+
+	// Announce revives if enabled
+	if ((g_reviveSpreeOptions.integer & REVIVESPREE_ANNOUNCE) && multiReviveLevel >= 1) {
+		const char *multiNames[] = { "DOUBLE", "TRIPLE", "MULTI", "MEGA" };
+		trap_SendServerCommand(-1, va("cp \"%s ^2%s REVIVE!\" 1", 
+			medic->client->pers.netname, multiNames[multiReviveLevel - 1]));
+	}
+
+	// Play sound - hardcoded paths: sound/xmod/mr1.wav through mr4.wav
+	// Client needs to have these sounds in a pk3
+	if (multiReviveLevel >= 1) {
+		switch (multiReviveLevel) {
+			case 1: soundPath = "sound/xmod/mr1.wav"; break;
+			case 2: soundPath = "sound/xmod/mr2.wav"; break;
+			case 3: soundPath = "sound/xmod/mr3.wav"; break;
+			default: soundPath = "sound/xmod/mr4.wav"; break;
+		}
+
+		// Send sound event to medic's team
+		G_ClientSound(medic, soundPath);
+	}
+}

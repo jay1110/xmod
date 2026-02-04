@@ -1480,6 +1480,11 @@ void ClientThink_real( gentity_t *ent, bool skipServerTime ) {
 	} else {
         // Normal player mask
 		pm.tracemask = MASK_PLAYERSOLID;
+
+		// g_spawnInvulNoClip - Allow teammates to pass through each other during spawn invulnerability
+		if (g_spawnInvulNoClip.integer && client->ps.powerups[PW_INVULNERABLE] > level.time) {
+			pm.tracemask &= ~CONTENTS_BODY;
+		}
 	}
 
     if (pm.ps->eFlags & EF_PLAYDEAD) {

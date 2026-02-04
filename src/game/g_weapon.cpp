@@ -694,6 +694,9 @@ void Weapon_Syringe(gentity_t *ent) {
 
 					// Stats
 					ent->client->sess.revives++;
+
+					// Multi-revive tracking
+					G_ProcessRevive(ent, traceEnt);
 				}
 
 				// OSP - syringe "hit"
