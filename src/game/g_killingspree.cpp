@@ -448,23 +448,23 @@ void G_ProcessRevive( gentity_t *medic, gentity_t *patient ) {
 	if (multiReviveLevel > 4)
 		multiReviveLevel = 4;
 
-	// Announce revives if enabled (1 = double, 2 = triple, 3 = multi, 4+ = mega)
+	// Announce revives if enabled (1 = double, 2 = triple, 3 = multi, 4+ = monster)
 	if ((g_reviveSpreeOptions.integer & REVIVESPREE_ANNOUNCE) && multiReviveLevel >= 1) {
-		const char *multiNames[] = { "DOUBLE", "TRIPLE", "MULTI", "MEGA" };
+		const char *multiNames[] = { "DOUBLE", "TRIPLE", "MULTI", "MONSTER" };
 		int nameIndex = multiReviveLevel - 1;
 		if (nameIndex > 3) nameIndex = 3;
 		trap_SendServerCommand(-1, va("cp \"%s ^2%s REVIVE!\" 1", 
 			medic->client->pers.netname, multiNames[nameIndex]));
 	}
 
-	// Play sound - hardcoded paths: sound/xmod/mr1.wav through mr4.wav
-	// Client needs to have these sounds in a pk3
+	// Play sound - paths: sound/multirevive/mr1.wav through mr4.wav
+	// These sounds are included in the xmod pk3
 	if (multiReviveLevel >= 1) {
 		switch (multiReviveLevel) {
-			case 1: soundPath = "sound/xmod/mr1.wav"; break;
-			case 2: soundPath = "sound/xmod/mr2.wav"; break;
-			case 3: soundPath = "sound/xmod/mr3.wav"; break;
-			default: soundPath = "sound/xmod/mr4.wav"; break;
+			case 1: soundPath = "sound/multirevive/mr1.wav"; break;
+			case 2: soundPath = "sound/multirevive/mr2.wav"; break;
+			case 3: soundPath = "sound/multirevive/mr3.wav"; break;
+			default: soundPath = "sound/multirevive/mr4.wav"; break;
 		}
 
 		// Send sound event to medic's team

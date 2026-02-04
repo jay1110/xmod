@@ -1778,6 +1778,7 @@ static void CG_RegisterGraphics( void ) {
 	//cgs.media.genericConstructionShaderModel =	trap_R_RegisterShader( "textures/sfx/construction_model" );
 	cgs.media.alliedUniformShader =				trap_R_RegisterShader( "sprites/uniform_allied" );
 	cgs.media.axisUniformShader =				trap_R_RegisterShader( "sprites/uniform_axis" );
+	cgs.media.transparentWeaponShader =			trap_R_RegisterShader( "xmod/transparent_weapon" );
 
 	// used in:
 	// command map

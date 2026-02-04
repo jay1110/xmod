@@ -93,6 +93,20 @@ etpro/color_construction
 	}
 }
 
+// Simple transparent shader for transparent weapon rendering
+xmod/transparent_weapon
+{
+	cull none
+	noPicmip
+	surfaceparm trans
+	{
+		map $whiteimage
+		blendFunc GL_SRC_ALPHA GL_ONE_MINUS_SRC_ALPHA
+		rgbGen entity
+		alphaGen entity
+	}
+}
+
 ui/assets/icon_xmod
 {
 	nomipmaps

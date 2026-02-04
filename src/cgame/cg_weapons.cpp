@@ -2099,31 +2099,31 @@ static void CG_AddWeaponWithPowerups( refEntity_t *gun, int powerups, playerStat
 	// cg_drawGun transparent modes (2-5)
 	// Only apply to first-person weapon (when ps is not NULL and not rendering third person)
 	if (ps && !cg.renderingThirdPerson && cg_drawGun.integer >= 2 && cg_drawGun.integer <= 5) {
-		gun->customShader = cgs.media.colorConstructionShader;
+		gun->customShader = cgs.media.transparentWeaponShader;
 		switch (cg_drawGun.integer) {
 			case 2: // Transparent white
 				gun->shaderRGBA[0] = 255;
 				gun->shaderRGBA[1] = 255;
 				gun->shaderRGBA[2] = 255;
-				gun->shaderRGBA[3] = 200;
+				gun->shaderRGBA[3] = 128;
 				break;
 			case 3: // Transparent red
 				gun->shaderRGBA[0] = 255;
 				gun->shaderRGBA[1] = 64;
 				gun->shaderRGBA[2] = 64;
-				gun->shaderRGBA[3] = 200;
+				gun->shaderRGBA[3] = 128;
 				break;
 			case 4: // Transparent green
 				gun->shaderRGBA[0] = 64;
 				gun->shaderRGBA[1] = 255;
 				gun->shaderRGBA[2] = 64;
-				gun->shaderRGBA[3] = 200;
+				gun->shaderRGBA[3] = 128;
 				break;
 			case 5: // Transparent blue
 				gun->shaderRGBA[0] = 64;
 				gun->shaderRGBA[1] = 64;
 				gun->shaderRGBA[2] = 255;
-				gun->shaderRGBA[3] = 200;
+				gun->shaderRGBA[3] = 128;
 				break;
 		}
 	}
