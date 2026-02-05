@@ -30,8 +30,12 @@
     </thead>
     <tbody>
         <row>
+            <entry>1</entry>
+            <entry>friendly landmines and tripmines are not tripped by own team (see also g_friendlyFire flags 32 and 128)</entry>
+        </row>
+        <row>
             <entry>2</entry>
-            <entry>friendly dynamite cannot be disarmed by own team</entry>
+            <entry>friendly dynamite cannot be disarmed by own team near objectives (same as g_misc flag 1)</entry>
         </row>
         <row>
             <entry>4</entry>

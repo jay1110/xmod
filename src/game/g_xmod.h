@@ -247,8 +247,8 @@ namespace cache {
 #define MEDIC_DELAYREGEN      32
 
 // g_engineers
-// NOTE: ENGI_FRIENDLYMINES (1) removed - use g_friendlyFire FF_LANDMINE_NO_TRIP instead
-#define ENGI_FRIENDLYDYNO     2
+#define ENGI_FRIENDLYMINES    1   // NOTE: Consider using g_friendlyFire FF_LANDMINE_NO_TRIP and FF_TRIPMINE_NO_ACTIVATE instead
+#define ENGI_FRIENDLYDYNO     2   // NOTE: Same as g_misc MISC_NODISARMDYN - consider removing this duplicate
 #define ENGI_SHAREXP          4
 
 // g_soldiers

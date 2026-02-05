@@ -1789,6 +1789,17 @@ void G_TripMineThink(gentity_t* ent) {
 			}
 		}
 
+		// ENGI_FRIENDLYMINES: Teammates don't activate tripmines
+		// NOTE: Also see g_friendlyFire FF_TRIPMINE_NO_ACTIVATE
+		if ((g_engineers.integer & ENGI_FRIENDLYMINES) && traceEnt->client) {
+			team_t mineTeam = G_LandmineTeam(ent);
+			team_t playerTeam = traceEnt->client->sess.sessionTeam;
+			
+			if (mineTeam == playerTeam && ent->parent != traceEnt) {
+				return;  // Don't explode if teammate crosses beam (unless it's their own tripmine)
+			}
+		}
+
 		// FF_TRIPMINE_NO_ACTIVATE: Teammates don't activate tripmines
 		if ((g_friendlyFire.integer & FF_TRIPMINE_NO_ACTIVATE) && traceEnt->client) {
 			team_t mineTeam = G_LandmineTeam(ent);
@@ -1832,6 +1843,11 @@ qboolean sEntWillTriggerMine(gentity_t *ent, gentity_t *mine)
 	if (ent->s.eType == ET_PLAYER && ent->client)
 	{
 		vec3_t dist;
+
+		// ENGI_FRIENDLYMINES: disable friendly mine tripping
+		// NOTE: Also see g_friendlyFire FF_LANDMINE_NO_TRIP
+		if ((g_engineers.integer & ENGI_FRIENDLYMINES) && ent->client->sess.sessionTeam == mine->s.teamNum && mine->parent != ent )
+			return qfalse;
 
 		// FF_LANDMINE_NO_TRIP: Landmines cannot be tripped by teammates
 		if ((g_friendlyFire.integer & FF_LANDMINE_NO_TRIP) && G_LandmineTeam(mine) == ent->client->sess.sessionTeam && mine->parent != ent)
