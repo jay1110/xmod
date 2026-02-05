@@ -2028,6 +2028,10 @@ void G_InitGame( int levelTime, int randomSeed, int restart ) {
 	Info_SetValueForKey( cs, "wmFN", g_watermark.string );
 	trap_SetConfigstring( CS_WATERMARKINFO, cs );
 
+	// Ensure CVARs are updated before constructing the Xmod Config String
+	// This guarantees fresh values are sent to clients
+	Cvar::update();
+	
 	// Construct the Xmod Config String
 	G_UpdateXmodCS();
 
