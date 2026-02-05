@@ -436,16 +436,17 @@ cvarTable_t		gameCvarTable[] = {
     // Damage weapons (shoot to destroy)
     { &g_damageweapons,     "g_damageweapons",      "0",        CVAR_ARCHIVE },
 
-    // Weapon scripts directory (SERVERINFO so client can load weapon media from custom folder)
-    { &g_weaponScriptsDir,  "g_weaponScriptsDir",   "",         CVAR_ARCHIVE | CVAR_SERVERINFO },
+    // Weapon scripts directory - synced via XMODINFO, no need for SERVERINFO
+    { &g_weaponScriptsDir,  "g_weaponScriptsDir",   "",         CVAR_ARCHIVE },
 
     // New gameplay cvars
     { &g_noAttackInvul,     "g_noAttackInvul",      "0",        CVAR_ARCHIVE },
     { &g_spectatorNames,    "g_spectatorNames",     "1",        CVAR_ARCHIVE | CVAR_SERVERINFO },
     { &g_teamChangeDelay,   "g_teamChangeDelay",    "0",        CVAR_ARCHIVE },
     { &g_revenge,           "g_revenge",            "0",        CVAR_ARCHIVE },
-    { &g_noReload,          "g_noReload",           "0",        CVAR_ARCHIVE | CVAR_SERVERINFO },
-    { &g_noCharge,          "g_noCharge",           "0",        CVAR_ARCHIVE | CVAR_SERVERINFO },
+    // g_noReload/g_noCharge synced via XMODINFO in static.cpp, no SERVERINFO needed
+    { &g_noReload,          "g_noReload",           "0",        CVAR_ARCHIVE },
+    { &g_noCharge,          "g_noCharge",           "0",        CVAR_ARCHIVE },
     { &g_instantSpawn,      "g_instantSpawn",       "0",        CVAR_ARCHIVE | CVAR_SERVERINFO },
     { &g_spawnInvulNoClip,  "g_spawnInvulNoClip",   "0",        CVAR_ARCHIVE | CVAR_XMODINFO },
 
