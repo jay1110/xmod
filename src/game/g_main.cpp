@@ -309,7 +309,8 @@ vmCvar_t        g_noAttackInvul;     // Lose spawn protection when attacking
 vmCvar_t        g_spectatorNames;    // Spectators see names above players
 vmCvar_t        g_teamChangeDelay;   // Minimum delay in ms before team change
 vmCvar_t        g_revenge;           // Show "REVENGE!" and award 1XP
-// NOTE: g_noReload and g_noCharge are in static.cpp (Cvar system) - use cvars::g_noReload, cvars::g_noCharge
+vmCvar_t        g_noReload;          // Unlimited ammo, clips auto-refill
+vmCvar_t        g_noCharge;          // No charge usage
 vmCvar_t        g_instantSpawn;      // Players respawn instantly
 vmCvar_t        g_spawnInvulNoClip;  // Players can pass through bodies during spawn invul
 
@@ -443,8 +444,8 @@ cvarTable_t		gameCvarTable[] = {
     { &g_spectatorNames,    "g_spectatorNames",     "1",        CVAR_ARCHIVE | CVAR_SERVERINFO },
     { &g_teamChangeDelay,   "g_teamChangeDelay",    "0",        CVAR_ARCHIVE },
     { &g_revenge,           "g_revenge",            "0",        CVAR_ARCHIVE },
-    // NOTE: g_noReload and g_noCharge are registered in static.cpp with CVAR_XMODINFO
-    // Do NOT register them here - duplicate registration corrupts CVAR sync
+    { &g_noReload,          "g_noReload",           "0",        CVAR_ARCHIVE | CVAR_SERVERINFO },
+    { &g_noCharge,          "g_noCharge",           "0",        CVAR_ARCHIVE | CVAR_SERVERINFO },
     { &g_instantSpawn,      "g_instantSpawn",       "0",        CVAR_ARCHIVE | CVAR_SERVERINFO },
     { &g_spawnInvulNoClip,  "g_spawnInvulNoClip",   "0",        CVAR_ARCHIVE | CVAR_XMODINFO },
 
