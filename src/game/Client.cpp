@@ -655,6 +655,11 @@ Client::takeBulletDamageFrom( const TraceContext& trx, Client& actor, int damage
     gclient.lasthurt_mod    = mod;
     gclient.lasthurt_time   = level.time;
 
+    // Kill assistance tracking - track damage from this attacker
+    if (actor.slot >= 0 && actor.slot < MAX_CLIENTS && slot >= 0 && slot < MAX_CLIENTS && take > 0) {
+        gclient.damageReceivedFrom[actor.slot] += take;
+    }
+
     // Fast-exit if no damage to take.
     if (take < 1)
         return;
