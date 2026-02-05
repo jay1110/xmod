@@ -398,11 +398,11 @@ void G_ProcessKillAssistance( gentity_t *victim, gentity_t *killer, int meansOfD
 		// Award XP (use battle sense skill)
 		G_AddSkillPoints(assistant, SK_BATTLE_SENSE, xpAward);
 
-		// Send notification to the assistant
+		// Send notification to the assistant (using xassist command for top notification area)
 		if (xpAward > 0) {
-			trap_SendServerCommand(i, va("cp \"^2Kill Assist! ^7(+%.0fXP)\" 1", xpAward));
+			trap_SendServerCommand(i, va("xassist \"^2Kill Assist! ^7(+%.0fXP)\"", xpAward));
 		} else {
-			trap_SendServerCommand(i, va("cp \"^1TK Assist! ^7(%.0fXP)\" 1", xpAward));
+			trap_SendServerCommand(i, va("xassist \"^1TK Assist! ^7(%.0fXP)\"", xpAward));
 		}
 
 		G_LogPrintf("KillAssist: %i assisted killing %i (damage: %i, xp: %.0f)\n", 

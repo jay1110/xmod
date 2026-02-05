@@ -923,6 +923,8 @@ typedef struct {
 	int			deathNotifyTime;         // Time when death notification was shown
 	char		deathNotifyText[256];    // Death notification text
 	qboolean	deathNotifyIsRevenged;   // Did enemy get revenge on me?
+	int			assistNotifyTime;        // Time when assist notification was shown
+	char		assistNotifyText[256];   // Assist notification text
 
 	// fade in/out
 	int			fadeTime;
@@ -2640,6 +2642,7 @@ void CG_KillSpreeMessages( const char *client, int kills, const char *message );
 void CG_DrawKillNotifications( void );
 void CG_SetKillNotification( const char *victimName, qboolean isRevenge );
 void CG_SetDeathNotification( const char *killerName, qboolean wasRevenged, int attackerHP );
+void CG_SetAssistNotification( const char *message );
 
 
 //

@@ -2528,6 +2528,13 @@ static void CG_ServerCommand( void ) {
 		return;
 	}
 
+	// xassist: Kill assist notification
+	// Format: xassist <message>
+	if( !Q_stricmp( cmd, "xassist" )) {
+		CG_SetAssistNotification( CG_Argv(1) );
+		return;
+	}
+
 	if( !Q_stricmp( cmd, "reqforcespawn" ) ) {
 		if( cg_instanttapout.integer ) {
 			CG_ForceTapOut_f();
