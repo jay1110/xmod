@@ -248,6 +248,13 @@ Jaybird
 void CG_ParseXmodinfo( void) {
     const char* const info = CG_ConfigString( CS_XMODINFO );
 
+    // CLIENT DEBUG: Log received XMODINFO values for class/weapon limits
+    CG_Printf("^5[CG_DBG] Parsing XMODINFO configstring\n");
+    CG_Printf("^5[CG_DBG] Raw key 'e' (maxEng): '%s'\n", Info_ValueForKey(info, "e"));
+    CG_Printf("^5[CG_DBG] Raw key 'f' (maxMed): '%s'\n", Info_ValueForKey(info, "f"));
+    CG_Printf("^5[CG_DBG] Raw key 'D' (noReload): '%s'\n", Info_ValueForKey(info, "D"));
+    CG_Printf("^5[CG_DBG] Raw key 'E' (noCharge): '%s'\n", Info_ValueForKey(info, "E"));
+
     cvars::bg_bulletmode.set ( Info_ValueForKey( info, "0" ));
     cvars::bg_hitmode.set    ( Info_ValueForKey( info, "1" ));
 
@@ -306,6 +313,12 @@ void CG_ParseXmodinfo( void) {
 
     // g_spawnInvulNoClip for client-side prediction
     cvars::bg_spawnInvulNoClip.set( Info_ValueForKey( info, "F" ));
+
+    // CLIENT DEBUG: Log stored CVAR values after parsing
+    CG_Printf("^5[CG_DBG] After set - cg_maxEngineers: %d\n", cvars::bg_maxEngineers.ivalue);
+    CG_Printf("^5[CG_DBG] After set - cg_maxMedics: %d\n", cvars::bg_maxMedics.ivalue);
+    CG_Printf("^5[CG_DBG] After set - cg_noCharge: %d\n", cvars::g_noCharge.ivalue);
+    CG_Printf("^5[CG_DBG] After set - cg_noReload: %d\n", cvars::g_noReload.ivalue);
 
     ammoTableNeedsUpdate = true;
     BG_updateAmmoTable();
