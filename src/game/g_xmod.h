@@ -160,16 +160,15 @@ extern vmCvar_t g_adminChat;         // Enable admin chat
 ///////////////////////////////////////////////////////////////////////////////
 
 // g_friendlyFire bitflags
+// NOTE: FF_AFFECTS_MOVERS and FF_LANDMINE_HURT removed (were unused)
 #define FF_ENABLE                  1    // Enable friendly fire
 #define FF_HALF_DAMAGE             2    // Friendly fire does only half damage to teammates
 #define FF_SAME_DAMAGE             4    // Friendly fire does the same damage to the inflictor
-#define FF_AFFECTS_MOVERS          8    // Friendly fire affects movers (tanks, trucks, etc)
-#define FF_KNOCKBACK              16    // Friendly fire delivers knockback
-#define FF_LANDMINE_NO_TRIP       32    // Landmines cannot be tripped by teammates
-#define FF_LANDMINE_HURT          64    // Landmines hurt teammates (even if friendly fire is disabled)
-#define FF_TRIPMINE_NO_ACTIVATE  128    // Teammates don't activate tripmines
-#define FF_LANDMINE_NO_SELF      256    // Players don't trigger their own landmines
-#define FF_TRIPMINE_NO_SELF      512    // Players don't trigger their own tripmines
+#define FF_KNOCKBACK               8    // Friendly fire delivers knockback
+#define FF_LANDMINE_NO_TRIP       16    // Landmines cannot be tripped by teammates
+#define FF_TRIPMINE_NO_ACTIVATE   32    // Teammates don't activate tripmines
+#define FF_LANDMINE_NO_SELF       64    // Players don't trigger their own landmines
+#define FF_TRIPMINE_NO_SELF      128    // Players don't trigger their own tripmines
 
 // g_damageweapons bitflags
 #define DW_GRENADES                1    // Hand grenades can be damaged
@@ -247,8 +246,8 @@ namespace cache {
 #define MEDIC_DELAYREGEN      32
 
 // g_engineers
-#define ENGI_FRIENDLYMINES    1   // NOTE: Consider using g_friendlyFire FF_LANDMINE_NO_TRIP and FF_TRIPMINE_NO_ACTIVATE instead
-#define ENGI_FRIENDLYDYNO     2   // NOTE: Same as g_misc MISC_NODISARMDYN - consider removing this duplicate
+#define ENGI_FRIENDLYMINES    1   // NOTE: Also see g_friendlyFire FF_LANDMINE_NO_TRIP and FF_TRIPMINE_NO_ACTIVATE
+#define ENGI_FRIENDLYDYNO     2   // Prevent teammates from disarming dynamite near objectives
 #define ENGI_SHAREXP          4
 
 // g_soldiers
