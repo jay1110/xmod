@@ -1237,9 +1237,9 @@ void G_UpdateXmodCS() {
     Info_SetValueForKey( cs, "B", cvars::bg_djHeight.svalue );
     Info_SetValueForKey( cs, "C", cvars::bg_weaponsenable.svalue );
 
-    // g_noReload and g_noCharge - use vmCvar_t to avoid duplicate registration issues
-    Info_SetValueForKey( cs, "D", va("%i", g_noReload.integer) );
-    Info_SetValueForKey( cs, "E", va("%i", g_noCharge.integer) );
+    // g_noReload and g_noCharge for bgame
+    Info_SetValueForKey( cs, "D", cvars::g_noReload.svalue );
+    Info_SetValueForKey( cs, "E", cvars::g_noCharge.svalue );
 
     // g_spawnInvulNoClip for client-side prediction
     Info_SetValueForKey( cs, "F", va("%i", g_spawnInvulNoClip.integer) );
