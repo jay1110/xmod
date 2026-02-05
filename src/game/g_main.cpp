@@ -444,8 +444,8 @@ cvarTable_t		gameCvarTable[] = {
     { &g_spectatorNames,    "g_spectatorNames",     "1",        CVAR_ARCHIVE | CVAR_SERVERINFO },
     { &g_teamChangeDelay,   "g_teamChangeDelay",    "0",        CVAR_ARCHIVE },
     { &g_revenge,           "g_revenge",            "0",        CVAR_ARCHIVE },
-    { &g_noReload,          "g_noReload",           "0",        CVAR_ARCHIVE | CVAR_SERVERINFO | CVAR_XMODINFO },
-    { &g_noCharge,          "g_noCharge",           "0",        CVAR_ARCHIVE | CVAR_SERVERINFO | CVAR_XMODINFO },
+    { &g_noReload,          "g_noReload",           "0",        CVAR_ARCHIVE | CVAR_SERVERINFO },
+    { &g_noCharge,          "g_noCharge",           "0",        CVAR_ARCHIVE | CVAR_SERVERINFO },
     { &g_instantSpawn,      "g_instantSpawn",       "0",        CVAR_ARCHIVE | CVAR_SERVERINFO },
     { &g_spawnInvulNoClip,  "g_spawnInvulNoClip",   "0",        CVAR_ARCHIVE | CVAR_XMODINFO },
 
@@ -2028,10 +2028,6 @@ void G_InitGame( int levelTime, int randomSeed, int restart ) {
 	Info_SetValueForKey( cs, "wmFN", g_watermark.string );
 	trap_SetConfigstring( CS_WATERMARKINFO, cs );
 
-	// Ensure CVARs are updated before constructing the Xmod Config String
-	// This guarantees fresh values are sent to clients
-	Cvar::update();
-	
 	// Construct the Xmod Config String
 	G_UpdateXmodCS();
 
