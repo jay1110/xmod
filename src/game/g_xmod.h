@@ -128,8 +128,7 @@ extern vmCvar_t g_noAttackInvul;     // Lose spawn protection when attacking
 extern vmCvar_t g_spectatorNames;    // Spectators see names above players
 extern vmCvar_t g_teamChangeDelay;   // Minimum delay in ms before team change
 extern vmCvar_t g_revenge;           // Show "REVENGE!" and award 1XP
-extern vmCvar_t g_noReload;          // Unlimited ammo, clips auto-refill
-extern vmCvar_t g_noCharge;          // No charge usage
+// NOTE: g_noReload and g_noCharge are in static.cpp (Cvar system) - use cvars::g_noReload, cvars::g_noCharge
 extern vmCvar_t g_instantSpawn;      // Players respawn instantly
 extern vmCvar_t g_spawnInvulNoClip;  // Players can pass through bodies during spawn invul
 
