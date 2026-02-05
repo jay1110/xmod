@@ -1288,6 +1288,9 @@ void G_Damage( gentity_t *targ, gentity_t *inflictor, gentity_t *attacker, const
 		// The s.number bounds checks ensure we don't access array out of bounds
 		if (attacker->client && attacker->s.number < MAX_CLIENTS && targ->s.number < MAX_CLIENTS) {
 			targ->client->damageReceivedFrom[attacker->s.number] += take;
+			G_LogPrintf("KillAssist TRACK: attacker=%i victim=%i take=%i newTotal=%i\n",
+				attacker->s.number, targ->s.number, take, 
+				targ->client->damageReceivedFrom[attacker->s.number]);
 		}
 	}
 
