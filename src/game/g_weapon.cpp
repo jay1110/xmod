@@ -262,7 +262,7 @@ void Weapon_Medic( gentity_t *ent ) {
 	}
 
 	// g_noCharge: Skip charge consumption if enabled
-	if (!cvars::g_noCharge.ivalue) {
+	if (!g_noCharge.integer) {
 		if (ent->client->sess.skill[SK_FIRST_AID] >= 5 && (cvars::bg_sk5_medic.ivalue & SK5_MED_CHARGE))
 			ent->client->ps.classWeaponTime += int( level.medicChargeTime[ent->client->sess.sessionTeam-1] * 0.15f * SK5G_CHARGE_FACTOR );
 		else if (ent->client->sess.skill[SK_FIRST_AID] >= 2)
@@ -476,7 +476,7 @@ void Weapon_MagicAmmo( gentity_t *ent )  {
 		ent->client->ps.classWeaponTime = level.time - level.lieutenantChargeTime[ent->client->sess.sessionTeam-1];
 
 	// g_noCharge: Skip charge consumption if enabled
-	if (!cvars::g_noCharge.ivalue) {
+	if (!g_noCharge.integer) {
 		if (ent->client->sess.skill[SK_SIGNALS] >= 5 && (cvars::bg_sk5_fdops.ivalue & SK5_FDO_CHARGE))
 			ent->client->ps.classWeaponTime += int( level.lieutenantChargeTime[ent->client->sess.sessionTeam-1] * 0.15f * SK5G_CHARGE_FACTOR );
 		else if (ent->client->sess.skill[SK_SIGNALS] >= 1)
@@ -1753,7 +1753,7 @@ void Weapon_Engineer( gentity_t *ent ) {
 		}
 
 		// g_noCharge: Skip charge consumption if enabled
-		if (!cvars::g_noCharge.ivalue) {
+		if (!g_noCharge.integer) {
 			if (ent->client->sess.skill[SK_EXPLOSIVES_AND_CONSTRUCTION] >= 5 && (cvars::bg_sk5_eng.ivalue & SK5_ENG_CHARGE))
 				ent->client->ps.classWeaponTime += int( .66f * 150 * SK5G_CHARGE_FACTOR );
 			else if (ent->client->sess.skill[SK_EXPLOSIVES_AND_CONSTRUCTION] >= 3)
@@ -3271,7 +3271,7 @@ void Weapon_Artillery(gentity_t *ent) {
 	}
 
 	// g_noCharge: Skip charge consumption if enabled
-	if (!cvars::g_noCharge.ivalue) {
+	if (!g_noCharge.integer) {
 		if( ent->client->sess.skill[SK_SIGNALS] >= 5 && (cvars::bg_sk5_fdops.ivalue & SK5_FDO_CHARGE)) {
 			if (level.time - ent->client->ps.classWeaponTime > level.lieutenantChargeTime[ent->client->sess.sessionTeam-1])
 				ent->client->ps.classWeaponTime = level.time - level.lieutenantChargeTime[ent->client->sess.sessionTeam-1];
@@ -4704,7 +4704,7 @@ void FireWeapon( gentity_t *ent ) {
 		}
 
 		// g_noCharge: Skip charge consumption if enabled
-		if (!cvars::g_noCharge.ivalue) {
+		if (!g_noCharge.integer) {
 			if (ent->client->sess.skill[SK_SIGNALS] >= 5 && (cvars::bg_sk5_fdops.ivalue & SK5_FDO_CHARGE))
 				ent->client->ps.classWeaponTime += int( .66f * level.lieutenantChargeTime[ent->client->sess.sessionTeam-1] * SK5G_CHARGE_FACTOR );
 			else if (ent->client->sess.skill[SK_SIGNALS] >= 2)
@@ -4721,7 +4721,7 @@ void FireWeapon( gentity_t *ent ) {
 		break;
 	case WP_MEDIC_ADRENALINE:
 		// g_noCharge: Skip charge consumption if enabled
-		if (!cvars::g_noCharge.ivalue) {
+		if (!g_noCharge.integer) {
 			ent->client->ps.classWeaponTime = level.time;
 		}
 		Weapon_AdrenalineSyringe(ent);
@@ -4830,7 +4830,7 @@ void FireWeapon( gentity_t *ent ) {
 		}
 
 		// g_noCharge: Skip charge consumption if enabled
-		if (!cvars::g_noCharge.ivalue) {
+		if (!g_noCharge.integer) {
 			if (ent->client->sess.skill[SK_HEAVY_WEAPONS] >= 1 && (cvars::bg_sk5_soldier.ivalue & SK5_SOL_CHARGE))
 				ent->client->ps.classWeaponTime += int( .66f * level.soldierChargeTime[ent->client->sess.sessionTeam-1] * SK5G_CHARGE_FACTOR );
 			else if (ent->client->sess.skill[SK_HEAVY_WEAPONS] >= 1)
@@ -4853,7 +4853,7 @@ void FireWeapon( gentity_t *ent ) {
 		}
 
 		// g_noCharge: Skip charge consumption if enabled
-		if (!cvars::g_noCharge.ivalue) {
+		if (!g_noCharge.integer) {
 			if (ent->client->sess.skill[SK_EXPLOSIVES_AND_CONSTRUCTION] >= 5 && (cvars::bg_sk5_eng.ivalue & SK5_ENG_CHARGE))
 				ent->client->ps.classWeaponTime += int( .5f * level.engineerChargeTime[ent->client->sess.sessionTeam-1] * SK5G_CHARGE_FACTOR );
 			else
@@ -4868,7 +4868,7 @@ void FireWeapon( gentity_t *ent ) {
 		}
 
 		// g_noCharge: Skip charge consumption if enabled
-		if (!cvars::g_noCharge.ivalue) {
+		if (!g_noCharge.integer) {
 			if (ent->client->sess.skill[SK_HEAVY_WEAPONS] >= 5 && (cvars::bg_sk5_soldier.ivalue & SK5_SOL_CHARGE)) {
 				ent->client->ps.classWeaponTime += int( .33f * level.soldierChargeTime[ent->client->sess.sessionTeam-1] * SK5G_CHARGE_FACTOR );
 			}
@@ -4891,7 +4891,7 @@ void FireWeapon( gentity_t *ent ) {
 			ent->client->ps.classWeaponTime = level.time - level.covertopsChargeTime[ent->client->sess.sessionTeam-1];
 
 		// g_noCharge: Skip charge consumption if enabled
-		if (!cvars::g_noCharge.ivalue) {
+		if (!g_noCharge.integer) {
 			if (ent->client->sess.skill[SK_MILITARY_INTELLIGENCE_AND_SCOPED_WEAPONS] >= 5 && (cvars::bg_sk5_cvops.ivalue & SK5_CVO_CHARGE))
 				ent->client->ps.classWeaponTime += int( .66f * level.covertopsChargeTime[ent->client->sess.sessionTeam-1] * SK5G_CHARGE_FACTOR );
 			else if (ent->client->sess.skill[SK_MILITARY_INTELLIGENCE_AND_SCOPED_WEAPONS] >= 2)
@@ -4924,7 +4924,7 @@ void FireWeapon( gentity_t *ent ) {
 			ent->client->ps.classWeaponTime = level.time - level.engineerChargeTime[ent->client->sess.sessionTeam-1];
 
 		// g_noCharge: Skip charge consumption if enabled
-		if (!cvars::g_noCharge.ivalue) {
+		if (!g_noCharge.integer) {
 			if( ent->client->sess.skill[SK_EXPLOSIVES_AND_CONSTRUCTION] >= 3 )
 				ent->client->ps.classWeaponTime += int( .33f * level.engineerChargeTime[ent->client->sess.sessionTeam-1] );
 			else
@@ -4939,7 +4939,7 @@ void FireWeapon( gentity_t *ent ) {
 			ent->client->ps.classWeaponTime = level.time - level.engineerChargeTime[ent->client->sess.sessionTeam-1];
 
 		// g_noCharge: Skip charge consumption if enabled
-		if (!cvars::g_noCharge.ivalue) {
+		if (!g_noCharge.integer) {
 			if( ent->client->sess.skill[SK_EXPLOSIVES_AND_CONSTRUCTION] >= 3 )
 				ent->client->ps.classWeaponTime += int( .66f * level.engineerChargeTime[ent->client->sess.sessionTeam-1] );
 			else
