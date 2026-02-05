@@ -45,6 +45,7 @@ namespace priv {
 
     namespace base {
         extern const Privilege
+            adminChat,
             balanceImmunity,
             banPermanent,
             censorImmunity,

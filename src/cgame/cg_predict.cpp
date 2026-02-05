@@ -1023,6 +1023,11 @@ void CG_PredictPlayerState( void ) {
 		cg_pmove.trace = CG_TraceCapsule_World;
 	} else {
 		cg_pmove.tracemask = MASK_PLAYERSOLID;
+
+		// g_spawnInvulNoClip - Allow player to pass through bodies during spawn invulnerability
+		if (cvars::bg_spawnInvulNoClip.ivalue && cg.snap->ps.powerups[PW_INVULNERABLE] > cg.time) {
+			cg_pmove.tracemask &= ~CONTENTS_BODY;
+		}
 	}
 
 	if (( cg.snap->ps.persistant[PERS_TEAM] == TEAM_SPECTATOR ) || (cg.snap->ps.pm_flags & PMF_LIMBO)) { // JPW NERVE limbo

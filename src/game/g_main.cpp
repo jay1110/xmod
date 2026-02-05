@@ -312,6 +312,17 @@ vmCvar_t        g_revenge;           // Show "REVENGE!" and award 1XP
 vmCvar_t        g_noReload;          // Unlimited ammo, clips auto-refill
 vmCvar_t        g_noCharge;          // No charge usage
 vmCvar_t        g_instantSpawn;      // Players respawn instantly
+vmCvar_t        g_spawnInvulNoClip;  // Players can pass through bodies during spawn invul
+
+// Kill Assistance
+vmCvar_t        g_killAssistances;   // Enable kill assistance XP and notifications
+
+// Multi-Revive System
+vmCvar_t        g_reviveSpreeOptions;// Bitflags for revive spree options
+vmCvar_t        g_multiReviveTime;   // Max delay between revives for multi-revive
+
+// Admin Chat
+vmCvar_t        g_adminChat;         // Enable admin chat
 
 /*********************
 * End Xmod Cvars   *
@@ -436,6 +447,17 @@ cvarTable_t		gameCvarTable[] = {
     { &g_noReload,          "g_noReload",           "0",        CVAR_ARCHIVE | CVAR_SERVERINFO },
     { &g_noCharge,          "g_noCharge",           "0",        CVAR_ARCHIVE | CVAR_SERVERINFO },
     { &g_instantSpawn,      "g_instantSpawn",       "0",        CVAR_ARCHIVE | CVAR_SERVERINFO },
+    { &g_spawnInvulNoClip,  "g_spawnInvulNoClip",   "0",        CVAR_ARCHIVE | CVAR_XMODINFO },
+
+    // Kill Assistance
+    { &g_killAssistances,   "g_killAssistances",    "1",        CVAR_ARCHIVE },
+
+    // Multi-Revive System
+    { &g_reviveSpreeOptions,"g_reviveSpreeOptions", "1",        CVAR_ARCHIVE },
+    { &g_multiReviveTime,   "g_multiReviveTime",    "2000",     CVAR_ARCHIVE },
+
+    // Admin Chat
+    { &g_adminChat,         "g_adminChat",          "1",        CVAR_ARCHIVE },
 
     // Some useful mod-info cvars.
     { NULL, "mod_binary",  XMOD_buildTarget, CVAR_SERVERINFO | CVAR_ROM },

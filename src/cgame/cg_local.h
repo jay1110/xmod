@@ -923,6 +923,8 @@ typedef struct {
 	int			deathNotifyTime;         // Time when death notification was shown
 	char		deathNotifyText[256];    // Death notification text
 	qboolean	deathNotifyIsRevenged;   // Did enemy get revenge on me?
+	int			assistNotifyTime;        // Time when assist notification was shown
+	char		assistNotifyText[256];   // Assist notification text
 
 	// fade in/out
 	int			fadeTime;
@@ -1589,6 +1591,7 @@ typedef struct {
 	//qhandle_t	genericConstructionShaderModel;
 	qhandle_t	alliedUniformShader;
 	qhandle_t	axisUniformShader;
+	qhandle_t	transparentWeaponShader;  // For cg_drawGun 2-5
 
 	sfxHandle_t	sfx_artilleryExp[3];
 	sfxHandle_t	sfx_artilleryDist;
@@ -2269,6 +2272,7 @@ extern	vmCvar_t		cg_gun_x;
 extern	vmCvar_t		cg_gun_y;
 extern	vmCvar_t		cg_gun_z;
 extern	vmCvar_t		cg_drawGun;
+extern	vmCvar_t		cg_drawGunAlpha;
 extern	vmCvar_t		cg_cursorHints;
 extern	vmCvar_t		cg_letterbox;	//----(SA)	added
 extern	vmCvar_t		cg_tracerChance;
@@ -2638,6 +2642,7 @@ void CG_KillSpreeMessages( const char *client, int kills, const char *message );
 void CG_DrawKillNotifications( void );
 void CG_SetKillNotification( const char *victimName, qboolean isRevenge );
 void CG_SetDeathNotification( const char *killerName, qboolean wasRevenged, int attackerHP );
+void CG_SetAssistNotification( const char *message );
 
 
 //

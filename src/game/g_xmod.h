@@ -131,6 +131,31 @@ extern vmCvar_t g_revenge;           // Show "REVENGE!" and award 1XP
 extern vmCvar_t g_noReload;          // Unlimited ammo, clips auto-refill
 extern vmCvar_t g_noCharge;          // No charge usage
 extern vmCvar_t g_instantSpawn;      // Players respawn instantly
+extern vmCvar_t g_spawnInvulNoClip;  // Players can pass through bodies during spawn invul
+
+// Kill Assistance
+extern vmCvar_t g_killAssistances;   // Enable kill assistance XP and notifications
+
+// Multi-Revive System
+extern vmCvar_t g_reviveSpreeOptions;// Bitflags for revive spree options
+extern vmCvar_t g_multiReviveTime;   // Max delay between revives for multi-revive
+
+// Admin Chat
+extern vmCvar_t g_adminChat;         // Enable admin chat
+
+///////////////////////////////////////////////////////////////////////////////
+
+// g_killAssistances bitflags
+#define KILLASSIST_ENABLE          1    // Enable kill assistances
+#define KILLASSIST_SUICIDE         2    // Enable suicide assistances
+#define KILLASSIST_TEAMKILL        4    // Enable teamkill assistances
+
+// g_reviveSpreeOptions bitflags
+#define REVIVESPREE_ENABLE         1    // Enable revive sprees
+#define REVIVESPREE_COUNT_HEALS    2    // Count syringe heals as revives
+#define REVIVESPREE_ANNOUNCE       4    // Announce revives to clients
+#define REVIVESPREE_ANNOUNCE_END   8    // Announce revive spree end
+#define REVIVESPREE_HEALS_MULTI   16    // Count syringe heals for multi revives
 
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -255,6 +280,7 @@ void     G_PlayDead              ( gentity_t* );
 void     G_PlaySound_Cmd         ( );
 void     G_PlaySoundEnv_Cmd      ( );
 void     G_PrivateMessage        ( gentity_t* );
+void     G_AdminChat             ( gentity_t* );
 int      G_SkillForMOD           ( int );
 void     G_TeamDamageRestriction ( gentity_t* );
 int      G_TeamMaxArtillery      ( );
@@ -344,6 +370,13 @@ void G_EndLoseSpree              ( gentity_t* );
 void G_AddMultiKill              ( gentity_t* );
 
 void G_LSFinalizeMap             ( );
+
+// Kill Assistance
+void G_ProcessKillAssistance     ( gentity_t* victim, gentity_t* killer, int meansOfDeath );
+void G_ResetDamageTracking       ( gentity_t* ent );
+
+// Multi-Revive System
+void G_ProcessRevive             ( gentity_t* medic, gentity_t* patient );
 
 ///////////////////////////////////////////////////////////////////////////////
 

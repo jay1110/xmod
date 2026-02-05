@@ -167,6 +167,7 @@ namespace priv {
 
     namespace base {
         const Privilege 
+            adminChat       ( Privilege::TYPE_BEHAVIORAL, "adminChat" ),
             balanceImmunity ( Privilege::TYPE_BEHAVIORAL, "balanceImmunity" ),
             banPermanent    ( Privilege::TYPE_BEHAVIORAL, "banPermanent" ), 
             censorImmunity  ( Privilege::TYPE_BEHAVIORAL, "censorImmunity" ),

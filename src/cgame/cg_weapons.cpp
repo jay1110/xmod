@@ -2090,12 +2090,69 @@ static void CG_FlamethrowerFlame( centity_t *cent, vec3_t origin ) {
 }
 // done.
 
+// cg_drawGun transparent color table (values 2-32)
+// Format: { R, G, B } - alpha is always 128 for transparency
+static const byte drawGunColors[][3] = {
+	{ 0x00, 0x00, 0x00 }, // 2: #000000 black
+	{ 0xff, 0x00, 0x00 }, // 3: #ff0000 red
+	{ 0x00, 0xff, 0x00 }, // 4: #00ff00 green
+	{ 0xff, 0xff, 0x00 }, // 5: #ffff00 yellow
+	{ 0x00, 0x00, 0xff }, // 6: #0000ff blue
+	{ 0x00, 0xff, 0xff }, // 7: #00ffff cyan
+	{ 0xff, 0x00, 0xff }, // 8: #ff00ff magenta
+	{ 0xff, 0xff, 0xff }, // 9: #ffffff white
+	{ 0xff, 0x7f, 0x00 }, // 10: #ff7f00 orange
+	{ 0x7f, 0x7f, 0x7f }, // 11: #7f7f7f gray
+	{ 0xbf, 0xbf, 0xbf }, // 12: #bfbfbf light gray
+	{ 0x00, 0x7f, 0x00 }, // 13: #007f00 dark green
+	{ 0x7f, 0x7f, 0x00 }, // 14: #7f7f00 olive
+	{ 0x00, 0x00, 0x7f }, // 15: #00007f dark blue
+	{ 0x7f, 0x00, 0x00 }, // 16: #7f0000 dark red
+	{ 0x7f, 0x3f, 0x00 }, // 17: #7f3f00 brown
+	{ 0xff, 0x99, 0x19 }, // 18: #ff9919 light orange
+	{ 0x00, 0x7f, 0x7f }, // 19: #007f7f teal
+	{ 0x7f, 0x00, 0x7f }, // 20: #7f007f purple
+	{ 0x00, 0x7f, 0xff }, // 21: #007fff sky blue
+	{ 0x7f, 0x00, 0xff }, // 22: #7f00ff violet
+	{ 0x33, 0x99, 0xcc }, // 23: #3399cc steel blue
+	{ 0xcc, 0xff, 0xcc }, // 24: #ccffcc light green
+	{ 0x00, 0x66, 0x33 }, // 25: #006633 forest green
+	{ 0xff, 0x00, 0x33 }, // 26: #ff0033 red-pink
+	{ 0xb2, 0x19, 0x19 }, // 27: #b21919 dark red
+	{ 0x99, 0x33, 0x00 }, // 28: #993300 brown
+	{ 0xcc, 0x99, 0x33 }, // 29: #cc9933 tan
+	{ 0x99, 0x99, 0x33 }, // 30: #999933 olive
+	{ 0xff, 0xff, 0xbf }, // 31: #ffffbf light yellow
+	{ 0xff, 0xff, 0x7f }, // 32: #ffff7f yellow
+};
+
+#define DRAWGUN_COLOR_MIN 2
+#define DRAWGUN_COLOR_MAX 32
+#define DRAWGUN_COLOR_COUNT (DRAWGUN_COLOR_MAX - DRAWGUN_COLOR_MIN + 1)
+
 /*
 ========================
 CG_AddWeaponWithPowerups
 ========================
 */
 static void CG_AddWeaponWithPowerups( refEntity_t *gun, int powerups, playerState_t *ps, centity_t *cent ) {
+	// cg_drawGun transparent modes (2-32)
+	// Only apply to first-person weapon (when ps is not NULL and not rendering third person)
+	if (ps && !cg.renderingThirdPerson && cg_drawGun.integer >= DRAWGUN_COLOR_MIN && cg_drawGun.integer <= DRAWGUN_COLOR_MAX) {
+		int colorIndex = cg_drawGun.integer - DRAWGUN_COLOR_MIN;
+		int alpha = cg_drawGunAlpha.integer;
+		
+		// Clamp alpha to valid range
+		if (alpha < 0) alpha = 0;
+		if (alpha > 255) alpha = 255;
+		
+		gun->customShader = cgs.media.transparentWeaponShader;
+		gun->shaderRGBA[0] = drawGunColors[colorIndex][0];
+		gun->shaderRGBA[1] = drawGunColors[colorIndex][1];
+		gun->shaderRGBA[2] = drawGunColors[colorIndex][2];
+		gun->shaderRGBA[3] = (byte)alpha;
+	}
+
 	// add powerup effects
 	// DHM - Nerve :: no powerup effects on weapons
 	trap_R_AddRefEntityToScene( gun );

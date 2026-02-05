@@ -304,6 +304,9 @@ void CG_ParseXmodinfo( void) {
     cvars::g_noReload.set         ( Info_ValueForKey( info, "D" ));
     cvars::g_noCharge.set         ( Info_ValueForKey( info, "E" ));
 
+    // g_spawnInvulNoClip for client-side prediction
+    cvars::bg_spawnInvulNoClip.set( Info_ValueForKey( info, "F" ));
+
     ammoTableNeedsUpdate = true;
     BG_updateAmmoTable();
 
@@ -2522,6 +2525,13 @@ static void CG_ServerCommand( void ) {
 		if( killerNum >= 0 && killerNum < MAX_CLIENTS && cgs.clientinfo[killerNum].infoValid ) {
 			CG_SetDeathNotification( cgs.clientinfo[killerNum].name, wasRevenged, attackerHP );
 		}
+		return;
+	}
+
+	// xassist: Kill assist notification
+	// Format: xassist <message>
+	if( !Q_stricmp( cmd, "xassist" )) {
+		CG_SetAssistNotification( CG_Argv(1) );
 		return;
 	}
 

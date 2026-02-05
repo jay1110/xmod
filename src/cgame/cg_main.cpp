@@ -136,6 +136,7 @@ vmCvar_t	cg_markTime;
 vmCvar_t	cg_brassTime;
 vmCvar_t	cg_letterbox;//----(SA)	added
 vmCvar_t	cg_drawGun;
+vmCvar_t	cg_drawGunAlpha;
 vmCvar_t	cg_cursorHints;	//----(SA)	added
 vmCvar_t	cg_gun_frame;
 vmCvar_t	cg_gun_x;
@@ -349,6 +350,7 @@ cvarTable_t		cvarTable[] = {
 	{ &cg_ignore, "cg_ignore", "0", 0 },	// used for debugging
 	{ &cg_autoswitch, "cg_autoswitch", "2", CVAR_ARCHIVE },
 	{ &cg_drawGun, "cg_drawGun", "1", CVAR_ARCHIVE },
+	{ &cg_drawGunAlpha, "cg_drawGunAlpha", "128", CVAR_ARCHIVE },
 	{ &cg_gun_frame, "cg_gun_frame", "0", CVAR_TEMP },
 	{ &cg_cursorHints, "cg_cursorHints", "1", CVAR_ARCHIVE },
 	{ &cg_zoomFov, "cg_zoomfov", "22.5", CVAR_ARCHIVE },
@@ -1778,6 +1780,7 @@ static void CG_RegisterGraphics( void ) {
 	//cgs.media.genericConstructionShaderModel =	trap_R_RegisterShader( "textures/sfx/construction_model" );
 	cgs.media.alliedUniformShader =				trap_R_RegisterShader( "sprites/uniform_allied" );
 	cgs.media.axisUniformShader =				trap_R_RegisterShader( "sprites/uniform_axis" );
+	cgs.media.transparentWeaponShader =			trap_R_RegisterShader( "xmod/transparent_weapon" );
 
 	// used in:
 	// command map

@@ -1514,6 +1514,25 @@ void CG_DrawKillNotifications( void ) {
 			CG_Text_Paint_Ext( x, y, KILL_NOTIFY_FONT_SCALE, KILL_NOTIFY_FONT_SCALE, textColor, cg.deathNotifyText, 0, 0, ITEM_TEXTSTYLE_SHADOWED, &cgs.media.limboFont1 );
 		}
 	}
+
+	// Draw assist notification (when you got a kill assist)
+	if ( cg.assistNotifyTime ) {
+		color = CG_FadeColor( cg.assistNotifyTime, KILL_NOTIFY_DURATION );
+		if ( !color ) {
+			cg.assistNotifyTime = 0;
+		} else {
+			// Position - centered horizontally, below the death notification
+			y = KILL_NOTIFY_Y_POS + KILL_NOTIFY_SPACING * 2;
+			w = CG_Text_Width_Ext( cg.assistNotifyText, KILL_NOTIFY_FONT_SCALE, 0, &cgs.media.limboFont1 );
+			x = ( SCREEN_WIDTH - w ) / 2;
+
+			// Set color - white with fade
+			Vector4Copy( color, textColor );
+
+			// Draw using limboFont1 (same as spectatorNames)
+			CG_Text_Paint_Ext( x, y, KILL_NOTIFY_FONT_SCALE, KILL_NOTIFY_FONT_SCALE, textColor, cg.assistNotifyText, 0, 0, ITEM_TEXTSTYLE_SHADOWED, &cgs.media.limboFont1 );
+		}
+	}
 }
 
 /*
@@ -1546,6 +1565,17 @@ void CG_SetDeathNotification( const char *killerName, qboolean wasRevenged, int 
 	}
 	cg.deathNotifyTime = cg.time;
 	cg.deathNotifyIsRevenged = wasRevenged;
+}
+
+/*
+==============
+CG_SetAssistNotification
+Set assist notification message when player gets a kill assist
+==============
+*/
+void CG_SetAssistNotification( const char *message ) {
+	Q_strncpyz( cg.assistNotifyText, message, sizeof(cg.assistNotifyText) );
+	cg.assistNotifyTime = cg.time;
 }
 
 /*

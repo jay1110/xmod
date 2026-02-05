@@ -547,6 +547,9 @@ void player_die( gentity_t *self, gentity_t *inflictor, gentity_t *attacker, int
 	ent->s.otherEntityNum2 = killer;
 	ent->r.svFlags = SVF_BROADCAST;	// send to everyone
 
+	// Process kill assistances
+	G_ProcessKillAssistance(self, attacker, meansOfDeath);
+
 	// Jaybird - They're dead.  Adjust their spree info.
 	// G_endKillSpree(self, attacker, meansOfDeath);
 	G_AddLoseSpree( self );
@@ -1279,6 +1282,13 @@ void G_Damage( gentity_t *targ, gentity_t *inflictor, gentity_t *attacker, const
 		targ->client->lasthurt_client = attacker->s.number;
 		targ->client->lasthurt_mod = mod;
 		targ->client->lasthurt_time = level.time;
+
+		// Kill assistance tracking - only for valid player-to-player damage
+		// attacker->client ensures the attacker is a player entity with client data
+		// The s.number bounds checks ensure we don't access array out of bounds
+		if (attacker->client && attacker->s.number < MAX_CLIENTS && targ->s.number < MAX_CLIENTS) {
+			targ->client->damageReceivedFrom[attacker->s.number] += take;
+		}
 	}
 
 	// do the damage
