@@ -1833,10 +1833,6 @@ qboolean sEntWillTriggerMine(gentity_t *ent, gentity_t *mine)
 	{
 		vec3_t dist;
 
-		// Jaybird - disable friendly mine tripping
-		if ((g_engineers.integer & ENGI_FRIENDLYMINES) && ent->client->sess.sessionTeam == mine->s.teamNum && mine->parent != ent )
-			return qfalse;
-
 		// FF_LANDMINE_NO_TRIP: Landmines cannot be tripped by teammates
 		if ((g_friendlyFire.integer & FF_LANDMINE_NO_TRIP) && G_LandmineTeam(mine) == ent->client->sess.sessionTeam && mine->parent != ent)
 			return qfalse;

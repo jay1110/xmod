@@ -746,34 +746,6 @@ Client::takeBulletDamageFrom( const TraceContext& trx, Client& actor, int damage
 
     // Ridah, this needs to be done last, incase the health is altered in one of the event calls
     gclient.ps.stats[STAT_HEALTH] = gentity.health;
-
-    // Reflected friendly fire (FF_SAME_DAMAGE)
-    if (gentity.health > 0 && onSameTeam && (g_friendlyFire.integer & FF_SAME_DAMAGE) && IsReflectable( mod )) {
-        int ffDamage;
-
-        // Percentage based reflect
-        ffDamage = int( take * g_reflectFriendlyFire.value / 100.f );
-        if (ffDamage <= 0)
-            ffDamage = 0;
-        actor.gentity.health -= ffDamage;
-
-        // Give them pain!
-        actor.gclient.damage_blood += take;
-        actor.gclient.damage_knockback += knockback;
-
-        // Set the lasthurt stuff so hitsounds do not replay
-        gclient.lasthurt_mod = mod;
-        gclient.lasthurt_client = actor.slot;
-
-        // Kill the player if necessary
-        if( actor.gentity.health <= 0 ) {
-            actor.gentity.deathType = MOD_REFLECTED_FF;
-            actor.gentity.enemy = &actor.gentity;
-            if( actor.gentity.die ) {
-                actor.gentity.die( &actor.gentity, &actor.gentity, &actor.gentity, ffDamage, MOD_REFLECTED_FF );
-            }
-        }
-    }
 }
 
 ///////////////////////////////////////////////////////////////////////////////

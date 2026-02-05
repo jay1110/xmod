@@ -30,10 +30,6 @@
     </thead>
     <tbody>
         <row>
-            <entry>1</entry>
-            <entry>friendly landmines are not tripped by own team</entry>
-        </row>
-        <row>
             <entry>2</entry>
             <entry>friendly dynamite cannot be disarmed by own team</entry>
         </row>
