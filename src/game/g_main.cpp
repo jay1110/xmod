@@ -1726,6 +1726,7 @@ void G_UpdateCvars( void )
 
 	if( xmodChanged ) {
         ammoTableNeedsUpdate = true;
+        G_Printf("^3[XMOD DEBUG] xmodChanged=true, calling G_UpdateXmodCS\n");
 		G_UpdateXmodCS();
 	}
 
@@ -2029,6 +2030,7 @@ void G_InitGame( int levelTime, int randomSeed, int restart ) {
 	trap_SetConfigstring( CS_WATERMARKINFO, cs );
 
 	// Construct the Xmod Config String
+	G_Printf("^5XMOD_DBG: InitGame calling G_UpdateXmodCS\n");
 	G_UpdateXmodCS();
 
 	G_SoundIndex( "sound/misc/referee.wav"	);

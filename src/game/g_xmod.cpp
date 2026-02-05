@@ -1175,6 +1175,17 @@ If a cvar is here and is a game-tunable it should probably be flagged with CVAR_
 void G_UpdateXmodCS() {
     char cs[MAX_INFO_STRING] = { '\0' };
 
+    // DEBUG: Log key CVAR values being synced to clients
+    G_Printf("^3[XMOD DEBUG] G_UpdateXmodCS called\n");
+    G_Printf("^3[XMOD DEBUG] team_maxEngineers (svalue): '%s' (ivalue): %d\n", 
+             cvars::bg_maxEngineers.svalue, cvars::bg_maxEngineers.ivalue);
+    G_Printf("^3[XMOD DEBUG] team_maxMedics (svalue): '%s' (ivalue): %d\n",
+             cvars::bg_maxMedics.svalue, cvars::bg_maxMedics.ivalue);
+    G_Printf("^3[XMOD DEBUG] g_noCharge (svalue): '%s' (ivalue): %d\n",
+             cvars::g_noCharge.svalue, cvars::g_noCharge.ivalue);
+    G_Printf("^3[XMOD DEBUG] g_noReload (svalue): '%s' (ivalue): %d\n",
+             cvars::g_noReload.svalue, cvars::g_noReload.ivalue);
+
     Info_SetValueForKey( cs, "jver", XMOD_title );
 
     // CVARS
