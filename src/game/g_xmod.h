@@ -165,11 +165,7 @@ extern vmCvar_t g_adminChat;         // Enable admin chat
 #define FF_SAME_DAMAGE             4    // Friendly fire does the same damage to the inflictor
 #define FF_AFFECTS_MOVERS          8    // Friendly fire affects movers (tanks, trucks, etc)
 #define FF_KNOCKBACK              16    // Friendly fire delivers knockback
-#define FF_LANDMINE_NO_TRIP       32    // Landmines cannot be tripped by teammates
 #define FF_LANDMINE_HURT          64    // Landmines hurt teammates (even if friendly fire is disabled)
-#define FF_TRIPMINE_NO_ACTIVATE  128    // Teammates don't activate tripmines
-#define FF_LANDMINE_NO_SELF      256    // Players don't trigger their own landmines
-#define FF_TRIPMINE_NO_SELF      512    // Players don't trigger their own tripmines
 
 // g_damageweapons bitflags
 #define DW_GRENADES                1    // Hand grenades can be damaged
@@ -247,9 +243,12 @@ namespace cache {
 #define MEDIC_DELAYREGEN      32
 
 // g_engineers
-#define ENGI_FRIENDLYMINES    1
-#define ENGI_FRIENDLYDYNO     2
-#define ENGI_SHAREXP          4
+#define ENGI_FRIENDLYMINES         1    // Friendly landmines are not tripped by own team
+#define ENGI_FRIENDLYDYNO          2    // Friendly dynamite cannot be disarmed by own team
+#define ENGI_SHAREXP               4    // Enable shared construction XP
+#define ENGI_TRIPMINE_NO_ACTIVATE  8    // Teammates don't activate tripmines
+#define ENGI_LANDMINE_NO_SELF     16    // Players don't trigger their own landmines
+#define ENGI_TRIPMINE_NO_SELF     32    // Players don't trigger their own tripmines
 
 // g_soldiers
 #define SDR_PANZERGRAV        1
