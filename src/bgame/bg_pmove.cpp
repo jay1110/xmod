@@ -8,8 +8,12 @@
 
 #ifdef CGAMEDLL
 #define PM_GameType cg_gameType.integer
+#define PM_NoReload cvars::g_noReload.ivalue
+#define PM_NoCharge cvars::g_noCharge.ivalue
 #elif GAMEDLL
 #define PM_GameType g_gametype.integer
+#define PM_NoReload g_noReload.integer
+#define PM_NoCharge g_noCharge.integer
 #endif
 
 
@@ -3175,7 +3179,7 @@ void PM_WeaponUseAmmo( int wp, int amount ) {
 	int takeweapon;
 
 	// g_noReload: If enabled, auto-refill clip to max immediately
-	if (cvars::g_noReload.ivalue) {
+	if (PM_NoReload) {
 		// Don't consume ammo at all - clips stay full
 		return;
 	}
@@ -4297,7 +4301,7 @@ static void PM_Weapon( void ) {
 
 			// Jaybird - Panzer War handling
 			// g_noCharge: Skip charge check if enabled
-			if (!cvars::bg_panzerWar.ivalue && !cvars::g_noCharge.ivalue) {
+			if (!cvars::bg_panzerWar.ivalue && !PM_NoCharge) {
 				if( pm->skill[SK_HEAVY_WEAPONS] >= 1 ) {
 					if (pm->cmd.serverTime - pm->ps->classWeaponTime < pm->soldierChargeTime * 0.66f)
 						return;
@@ -4310,7 +4314,7 @@ static void PM_Weapon( void ) {
 		case WP_GPG40:
 		case WP_M7:
 			// g_noCharge: Skip charge check if enabled
-			if (!cvars::g_noCharge.ivalue) {
+			if (!PM_NoCharge) {
 				if (pm->cmd.serverTime - pm->ps->classWeaponTime < (pm->engineerChargeTime*0.5f))
 					return;
 			}
@@ -4318,7 +4322,7 @@ static void PM_Weapon( void ) {
 
 		case WP_MORTAR_SET:
 			// g_noCharge: Skip charge check if enabled
-			if (!cvars::g_noCharge.ivalue) {
+			if (!PM_NoCharge) {
 				if( pm->skill[SK_HEAVY_WEAPONS] >= 1 ) {
 					// CHRUKER: b069 - Was using "0.5f*(1-0.3f)", however the 0.33f is used everywhere else, and is more precise
 					if( pm->cmd.serverTime - pm->ps->classWeaponTime < (pm->soldierChargeTime*0.33f) ) {
@@ -4338,7 +4342,7 @@ static void PM_Weapon( void ) {
 		case WP_SATCHEL:
 		case WP_SMOKE_BOMB:
 			// g_noCharge: Skip charge check if enabled
-			if (!cvars::g_noCharge.ivalue) {
+			if (!PM_NoCharge) {
 				if( pm->skill[SK_MILITARY_INTELLIGENCE_AND_SCOPED_WEAPONS] >= 2 ) {
 					if (pm->cmd.serverTime - pm->ps->classWeaponTime < (pm->covertopsChargeTime*0.66f))
 						return;
@@ -4354,7 +4358,7 @@ static void PM_Weapon( void ) {
 		case WP_TRIPMINE:
 			// CHRUKER: b026 - Skill should first kick in at level 3
 			// g_noCharge: Skip charge check if enabled
-			if (!cvars::g_noCharge.ivalue) {
+			if (!PM_NoCharge) {
 				if( pm->skill[SK_EXPLOSIVES_AND_CONSTRUCTION] >= 3 ) {
 					if( pm->cmd.serverTime - pm->ps->classWeaponTime < (pm->engineerChargeTime*0.33f) ) {
 						return;
@@ -4367,7 +4371,7 @@ static void PM_Weapon( void ) {
 
 		case WP_DYNAMITE:
 			// g_noCharge: Skip charge check if enabled
-			if (!cvars::g_noCharge.ivalue) {
+			if (!PM_NoCharge) {
 				if (pm->skill[SK_EXPLOSIVES_AND_CONSTRUCTION] >= 3 ) {
 					if (pm->cmd.serverTime - pm->ps->classWeaponTime < (pm->engineerChargeTime*0.66f))
 						return;
@@ -4379,7 +4383,7 @@ static void PM_Weapon( void ) {
 
 		case WP_AMMO:
 			// g_noCharge: Skip charge check if enabled
-			if (!cvars::g_noCharge.ivalue) {
+			if (!PM_NoCharge) {
 				if (pm->skill[SK_SIGNALS] >= 1 ) {
 					if( pm->cmd.serverTime - pm->ps->classWeaponTime < (pm->ltChargeTime*0.15f) ) {
 						if( pm->cmd.buttons & BUTTON_ATTACK ) {
@@ -4399,7 +4403,7 @@ static void PM_Weapon( void ) {
 
 		case WP_MEDKIT:
 			// g_noCharge: Skip charge check if enabled
-			if (!cvars::g_noCharge.ivalue) {
+			if (!PM_NoCharge) {
 				if (pm->skill[SK_FIRST_AID] >= 2 ) {
 					if( pm->cmd.serverTime - pm->ps->classWeaponTime < (pm->medicChargeTime*0.15f) ) {
 						if( pm->cmd.buttons & BUTTON_ATTACK ) {
@@ -4418,7 +4422,7 @@ static void PM_Weapon( void ) {
 
 		case WP_SMOKE_MARKER:
 			// g_noCharge: Skip charge check if enabled
-			if (!cvars::g_noCharge.ivalue) {
+			if (!PM_NoCharge) {
 				if( pm->skill[SK_SIGNALS] >= 2 ) {
 					if(pm->cmd.serverTime - pm->ps->classWeaponTime < (pm->ltChargeTime*0.66f) ) {
 						return;
@@ -4432,7 +4436,7 @@ static void PM_Weapon( void ) {
 		case WP_ADRENALINE_SHARE:
 		case WP_MEDIC_ADRENALINE: {
 			// g_noCharge: Skip charge check if enabled
-			if (!cvars::g_noCharge.ivalue) {
+			if (!PM_NoCharge) {
 				int chargeTime = 0;
 				switch (pm->ps->stats[STAT_PLAYER_CLASS]) {
 				case PC_MEDIC:

@@ -80,9 +80,9 @@ namespace objects {
     Cvar bg_djHeight           ( "g_djHeight",            "1.4", CVAR_XMODINFO );
     Cvar bg_weaponsenable      ( "g_weaponsenable",       "0",   CVAR_XMODINFO );
 
-    // g_noReload and g_noCharge are synced via CVAR_XMODINFO for bgame use
-    Cvar g_noReload            ( "g_noReload",            "0",   CVAR_XMODINFO );
-    Cvar g_noCharge            ( "g_noCharge",            "0",   CVAR_XMODINFO );
+    // NOTE: g_noReload and g_noCharge are registered ONLY in gameCvarTable
+    // They MUST NOT be registered here - duplicate registration corrupts CVAR sync!
+    // G_UpdateXmodCS() reads these via vmCvar_t (g_noReload.integer, g_noCharge.integer)
 
     Cvar gameState( "gameState", "-1", CVAR_WOLFINFO | CVAR_ROM );
 

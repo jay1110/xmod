@@ -102,9 +102,12 @@ namespace objects {
 
     extern Cvar gameState;
 
-    // g_noReload and g_noCharge are server-synced via SERVERINFO
+#ifdef CGAMEDLL
+    // Client-side only: these are synced from server via XMODINFO
+    // On server, use vmCvar_t g_noReload/g_noCharge from g_xmod.h
     extern Cvar g_noReload;
     extern Cvar g_noCharge;
+#endif
 }
 
 ///////////////////////////////////////////////////////////////////////////////
