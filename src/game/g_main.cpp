@@ -2028,6 +2028,10 @@ void G_InitGame( int levelTime, int randomSeed, int restart ) {
 	Info_SetValueForKey( cs, "wmFN", g_watermark.string );
 	trap_SetConfigstring( CS_WATERMARKINFO, cs );
 
+	// Refresh CVAR values from engine before sending to clients
+	// This ensures server-set values (like team_maxEngineers) are current
+	Cvar::update();
+
 	// Construct the Xmod Config String
 	G_UpdateXmodCS();
 
