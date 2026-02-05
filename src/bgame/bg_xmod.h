@@ -94,18 +94,17 @@
 #define COPS_DRAWNAME         32
 
 // g_misc defines
-#define MISC_NODISARMDYN      0x0001 //    1 - Don't let teammates disarm dynamite near objective
-#define MISC_BINOCWAR         0x0002 //    2 - binoc-war
-#define MISC_ADMINSONLY       0x0004 //    4 - only admins can connect
-#define MISC_PACKZ            0x0008 //    8 - throw packs vertically
-#define MISC_BSREVIVE         0x0010 //   16 - level-4 battle-sense revivees get full health
-#define MISC_REALAIMSPREAD    0x0020 //   32 - more realistic weapons aim-spread
-#define MISC_NOXPINACTIVE     0x0040 //   64 - No XP for killing inactive players
-#define MISC_NOXPMEDPACKS     0x0080 //  128 - No XP for med packs
-#define MISC_NOXPAMMOPACKS    0x0100 //  256 - No XP for ammo packs
-#define MISC_VISIBLEMINES     0x0200 //  512 - Visible enemy landmines red/blue instead of white
-#define MISC_REALISTICLEAN    0x0400 // 1024 - Realistic lean animation
-#define MISC_NODROWREVIVE     0x0800 // 2048 - Drowned players can't be revived
+#define MISC_BINOCWAR         0x0001 //    1 - binoc-war - enables binocular pickup stats
+#define MISC_ADMINSONLY       0x0002 //    2 - only admins can connect
+#define MISC_PACKZ            0x0004 //    4 - throw packs vertically
+#define MISC_BSREVIVE         0x0008 //    8 - level-4 battle-sense revivees get full health
+#define MISC_REALAIMSPREAD    0x0010 //   16 - more realistic weapons aim-spread
+#define MISC_NOXPINACTIVE     0x0020 //   32 - No XP for killing inactive players
+#define MISC_NOXPMEDPACKS     0x0040 //   64 - No XP for med packs
+#define MISC_NOXPAMMOPACKS    0x0080 //  128 - No XP for ammo packs
+#define MISC_VISIBLEMINES     0x0100 //  256 - Visible enemy landmines red/blue instead of white
+#define MISC_REALISTICLEAN    0x0200 //  512 - Realistic lean animation
+#define MISC_NODROWREVIVE     0x0400 // 1024 - Drowned players can't be revived
 
 // g_doubleJump values
 #define DJUMP_DISABLED        0      // disabled
