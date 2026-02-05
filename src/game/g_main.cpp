@@ -2028,8 +2028,8 @@ void G_InitGame( int levelTime, int randomSeed, int restart ) {
 	Info_SetValueForKey( cs, "wmFN", g_watermark.string );
 	trap_SetConfigstring( CS_WATERMARKINFO, cs );
 
-	// Construct the Xmod Config String
-	G_UpdateXmodCS();
+	// Note: G_UpdateXmodCS() is called automatically by G_UpdateCvars() in G_RegisterCvars()
+	// No need to call it again here as it would use potentially stale CVAR values
 
 	G_SoundIndex( "sound/misc/referee.wav"	);
 	G_SoundIndex( "sound/misc/vote.wav"		);
