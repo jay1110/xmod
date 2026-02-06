@@ -324,6 +324,9 @@ vmCvar_t        g_multiReviveTime;   // Max delay between revives for multi-revi
 // Admin Chat
 vmCvar_t        g_adminChat;         // Enable admin chat
 
+// Map count for scoreboard display
+vmCvar_t        g_mapCount;          // Number of maps to display on scoreboard (0 = auto-detect, -1 = hide)
+
 /*********************
 * End Xmod Cvars   *
 *********************/
@@ -459,6 +462,9 @@ cvarTable_t		gameCvarTable[] = {
 
     // Admin Chat
     { &g_adminChat,         "g_adminChat",          "1",        CVAR_ARCHIVE },
+
+    // Map count for scoreboard display (0 = auto-detect, -1 = hide)
+    { &g_mapCount,          "g_mapCount",           "0",        CVAR_ARCHIVE },
 
     // Some useful mod-info cvars.
     { NULL, "mod_binary",  XMOD_buildTarget, CVAR_SERVERINFO | CVAR_ROM },
@@ -1930,12 +1936,32 @@ void G_InitGame( int levelTime, int randomSeed, int restart ) {
     // Load maps database
     mapDB.load();
 
-    // Count available maps (from .arena files in scripts directory, same as UI)
+    // Determine map count for scoreboard display
+    // g_mapCount: 0 = auto-detect, -1 = hide, >0 = use specified value
     {
-        char arenaList[8192];
-        int numArenas = trap_FS_GetFileList("scripts", ".arena", arenaList, sizeof(arenaList));
-        level.mapCount = numArenas;
-        G_Printf("^5[XMOD] Found %d arena files (maps)\n", level.mapCount);
+        if (g_mapCount.integer > 0) {
+            // Use manually configured value
+            level.mapCount = g_mapCount.integer;
+            G_Printf("^5[XMOD] Map count set to %d (from g_mapCount CVAR)\n", level.mapCount);
+        } else if (g_mapCount.integer == 0) {
+            // Try auto-detection (may not work on all server setups)
+            char arenaList[8192];
+            int numArenas = trap_FS_GetFileList("scripts", ".arena", arenaList, sizeof(arenaList));
+            if (numArenas > 0) {
+                level.mapCount = numArenas;
+                G_Printf("^5[XMOD] Found %d maps (from .arena files)\n", level.mapCount);
+            } else {
+                // Fallback: try counting .bsp files
+                char mapList[8192];
+                int numMaps = trap_FS_GetFileList("maps", ".bsp", mapList, sizeof(mapList));
+                level.mapCount = numMaps;
+                G_Printf("^5[XMOD] Found %d maps (from .bsp files)\n", level.mapCount);
+            }
+        } else {
+            // g_mapCount < 0: hide map count
+            level.mapCount = 0;
+            G_Printf("^5[XMOD] Map count display disabled (g_mapCount = %d)\n", g_mapCount.integer);
+        }
     }
 
     // Load censor word list

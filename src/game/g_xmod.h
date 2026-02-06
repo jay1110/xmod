@@ -143,6 +143,9 @@ extern vmCvar_t g_multiReviveTime;   // Max delay between revives for multi-revi
 // Admin Chat
 extern vmCvar_t g_adminChat;         // Enable admin chat
 
+// Scoreboard
+extern vmCvar_t g_mapCount;          // Map count for scoreboard (0 = auto, -1 = hide, >0 = value)
+
 ///////////////////////////////////////////////////////////////////////////////
 
 // g_killAssistances bitflags
