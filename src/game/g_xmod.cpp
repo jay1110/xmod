@@ -1174,7 +1174,9 @@ If a cvar is here and is a game-tunable it should probably be flagged with CVAR_
 */
 void G_UpdateXmodCS() {
     char cs[MAX_INFO_STRING] = { '\0' };
+    char cs2[MAX_INFO_STRING] = { '\0' };
 
+    // CS_XMODINFO - Original CVARs (keep unchanged to avoid breaking existing clients)
     Info_SetValueForKey( cs, "jver", XMOD_title );
 
     // CVARS
@@ -1196,18 +1198,29 @@ void G_UpdateXmodCS() {
     Info_SetValueForKey( cs, "d", cvars::bg_wolfrof.svalue );
 
     // Class Restrictions
-    Info_SetValueForKey( cs, "e", cvars::bg_maxEngineers.svalue );
-    Info_SetValueForKey( cs, "f", cvars::bg_maxMedics.svalue );
-    Info_SetValueForKey( cs, "g", cvars::bg_maxFieldOps.svalue );
-    Info_SetValueForKey( cs, "h", cvars::bg_maxCovertOps.svalue );
+    char val_buf[16];
+    Com_sprintf(val_buf, sizeof(val_buf), "%d", cvars::bg_maxEngineers.ivalue);
+    Info_SetValueForKey( cs, "e", val_buf );
+    Com_sprintf(val_buf, sizeof(val_buf), "%d", cvars::bg_maxMedics.ivalue);
+    Info_SetValueForKey( cs, "f", val_buf );
+    Com_sprintf(val_buf, sizeof(val_buf), "%d", cvars::bg_maxFieldOps.ivalue);
+    Info_SetValueForKey( cs, "g", val_buf );
+    Com_sprintf(val_buf, sizeof(val_buf), "%d", cvars::bg_maxCovertOps.ivalue);
+    Info_SetValueForKey( cs, "h", val_buf );
 
     // Weapon Restrictions
-    Info_SetValueForKey( cs, "i", cvars::bg_maxPanzers.svalue );
-    Info_SetValueForKey( cs, "j", cvars::bg_maxMG42s.svalue );
-    Info_SetValueForKey( cs, "k", cvars::bg_maxMortars.svalue );
-    Info_SetValueForKey( cs, "l", cvars::bg_maxGrenLaunchers.svalue );
-    Info_SetValueForKey( cs, "m", cvars::bg_maxFlamers.svalue );
-    Info_SetValueForKey( cs, "n", cvars::bg_maxM97s.svalue );
+    Com_sprintf(val_buf, sizeof(val_buf), "%d", cvars::bg_maxPanzers.ivalue);
+    Info_SetValueForKey( cs, "i", val_buf );
+    Com_sprintf(val_buf, sizeof(val_buf), "%d", cvars::bg_maxMG42s.ivalue);
+    Info_SetValueForKey( cs, "j", val_buf );
+    Com_sprintf(val_buf, sizeof(val_buf), "%d", cvars::bg_maxMortars.ivalue);
+    Info_SetValueForKey( cs, "k", val_buf );
+    Com_sprintf(val_buf, sizeof(val_buf), "%d", cvars::bg_maxGrenLaunchers.ivalue);
+    Info_SetValueForKey( cs, "l", val_buf );
+    Com_sprintf(val_buf, sizeof(val_buf), "%d", cvars::bg_maxFlamers.ivalue);
+    Info_SetValueForKey( cs, "m", val_buf );
+    Com_sprintf(val_buf, sizeof(val_buf), "%d", cvars::bg_maxM97s.ivalue);
+    Info_SetValueForKey( cs, "n", val_buf );
 
     // Skill-5 cvars
     Info_SetValueForKey( cs, "o", cvars::bg_sk5_battle.svalue );
@@ -1233,18 +1246,21 @@ void G_UpdateXmodCS() {
 
     Info_SetValueForKey( cs, "z", cvars::bg_proneDelay.svalue );
 
-    Info_SetValueForKey( cs, "A", cvars::bg_doubleJump.svalue );
-    Info_SetValueForKey( cs, "B", cvars::bg_djHeight.svalue );
-    Info_SetValueForKey( cs, "C", cvars::bg_weaponsenable.svalue );
+    trap_SetConfigstring( CS_XMODINFO, cs );
+
+    // CS_XMODINFO2 - Newer CVARs that caused overflow
+    Info_SetValueForKey( cs2, "A", cvars::bg_doubleJump.svalue );
+    Info_SetValueForKey( cs2, "B", cvars::bg_djHeight.svalue );
+    Info_SetValueForKey( cs2, "C", cvars::bg_weaponsenable.svalue );
 
     // g_noReload and g_noCharge for bgame
-    Info_SetValueForKey( cs, "D", cvars::g_noReload.svalue );
-    Info_SetValueForKey( cs, "E", cvars::g_noCharge.svalue );
+    Info_SetValueForKey( cs2, "D", cvars::g_noReload.svalue );
+    Info_SetValueForKey( cs2, "E", cvars::g_noCharge.svalue );
 
     // g_spawnInvulNoClip for client-side prediction
-    Info_SetValueForKey( cs, "F", va("%i", g_spawnInvulNoClip.integer) );
+    Info_SetValueForKey( cs2, "F", va("%i", g_spawnInvulNoClip.integer) );
 
-    trap_SetConfigstring( CS_XMODINFO, cs );
+    trap_SetConfigstring( CS_XMODINFO2, cs2 );
 }
 
 /*************************************************

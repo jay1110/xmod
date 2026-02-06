@@ -296,6 +296,22 @@ void CG_ParseXmodinfo( void) {
 
     cvars::bg_proneDelay.set      ( Info_ValueForKey( info, "z" ));
 
+    ammoTableNeedsUpdate = true;
+    BG_updateAmmoTable();
+
+	// Dynamite arm time
+	cg.dynamiteTime = cvars::bg_dynamiteTime.ivalue * 1000;
+}
+
+/*
+==================
+CG_ParseXmodinfo2
+Parse newer CVARs from CS_XMODINFO2 (overflow from CS_XMODINFO)
+==================
+*/
+void CG_ParseXmodinfo2( void) {
+    const char* const info = CG_ConfigString( CS_XMODINFO2 );
+
     cvars::bg_doubleJump.set      ( Info_ValueForKey( info, "A" ));
     cvars::bg_djHeight.set        ( Info_ValueForKey( info, "B" ));
     cvars::bg_weaponsenable.set   ( Info_ValueForKey( info, "C" ));
@@ -306,12 +322,6 @@ void CG_ParseXmodinfo( void) {
 
     // g_spawnInvulNoClip for client-side prediction
     cvars::bg_spawnInvulNoClip.set( Info_ValueForKey( info, "F" ));
-
-    ammoTableNeedsUpdate = true;
-    BG_updateAmmoTable();
-
-	// Dynamite arm time
-	cg.dynamiteTime = cvars::bg_dynamiteTime.ivalue * 1000;
 }
 
 /*
@@ -763,6 +773,10 @@ void CG_ConfigStringModified( void )
 
         case CS_XMODINFO:
             CG_ParseXmodinfo();
+            return;
+
+        case CS_XMODINFO2:
+            CG_ParseXmodinfo2();
             return;
 
         case CS_SKILLLEVELS:

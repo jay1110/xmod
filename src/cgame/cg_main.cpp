@@ -3099,6 +3099,7 @@ void CG_Init( int serverMessageNum, int serverCommandSequence, int clientNum, qb
     CG_InitMapEntities();
 	cg.dynamiteTime = 30000;
 	CG_ParseXmodinfo();
+	CG_ParseXmodinfo2();
 	CG_ParseSkillLevels();
 	CG_SetJayFlags();
 	CG_SetMACAddress();

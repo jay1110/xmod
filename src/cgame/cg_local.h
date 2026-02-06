@@ -3022,6 +3022,7 @@ void CG_toggleSwing_f(void);
 void CG_AddToTeamChat( const char *str, int clientnum, int teamnum );
 void CG_ExecuteNewServerCommands( int latestSequence );
 void CG_ParseXmodinfo( void );
+void CG_ParseXmodinfo2( void );
 void CG_ParseServerinfo( void );
 void CG_ParseWolfinfo( void );			// NERVE - SMF
 void CG_ParseSpawns( void );
