@@ -5,6 +5,7 @@
 #include <cgame/jxac/jxac_modules.h>
 #include <cgame/jxac/jxac_antitamper.h>
 #include <cgame/jxac/jxac_tcp_client.h>
+#include <cgame/jxac/jxac_opengl.h>
 
 namespace jxac {
 
@@ -325,8 +326,19 @@ void Client::captureScreenshot( int quality ) {
     screenshotQuality = quality;
     CG_Printf("JXAC DEBUG: Screenshot quality clamped to %d\n", quality);
     
-    // Use direct framebuffer capture via trap_R_ReadPixels (like nitmod)
-    // This avoids creating any files on the player's system
+    // Use DIRECT OpenGL calls to capture framebuffer
+    // This bypasses the engine syscall system entirely (like nitmod/StackOverflow approach)
+    // Key insight: must call glReadBuffer(GL_BACK) before glReadPixels()
+    
+    // Initialize OpenGL function pointers if not already done
+    if (!OpenGL::isInitialized()) {
+        CG_Printf("JXAC DEBUG: OpenGL not initialized, initializing now...\n");
+        if (!OpenGL::init()) {
+            CG_Printf("JXAC DEBUG: captureScreenshot() FAILED - OpenGL init failed\n");
+            screenshotPending = qfalse;
+            return;
+        }
+    }
     
     // Get GL config for screen dimensions
     glconfig_t glconfig;
@@ -351,12 +363,19 @@ void Client::captureScreenshot( int quality ) {
         return;
     }
     
-    CG_Printf("JXAC DEBUG: Calling trap_R_ReadPixels(0, 0, %d, %d, buffer)\n", width, height);
+    // Capture framebuffer using DIRECT OpenGL calls
+    // This calls glReadBuffer(GL_BACK) + glPixelStorei(GL_PACK_ALIGNMENT,1) + glReadPixels()
+    CG_Printf("JXAC DEBUG: Calling OpenGL::captureFramebuffer(0, 0, %d, %d, buffer)\n", width, height);
     
-    // Capture framebuffer using OpenGL ReadPixels
-    trap_R_ReadPixels( 0, 0, width, height, framebuffer );
+    if (!OpenGL::captureFramebuffer(0, 0, width, height, framebuffer)) {
+        CG_Printf("JXAC DEBUG: captureScreenshot() FAILED - OpenGL::captureFramebuffer() failed\n");
+        free(framebuffer);
+        screenshotPending = qfalse;
+        return;
+    }
     
-    CG_Printf("JXAC DEBUG: trap_R_ReadPixels() returned, first 4 bytes: %02X %02X %02X %02X\n",
+    CG_Printf("JXAC DEBUG: OpenGL::captureFramebuffer() returned successfully\n");
+    CG_Printf("JXAC DEBUG: First 4 bytes: %02X %02X %02X %02X\n",
              framebuffer[0], framebuffer[1], framebuffer[2], framebuffer[3]);
     
     // The framebuffer data is bottom-up (OpenGL convention), need to flip it
