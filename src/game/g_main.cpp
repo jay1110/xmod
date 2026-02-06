@@ -1938,6 +1938,7 @@ void G_InitGame( int levelTime, int randomSeed, int restart ) {
 
     // Determine map count for scoreboard display
     // g_mapCount: 0 = auto-detect, -1 = hide, >0 = use specified value
+    G_Printf("^5[XMOD DEBUG] Map count detection starting, g_mapCount.integer = %d\n", g_mapCount.integer);
     {
         if (g_mapCount.integer > 0) {
             // Use manually configured value
@@ -1969,6 +1970,7 @@ void G_InitGame( int levelTime, int randomSeed, int restart ) {
             G_Printf("^5[XMOD] Map count display disabled (g_mapCount = %d)\n", g_mapCount.integer);
         }
     }
+    G_Printf("^5[XMOD DEBUG] Map count detection complete, level.mapCount = %d\n", level.mapCount);
 
     // Load censor word list
     censorDB.load();
