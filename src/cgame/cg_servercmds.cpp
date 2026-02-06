@@ -248,14 +248,6 @@ Jaybird
 void CG_ParseXmodinfo( void) {
     const char* const info = CG_ConfigString( CS_XMODINFO );
 
-    // CLIENT DEBUG: Log raw configstring and specific values
-    CG_Printf("^5[CG_DBG] Parsing XMODINFO configstring\n");
-    CG_Printf("^5[CG_DBG] Raw configstring: %s\n", info);
-    CG_Printf("^5[CG_DBG] Raw key 'e' (maxEng): '%s'\n", Info_ValueForKey(info, "e"));
-    CG_Printf("^5[CG_DBG] Raw key 'f' (maxMed): '%s'\n", Info_ValueForKey(info, "f"));
-    CG_Printf("^5[CG_DBG] Raw key 'D' (noReload): '%s'\n", Info_ValueForKey(info, "D"));
-    CG_Printf("^5[CG_DBG] Raw key 'E' (noCharge): '%s'\n", Info_ValueForKey(info, "E"));
-
     cvars::bg_bulletmode.set ( Info_ValueForKey( info, "0" ));
     cvars::bg_hitmode.set    ( Info_ValueForKey( info, "1" ));
 
@@ -304,6 +296,22 @@ void CG_ParseXmodinfo( void) {
 
     cvars::bg_proneDelay.set      ( Info_ValueForKey( info, "z" ));
 
+    ammoTableNeedsUpdate = true;
+    BG_updateAmmoTable();
+
+	// Dynamite arm time
+	cg.dynamiteTime = cvars::bg_dynamiteTime.ivalue * 1000;
+}
+
+/*
+==================
+CG_ParseXmodinfo2
+Parse newer CVARs from CS_XMODINFO2 (overflow from CS_XMODINFO)
+==================
+*/
+void CG_ParseXmodinfo2( void) {
+    const char* const info = CG_ConfigString( CS_XMODINFO2 );
+
     cvars::bg_doubleJump.set      ( Info_ValueForKey( info, "A" ));
     cvars::bg_djHeight.set        ( Info_ValueForKey( info, "B" ));
     cvars::bg_weaponsenable.set   ( Info_ValueForKey( info, "C" ));
@@ -314,18 +322,6 @@ void CG_ParseXmodinfo( void) {
 
     // g_spawnInvulNoClip for client-side prediction
     cvars::bg_spawnInvulNoClip.set( Info_ValueForKey( info, "F" ));
-
-    // CLIENT DEBUG: Log stored CVAR values after parsing
-    CG_Printf("^5[CG_DBG] After set - cg_maxEngineers: %d\n", cvars::bg_maxEngineers.ivalue);
-    CG_Printf("^5[CG_DBG] After set - cg_maxMedics: %d\n", cvars::bg_maxMedics.ivalue);
-    CG_Printf("^5[CG_DBG] After set - cg_noCharge: %d\n", cvars::g_noCharge.ivalue);
-    CG_Printf("^5[CG_DBG] After set - cg_noReload: %d\n", cvars::g_noReload.ivalue);
-
-    ammoTableNeedsUpdate = true;
-    BG_updateAmmoTable();
-
-	// Dynamite arm time
-	cg.dynamiteTime = cvars::bg_dynamiteTime.ivalue * 1000;
 }
 
 /*
@@ -777,6 +773,10 @@ void CG_ConfigStringModified( void )
 
         case CS_XMODINFO:
             CG_ParseXmodinfo();
+            return;
+
+        case CS_XMODINFO2:
+            CG_ParseXmodinfo2();
             return;
 
         case CS_SKILLLEVELS:

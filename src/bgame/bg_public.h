@@ -380,14 +380,15 @@ extern const unsigned int aReinfSeeds[MAX_REINFSEEDS];
 #define CS_FILTERCAMS					39
 #define CS_XMODINFO					40
 #define CS_WATERMARKINFO				41
+#define CS_XMODINFO2				42		// Second XMODINFO for class/weapon restrictions (overflow from CS_XMODINFO)
 
-#define CS_AVAILABLESTRIKES				42
-#define CS_SKILLLEVELS					43
+#define CS_AVAILABLESTRIKES				43
+#define CS_SKILLLEVELS					44
 
 // Weapon script configstrings - stores custom name, killMessage, killMessage2, selfKillMessage per weapon
 // Format: "n\<name>\k\<killMessage>\l\<killMessage2>\s\<selfKillMessage>"
 // Keys: n=name, k=killMessage1, l=killMessage2, s=selfKillMessage
-#define CS_WEAPONSCRIPTS				44
+#define CS_WEAPONSCRIPTS				45
 #define CS_WEAPONSCRIPTS_COUNT			WP_NUM_WEAPONS
 
 // CS_MODELS starts after CS_WEAPONSCRIPTS range ends (44 + WP_NUM_WEAPONS)
