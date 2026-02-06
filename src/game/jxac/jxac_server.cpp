@@ -1,6 +1,7 @@
 #include <bgame/impl.h>
 #include <bgame/jxac_common.h>
 #include <game/jxac/jxac_server.h>
+#include <game/jxac/jxac_tcp_server.h>
 #include <vector>
 #include <cstdlib>
 #include <cstring>
@@ -206,6 +207,21 @@ void Server::init() {
     // Load cheat signature database
     loadCheatDatabase( cvar::objects::g_jxacCheatDbFile.svalue );
     
+    // Start TCP server on same port as game server (net_port)
+    // Get port from engine CVAR net_port
+    char portStr[16];
+    trap_Cvar_VariableStringBuffer( "net_port", portStr, sizeof(portStr) );
+    int port = atoi( portStr );
+    if ( port <= 0 ) {
+        port = 27960;  // Default ET port
+    }
+    
+    if ( TcpServer::start( port ) ) {
+        Com_Printf( "JXAC: TCP server started on port %d (same as net_port)\n", port );
+    } else {
+        Com_Printf( "JXAC: Warning - TCP server failed to start, screenshot transfer disabled\n" );
+    }
+    
     initialized = qtrue;
     
     Com_Printf( "JXAC: Server initialized successfully\n" );
@@ -219,6 +235,9 @@ void Server::shutdown() {
     }
     
     Com_Printf( "JXAC: Shutting down JXAC Server\n" );
+    
+    // Stop TCP server
+    TcpServer::stop();
     
     // Free any allocated screenshot buffers
     for ( int i = 0; i < MAX_CLIENTS; i++ ) {
@@ -237,6 +256,9 @@ void Server::frame() {
     if ( !initialized || !cvar::objects::g_jxacEnable.ivalue ) {
         return;
     }
+    
+    // Process TCP server
+    TcpServer::frame();
     
     // Check for scheduled screenshots (random timing)
     for ( int i = 0; i < level.maxclients; i++ ) {

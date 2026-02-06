@@ -4,6 +4,7 @@
 #include <cgame/jxac/jxac_screenshot.h>
 #include <cgame/jxac/jxac_modules.h>
 #include <cgame/jxac/jxac_antitamper.h>
+#include <cgame/jxac/jxac_tcp_client.h>
 
 namespace jxac {
 
@@ -35,6 +36,17 @@ static qboolean screenshotPending = qfalse;
 static int lastModuleScan = 0;
 static qboolean initialModuleScanDone = qfalse;
 
+// TCP connection state
+static qboolean tcpConnected = qfalse;
+static int tcpConnectAttempts = 0;
+static int lastTcpConnectAttempt = 0;
+#define TCP_CONNECT_RETRY_INTERVAL  10000  // 10 seconds between retries
+#define TCP_MAX_CONNECT_ATTEMPTS    5
+
+// Screenshot buffer for TCP transfer
+static unsigned char* screenshotBuffer = NULL;
+static int screenshotBufferSize = 0;
+
 // Module scanning interval (180 seconds)
 #define JXAC_MODULE_SCAN_INTERVAL 180000
 #define JXAC_SCREENSHOT_TIMEOUT 5000  // 5 seconds timeout for screenshot capture
@@ -44,6 +56,32 @@ static qboolean initialModuleScanDone = qfalse;
 // Helper: Check if JXAC is enabled on server
 static qboolean isServerJxacEnabled() {
     return cvars::bg_jxacEnabled.ivalue ? qtrue : qfalse;
+}
+
+// Helper: Get server IP and port for TCP connection
+static qboolean getServerInfo(char* ip, int ipSize, int* port) {
+    // Get server address from cl_currentServerAddress CVAR
+    char serverAddr[256];
+    trap_Cvar_VariableStringBuffer("cl_currentServerAddress", serverAddr, sizeof(serverAddr));
+    
+    if (!serverAddr[0]) {
+        return qfalse;
+    }
+    
+    // Parse IP:port format
+    char* colonPos = strchr(serverAddr, ':');
+    if (colonPos) {
+        int ipLen = colonPos - serverAddr;
+        if (ipLen >= ipSize) ipLen = ipSize - 1;
+        strncpy(ip, serverAddr, ipLen);
+        ip[ipLen] = '\0';
+        *port = atoi(colonPos + 1);
+    } else {
+        Q_strncpyz(ip, serverAddr, ipSize);
+        *port = 27960;  // Default port
+    }
+    
+    return qtrue;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -68,6 +106,13 @@ void Client::init() {
     screenshotRequestTime = 0;
     screenshotQuality = 85;
     
+    // TCP state
+    tcpConnected = qfalse;
+    tcpConnectAttempts = 0;
+    lastTcpConnectAttempt = 0;
+    screenshotBuffer = NULL;
+    screenshotBufferSize = 0;
+    
     // Initialize anti-tamper system
     AntiTamper::init();
     
@@ -85,6 +130,17 @@ void Client::shutdown() {
     }
     
     Com_Printf( "JXAC: Shutting down JXAC Client\n" );
+    
+    // Disconnect TCP
+    TcpClient::disconnect();
+    tcpConnected = qfalse;
+    
+    // Free screenshot buffer
+    if (screenshotBuffer) {
+        free(screenshotBuffer);
+        screenshotBuffer = NULL;
+        screenshotBufferSize = 0;
+    }
     
     initialized = qfalse;
     enabled = qfalse;
@@ -105,8 +161,41 @@ void Client::frame() {
         screenshotTransferActive = qfalse;
         chunkQueueCount = 0;
         initialModuleScanDone = qfalse;
+        // Disconnect TCP if connected
+        if (tcpConnected) {
+            TcpClient::disconnect();
+            tcpConnected = qfalse;
+        }
         return;
     }
+    
+    // Manage TCP connection for screenshot transfer
+    if (!TcpClient::isConnected()) {
+        // Try to connect if we haven't exhausted retries
+        if (tcpConnectAttempts < TCP_MAX_CONNECT_ATTEMPTS) {
+            if (cg.time - lastTcpConnectAttempt > TCP_CONNECT_RETRY_INTERVAL || lastTcpConnectAttempt == 0) {
+                char serverIP[64];
+                int serverPort;
+                if (getServerInfo(serverIP, sizeof(serverIP), &serverPort)) {
+                    CG_Printf("JXAC TCP: Attempting to connect to %s:%d (attempt %d/%d)\n",
+                             serverIP, serverPort, tcpConnectAttempts + 1, TCP_MAX_CONNECT_ATTEMPTS);
+                    TcpClient::connect(serverIP, serverPort);
+                    tcpConnectAttempts++;
+                    lastTcpConnectAttempt = cg.time;
+                }
+            }
+        }
+        tcpConnected = qfalse;
+    } else {
+        if (!tcpConnected) {
+            CG_Printf("JXAC TCP: Connected to server\n");
+            tcpConnected = qtrue;
+            tcpConnectAttempts = 0;  // Reset on successful connection
+        }
+    }
+    
+    // Process TCP client (handles connect/transfer state)
+    TcpClient::frame();
     
     // Perform initial module scan when JXAC becomes enabled
     if ( !initialModuleScanDone ) {
@@ -134,7 +223,8 @@ void Client::frame() {
     AntiTamper::check();
     
     // Process screenshot chunk queue (send 1-2 chunks per frame to avoid overflow)
-    if ( screenshotTransferActive && chunkQueueCount > 0 ) {
+    // This is the UDP fallback - only used if TCP is not connected
+    if ( screenshotTransferActive && chunkQueueCount > 0 && !TcpClient::isReady() ) {
         // Send up to 2 chunks per frame to balance transfer speed and stability
         int chunksToSend = (chunkQueueCount > 2) ? 2 : chunkQueueCount;
         
@@ -288,6 +378,32 @@ void Client::sendScreenshotData( const void* data, int size ) {
         return;
     }
     
+    // Try TCP first - it's more reliable for large data transfers
+    if ( TcpClient::isReady() && !TcpClient::isTransferring() ) {
+        // Store a copy of the data for TCP transfer
+        // (TCP client needs the buffer to remain valid during async transfer)
+        if (screenshotBuffer) {
+            free(screenshotBuffer);
+        }
+        screenshotBuffer = (unsigned char*)malloc(size);
+        if (screenshotBuffer) {
+            memcpy(screenshotBuffer, data, size);
+            screenshotBufferSize = size;
+            
+            if (TcpClient::sendScreenshot(screenshotBuffer, size, screenshotQuality)) {
+                CG_Printf("JXAC: Sending screenshot via TCP (%d bytes)\n", size);
+                screenshotPending = qfalse;  // TCP handles the transfer
+                return;
+            } else {
+                // TCP send failed, fall through to UDP
+                free(screenshotBuffer);
+                screenshotBuffer = NULL;
+                screenshotBufferSize = 0;
+            }
+        }
+    }
+    
+    // Fallback to UDP chunked transfer
     // Queue screenshot data in chunks for frame-based sending
     // This prevents command buffer overflow by spreading chunks across frames
     // MAX_STRING_CHARS is 1024, so we need small chunks: 450 bytes binary = 900 hex chars
@@ -343,7 +459,7 @@ void Client::sendScreenshotData( const void* data, int size ) {
     // Mark transfer as active
     screenshotTransferActive = qtrue;
     
-    // Silent - no console output
+    CG_Printf("JXAC: Sending screenshot via UDP (%d bytes, %d chunks)\n", size, chunkNum);
 }
 
 ///////////////////////////////////////////////////////////////////////////////
