@@ -57,7 +57,10 @@ void G_SendScore( gentity_t *ent ) {
 
 			// NERVE - SMF - if on same team, send across player class
 			// Gordon: FIXME: remove/move elsewhere?
-			if ( cl->ps.persistant[PERS_TEAM] == ent->client->ps.persistant[PERS_TEAM] || G_smvLocateEntityInMVList(ent, level.sortedClients[i], qfalse)) {
+			// xmod: Also send class to spectators so they can see all classes
+			if ( cl->ps.persistant[PERS_TEAM] == ent->client->ps.persistant[PERS_TEAM] || 
+			     ent->client->ps.persistant[PERS_TEAM] == TEAM_SPECTATOR ||
+			     G_smvLocateEntityInMVList(ent, level.sortedClients[i], qfalse)) {
 				playerClass = cl->ps.stats[STAT_PLAYER_CLASS];
 			} else {
 				playerClass = 0;
@@ -85,8 +88,9 @@ void G_SendScore( gentity_t *ent ) {
 			}
 
 			if( g_gametype.integer == GT_WOLF_LMS ) {
-				Com_sprintf (entry, sizeof(entry), " %i %i %i %i %i %i %i", level.sortedClients[i], cl->ps.persistant[PERS_SCORE], ping, 
-					(level.time - cl->pers.enterTime) / 60000, g_entities[level.sortedClients[i]].s.powerups, playerClass, respawnsLeft );
+				Com_sprintf (entry, sizeof(entry), " %i %i %i %i %i %i %i %i %i", level.sortedClients[i], cl->ps.persistant[PERS_SCORE], ping, 
+					(level.time - cl->pers.enterTime) / 60000, g_entities[level.sortedClients[i]].s.powerups, playerClass, respawnsLeft,
+					cl->sess.kills, cl->sess.deaths );
 			} else {
 				int j, totalXP;
 
@@ -94,8 +98,9 @@ void G_SendScore( gentity_t *ent ) {
 					totalXP += int( cl->sess.skillpoints[j] );
 				}
 
-				Com_sprintf (entry, sizeof(entry), " %i %i %i %i %i %i %i", level.sortedClients[i], totalXP, ping, 
-					(level.time - cl->pers.enterTime) / 60000, g_entities[level.sortedClients[i]].s.powerups, playerClass, respawnsLeft );
+				Com_sprintf (entry, sizeof(entry), " %i %i %i %i %i %i %i %i %i", level.sortedClients[i], totalXP, ping, 
+					(level.time - cl->pers.enterTime) / 60000, g_entities[level.sortedClients[i]].s.powerups, playerClass, respawnsLeft,
+					cl->sess.kills, cl->sess.deaths );
 			}
 
 			// Make sure the entry can fit in the buffer. If not break away and send the buffer content
