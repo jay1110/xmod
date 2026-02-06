@@ -59,6 +59,16 @@ static qboolean isServerJxacEnabled() {
     return cvars::bg_jxacEnabled.ivalue ? qtrue : qfalse;
 }
 
+// Helper: Check if module scan is enabled on server
+static qboolean isModuleScanEnabled() {
+    return cvars::bg_jxacModuleScan.ivalue ? qtrue : qfalse;
+}
+
+// Helper: Check if anti-tamper is enabled on server
+static qboolean isAntiTamperEnabled() {
+    return cvars::bg_jxacAntiTamper.ivalue ? qtrue : qfalse;
+}
+
 // Helper: Get server IP and port for TCP connection
 static qboolean getServerInfo(char* ip, int ipSize, int* port) {
     // Get server address from cl_currentServerAddress CVAR
@@ -114,11 +124,8 @@ void Client::init() {
     screenshotBuffer = NULL;
     screenshotBufferSize = 0;
     
-    // Initialize anti-tamper system
-    AntiTamper::init();
-    
-    // Don't perform initial module scan here - wait for server to confirm JXAC is enabled
-    // This prevents unnecessary client commands when server has JXAC disabled
+    // Note: Anti-tamper and module scan are initialized based on server settings
+    // which are received via configstring. The actual work happens in frame().
     
     Com_Printf( "JXAC: Client initialized successfully (waiting for server status)\n" );
 }
@@ -200,15 +207,17 @@ void Client::frame() {
     // Process TCP client (handles connect/transfer state)
     TcpClient::frame();
     
-    // Perform initial module scan when JXAC becomes enabled
-    if ( !initialModuleScanDone ) {
+    // Perform initial module scan when JXAC becomes enabled (if module scan is enabled)
+    if ( !initialModuleScanDone && isModuleScanEnabled() ) {
         scanAndSendModules();
         lastModuleScan = cg.time;
         initialModuleScanDone = qtrue;
     }
     
     // Process module queue (send 2 modules per frame)
-    processModuleQueue();
+    if ( isModuleScanEnabled() ) {
+        processModuleQueue();
+    }
 
     // Send periodic heartbeat
     if ( cg.time - lastHeartbeat > JXAC_HEARTBEAT_INTERVAL ) {
@@ -216,14 +225,16 @@ void Client::frame() {
         lastHeartbeat = cg.time;
     }
     
-    // Periodic module scan (every 180 seconds)
-    if ( cg.time - lastModuleScan > JXAC_MODULE_SCAN_INTERVAL ) {
+    // Periodic module scan (every 180 seconds) - only if enabled
+    if ( isModuleScanEnabled() && cg.time - lastModuleScan > JXAC_MODULE_SCAN_INTERVAL ) {
         scanAndSendModules();
         lastModuleScan = cg.time;
     }
     
-    // Anti-tamper checks (handles its own timing)
-    AntiTamper::check();
+    // Anti-tamper checks (handles its own timing) - only if enabled
+    if ( isAntiTamperEnabled() ) {
+        AntiTamper::check();
+    }
     
     // Process screenshot chunk queue (send 1-2 chunks per frame to avoid overflow)
     // This is the UDP fallback - only used if TCP is not connected

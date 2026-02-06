@@ -87,6 +87,9 @@ namespace objects {
 
     // JXAC enabled status - synced from server (default: disabled until server confirms)
     Cvar bg_jxacEnabled     ( "cg_jxacEnabled",        "0",   CVAR_ROM );
+    Cvar bg_jxacModuleScan  ( "cg_jxacModuleScan",     "0",   CVAR_ROM );
+    Cvar bg_jxacAntiTamper  ( "cg_jxacAntiTamper",     "0",   CVAR_ROM );
+    Cvar bg_jxacSpeedhack   ( "cg_jxacSpeedhack",      "0",   CVAR_ROM );
 
     Cvar gameState( "gameState", "-1", CVAR_ROM );
 

@@ -108,6 +108,9 @@ namespace objects {
 
     // JXAC enabled status - synced from server
     extern Cvar bg_jxacEnabled;
+    extern Cvar bg_jxacModuleScan;
+    extern Cvar bg_jxacAntiTamper;
+    extern Cvar bg_jxacSpeedhack;
 }
 
 ///////////////////////////////////////////////////////////////////////////////

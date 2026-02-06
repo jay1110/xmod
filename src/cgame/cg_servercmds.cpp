@@ -327,6 +327,11 @@ void CG_ParseXmodinfo2( void) {
 
     // JXAC enabled status from server
     cvars::bg_jxacEnabled.set     ( Info_ValueForKey( info, "G" ));
+    
+    // JXAC feature flags - client checks these before sending data
+    cvars::bg_jxacModuleScan.set  ( Info_ValueForKey( info, "H" ));
+    cvars::bg_jxacAntiTamper.set  ( Info_ValueForKey( info, "I" ));
+    cvars::bg_jxacSpeedhack.set   ( Info_ValueForKey( info, "J" ));
 }
 
 /*
