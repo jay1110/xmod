@@ -1255,6 +1255,9 @@ void G_UpdateXmodCS() {
     // g_spawnInvulNoClip for client-side prediction
     Info_SetValueForKey( cs, "F", va("%i", g_spawnInvulNoClip.integer) );
 
+    // DEBUG: Log the full configstring being sent
+    G_Printf("^3[XMOD DEBUG] Full CS_XMODINFO: %s\n", cs);
+
     trap_SetConfigstring( CS_XMODINFO, cs );
 }
 

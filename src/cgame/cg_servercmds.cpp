@@ -248,8 +248,9 @@ Jaybird
 void CG_ParseXmodinfo( void) {
     const char* const info = CG_ConfigString( CS_XMODINFO );
 
-    // CLIENT DEBUG: Log received XMODINFO values for class/weapon limits
+    // CLIENT DEBUG: Log raw configstring and specific values
     CG_Printf("^5[CG_DBG] Parsing XMODINFO configstring\n");
+    CG_Printf("^5[CG_DBG] Raw configstring: %s\n", info);
     CG_Printf("^5[CG_DBG] Raw key 'e' (maxEng): '%s'\n", Info_ValueForKey(info, "e"));
     CG_Printf("^5[CG_DBG] Raw key 'f' (maxMed): '%s'\n", Info_ValueForKey(info, "f"));
     CG_Printf("^5[CG_DBG] Raw key 'D' (noReload): '%s'\n", Info_ValueForKey(info, "D"));
