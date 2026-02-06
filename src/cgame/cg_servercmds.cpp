@@ -326,7 +326,9 @@ void CG_ParseXmodinfo2( void) {
     cvars::bg_spawnInvulNoClip.set( Info_ValueForKey( info, "F" ));
 
     // Map count for scoreboard display
-    cgs.mapCount = atoi( Info_ValueForKey( info, "G" ));
+    const char* mapCountStr = Info_ValueForKey( info, "G" );
+    cgs.mapCount = atoi( mapCountStr );
+    CG_Printf("^5[XMOD DEBUG] CG_ParseXmodinfo2: G=%s mapCount=%d\n", mapCountStr, cgs.mapCount);
 }
 
 /*

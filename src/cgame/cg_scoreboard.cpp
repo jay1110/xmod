@@ -801,8 +801,8 @@ static int WM_TeamScoreboard( int x, int y, team_t team, float fade, int maxrows
 			teamStr = va( "^d%s [%d] (%d %s)", CG_TranslateString( "ALLIES" ), cg.teamScores[1], cg.teamPlayers[team], CG_TranslateString("PLAYERS") );
 			CG_Text_Paint_Ext( x, y + 11, 0.2f, 0.2f, clrAlliesBlue, teamStr, 0, 0, 0, &cgs.media.limboFont1 );
 		}
-		// AVG Ping with +/- standard deviation on the right
-		avgStr = va( "^9AVG Ping: %.0f+/-%.0fms", avgPing, pingStdDev );
+		// AVG Ping with ± standard deviation on the right (using Latin-1 hex code for ±)
+		avgStr = va( "^9AVG Ping: %.0f\xb1%.0fms", avgPing, pingStdDev );
 		CG_Text_Paint_Ext( x + width - 5 - CG_Text_Width_Ext( avgStr, 0.18f, 0, &cgs.media.limboFont1 ), y + 11, 0.18f, 0.18f, tclr, avgStr, 0, 0, 0, &cgs.media.limboFont1 );
 	}
 
