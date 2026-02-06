@@ -1930,11 +1930,12 @@ void G_InitGame( int levelTime, int randomSeed, int restart ) {
     // Load maps database
     mapDB.load();
 
-    // Count available .bsp maps
+    // Count available maps (from .arena files in scripts directory, same as UI)
     {
-        char mapList[4096];
-        level.mapCount = trap_FS_GetFileList("maps", ".bsp", mapList, sizeof(mapList));
-        G_Printf("Found %d maps on server\n", level.mapCount);
+        char arenaList[8192];
+        int numArenas = trap_FS_GetFileList("scripts", ".arena", arenaList, sizeof(arenaList));
+        level.mapCount = numArenas;
+        G_Printf("^5[XMOD] Found %d arena files (maps)\n", level.mapCount);
     }
 
     // Load censor word list
