@@ -56,18 +56,41 @@ qboolean TcpClient::connect(const char* serverIP, int port) {
     // Set non-blocking before connect
     jxac_socket_setnonblocking(clientSocket);
     
-    // Build server address
+    // Build server address - use getaddrinfo for DNS resolution
     struct sockaddr_in addr;
     memset(&addr, 0, sizeof(addr));
     addr.sin_family = AF_INET;
     addr.sin_port = htons((unsigned short)port);
     
-    // Convert IP address
+    // First try direct IP conversion
     if (inet_pton(AF_INET, serverIP, &addr.sin_addr) <= 0) {
-        CG_Printf("JXAC TCP: Invalid server address: %s\n", serverIP);
-        jxac_closesocket(clientSocket);
-        clientSocket = JXAC_INVALID_SOCKET;
-        return qfalse;
+        // Not a valid IP - try DNS resolution
+        CG_Printf("JXAC TCP: Resolving hostname: %s...\n", serverIP);
+        
+        struct addrinfo hints, *result = NULL;
+        memset(&hints, 0, sizeof(hints));
+        hints.ai_family = AF_INET;       // IPv4 only
+        hints.ai_socktype = SOCK_STREAM; // TCP
+        
+        int gai_result = getaddrinfo(serverIP, NULL, &hints, &result);
+        if (gai_result != 0 || result == NULL) {
+            CG_Printf("JXAC TCP: DNS resolution failed for '%s': %s\n", 
+                     serverIP, gai_strerror(gai_result));
+            jxac_closesocket(clientSocket);
+            clientSocket = JXAC_INVALID_SOCKET;
+            return qfalse;
+        }
+        
+        // Copy resolved address
+        struct sockaddr_in* resolved = (struct sockaddr_in*)result->ai_addr;
+        addr.sin_addr = resolved->sin_addr;
+        
+        // Log the resolved IP
+        char resolvedIP[64];
+        inet_ntop(AF_INET, &addr.sin_addr, resolvedIP, sizeof(resolvedIP));
+        CG_Printf("JXAC TCP: Resolved %s -> %s\n", serverIP, resolvedIP);
+        
+        freeaddrinfo(result);
     }
     
     // Store connection info
