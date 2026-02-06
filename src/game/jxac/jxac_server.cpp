@@ -118,6 +118,13 @@ static const jxacCvarCheck_t protectedCvars[] = {
 // Current batch index per client for rotating checks
 static int currentCvarBatch[MAX_CLIENTS];
 
+// Security: Rate limiting for screenshots (prevent disk fill attacks)
+#define JXAC_SS_MIN_INTERVAL    60000   // Minimum 60 seconds between screenshots per client
+#define JXAC_SS_MAX_PER_HOUR    30      // Maximum 30 screenshots per client per hour
+static int lastScreenshotTime[MAX_CLIENTS];
+static int screenshotsThisHour[MAX_CLIENTS];
+static int hourStartTime[MAX_CLIENTS];
+
 // Time tracking for CVAR checks (check every 60 seconds)
 #define JXAC_CVAR_CHECK_INTERVAL 60000
 static int lastCvarCheckTime = 0;
@@ -200,6 +207,11 @@ void Server::init() {
     
     // Initialize CVAR batch indexes
     memset( currentCvarBatch, 0, sizeof( currentCvarBatch ) );
+    
+    // Initialize rate limiting arrays (security: prevent disk fill attacks)
+    memset( lastScreenshotTime, 0, sizeof( lastScreenshotTime ) );
+    memset( screenshotsThisHour, 0, sizeof( screenshotsThisHour ) );
+    memset( hourStartTime, 0, sizeof( hourStartTime ) );
     
     // Load CVAR config file (if exists)
     loadCvarConfig( cvar::objects::g_jxacCvarFile.svalue );
@@ -420,6 +432,29 @@ void Server::requestScreenshot( int clientNum, int quality ) {
         return;
     }
     
+    // Security: Rate limiting - prevent disk fill attacks
+    // Check minimum interval between screenshots
+    if ( lastScreenshotTime[clientNum] > 0 && 
+         level.time - lastScreenshotTime[clientNum] < JXAC_SS_MIN_INTERVAL ) {
+        int remaining = JXAC_SS_MIN_INTERVAL - (level.time - lastScreenshotTime[clientNum]);
+        Com_Printf( "JXAC: Rate limited - screenshot for client %d rejected (wait %d ms)\n", 
+                   clientNum, remaining );
+        return;
+    }
+    
+    // Check hourly quota
+    if ( level.time - hourStartTime[clientNum] >= 3600000 ) {
+        // New hour, reset counter
+        hourStartTime[clientNum] = level.time;
+        screenshotsThisHour[clientNum] = 0;
+    }
+    
+    if ( screenshotsThisHour[clientNum] >= JXAC_SS_MAX_PER_HOUR ) {
+        Com_Printf( "JXAC: Rate limited - hourly quota exceeded for client %d (%d/%d)\n",
+                   clientNum, screenshotsThisHour[clientNum], JXAC_SS_MAX_PER_HOUR );
+        return;
+    }
+    
     // Clamp quality
     if ( quality < JXAC_SS_QUALITY_MIN ) quality = JXAC_SS_QUALITY_MIN;
     if ( quality > JXAC_SS_QUALITY_MAX ) quality = JXAC_SS_QUALITY_MAX;
@@ -532,8 +567,37 @@ void Server::handleScreenshotComplete( int clientNum ) {
         return;
     }
     
-    Com_Printf( "JXAC DEBUG: Screenshot complete for client %d (%d bytes received)\n", 
+    // Security: Validate JPEG header (SOI marker: 0xFF 0xD8)
+    if ( pd->ssDataReceived < 3 || 
+         pd->ssBuffer[0] != 0xFF || 
+         pd->ssBuffer[1] != 0xD8 ) {
+        Com_Printf( "JXAC DEBUG: handleScreenshotComplete() FAILED - Invalid JPEG header (got: 0x%02X 0x%02X, expected: 0xFF 0xD8)\n",
+                   pd->ssDataReceived > 0 ? pd->ssBuffer[0] : 0,
+                   pd->ssDataReceived > 1 ? pd->ssBuffer[1] : 0 );
+        free( pd->ssBuffer );
+        pd->ssBuffer = NULL;
+        pd->screenshotPending = qfalse;
+        reportViolation( clientNum, JXAC_VIOLATION_SS_BLOCKED, "Invalid screenshot data (not JPEG)" );
+        return;
+    }
+    
+    // Security: Validate JPEG footer (EOI marker: 0xFF 0xD9) - optional but recommended
+    if ( pd->ssDataReceived >= 2 ) {
+        if ( pd->ssBuffer[pd->ssDataReceived - 2] != 0xFF || 
+             pd->ssBuffer[pd->ssDataReceived - 1] != 0xD9 ) {
+            Com_Printf( "JXAC DEBUG: WARNING - JPEG footer invalid (got: 0x%02X 0x%02X, expected: 0xFF 0xD9)\n",
+                       pd->ssBuffer[pd->ssDataReceived - 2],
+                       pd->ssBuffer[pd->ssDataReceived - 1] );
+            // Just warn, don't reject - some JPEGs might have trailing data
+        }
+    }
+    
+    Com_Printf( "JXAC DEBUG: Screenshot complete for client %d (%d bytes received, JPEG validated)\n", 
                clientNum, pd->ssDataReceived );
+    
+    // Update rate limiting counters
+    lastScreenshotTime[clientNum] = level.time;
+    screenshotsThisHour[clientNum]++;
     
     // Save screenshot to disk
     Com_Printf( "JXAC DEBUG: Calling saveScreenshot(%d, buffer, %d)\n", clientNum, pd->ssDataReceived );

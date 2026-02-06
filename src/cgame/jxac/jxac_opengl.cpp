@@ -3,7 +3,9 @@
 // Based on nitmod/StackOverflow approach
 //
 // Windows: GetModuleHandle("opengl32") + GetProcAddress()
-// Linux: dlopen("libGL.so.1") + dlsym()
+// Linux/aarch64: dlopen("libGL.so.1") + dlsym()
+// macOS: dlopen OpenGL.framework + dlsym()
+// Android: dlopen("libGLESv2.so") + dlsym()
 
 #include <bgame/impl.h>
 #include "jxac_opengl.h"
@@ -12,6 +14,14 @@
 #include <windows.h>
 #else
 #include <dlfcn.h>
+#endif
+
+// Platform detection
+#if defined(__APPLE__)
+    #include <TargetConditionals.h>
+    #define JXAC_PLATFORM_MACOS
+#elif defined(__ANDROID__)
+    #define JXAC_PLATFORM_ANDROID
 #endif
 
 namespace jxac {
@@ -74,21 +84,60 @@ bool init() {
     CG_Printf("  glBindFramebuffer: %p\n", (void*)qglBindFramebuffer);
     
 #else
-    // Linux: Load libGL.so.1
-    glLibrary = dlopen("libGL.so.1", RTLD_LAZY | RTLD_NOLOAD);
-    if (!glLibrary) {
-        // Library not loaded yet, try loading it
-        glLibrary = dlopen("libGL.so.1", RTLD_LAZY);
+    // Unix-like: Linux, macOS, Android
+    // Try different libraries depending on platform
+    
+#if defined(JXAC_PLATFORM_MACOS)
+    // macOS: Use OpenGL framework
+    const char* libPaths[] = {
+        "/System/Library/Frameworks/OpenGL.framework/OpenGL",
+        "/System/Library/Frameworks/OpenGL.framework/Versions/A/OpenGL",
+        NULL
+    };
+    CG_Printf("JXAC OpenGL DEBUG: macOS platform detected, using OpenGL.framework\n");
+#elif defined(JXAC_PLATFORM_ANDROID)
+    // Android: Use OpenGL ES
+    const char* libPaths[] = {
+        "libGLESv2.so",
+        "libGLESv3.so",
+        "libGL.so",
+        NULL
+    };
+    CG_Printf("JXAC OpenGL DEBUG: Android platform detected, using OpenGL ES\n");
+#else
+    // Linux (x86, x86_64, aarch64): Use libGL
+    const char* libPaths[] = {
+        "libGL.so.1",
+        "libGL.so",
+        NULL
+    };
+    CG_Printf("JXAC OpenGL DEBUG: Linux platform detected, using libGL\n");
+#endif
+    
+    // Try to get handle to already-loaded library
+    for (int i = 0; libPaths[i] != NULL; i++) {
+        glLibrary = dlopen(libPaths[i], RTLD_LAZY | RTLD_NOLOAD);
+        if (glLibrary) {
+            CG_Printf("JXAC OpenGL DEBUG: Got already-loaded %s handle: %p\n", libPaths[i], glLibrary);
+            break;
+        }
     }
+    
+    // If not already loaded, try loading it
     if (!glLibrary) {
-        // Try alternative name
-        glLibrary = dlopen("libGL.so", RTLD_LAZY);
+        for (int i = 0; libPaths[i] != NULL; i++) {
+            glLibrary = dlopen(libPaths[i], RTLD_LAZY);
+            if (glLibrary) {
+                CG_Printf("JXAC OpenGL DEBUG: Loaded %s handle: %p\n", libPaths[i], glLibrary);
+                break;
+            }
+        }
     }
+    
     if (!glLibrary) {
-        CG_Printf("JXAC OpenGL DEBUG: FAILED - dlopen(\"libGL.so.1\") returned NULL: %s\n", dlerror());
+        CG_Printf("JXAC OpenGL DEBUG: FAILED - could not load OpenGL library: %s\n", dlerror());
         return false;
     }
-    CG_Printf("JXAC OpenGL DEBUG: Got libGL.so handle: %p\n", glLibrary);
     
     // Get function pointers
     qglReadPixels = (glReadPixels_t)dlsym(glLibrary, "glReadPixels");
