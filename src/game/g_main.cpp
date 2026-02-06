@@ -1938,6 +1938,7 @@ void G_InitGame( int levelTime, int randomSeed, int restart ) {
 
     // Determine map count for scoreboard display
     // g_mapCount: 0 = auto-detect, -1 = hide, >0 = use specified value
+    G_Printf("^1[XMOD] *** MAP COUNT DETECTION START ***\n");
     G_Printf("^5[XMOD DEBUG] Map count detection starting, g_mapCount.integer = %d\n", g_mapCount.integer);
     {
         if (g_mapCount.integer > 0) {
