@@ -85,8 +85,9 @@ void G_SendScore( gentity_t *ent ) {
 			}
 
 			if( g_gametype.integer == GT_WOLF_LMS ) {
-				Com_sprintf (entry, sizeof(entry), " %i %i %i %i %i %i %i", level.sortedClients[i], cl->ps.persistant[PERS_SCORE], ping, 
-					(level.time - cl->pers.enterTime) / 60000, g_entities[level.sortedClients[i]].s.powerups, playerClass, respawnsLeft );
+				Com_sprintf (entry, sizeof(entry), " %i %i %i %i %i %i %i %i %i", level.sortedClients[i], cl->ps.persistant[PERS_SCORE], ping, 
+					(level.time - cl->pers.enterTime) / 60000, g_entities[level.sortedClients[i]].s.powerups, playerClass, respawnsLeft,
+					cl->sess.kills, cl->sess.deaths );
 			} else {
 				int j, totalXP;
 
@@ -94,8 +95,9 @@ void G_SendScore( gentity_t *ent ) {
 					totalXP += int( cl->sess.skillpoints[j] );
 				}
 
-				Com_sprintf (entry, sizeof(entry), " %i %i %i %i %i %i %i", level.sortedClients[i], totalXP, ping, 
-					(level.time - cl->pers.enterTime) / 60000, g_entities[level.sortedClients[i]].s.powerups, playerClass, respawnsLeft );
+				Com_sprintf (entry, sizeof(entry), " %i %i %i %i %i %i %i %i %i", level.sortedClients[i], totalXP, ping, 
+					(level.time - cl->pers.enterTime) / 60000, g_entities[level.sortedClients[i]].s.powerups, playerClass, respawnsLeft,
+					cl->sess.kills, cl->sess.deaths );
 			}
 
 			// Make sure the entry can fit in the buffer. If not break away and send the buffer content
