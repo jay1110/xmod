@@ -2016,6 +2016,7 @@ void G_InitGame( int levelTime, int randomSeed, int restart ) {
 	{
 		qboolean oldspawning = level.spawning;
 		voteInfo_t votedata;
+		int mapCount = level.mapCount;  // Save map count before memset
 
 		memcpy( &votedata, &level.voteInfo, sizeof( voteInfo_t ) );
 
@@ -2024,6 +2025,7 @@ void G_InitGame( int levelTime, int randomSeed, int restart ) {
 		memcpy( &level.voteInfo, &votedata, sizeof( voteInfo_t ) );
 
 		level.spawning = oldspawning;
+		level.mapCount = mapCount;  // Restore map count after memset
 	}
 	level.time = levelTime;
 	level.startTime = levelTime;
