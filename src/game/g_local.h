@@ -1289,8 +1289,6 @@ typedef struct {
 	qboolean	twoMinute;
 	qboolean	thirtySecond;
 
-	int			mapCount;	// Number of .bsp maps on server
-
 } level_locals_t;
 
 typedef struct {

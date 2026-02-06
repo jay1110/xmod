@@ -324,9 +324,6 @@ vmCvar_t        g_multiReviveTime;   // Max delay between revives for multi-revi
 // Admin Chat
 vmCvar_t        g_adminChat;         // Enable admin chat
 
-// Map count for scoreboard display
-vmCvar_t        g_mapCount;          // Number of maps to display on scoreboard (0 = auto-detect, -1 = hide)
-
 /*********************
 * End Xmod Cvars   *
 *********************/
@@ -462,9 +459,6 @@ cvarTable_t		gameCvarTable[] = {
 
     // Admin Chat
     { &g_adminChat,         "g_adminChat",          "1",        CVAR_ARCHIVE },
-
-    // Map count for scoreboard display (0 = auto-detect, -1 = hide)
-    { &g_mapCount,          "g_mapCount",           "0",        CVAR_ARCHIVE },
 
     // Some useful mod-info cvars.
     { NULL, "mod_binary",  XMOD_buildTarget, CVAR_SERVERINFO | CVAR_ROM },
@@ -1936,43 +1930,6 @@ void G_InitGame( int levelTime, int randomSeed, int restart ) {
     // Load maps database
     mapDB.load();
 
-    // Determine map count for scoreboard display
-    // g_mapCount: 0 = auto-detect, -1 = hide, >0 = use specified value
-    G_Printf("^1[XMOD] *** MAP COUNT DETECTION START ***\n");
-    G_Printf("^5[XMOD DEBUG] Map count detection starting, g_mapCount.integer = %d\n", g_mapCount.integer);
-    {
-        if (g_mapCount.integer > 0) {
-            // Use manually configured value
-            level.mapCount = g_mapCount.integer;
-            G_Printf("^5[XMOD] Map count set to %d (from g_mapCount CVAR)\n", level.mapCount);
-        } else if (g_mapCount.integer == 0) {
-            // Try auto-detection - use "bsp" without dot (like other ET API calls)
-            char mapList[16384];
-            int numMaps = trap_FS_GetFileList("maps", "bsp", mapList, sizeof(mapList));
-            G_Printf("^5[XMOD DEBUG] trap_FS_GetFileList(\"maps\", \"bsp\") returned %d\n", numMaps);
-            
-            if (numMaps <= 0) {
-                // Try with dot
-                numMaps = trap_FS_GetFileList("maps", ".bsp", mapList, sizeof(mapList));
-                G_Printf("^5[XMOD DEBUG] trap_FS_GetFileList(\"maps\", \".bsp\") returned %d\n", numMaps);
-            }
-            
-            if (numMaps <= 0) {
-                // Try .arena files as fallback
-                numMaps = trap_FS_GetFileList("scripts", "arena", mapList, sizeof(mapList));
-                G_Printf("^5[XMOD DEBUG] trap_FS_GetFileList(\"scripts\", \"arena\") returned %d\n", numMaps);
-            }
-            
-            level.mapCount = numMaps > 0 ? numMaps : 0;
-            G_Printf("^5[XMOD] Found %d maps\n", level.mapCount);
-        } else {
-            // g_mapCount < 0: hide map count
-            level.mapCount = 0;
-            G_Printf("^5[XMOD] Map count display disabled (g_mapCount = %d)\n", g_mapCount.integer);
-        }
-    }
-    G_Printf("^5[XMOD DEBUG] Map count detection complete, level.mapCount = %d\n", level.mapCount);
-
     // Load censor word list
     censorDB.load();
 
@@ -2016,7 +1973,6 @@ void G_InitGame( int levelTime, int randomSeed, int restart ) {
 	{
 		qboolean oldspawning = level.spawning;
 		voteInfo_t votedata;
-		int mapCount = level.mapCount;  // Save map count before memset
 
 		memcpy( &votedata, &level.voteInfo, sizeof( voteInfo_t ) );
 
@@ -2025,7 +1981,6 @@ void G_InitGame( int levelTime, int randomSeed, int restart ) {
 		memcpy( &level.voteInfo, &votedata, sizeof( voteInfo_t ) );
 
 		level.spawning = oldspawning;
-		level.mapCount = mapCount;  // Restore map count after memset
 	}
 	level.time = levelTime;
 	level.startTime = levelTime;
@@ -2076,7 +2031,6 @@ void G_InitGame( int levelTime, int randomSeed, int restart ) {
 	trap_SetConfigstring( CS_WATERMARKINFO, cs );
 
 	// Construct the Xmod Config String
-	G_Printf("^5XMOD_DBG: InitGame calling G_UpdateXmodCS\n");
 	G_UpdateXmodCS();
 
 	G_SoundIndex( "sound/misc/referee.wav"	);

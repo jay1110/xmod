@@ -202,12 +202,6 @@ int WM_DrawObjectives( int x, int y, int width, float fade ) {
 				}
 			}
 			
-			// Map count on left
-			if (cgs.mapCount > 0) {
-				s = va( "^9MAPS: ^d%i", cgs.mapCount );
-				CG_Text_Paint_Ext( x, y + 11, 0.18f, 0.18f, tclr, s, 0, 0, 0, &cgs.media.limboFont1 );
-			}
-			
 			// Server name centered
 			if (serverName && serverName[0]) {
 				int centX = (width / 2) - (CG_Text_Width_Ext( serverName, 0.18f, 0, &cgs.media.limboFont1 ) / 2);
