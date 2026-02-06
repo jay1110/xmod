@@ -1206,21 +1206,36 @@ void G_UpdateXmodCS() {
     Info_SetValueForKey( cs, "c", cvars::bg_weapons.svalue );
     Info_SetValueForKey( cs, "d", cvars::bg_wolfrof.svalue );
 
-    // Class Restrictions - DEBUG: show values before adding to configstring
-    G_Printf("^3[XMOD DEBUG] Adding key 'e' with value: '%d'\n", cvars::bg_maxEngineers.ivalue);
-    G_Printf("^3[XMOD DEBUG] Adding key 'f' with value: '%d'\n", cvars::bg_maxMedics.ivalue);
-    Info_SetValueForKey( cs, "e", va("%d", cvars::bg_maxEngineers.ivalue) );
-    Info_SetValueForKey( cs, "f", va("%d", cvars::bg_maxMedics.ivalue) );
-    Info_SetValueForKey( cs, "g", va("%d", cvars::bg_maxFieldOps.ivalue) );
-    Info_SetValueForKey( cs, "h", va("%d", cvars::bg_maxCovertOps.ivalue) );
+    // Class Restrictions - use individual string buffers to avoid va() overwrite
+    char val_e[16], val_f[16], val_g[16], val_h[16];
+    Com_sprintf(val_e, sizeof(val_e), "%d", cvars::bg_maxEngineers.ivalue);
+    Com_sprintf(val_f, sizeof(val_f), "%d", cvars::bg_maxMedics.ivalue);
+    Com_sprintf(val_g, sizeof(val_g), "%d", cvars::bg_maxFieldOps.ivalue);
+    Com_sprintf(val_h, sizeof(val_h), "%d", cvars::bg_maxCovertOps.ivalue);
+    
+    G_Printf("^3[XMOD DEBUG] Adding key 'e' with string: '%s'\n", val_e);
+    Info_SetValueForKey( cs, "e", val_e );
+    G_Printf("^3[XMOD DEBUG] After adding 'e', cs contains 'e': %s\n", Info_ValueForKey(cs, "e"));
+    
+    Info_SetValueForKey( cs, "f", val_f );
+    Info_SetValueForKey( cs, "g", val_g );
+    Info_SetValueForKey( cs, "h", val_h );
 
-    // Weapon Restrictions - use va() to ensure value is never empty
-    Info_SetValueForKey( cs, "i", va("%d", cvars::bg_maxPanzers.ivalue) );
-    Info_SetValueForKey( cs, "j", va("%d", cvars::bg_maxMG42s.ivalue) );
-    Info_SetValueForKey( cs, "k", va("%d", cvars::bg_maxMortars.ivalue) );
-    Info_SetValueForKey( cs, "l", va("%d", cvars::bg_maxGrenLaunchers.ivalue) );
-    Info_SetValueForKey( cs, "m", va("%d", cvars::bg_maxFlamers.ivalue) );
-    Info_SetValueForKey( cs, "n", va("%d", cvars::bg_maxM97s.ivalue) );
+    // Weapon Restrictions - use individual buffers
+    char val_i[16], val_j[16], val_k[16], val_l[16], val_m[16], val_n[16];
+    Com_sprintf(val_i, sizeof(val_i), "%d", cvars::bg_maxPanzers.ivalue);
+    Com_sprintf(val_j, sizeof(val_j), "%d", cvars::bg_maxMG42s.ivalue);
+    Com_sprintf(val_k, sizeof(val_k), "%d", cvars::bg_maxMortars.ivalue);
+    Com_sprintf(val_l, sizeof(val_l), "%d", cvars::bg_maxGrenLaunchers.ivalue);
+    Com_sprintf(val_m, sizeof(val_m), "%d", cvars::bg_maxFlamers.ivalue);
+    Com_sprintf(val_n, sizeof(val_n), "%d", cvars::bg_maxM97s.ivalue);
+    
+    Info_SetValueForKey( cs, "i", val_i );
+    Info_SetValueForKey( cs, "j", val_j );
+    Info_SetValueForKey( cs, "k", val_k );
+    Info_SetValueForKey( cs, "l", val_l );
+    Info_SetValueForKey( cs, "m", val_m );
+    Info_SetValueForKey( cs, "n", val_n );
 
     // Skill-5 cvars
     Info_SetValueForKey( cs, "o", cvars::bg_sk5_battle.svalue );
