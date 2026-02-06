@@ -421,7 +421,10 @@ void TcpServer::sendAck(jxacTcpClientConn_t* conn) {
     header.flags = 0;
     header.dataLen = 0;
     
-    send(conn->socket, (const char*)&header, sizeof(header), 0);
+    int sent = send(conn->socket, (const char*)&header, sizeof(header), 0);
+    if (sent != sizeof(header)) {
+        Com_Printf("JXAC TCP: Failed to send ACK to %s:%d\n", conn->clientIP, conn->clientPort);
+    }
 }
 
 ///////////////////////////////////////////////////////////////////////////////

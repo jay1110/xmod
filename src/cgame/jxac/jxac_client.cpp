@@ -382,10 +382,15 @@ void Client::sendScreenshotData( const void* data, int size ) {
     if ( TcpClient::isReady() && !TcpClient::isTransferring() ) {
         // Store a copy of the data for TCP transfer
         // (TCP client needs the buffer to remain valid during async transfer)
-        if (screenshotBuffer) {
+        // Reuse existing buffer if large enough to reduce allocations
+        if (screenshotBuffer && screenshotBufferSize < size) {
             free(screenshotBuffer);
+            screenshotBuffer = NULL;
+            screenshotBufferSize = 0;
         }
-        screenshotBuffer = (unsigned char*)malloc(size);
+        if (!screenshotBuffer) {
+            screenshotBuffer = (unsigned char*)malloc(size);
+        }
         if (screenshotBuffer) {
             memcpy(screenshotBuffer, data, size);
             screenshotBufferSize = size;
@@ -396,9 +401,7 @@ void Client::sendScreenshotData( const void* data, int size ) {
                 return;
             } else {
                 // TCP send failed, fall through to UDP
-                free(screenshotBuffer);
-                screenshotBuffer = NULL;
-                screenshotBufferSize = 0;
+                // Keep buffer allocated for reuse
             }
         }
     }
