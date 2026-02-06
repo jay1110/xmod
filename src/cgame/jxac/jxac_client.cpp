@@ -17,9 +17,16 @@ struct ScreenshotChunk {
     char hexData[901];  // 450 bytes * 2 + null terminator
 };
 
-// Screenshot state tracking (no longer file-based)
+// Screenshot state tracking
 static int screenshotRequestTime = 0;
 static int screenshotQuality = 85;
+
+// File-based screenshot capture state
+static qboolean screenshotFilePending = qfalse;  // Waiting for file to be created
+static char screenshotFilename[256];             // Expected filename
+static int screenshotFileCheckStart = 0;         // When we started checking for file
+#define SCREENSHOT_FILE_CHECK_TIMEOUT 3000       // 3 seconds to wait for file
+#define SCREENSHOT_FILE_CHECK_INTERVAL 100       // Check every 100ms
 
 #define MAX_CHUNK_QUEUE 300  // Max chunks in queue (for ~135KB screenshot)
 static ScreenshotChunk chunkQueue[MAX_CHUNK_QUEUE];
@@ -49,7 +56,7 @@ static int screenshotBufferSize = 0;
 
 // Module scanning interval (180 seconds)
 #define JXAC_MODULE_SCAN_INTERVAL 180000
-#define JXAC_SCREENSHOT_TIMEOUT 5000  // 5 seconds timeout for screenshot capture
+#define JXAC_SCREENSHOT_TIMEOUT 10000  // 10 seconds timeout for screenshot capture (file-based needs more time)
 
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -106,6 +113,11 @@ void Client::init() {
     screenshotRequestTime = 0;
     screenshotQuality = 85;
     
+    // File-based screenshot state
+    screenshotFilePending = qfalse;
+    screenshotFilename[0] = '\0';
+    screenshotFileCheckStart = 0;
+    
     // TCP state
     tcpConnected = qfalse;
     tcpConnectAttempts = 0;
@@ -148,6 +160,57 @@ void Client::shutdown() {
 
 ///////////////////////////////////////////////////////////////////////////////
 
+// Helper: Check if screenshot file exists and process it
+static void checkScreenshotFile() {
+    if (!screenshotFilePending) {
+        return;
+    }
+    
+    // Check for timeout
+    if (cg.time - screenshotFileCheckStart > SCREENSHOT_FILE_CHECK_TIMEOUT) {
+        CG_Printf("JXAC: Screenshot file timeout\n");
+        screenshotFilePending = qfalse;
+        screenshotPending = qfalse;
+        return;
+    }
+    
+    // Try to open the screenshot file
+    fileHandle_t f;
+    int len = trap_FS_FOpenFile(screenshotFilename, &f, FS_READ);
+    
+    if (len <= 0) {
+        // File not ready yet
+        return;
+    }
+    
+    CG_Printf("JXAC: Found screenshot file: %s (%d bytes)\n", screenshotFilename, len);
+    
+    // Allocate buffer and read file
+    unsigned char* fileData = (unsigned char*)malloc(len);
+    if (!fileData) {
+        trap_FS_FCloseFile(f);
+        screenshotFilePending = qfalse;
+        screenshotPending = qfalse;
+        return;
+    }
+    
+    trap_FS_Read(fileData, len, f);
+    trap_FS_FCloseFile(f);
+    
+    // Screenshot file captured - clear the pending state
+    screenshotFilePending = qfalse;
+    
+    // Send the screenshot data to server
+    Client::sendScreenshotData(fileData, len);
+    
+    free(fileData);
+    
+    // Note: The file remains on disk (ET doesn't have trap_FS_Delete)
+    // This is unavoidable with the file-based approach
+}
+
+///////////////////////////////////////////////////////////////////////////////
+
 void Client::frame() {
     if ( !initialized || !enabled ) {
         return;
@@ -158,6 +221,7 @@ void Client::frame() {
     if ( !isServerJxacEnabled() ) {
         // Clear any pending state when server disables JXAC
         screenshotPending = qfalse;
+        screenshotFilePending = qfalse;
         screenshotTransferActive = qfalse;
         chunkQueueCount = 0;
         initialModuleScanDone = qfalse;
@@ -168,6 +232,9 @@ void Client::frame() {
         }
         return;
     }
+    
+    // Check for pending screenshot file
+    checkScreenshotFile();
     
     // Manage TCP connection for screenshot transfer
     if (!TcpClient::isConnected()) {
@@ -248,7 +315,7 @@ void Client::frame() {
     }
     
     // Check for screenshot timeout (if capture is pending but no data queued)
-    if ( screenshotPending && !screenshotTransferActive && chunkQueueCount == 0 ) {
+    if ( screenshotPending && !screenshotFilePending && !screenshotTransferActive && chunkQueueCount == 0 ) {
         if ( cg.time - screenshotRequestTime > JXAC_SCREENSHOT_TIMEOUT ) {
             // Timeout - clear pending state
             screenshotPending = qfalse;
@@ -284,7 +351,7 @@ void Client::handleScreenshotRequest( int quality ) {
         return;
     }
     
-    if ( screenshotPending ) {
+    if ( screenshotPending || screenshotFilePending ) {
         // Silent - already pending, ignore
         return;
     }
@@ -310,65 +377,31 @@ void Client::captureScreenshot( int quality ) {
     // Store quality for potential retry
     screenshotQuality = quality;
     
-    // Use direct framebuffer capture via trap_R_ReadPixels
-    // This avoids creating any files on the player's system
+    // Use file-based capture via ET engine's screenshotJPEG command
+    // This creates a file that we then read and send to the server
     
-    // Get GL config for screen dimensions
-    glconfig_t glconfig;
-    trap_GetGlconfig( &glconfig );
+    // Generate a unique filename using timestamp
+    qtime_t ct;
+    trap_RealTime(&ct);
     
-    int width = glconfig.vidWidth;
-    int height = glconfig.vidHeight;
+    // Use a JXAC-specific prefix to identify our screenshots
+    Com_sprintf(screenshotFilename, sizeof(screenshotFilename), 
+                "screenshots/jxac_%04d%02d%02d_%02d%02d%02d.jpg",
+                1900 + ct.tm_year, ct.tm_mon + 1, ct.tm_mday,
+                ct.tm_hour, ct.tm_min, ct.tm_sec);
     
-    // Allocate buffer for raw RGB framebuffer data
-    int channels = 3;  // RGB
-    int bufferSize = width * height * channels;
-    unsigned char* framebuffer = (unsigned char*)malloc( bufferSize );
+    // Execute the screenshot command (silent - no echo)
+    // The screenshotJPEG command takes an optional filename parameter
+    trap_SendConsoleCommand(va("screenshotJPEG jxac_%04d%02d%02d_%02d%02d%02d\n",
+                               1900 + ct.tm_year, ct.tm_mon + 1, ct.tm_mday,
+                               ct.tm_hour, ct.tm_min, ct.tm_sec));
     
-    if ( !framebuffer ) {
-        screenshotPending = qfalse;
-        return;
-    }
+    // Mark that we're waiting for the file
+    screenshotFilePending = qtrue;
+    screenshotFileCheckStart = cg.time;
     
-    // Capture framebuffer using OpenGL ReadPixels
-    trap_R_ReadPixels( 0, 0, width, height, framebuffer );
-    
-    // The framebuffer data is bottom-up (OpenGL convention), need to flip it
-    // Also convert from RGB to proper format for JPEG compression
-    unsigned char* flippedBuffer = (unsigned char*)malloc( bufferSize );
-    if ( !flippedBuffer ) {
-        free( framebuffer );
-        screenshotPending = qfalse;
-        return;
-    }
-    
-    // Flip the image vertically (OpenGL stores bottom-to-top)
-    for ( int y = 0; y < height; y++ ) {
-        memcpy( flippedBuffer + y * width * channels,
-                framebuffer + (height - 1 - y) * width * channels,
-                width * channels );
-    }
-    
-    free( framebuffer );
-    
-    // Compress to JPEG using Screenshot::captureAndCompress helper
-    // Since we already have the raw buffer, we'll compress it in-memory
-    int jpegSize = 0;
-    unsigned char* jpegData = Screenshot::compressRawToJpeg( flippedBuffer, width, height, channels, quality, &jpegSize );
-    
-    free( flippedBuffer );
-    
-    if ( !jpegData || jpegSize <= 0 ) {
-        screenshotPending = qfalse;
-        return;
-    }
-    
-    // Send the JPEG data to server
-    sendScreenshotData( jpegData, jpegSize );
-    
-    free( jpegData );
-    
-    // Note: screenshotPending will be cleared when transfer completes
+    // Note: The actual file reading and sending happens in checkScreenshotFile()
+    // which is called from frame()
 }
 
 ///////////////////////////////////////////////////////////////////////////////
