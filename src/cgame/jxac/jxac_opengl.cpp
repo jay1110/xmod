@@ -56,7 +56,8 @@ bool init() {
     qglGetError = (glGetError_t)GetProcAddress(hOpenGL, "glGetError");
     
     // glBindFramebuffer is an extension, need to get via wglGetProcAddress
-    typedef void* (WINAPI *wglGetProcAddress_t)(const char*);
+    // wglGetProcAddress uses WINAPI (__stdcall) calling convention
+    typedef PROC (WINAPI *wglGetProcAddress_t)(LPCSTR);
     wglGetProcAddress_t wglGetProcAddr = (wglGetProcAddress_t)GetProcAddress(hOpenGL, "wglGetProcAddress");
     if (wglGetProcAddr) {
         qglBindFramebuffer = (glBindFramebuffer_t)wglGetProcAddr("glBindFramebuffer");

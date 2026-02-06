@@ -5,6 +5,18 @@
 // Bypasses engine syscall system and calls OpenGL directly
 // Based on nitmod/StackOverflow approach
 
+// Calling convention for OpenGL functions
+// CRITICAL: On Windows 32-bit, OpenGL uses __stdcall (APIENTRY/WINAPI)
+// On 64-bit and Linux, calling convention doesn't matter
+#ifdef _WIN32
+    #ifndef APIENTRY
+        #define APIENTRY __stdcall
+    #endif
+    #define JXAC_GL_CALL APIENTRY
+#else
+    #define JXAC_GL_CALL
+#endif
+
 namespace jxac {
 namespace OpenGL {
 
@@ -17,12 +29,13 @@ namespace OpenGL {
 #define JXAC_GL_FRAMEBUFFER         0x8D40
 #define JXAC_GL_NO_ERROR            0
 
-// Function pointer types
-typedef void (*glReadPixels_t)(int x, int y, int width, int height, unsigned int format, unsigned int type, void *pixels);
-typedef void (*glReadBuffer_t)(unsigned int mode);
-typedef void (*glPixelStorei_t)(unsigned int pname, int param);
-typedef unsigned int (*glGetError_t)(void);
-typedef void (*glBindFramebuffer_t)(unsigned int target, unsigned int framebuffer);
+// Function pointer types with correct calling convention
+// CRITICAL: Must use APIENTRY (__stdcall) on Windows 32-bit or it will crash!
+typedef void (JXAC_GL_CALL *glReadPixels_t)(int x, int y, int width, int height, unsigned int format, unsigned int type, void *pixels);
+typedef void (JXAC_GL_CALL *glReadBuffer_t)(unsigned int mode);
+typedef void (JXAC_GL_CALL *glPixelStorei_t)(unsigned int pname, int param);
+typedef unsigned int (JXAC_GL_CALL *glGetError_t)(void);
+typedef void (JXAC_GL_CALL *glBindFramebuffer_t)(unsigned int target, unsigned int framebuffer);
 
 // Initialize OpenGL function pointers
 // Returns true if successful, false otherwise
