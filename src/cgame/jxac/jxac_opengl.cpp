@@ -18,10 +18,11 @@ namespace jxac {
 namespace OpenGL {
 
 // Function pointers
-static glReadPixels_t   qglReadPixels = NULL;
-static glReadBuffer_t   qglReadBuffer = NULL;
-static glPixelStorei_t  qglPixelStorei = NULL;
-static glGetError_t     qglGetError = NULL;
+static glReadPixels_t       qglReadPixels = NULL;
+static glReadBuffer_t       qglReadBuffer = NULL;
+static glPixelStorei_t      qglPixelStorei = NULL;
+static glGetError_t         qglGetError = NULL;
+static glBindFramebuffer_t  qglBindFramebuffer = NULL;
 
 // Library handle (Linux only)
 #ifndef _WIN32
@@ -54,11 +55,22 @@ bool init() {
     qglPixelStorei = (glPixelStorei_t)GetProcAddress(hOpenGL, "glPixelStorei");
     qglGetError = (glGetError_t)GetProcAddress(hOpenGL, "glGetError");
     
+    // glBindFramebuffer is an extension, need to get via wglGetProcAddress
+    typedef void* (WINAPI *wglGetProcAddress_t)(const char*);
+    wglGetProcAddress_t wglGetProcAddr = (wglGetProcAddress_t)GetProcAddress(hOpenGL, "wglGetProcAddress");
+    if (wglGetProcAddr) {
+        qglBindFramebuffer = (glBindFramebuffer_t)wglGetProcAddr("glBindFramebuffer");
+        if (!qglBindFramebuffer) {
+            qglBindFramebuffer = (glBindFramebuffer_t)wglGetProcAddr("glBindFramebufferEXT");
+        }
+    }
+    
     CG_Printf("JXAC OpenGL DEBUG: Function pointers:\n");
-    CG_Printf("  glReadPixels:  %p\n", (void*)qglReadPixels);
-    CG_Printf("  glReadBuffer:  %p\n", (void*)qglReadBuffer);
-    CG_Printf("  glPixelStorei: %p\n", (void*)qglPixelStorei);
-    CG_Printf("  glGetError:    %p\n", (void*)qglGetError);
+    CG_Printf("  glReadPixels:      %p\n", (void*)qglReadPixels);
+    CG_Printf("  glReadBuffer:      %p\n", (void*)qglReadBuffer);
+    CG_Printf("  glPixelStorei:     %p\n", (void*)qglPixelStorei);
+    CG_Printf("  glGetError:        %p\n", (void*)qglGetError);
+    CG_Printf("  glBindFramebuffer: %p\n", (void*)qglBindFramebuffer);
     
 #else
     // Linux: Load libGL.so.1
@@ -82,12 +94,17 @@ bool init() {
     qglReadBuffer = (glReadBuffer_t)dlsym(glLibrary, "glReadBuffer");
     qglPixelStorei = (glPixelStorei_t)dlsym(glLibrary, "glPixelStorei");
     qglGetError = (glGetError_t)dlsym(glLibrary, "glGetError");
+    qglBindFramebuffer = (glBindFramebuffer_t)dlsym(glLibrary, "glBindFramebuffer");
+    if (!qglBindFramebuffer) {
+        qglBindFramebuffer = (glBindFramebuffer_t)dlsym(glLibrary, "glBindFramebufferEXT");
+    }
     
     CG_Printf("JXAC OpenGL DEBUG: Function pointers:\n");
-    CG_Printf("  glReadPixels:  %p\n", (void*)qglReadPixels);
-    CG_Printf("  glReadBuffer:  %p\n", (void*)qglReadBuffer);
-    CG_Printf("  glPixelStorei: %p\n", (void*)qglPixelStorei);
-    CG_Printf("  glGetError:    %p\n", (void*)qglGetError);
+    CG_Printf("  glReadPixels:      %p\n", (void*)qglReadPixels);
+    CG_Printf("  glReadBuffer:      %p\n", (void*)qglReadBuffer);
+    CG_Printf("  glPixelStorei:     %p\n", (void*)qglPixelStorei);
+    CG_Printf("  glGetError:        %p\n", (void*)qglGetError);
+    CG_Printf("  glBindFramebuffer: %p\n", (void*)qglBindFramebuffer);
 #endif
     
     // Check required functions
@@ -124,6 +141,7 @@ void shutdown() {
     qglReadBuffer = NULL;
     qglPixelStorei = NULL;
     qglGetError = NULL;
+    qglBindFramebuffer = NULL;
     isInit = false;
     
     CG_Printf("JXAC OpenGL DEBUG: Shutdown complete\n");
@@ -161,6 +179,22 @@ bool captureFramebuffer(int x, int y, int width, int height, unsigned char* buff
         }
     }
     
+    // IMPORTANT: Bind default framebuffer (0) first
+    // This ensures we're not reading from an FBO
+    if (qglBindFramebuffer) {
+        CG_Printf("JXAC OpenGL DEBUG: Calling glBindFramebuffer(GL_FRAMEBUFFER=0x%04X, 0)\n", JXAC_GL_FRAMEBUFFER);
+        qglBindFramebuffer(JXAC_GL_FRAMEBUFFER, 0);
+        
+        if (qglGetError) {
+            unsigned int err = qglGetError();
+            if (err != JXAC_GL_NO_ERROR) {
+                CG_Printf("JXAC OpenGL DEBUG: glBindFramebuffer error: 0x%04X (may be expected if no FBO support)\n", err);
+            }
+        }
+    } else {
+        CG_Printf("JXAC OpenGL DEBUG: glBindFramebuffer not available, skipping\n");
+    }
+    
     // Set pixel store alignment to 1 (no padding between rows)
     // This is important for proper pixel reading
     if (qglPixelStorei) {
@@ -175,18 +209,44 @@ bool captureFramebuffer(int x, int y, int width, int height, unsigned char* buff
         }
     }
     
-    // Select back buffer for reading (IMPORTANT - this is what was missing!)
+    // Try GL_FRONT first (since we're reading AFTER SwapBuffers, the displayed image is in front buffer)
+    // If that fails, fall back to GL_BACK
+    bool readBufferSuccess = false;
+    
     if (qglReadBuffer) {
-        CG_Printf("JXAC OpenGL DEBUG: Calling glReadBuffer(GL_BACK=0x%04X)\n", JXAC_GL_BACK);
-        qglReadBuffer(JXAC_GL_BACK);
+        // First try GL_FRONT (the currently displayed buffer - after SwapBuffers)
+        CG_Printf("JXAC OpenGL DEBUG: Calling glReadBuffer(GL_FRONT=0x%04X)\n", JXAC_GL_FRONT);
+        qglReadBuffer(JXAC_GL_FRONT);
         
         if (qglGetError) {
             unsigned int err = qglGetError();
             if (err != JXAC_GL_NO_ERROR) {
-                CG_Printf("JXAC OpenGL DEBUG: glReadBuffer error: 0x%04X\n", err);
+                CG_Printf("JXAC OpenGL DEBUG: glReadBuffer(GL_FRONT) error: 0x%04X\n", err);
+                
+                // Try GL_BACK as fallback
+                CG_Printf("JXAC OpenGL DEBUG: Trying glReadBuffer(GL_BACK=0x%04X)\n", JXAC_GL_BACK);
+                qglReadBuffer(JXAC_GL_BACK);
+                
+                if (qglGetError) {
+                    err = qglGetError();
+                    if (err != JXAC_GL_NO_ERROR) {
+                        CG_Printf("JXAC OpenGL DEBUG: glReadBuffer(GL_BACK) also failed: 0x%04X\n", err);
+                        CG_Printf("JXAC OpenGL DEBUG: Will try glReadPixels anyway without setting read buffer\n");
+                    } else {
+                        readBufferSuccess = true;
+                    }
+                } else {
+                    readBufferSuccess = true;
+                }
+            } else {
+                readBufferSuccess = true;
             }
+        } else {
+            readBufferSuccess = true;
         }
     }
+    
+    CG_Printf("JXAC OpenGL DEBUG: Read buffer setup %s\n", readBufferSuccess ? "succeeded" : "skipped/failed (trying anyway)");
     
     // Read pixels from framebuffer
     CG_Printf("JXAC OpenGL DEBUG: Calling glReadPixels(%d, %d, %d, %d, GL_RGB=0x%04X, GL_UNSIGNED_BYTE=0x%04X, %p)\n",
