@@ -1206,19 +1206,19 @@ void G_UpdateXmodCS() {
     Info_SetValueForKey( cs, "c", cvars::bg_weapons.svalue );
     Info_SetValueForKey( cs, "d", cvars::bg_wolfrof.svalue );
 
-    // Class Restrictions
-    Info_SetValueForKey( cs, "e", cvars::bg_maxEngineers.svalue );
-    Info_SetValueForKey( cs, "f", cvars::bg_maxMedics.svalue );
-    Info_SetValueForKey( cs, "g", cvars::bg_maxFieldOps.svalue );
-    Info_SetValueForKey( cs, "h", cvars::bg_maxCovertOps.svalue );
+    // Class Restrictions - use va() to ensure value is never empty
+    Info_SetValueForKey( cs, "e", va("%d", cvars::bg_maxEngineers.ivalue) );
+    Info_SetValueForKey( cs, "f", va("%d", cvars::bg_maxMedics.ivalue) );
+    Info_SetValueForKey( cs, "g", va("%d", cvars::bg_maxFieldOps.ivalue) );
+    Info_SetValueForKey( cs, "h", va("%d", cvars::bg_maxCovertOps.ivalue) );
 
-    // Weapon Restrictions
-    Info_SetValueForKey( cs, "i", cvars::bg_maxPanzers.svalue );
-    Info_SetValueForKey( cs, "j", cvars::bg_maxMG42s.svalue );
-    Info_SetValueForKey( cs, "k", cvars::bg_maxMortars.svalue );
-    Info_SetValueForKey( cs, "l", cvars::bg_maxGrenLaunchers.svalue );
-    Info_SetValueForKey( cs, "m", cvars::bg_maxFlamers.svalue );
-    Info_SetValueForKey( cs, "n", cvars::bg_maxM97s.svalue );
+    // Weapon Restrictions - use va() to ensure value is never empty
+    Info_SetValueForKey( cs, "i", va("%d", cvars::bg_maxPanzers.ivalue) );
+    Info_SetValueForKey( cs, "j", va("%d", cvars::bg_maxMG42s.ivalue) );
+    Info_SetValueForKey( cs, "k", va("%d", cvars::bg_maxMortars.ivalue) );
+    Info_SetValueForKey( cs, "l", va("%d", cvars::bg_maxGrenLaunchers.ivalue) );
+    Info_SetValueForKey( cs, "m", va("%d", cvars::bg_maxFlamers.ivalue) );
+    Info_SetValueForKey( cs, "n", va("%d", cvars::bg_maxM97s.ivalue) );
 
     // Skill-5 cvars
     Info_SetValueForKey( cs, "o", cvars::bg_sk5_battle.svalue );
