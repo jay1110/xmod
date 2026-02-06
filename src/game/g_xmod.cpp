@@ -1206,7 +1206,9 @@ void G_UpdateXmodCS() {
     Info_SetValueForKey( cs, "c", cvars::bg_weapons.svalue );
     Info_SetValueForKey( cs, "d", cvars::bg_wolfrof.svalue );
 
-    // Class Restrictions - use va() to ensure value is never empty
+    // Class Restrictions - DEBUG: show values before adding to configstring
+    G_Printf("^3[XMOD DEBUG] Adding key 'e' with value: '%d'\n", cvars::bg_maxEngineers.ivalue);
+    G_Printf("^3[XMOD DEBUG] Adding key 'f' with value: '%d'\n", cvars::bg_maxMedics.ivalue);
     Info_SetValueForKey( cs, "e", va("%d", cvars::bg_maxEngineers.ivalue) );
     Info_SetValueForKey( cs, "f", va("%d", cvars::bg_maxMedics.ivalue) );
     Info_SetValueForKey( cs, "g", va("%d", cvars::bg_maxFieldOps.ivalue) );
