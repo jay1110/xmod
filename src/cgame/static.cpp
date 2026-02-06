@@ -85,6 +85,9 @@ namespace objects {
     Cvar g_noReload         ( "cg_noReload",           "0",   CVAR_ROM );
     Cvar g_noCharge         ( "cg_noCharge",           "0",   CVAR_ROM );
 
+    // JXAC enabled status - synced from server (default: disabled until server confirms)
+    Cvar bg_jxacEnabled     ( "cg_jxacEnabled",        "0",   CVAR_ROM );
+
     Cvar gameState( "gameState", "-1", CVAR_ROM );
 
 ///////////////////////////////////////////////////////////////////////////////

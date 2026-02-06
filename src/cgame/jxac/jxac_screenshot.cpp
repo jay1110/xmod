@@ -46,8 +46,7 @@ static void jpegWriteCallback( void* context, void* data, int size ) {
 ///////////////////////////////////////////////////////////////////////////////
 
 unsigned char* Screenshot::captureFramebuffer( int* width, int* height, int* channels ) {
-    // This function is no longer used - we use file-based capture instead
-    // See captureAndCompress() for the new implementation
+    // This function is deprecated - use compressRawToJpeg with trap_R_ReadPixels instead
     return NULL;
 }
 
@@ -55,43 +54,43 @@ unsigned char* Screenshot::captureFramebuffer( int* width, int* height, int* cha
 
 unsigned char* Screenshot::captureAndCompress( int* outSize, int quality ) {
     if ( !outSize ) {
-        // Silent failure
         return NULL;
     }
     
     *outSize = 0;
     
-    // Capture framebuffer
-    int width, height, channels;
-    unsigned char* framebuffer = captureFramebuffer( &width, &height, &channels );
-    
-    if ( !framebuffer ) {
+    // This function is deprecated - capture is now done in jxac_client.cpp
+    // using trap_R_ReadPixels directly, then compressed via compressRawToJpeg
+    return NULL;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+
+unsigned char* Screenshot::compressRawToJpeg( const unsigned char* rawData, int width, int height, 
+                                               int channels, int quality, int* outSize ) {
+    if ( !rawData || !outSize || width <= 0 || height <= 0 || channels < 3 ) {
         return NULL;
     }
     
-    // Silent operation - no console output
+    *outSize = 0;
     
-    // Compress to JPEG using stb_image_write with callback (in-memory)
-    // This avoids file system issues
+    // Initialize output buffer context
     JpegWriteContext ctx;
-    ctx.capacity = width * height * channels;  // Start with raw size estimate
+    ctx.capacity = width * height;  // Start with reasonable estimate (JPEG is usually ~10% of raw)
+    if ( ctx.capacity < 4096 ) ctx.capacity = 4096;  // Minimum 4KB
     ctx.buffer = (unsigned char*)malloc( ctx.capacity );
     ctx.size = 0;
     
     if ( !ctx.buffer ) {
-        // Silent failure
-        free( framebuffer );
         return NULL;
     }
     
     // Use callback-based JPEG writing (in-memory)
-    int success = stbi_write_jpg_to_func( jpegWriteCallback, &ctx, width, height, channels, framebuffer, quality );
-    
-    free( framebuffer );
+    // stb_image_write expects RGB data (3 channels) or RGBA (4 channels)
+    int success = stbi_write_jpg_to_func( jpegWriteCallback, &ctx, width, height, channels, rawData, quality );
     
     // Check for callback errors (size = -1 indicates realloc failure)
     if ( !success || ctx.size <= 0 ) {
-        // Silent failure - free buffer on error
         if ( ctx.buffer ) {
             free( ctx.buffer );
         }
@@ -99,9 +98,6 @@ unsigned char* Screenshot::captureAndCompress( int* outSize, int quality ) {
     }
     
     *outSize = ctx.size;
-    
-    // Silent success - no console output
-    
     return ctx.buffer;
 }
 

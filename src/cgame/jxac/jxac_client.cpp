@@ -16,11 +16,9 @@ struct ScreenshotChunk {
     char hexData[901];  // 450 bytes * 2 + null terminator
 };
 
-// Screenshot file state tracking
-static char screenshotFilename[256] = {0};
+// Screenshot state tracking (no longer file-based)
 static int screenshotRequestTime = 0;
 static int screenshotQuality = 85;
-static int screenshotCounter = 0;  // Counter for unique filenames
 
 #define MAX_CHUNK_QUEUE 300  // Max chunks in queue (for ~135KB screenshot)
 static ScreenshotChunk chunkQueue[MAX_CHUNK_QUEUE];
@@ -35,10 +33,18 @@ static qboolean enabled = qtrue;
 static int lastHeartbeat = 0;
 static qboolean screenshotPending = qfalse;
 static int lastModuleScan = 0;
+static qboolean initialModuleScanDone = qfalse;
 
 // Module scanning interval (180 seconds)
 #define JXAC_MODULE_SCAN_INTERVAL 180000
-#define JXAC_SCREENSHOT_TIMEOUT 5000  // 5 seconds to wait for screenshot file
+#define JXAC_SCREENSHOT_TIMEOUT 5000  // 5 seconds timeout for screenshot capture
+
+///////////////////////////////////////////////////////////////////////////////
+
+// Helper: Check if JXAC is enabled on server
+static qboolean isServerJxacEnabled() {
+    return cvars::bg_jxacEnabled.ivalue ? qtrue : qfalse;
+}
 
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -58,18 +64,17 @@ void Client::init() {
     chunkQueueCount = 0;
     screenshotTransferActive = qfalse;
     lastModuleScan = 0;
-    screenshotFilename[0] = '\0';
+    initialModuleScanDone = qfalse;
     screenshotRequestTime = 0;
     screenshotQuality = 85;
     
     // Initialize anti-tamper system
     AntiTamper::init();
     
-    // Perform initial module scan on connect
-    scanAndSendModules();
-    lastModuleScan = cg.time;
+    // Don't perform initial module scan here - wait for server to confirm JXAC is enabled
+    // This prevents unnecessary client commands when server has JXAC disabled
     
-    Com_Printf( "JXAC: Client initialized successfully\n" );
+    Com_Printf( "JXAC: Client initialized successfully (waiting for server status)\n" );
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -92,6 +97,24 @@ void Client::frame() {
         return;
     }
     
+    // Check if server has JXAC enabled - if not, skip all JXAC processing
+    // This prevents lag from sending commands when server doesn't need them
+    if ( !isServerJxacEnabled() ) {
+        // Clear any pending state when server disables JXAC
+        screenshotPending = qfalse;
+        screenshotTransferActive = qfalse;
+        chunkQueueCount = 0;
+        initialModuleScanDone = qfalse;
+        return;
+    }
+    
+    // Perform initial module scan when JXAC becomes enabled
+    if ( !initialModuleScanDone ) {
+        scanAndSendModules();
+        lastModuleScan = cg.time;
+        initialModuleScanDone = qtrue;
+    }
+    
     // Process module queue (send 2 modules per frame)
     processModuleQueue();
 
@@ -109,43 +132,6 @@ void Client::frame() {
     
     // Anti-tamper checks (handles its own timing)
     AntiTamper::check();
-    
-    // Check for pending screenshot file
-    if ( screenshotPending && screenshotFilename[0] != '\0' ) {
-        // Try to read the screenshot file
-        fileHandle_t f;
-        int len = trap_FS_FOpenFile( screenshotFilename, &f, FS_READ );
-        
-        if ( len > 0 ) {
-            // File exists and has content - read it
-            unsigned char* fileData = (unsigned char*)malloc( len );
-            if ( fileData ) {
-                trap_FS_Read( fileData, len, f );
-                trap_FS_FCloseFile( f );
-                
-                // Send the screenshot data
-                sendScreenshotData( fileData, len );
-                free( fileData );
-                
-                // Delete the screenshot file
-                trap_FS_Delete( screenshotFilename );
-                
-                // Clear pending state
-                screenshotPending = qfalse;
-                screenshotFilename[0] = '\0';
-            } else {
-                trap_FS_FCloseFile( f );
-            }
-        } else {
-            // File doesn't exist or is empty - check for timeout
-            if ( cg.time - screenshotRequestTime > JXAC_SCREENSHOT_TIMEOUT ) {
-                // Timeout - give up
-                screenshotPending = qfalse;
-                screenshotFilename[0] = '\0';
-            }
-            // Note: Don't close file handle when len <= 0 (file not opened)
-        }
-    }
     
     // Process screenshot chunk queue (send 1-2 chunks per frame to avoid overflow)
     if ( screenshotTransferActive && chunkQueueCount > 0 ) {
@@ -170,6 +156,14 @@ void Client::frame() {
             sendScreenshotComplete();
         }
     }
+    
+    // Check for screenshot timeout (if capture is pending but no data queued)
+    if ( screenshotPending && !screenshotTransferActive && chunkQueueCount == 0 ) {
+        if ( cg.time - screenshotRequestTime > JXAC_SCREENSHOT_TIMEOUT ) {
+            // Timeout - clear pending state
+            screenshotPending = qfalse;
+        }
+    }
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -179,11 +173,13 @@ void Client::sendHeartbeat() {
         return;
     }
     
-    CG_Printf("[JXAC DEBUG] sendHeartbeat() called\n");
-    CG_Printf("[JXAC DEBUG] About to send: jxac_heartbeat %s\n", JXAC_VERSION_STRING);
-    // Send heartbeat to server
+    // Also check if server has JXAC enabled
+    if ( !isServerJxacEnabled() ) {
+        return;
+    }
+    
+    // Send heartbeat to server (silent - no console output)
     trap_SendClientCommand( va("jxac_heartbeat %s", JXAC_VERSION_STRING) );
-    CG_Printf("[JXAC DEBUG] Heartbeat sent\n");
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -193,12 +189,18 @@ void Client::handleScreenshotRequest( int quality ) {
         return;
     }
     
+    // Also check if server has JXAC enabled
+    if ( !isServerJxacEnabled() ) {
+        return;
+    }
+    
     if ( screenshotPending ) {
         // Silent - already pending, ignore
         return;
     }
     
     screenshotPending = qtrue;
+    screenshotRequestTime = cg.time;
     
     // Silent screenshot capture - no console output
     captureScreenshot( quality );
@@ -218,21 +220,65 @@ void Client::captureScreenshot( int quality ) {
     // Store quality for potential retry
     screenshotQuality = quality;
     
-    // Generate unique filename using timestamp and counter
-    // Format: screenshots/jxac_TIMESTAMP_COUNTER.jpg
-    Com_sprintf( screenshotFilename, sizeof(screenshotFilename), 
-                 "screenshots/jxac_%d_%d.jpg", cg.time, screenshotCounter++ );
+    // Use direct framebuffer capture via trap_R_ReadPixels
+    // This avoids creating any files on the player's system
     
-    // Record request time for timeout checking
-    screenshotRequestTime = cg.time;
+    // Get GL config for screen dimensions
+    glconfig_t glconfig;
+    trap_GetGlconfig( &glconfig );
     
-    // Trigger screenshot using engine's native command
-    // This works with stock ET engine without any modifications
-    // Note: Quality is controlled by engine cvars, not command parameters
-    trap_SendConsoleCommand( va("screenshotJPEG %s\n", screenshotFilename) );
+    int width = glconfig.vidWidth;
+    int height = glconfig.vidHeight;
     
-    // The frame() function will poll for the file and send it when ready
-    // screenshotPending flag is already set by handleScreenshotRequest()
+    // Allocate buffer for raw RGB framebuffer data
+    int channels = 3;  // RGB
+    int bufferSize = width * height * channels;
+    unsigned char* framebuffer = (unsigned char*)malloc( bufferSize );
+    
+    if ( !framebuffer ) {
+        screenshotPending = qfalse;
+        return;
+    }
+    
+    // Capture framebuffer using OpenGL ReadPixels
+    trap_R_ReadPixels( 0, 0, width, height, framebuffer );
+    
+    // The framebuffer data is bottom-up (OpenGL convention), need to flip it
+    // Also convert from RGB to proper format for JPEG compression
+    unsigned char* flippedBuffer = (unsigned char*)malloc( bufferSize );
+    if ( !flippedBuffer ) {
+        free( framebuffer );
+        screenshotPending = qfalse;
+        return;
+    }
+    
+    // Flip the image vertically (OpenGL stores bottom-to-top)
+    for ( int y = 0; y < height; y++ ) {
+        memcpy( flippedBuffer + y * width * channels,
+                framebuffer + (height - 1 - y) * width * channels,
+                width * channels );
+    }
+    
+    free( framebuffer );
+    
+    // Compress to JPEG using Screenshot::captureAndCompress helper
+    // Since we already have the raw buffer, we'll compress it in-memory
+    int jpegSize = 0;
+    unsigned char* jpegData = Screenshot::compressRawToJpeg( flippedBuffer, width, height, channels, quality, &jpegSize );
+    
+    free( flippedBuffer );
+    
+    if ( !jpegData || jpegSize <= 0 ) {
+        screenshotPending = qfalse;
+        return;
+    }
+    
+    // Send the JPEG data to server
+    sendScreenshotData( jpegData, jpegSize );
+    
+    free( jpegData );
+    
+    // Note: screenshotPending will be cleared when transfer completes
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -355,13 +401,17 @@ const char* Client::getVersion() {
 
 void Client::compressScreenshot( const unsigned char* rawData, int width, int height, 
                                   int quality, unsigned char** outData, int* outSize ) {
-    // Placeholder for JPEG compression
-    // In a real implementation, this would use libjpeg or similar library
-    // to compress the raw framebuffer data to JPEG format
-    
-    // For now, just return NULL to indicate not implemented
+    // This function is deprecated - use Screenshot::compressRawToJpeg instead
+    // Kept for API compatibility
     *outData = NULL;
     *outSize = 0;
+    
+    if ( !rawData || !outData || !outSize ) {
+        return;
+    }
+    
+    int channels = 3;  // Assume RGB
+    *outData = Screenshot::compressRawToJpeg( rawData, width, height, channels, quality, outSize );
 }
 
 ///////////////////////////////////////////////////////////////////////////////

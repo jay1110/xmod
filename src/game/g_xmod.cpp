@@ -1260,6 +1260,9 @@ void G_UpdateXmodCS() {
     // g_spawnInvulNoClip for client-side prediction
     Info_SetValueForKey( cs2, "F", va("%i", g_spawnInvulNoClip.integer) );
 
+    // JXAC enabled status - so client knows whether to run anticheat
+    Info_SetValueForKey( cs2, "G", cvars::g_jxacEnable.svalue );
+
     trap_SetConfigstring( CS_XMODINFO2, cs2 );
 }
 

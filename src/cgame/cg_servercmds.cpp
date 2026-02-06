@@ -324,6 +324,9 @@ void CG_ParseXmodinfo2( void) {
 
     // g_spawnInvulNoClip for client-side prediction
     cvars::bg_spawnInvulNoClip.set( Info_ValueForKey( info, "F" ));
+
+    // JXAC enabled status from server
+    cvars::bg_jxacEnabled.set     ( Info_ValueForKey( info, "G" ));
 }
 
 /*
