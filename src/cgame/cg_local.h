@@ -2217,6 +2217,9 @@ typedef struct {
 	
 	// g_spectatorNames: Spectators can see player names like shoutcasters
 	int					spectatorNames;
+	
+	// Map count from server
+	int					mapCount;
 } cgs_t;
 
 //==============================================================================

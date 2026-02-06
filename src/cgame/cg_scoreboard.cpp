@@ -188,7 +188,7 @@ int WM_DrawObjectives( int x, int y, int width, float fade ) {
 		CG_FillRect( x-5, y-2, width+5, 42, clrUiBar );
 		CG_DrawRect_FixedBorder( x-5, y-2, width+5, 42, 1, colorBlack );
 
-		// Line 1: Server name centered, player count on right
+		// Line 1: Server name centered, player count on right, map count on left
 		{
 			const char *info = CG_ConfigString(CS_SERVERINFO);
 			const char *serverName = Info_ValueForKey(info, "sv_hostname");
@@ -200,6 +200,12 @@ int WM_DrawObjectives( int x, int y, int width, float fade ) {
 				if (cgs.clientinfo[i].infoValid) {
 					playerCount++;
 				}
+			}
+			
+			// Map count on left
+			if (cgs.mapCount > 0) {
+				s = va( "^9MAPS: ^d%i", cgs.mapCount );
+				CG_Text_Paint_Ext( x, y + 11, 0.18f, 0.18f, tclr, s, 0, 0, 0, &cgs.media.limboFont1 );
 			}
 			
 			// Server name centered

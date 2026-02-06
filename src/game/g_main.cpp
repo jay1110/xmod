@@ -1930,6 +1930,13 @@ void G_InitGame( int levelTime, int randomSeed, int restart ) {
     // Load maps database
     mapDB.load();
 
+    // Count available .bsp maps
+    {
+        char mapList[4096];
+        level.mapCount = trap_FS_GetFileList("maps", ".bsp", mapList, sizeof(mapList));
+        G_Printf("Found %d maps on server\n", level.mapCount);
+    }
+
     // Load censor word list
     censorDB.load();
 

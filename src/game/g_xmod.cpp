@@ -1260,6 +1260,9 @@ void G_UpdateXmodCS() {
     // g_spawnInvulNoClip for client-side prediction
     Info_SetValueForKey( cs2, "F", va("%i", g_spawnInvulNoClip.integer) );
 
+    // Map count for scoreboard display
+    Info_SetValueForKey( cs2, "G", va("%i", level.mapCount) );
+
     trap_SetConfigstring( CS_XMODINFO2, cs2 );
 }
 
