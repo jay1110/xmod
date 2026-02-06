@@ -57,7 +57,10 @@ void G_SendScore( gentity_t *ent ) {
 
 			// NERVE - SMF - if on same team, send across player class
 			// Gordon: FIXME: remove/move elsewhere?
-			if ( cl->ps.persistant[PERS_TEAM] == ent->client->ps.persistant[PERS_TEAM] || G_smvLocateEntityInMVList(ent, level.sortedClients[i], qfalse)) {
+			// xmod: Also send class to spectators so they can see all classes
+			if ( cl->ps.persistant[PERS_TEAM] == ent->client->ps.persistant[PERS_TEAM] || 
+			     ent->client->ps.persistant[PERS_TEAM] == TEAM_SPECTATOR ||
+			     G_smvLocateEntityInMVList(ent, level.sortedClients[i], qfalse)) {
 				playerClass = cl->ps.stats[STAT_PLAYER_CLASS];
 			} else {
 				playerClass = 0;

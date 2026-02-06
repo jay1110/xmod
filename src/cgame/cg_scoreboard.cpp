@@ -332,16 +332,22 @@ static void WM_DrawClientScore( int x, int y, score_t *score, float *color, floa
 	tempx += INFO_FLAG_WIDTH;
 
 	// Draw class icon SECOND
-	if ( ci->team == TEAM_SPECTATOR) {
-		// Spectators show nothing for class
+	// Determine if we should show class for this player
+	qboolean showClass = qfalse;
+	if ( ci->team != TEAM_SPECTATOR ) {
+		// Show class if: we're a spectator, or same team, or multiview
+		if ( cg.snap->ps.persistant[PERS_TEAM] == TEAM_SPECTATOR || 
+		     cg.snap->ps.persistant[PERS_TEAM] == ci->team || 
+		     CG_mvMergedClientLocate(score->client) ) {
+			showClass = qtrue;
+		}
 	}
-	else if ( cg.snap->ps.persistant[PERS_TEAM] == TEAM_SPECTATOR || 
-	          cg.snap->ps.persistant[PERS_TEAM] == ci->team || 
-	          CG_mvMergedClientLocate(score->client) ) {
-		// Show class icon for: spectators viewing all, same team, or multiview
+	
+	if ( showClass ) {
 		CG_DrawClassIcon(tempx + 1, y + 1, fade, score->playerClass);
+		tempx += INFO_CLASS_WIDTH;
 	}
-	tempx += INFO_CLASS_WIDTH;
+	// If class not shown, don't advance tempx - shift name left
 
     // Icons - draw in order: special status icons first
 	if ( ci->team != TEAM_SPECTATOR ) {
@@ -522,15 +528,21 @@ static void WM_DrawClientScore_Small( int x, int y, score_t *score, float *color
 	tempx += INFO_FLAG_WIDTH;
 
 	// Draw class icon SECOND
-	if ( ci->team == TEAM_SPECTATOR) {
-		// Spectators show nothing for class
+	// Determine if we should show class for this player
+	qboolean showClass = qfalse;
+	if ( ci->team != TEAM_SPECTATOR ) {
+		// Show class if: we're a spectator, or same team
+		if ( cg.snap->ps.persistant[PERS_TEAM] == TEAM_SPECTATOR || 
+		     cg.snap->ps.persistant[PERS_TEAM] == ci->team ) {
+			showClass = qtrue;
+		}
 	}
-	else if ( cg.snap->ps.persistant[PERS_TEAM] == TEAM_SPECTATOR || 
-	          cg.snap->ps.persistant[PERS_TEAM] == ci->team ) {
-		// Show class icon for: spectators viewing all, or same team
+	
+	if ( showClass ) {
 		CG_DrawClassIcon(tempx + 1, y, fade, score->playerClass);
+		tempx += INFO_CLASS_WIDTH;
 	}
-	tempx += INFO_CLASS_WIDTH;
+	// If class not shown, don't advance tempx - shift name left
 
 	if ( ci->team != TEAM_SPECTATOR ) {
         // Has the objective
