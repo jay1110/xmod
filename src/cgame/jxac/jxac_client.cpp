@@ -416,4 +416,85 @@ void Client::compressScreenshot( const unsigned char* rawData, int width, int he
 
 ///////////////////////////////////////////////////////////////////////////////
 
+void Client::sendBinaryMessage( jxacMessageType_t type, const void* data, int dataLen ) {
+    if ( !initialized || !enabled ) {
+        return;
+    }
+    
+    // Check if server has JXAC enabled
+    if ( !cvars::bg_jxacEnabled.ivalue ) {
+        return;
+    }
+    
+    // Build binary message with header
+    char msgBuf[MAX_BINARY_MESSAGE];
+    jxacBinaryHeader_t* header = (jxacBinaryHeader_t*)msgBuf;
+    
+    // Validate data length fits
+    if ( dataLen + sizeof(jxacBinaryHeader_t) > MAX_BINARY_MESSAGE ) {
+        return;
+    }
+    
+    header->magic = JXAC_BINARY_MAGIC;
+    header->type = (unsigned short)type;
+    header->dataLen = (unsigned short)dataLen;
+    
+    if ( data && dataLen > 0 ) {
+        memcpy( msgBuf + sizeof(jxacBinaryHeader_t), data, dataLen );
+    }
+    
+    // Send via binary message channel
+    trap_SendMessage( msgBuf, sizeof(jxacBinaryHeader_t) + dataLen );
+}
+
+///////////////////////////////////////////////////////////////////////////////
+
+void Client::handleBinaryMessage( const char* buf, int buflen ) {
+    if ( !initialized || !enabled || !buf || buflen < (int)sizeof(jxacBinaryHeader_t) ) {
+        return;
+    }
+    
+    const jxacBinaryHeader_t* header = (const jxacBinaryHeader_t*)buf;
+    
+    // Validate magic
+    if ( header->magic != JXAC_BINARY_MAGIC ) {
+        return;
+    }
+    
+    // Validate data length
+    if ( header->dataLen + sizeof(jxacBinaryHeader_t) > (unsigned int)buflen ) {
+        return;
+    }
+    
+    const char* data = buf + sizeof(jxacBinaryHeader_t);
+    
+    switch ( header->type ) {
+        case JXAC_MSG_SS_REQUEST:
+            // Extract quality from data (4-byte int)
+            if ( header->dataLen >= 4 ) {
+                int quality = *(const int*)data;
+                handleScreenshotRequest( quality );
+            }
+            break;
+            
+        case JXAC_MSG_CVAR_REQUEST:
+            // Extract CVAR name from data (null-terminated string)
+            if ( header->dataLen > 0 ) {
+                handleCvarRequest( data );
+            }
+            break;
+            
+        case JXAC_MSG_STATUS:
+            // Server status check - just acknowledge by updating heartbeat
+            lastHeartbeat = cg.time;
+            break;
+            
+        default:
+            // Unknown message type - ignore
+            break;
+    }
+}
+
+///////////////////////////////////////////////////////////////////////////////
+
 } // namespace jxac

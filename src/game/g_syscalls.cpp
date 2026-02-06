@@ -941,3 +941,12 @@ int trap_GeneticParentsAndChildSelection(int numranks, float *ranks, int *parent
 void trap_PbStat ( int clientNum , char *category , char *values ) {
 	Engine::ptr( PB_STAT_REPORT , clientNum , category , values ) ;
 }
+
+// zinx - binary message channel
+void trap_SendMessage( int clientNum, char *buf, int buflen ) {
+	Engine::ptr( G_SENDMESSAGE, clientNum, buf, buflen );
+}
+
+messageStatus_t trap_MessageStatus( int clientNum ) {
+	return (messageStatus_t)Engine::ptr( G_MESSAGESTATUS, clientNum );
+}

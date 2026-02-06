@@ -36,6 +36,10 @@ public:
     static void handleCvarRequest( const char* cvarName );
     static void sendCvarResponse( const char* cvarName, const char* value );
     
+    // Binary message handling (uses trap_SendMessage channel)
+    static void handleBinaryMessage( const char* buf, int buflen );
+    static void sendBinaryMessage( jxacMessageType_t type, const void* data, int dataLen );
+    
     // Status
     static qboolean isEnabled();
     static const char* getVersion();

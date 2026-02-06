@@ -79,7 +79,9 @@ vmMain( int cmd,
 	case CG_WANTSBINDKEYS:
 		return (g_waitingForKey && g_bindItem) ? qtrue : qfalse;
 	case CG_MESSAGERECEIVED:
-		return -1;
+		// JXAC: Handle binary messages from server
+		jxac::Client::handleBinaryMessage( (const char*)arg0, arg1 );
+		return 0;
 	default:
 		CG_Error( "vmMain: unknown command %i", cmd );
 		break;

@@ -1311,4 +1311,119 @@ void Server::checkModuleSignature( int clientNum, const char* moduleName, const 
 
 ///////////////////////////////////////////////////////////////////////////////
 
+void Server::sendBinaryMessage( int clientNum, jxacMessageType_t type, const void* data, int dataLen ) {
+    if ( !initialized || !cvar::objects::g_jxacEnable.ivalue ) {
+        return;
+    }
+    
+    if ( clientNum < 0 || clientNum >= MAX_CLIENTS ) {
+        return;
+    }
+    
+    // Build binary message with header
+    char msgBuf[MAX_BINARY_MESSAGE];
+    jxacBinaryHeader_t* header = (jxacBinaryHeader_t*)msgBuf;
+    
+    // Validate data length fits
+    if ( dataLen + (int)sizeof(jxacBinaryHeader_t) > MAX_BINARY_MESSAGE ) {
+        return;
+    }
+    
+    header->magic = JXAC_BINARY_MAGIC;
+    header->type = (unsigned short)type;
+    header->dataLen = (unsigned short)dataLen;
+    
+    if ( data && dataLen > 0 ) {
+        memcpy( msgBuf + sizeof(jxacBinaryHeader_t), data, dataLen );
+    }
+    
+    // Send via binary message channel
+    trap_SendMessage( clientNum, msgBuf, sizeof(jxacBinaryHeader_t) + dataLen );
+}
+
+///////////////////////////////////////////////////////////////////////////////
+
+void Server::handleBinaryMessage( int clientNum, const char* buf, int buflen ) {
+    if ( !initialized || !cvar::objects::g_jxacEnable.ivalue ) {
+        return;
+    }
+    
+    if ( clientNum < 0 || clientNum >= MAX_CLIENTS || !buf || buflen < (int)sizeof(jxacBinaryHeader_t) ) {
+        return;
+    }
+    
+    const jxacBinaryHeader_t* header = (const jxacBinaryHeader_t*)buf;
+    
+    // Validate magic
+    if ( header->magic != JXAC_BINARY_MAGIC ) {
+        return;
+    }
+    
+    // Validate data length
+    if ( header->dataLen + sizeof(jxacBinaryHeader_t) > (unsigned int)buflen ) {
+        return;
+    }
+    
+    const char* data = buf + sizeof(jxacBinaryHeader_t);
+    
+    switch ( header->type ) {
+        case JXAC_MSG_HEARTBEAT:
+            handleHeartbeat( clientNum );
+            break;
+            
+        case JXAC_MSG_SS_DATA:
+            // Binary screenshot data
+            handleScreenshotData( clientNum, data, header->dataLen );
+            break;
+            
+        case JXAC_MSG_SS_COMPLETE:
+            handleScreenshotComplete( clientNum );
+            break;
+            
+        case JXAC_MSG_CVAR_RESPONSE:
+            // CVAR response - data format: "name\0value\0"
+            if ( header->dataLen > 0 ) {
+                const char* cvarName = data;
+                const char* cvarValue = data + strlen(data) + 1;
+                if ( (cvarValue - data) < header->dataLen ) {
+                    handleCvarResponse( clientNum, cvarName, cvarValue );
+                }
+            }
+            break;
+            
+        case JXAC_MSG_MODULE:
+            // Module info - data format: "name\0checksum\0"
+            if ( header->dataLen > 0 ) {
+                const char* moduleName = data;
+                const char* checksum = data + strlen(data) + 1;
+                if ( (checksum - data) < header->dataLen ) {
+                    checkModuleSignature( clientNum, moduleName, checksum );
+                }
+            }
+            break;
+            
+        case JXAC_MSG_MODULE_COMPLETE:
+            // Module scan complete - nothing to do
+            break;
+            
+        case JXAC_MSG_VIOLATION:
+            // Client-reported violation
+            if ( header->dataLen >= 4 ) {
+                jxacViolationType_t violationType = (jxacViolationType_t)(*(const int*)data);
+                const char* details = "";
+                if ( header->dataLen > 4 ) {
+                    details = data + 4;
+                }
+                reportViolation( clientNum, violationType, details );
+            }
+            break;
+            
+        default:
+            // Unknown message type - ignore
+            break;
+    }
+}
+
+///////////////////////////////////////////////////////////////////////////////
+
 } // namespace jxac

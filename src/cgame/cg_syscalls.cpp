@@ -854,3 +854,12 @@ void trap_R_ReadPixels( int x, int y, int width, int height, unsigned char *buff
 	Engine::ptr( CG_R_READPIXELS, x, y, width, height, buffer );
 }
 
+// zinx - binary message channel
+void trap_SendMessage( char *buf, int buflen ) {
+	Engine::ptr( CG_SENDMESSAGE, buf, buflen );
+}
+
+messageStatus_t trap_MessageStatus( void ) {
+	return (messageStatus_t)Engine::ptr( CG_MESSAGESTATUS );
+}
+
