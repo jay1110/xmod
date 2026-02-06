@@ -1944,19 +1944,25 @@ void G_InitGame( int levelTime, int randomSeed, int restart ) {
             level.mapCount = g_mapCount.integer;
             G_Printf("^5[XMOD] Map count set to %d (from g_mapCount CVAR)\n", level.mapCount);
         } else if (g_mapCount.integer == 0) {
-            // Try auto-detection (may not work on all server setups)
-            char arenaList[8192];
-            int numArenas = trap_FS_GetFileList("scripts", ".arena", arenaList, sizeof(arenaList));
-            if (numArenas > 0) {
-                level.mapCount = numArenas;
-                G_Printf("^5[XMOD] Found %d maps (from .arena files)\n", level.mapCount);
-            } else {
-                // Fallback: try counting .bsp files
-                char mapList[8192];
-                int numMaps = trap_FS_GetFileList("maps", ".bsp", mapList, sizeof(mapList));
-                level.mapCount = numMaps;
-                G_Printf("^5[XMOD] Found %d maps (from .bsp files)\n", level.mapCount);
+            // Try auto-detection - use "bsp" without dot (like other ET API calls)
+            char mapList[16384];
+            int numMaps = trap_FS_GetFileList("maps", "bsp", mapList, sizeof(mapList));
+            G_Printf("^5[XMOD DEBUG] trap_FS_GetFileList(\"maps\", \"bsp\") returned %d\n", numMaps);
+            
+            if (numMaps <= 0) {
+                // Try with dot
+                numMaps = trap_FS_GetFileList("maps", ".bsp", mapList, sizeof(mapList));
+                G_Printf("^5[XMOD DEBUG] trap_FS_GetFileList(\"maps\", \".bsp\") returned %d\n", numMaps);
             }
+            
+            if (numMaps <= 0) {
+                // Try .arena files as fallback
+                numMaps = trap_FS_GetFileList("scripts", "arena", mapList, sizeof(mapList));
+                G_Printf("^5[XMOD DEBUG] trap_FS_GetFileList(\"scripts\", \"arena\") returned %d\n", numMaps);
+            }
+            
+            level.mapCount = numMaps > 0 ? numMaps : 0;
+            G_Printf("^5[XMOD] Found %d maps\n", level.mapCount);
         } else {
             // g_mapCount < 0: hide map count
             level.mapCount = 0;
