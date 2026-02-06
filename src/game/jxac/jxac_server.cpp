@@ -1324,8 +1324,8 @@ void Server::sendBinaryMessage( int clientNum, jxacMessageType_t type, const voi
     char msgBuf[MAX_BINARY_MESSAGE];
     jxacBinaryHeader_t* header = (jxacBinaryHeader_t*)msgBuf;
     
-    // Validate data length fits
-    if ( dataLen + (int)sizeof(jxacBinaryHeader_t) > MAX_BINARY_MESSAGE ) {
+    // Validate data length fits (use size_t for consistent comparison)
+    if ( (size_t)dataLen + sizeof(jxacBinaryHeader_t) > MAX_BINARY_MESSAGE ) {
         return;
     }
     
@@ -1342,6 +1342,16 @@ void Server::sendBinaryMessage( int clientNum, jxacMessageType_t type, const voi
 }
 
 ///////////////////////////////////////////////////////////////////////////////
+
+// Helper function to find null terminator within bounds
+static int findNullTerminator( const char* data, int maxLen ) {
+    for ( int i = 0; i < maxLen; i++ ) {
+        if ( data[i] == '\0' ) {
+            return i;
+        }
+    }
+    return -1;  // Not found
+}
 
 void Server::handleBinaryMessage( int clientNum, const char* buf, int buflen ) {
     if ( !initialized || !cvar::objects::g_jxacEnable.ivalue ) {
@@ -1383,10 +1393,16 @@ void Server::handleBinaryMessage( int clientNum, const char* buf, int buflen ) {
         case JXAC_MSG_CVAR_RESPONSE:
             // CVAR response - data format: "name\0value\0"
             if ( header->dataLen > 0 ) {
-                const char* cvarName = data;
-                const char* cvarValue = data + strlen(data) + 1;
-                if ( (cvarValue - data) < header->dataLen ) {
-                    handleCvarResponse( clientNum, cvarName, cvarValue );
+                // Find first null terminator
+                int nameEnd = findNullTerminator( data, header->dataLen );
+                if ( nameEnd >= 0 && nameEnd < header->dataLen - 1 ) {
+                    const char* cvarName = data;
+                    const char* cvarValue = data + nameEnd + 1;
+                    // Verify value is also null-terminated within bounds
+                    int valueEnd = findNullTerminator( cvarValue, header->dataLen - nameEnd - 1 );
+                    if ( valueEnd >= 0 ) {
+                        handleCvarResponse( clientNum, cvarName, cvarValue );
+                    }
                 }
             }
             break;
@@ -1394,10 +1410,16 @@ void Server::handleBinaryMessage( int clientNum, const char* buf, int buflen ) {
         case JXAC_MSG_MODULE:
             // Module info - data format: "name\0checksum\0"
             if ( header->dataLen > 0 ) {
-                const char* moduleName = data;
-                const char* checksum = data + strlen(data) + 1;
-                if ( (checksum - data) < header->dataLen ) {
-                    checkModuleSignature( clientNum, moduleName, checksum );
+                // Find first null terminator
+                int nameEnd = findNullTerminator( data, header->dataLen );
+                if ( nameEnd >= 0 && nameEnd < header->dataLen - 1 ) {
+                    const char* moduleName = data;
+                    const char* checksum = data + nameEnd + 1;
+                    // Verify checksum is also null-terminated within bounds
+                    int checksumEnd = findNullTerminator( checksum, header->dataLen - nameEnd - 1 );
+                    if ( checksumEnd >= 0 ) {
+                        checkModuleSignature( clientNum, moduleName, checksum );
+                    }
                 }
             }
             break;
@@ -1407,12 +1429,18 @@ void Server::handleBinaryMessage( int clientNum, const char* buf, int buflen ) {
             break;
             
         case JXAC_MSG_VIOLATION:
-            // Client-reported violation
+            // Client-reported violation - use memcpy for alignment safety
             if ( header->dataLen >= 4 ) {
-                jxacViolationType_t violationType = (jxacViolationType_t)(*(const int*)data);
+                int violationTypeInt;
+                memcpy( &violationTypeInt, data, sizeof(violationTypeInt) );
+                jxacViolationType_t violationType = (jxacViolationType_t)violationTypeInt;
                 const char* details = "";
                 if ( header->dataLen > 4 ) {
-                    details = data + 4;
+                    // Verify details string is null-terminated
+                    int detailsEnd = findNullTerminator( data + 4, header->dataLen - 4 );
+                    if ( detailsEnd >= 0 ) {
+                        details = data + 4;
+                    }
                 }
                 reportViolation( clientNum, violationType, details );
             }

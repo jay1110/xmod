@@ -430,8 +430,8 @@ void Client::sendBinaryMessage( jxacMessageType_t type, const void* data, int da
     char msgBuf[MAX_BINARY_MESSAGE];
     jxacBinaryHeader_t* header = (jxacBinaryHeader_t*)msgBuf;
     
-    // Validate data length fits
-    if ( dataLen + sizeof(jxacBinaryHeader_t) > MAX_BINARY_MESSAGE ) {
+    // Validate data length fits (use size_t for consistent comparison)
+    if ( (size_t)dataLen + sizeof(jxacBinaryHeader_t) > MAX_BINARY_MESSAGE ) {
         return;
     }
     
@@ -470,17 +470,28 @@ void Client::handleBinaryMessage( const char* buf, int buflen ) {
     
     switch ( header->type ) {
         case JXAC_MSG_SS_REQUEST:
-            // Extract quality from data (4-byte int)
+            // Extract quality from data (4-byte int) using memcpy for alignment safety
             if ( header->dataLen >= 4 ) {
-                int quality = *(const int*)data;
+                int quality;
+                memcpy( &quality, data, sizeof(quality) );
                 handleScreenshotRequest( quality );
             }
             break;
             
         case JXAC_MSG_CVAR_REQUEST:
             // Extract CVAR name from data (null-terminated string)
+            // Verify null terminator exists within bounds
             if ( header->dataLen > 0 ) {
-                handleCvarRequest( data );
+                bool hasNull = false;
+                for ( int i = 0; i < header->dataLen; i++ ) {
+                    if ( data[i] == '\0' ) {
+                        hasNull = true;
+                        break;
+                    }
+                }
+                if ( hasNull ) {
+                    handleCvarRequest( data );
+                }
             }
             break;
             
