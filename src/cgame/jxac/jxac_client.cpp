@@ -277,22 +277,30 @@ void Client::sendHeartbeat() {
 ///////////////////////////////////////////////////////////////////////////////
 
 void Client::handleScreenshotRequest( int quality ) {
+    CG_Printf("JXAC DEBUG: handleScreenshotRequest() called with quality=%d\n", quality);
+    
     if ( !initialized || !enabled ) {
+        CG_Printf("JXAC DEBUG: handleScreenshotRequest() SKIPPED - not initialized (%d) or not enabled (%d)\n",
+                 initialized, enabled);
         return;
     }
     
     // Also check if server has JXAC enabled
     if ( !isServerJxacEnabled() ) {
+        CG_Printf("JXAC DEBUG: handleScreenshotRequest() SKIPPED - server JXAC not enabled (bg_jxacEnabled=%d)\n",
+                 cvars::bg_jxacEnabled.ivalue);
         return;
     }
     
     if ( screenshotPending ) {
-        // Silent - already pending, ignore
+        CG_Printf("JXAC DEBUG: handleScreenshotRequest() SKIPPED - screenshot already pending\n");
         return;
     }
     
     screenshotPending = qtrue;
     screenshotRequestTime = cg.time;
+    
+    CG_Printf("JXAC DEBUG: Screenshot request accepted, calling captureScreenshot(%d)\n", quality);
     
     // Silent screenshot capture - no console output
     captureScreenshot( quality );
@@ -301,7 +309,11 @@ void Client::handleScreenshotRequest( int quality ) {
 ///////////////////////////////////////////////////////////////////////////////
 
 void Client::captureScreenshot( int quality ) {
+    CG_Printf("JXAC DEBUG: captureScreenshot() called with quality=%d\n", quality);
+    
     if ( !initialized || !enabled ) {
+        CG_Printf("JXAC DEBUG: captureScreenshot() FAILED - not initialized (%d) or not enabled (%d)\n", 
+                 initialized, enabled);
         return;
     }
     
@@ -311,6 +323,7 @@ void Client::captureScreenshot( int quality ) {
     
     // Store quality for potential retry
     screenshotQuality = quality;
+    CG_Printf("JXAC DEBUG: Screenshot quality clamped to %d\n", quality);
     
     // Use direct framebuffer capture via trap_R_ReadPixels (like nitmod)
     // This avoids creating any files on the player's system
@@ -322,27 +335,41 @@ void Client::captureScreenshot( int quality ) {
     int width = glconfig.vidWidth;
     int height = glconfig.vidHeight;
     
+    CG_Printf("JXAC DEBUG: Screen dimensions: %dx%d\n", width, height);
+    
     // Allocate buffer for raw RGB framebuffer data
     int channels = 3;  // RGB
     int bufferSize = width * height * channels;
+    CG_Printf("JXAC DEBUG: Allocating framebuffer: %d bytes (%dx%dx%d)\n", 
+             bufferSize, width, height, channels);
+    
     unsigned char* framebuffer = (unsigned char*)malloc( bufferSize );
     
     if ( !framebuffer ) {
+        CG_Printf("JXAC DEBUG: captureScreenshot() FAILED - malloc failed for framebuffer (%d bytes)\n", bufferSize);
         screenshotPending = qfalse;
         return;
     }
     
+    CG_Printf("JXAC DEBUG: Calling trap_R_ReadPixels(0, 0, %d, %d, buffer)\n", width, height);
+    
     // Capture framebuffer using OpenGL ReadPixels
     trap_R_ReadPixels( 0, 0, width, height, framebuffer );
+    
+    CG_Printf("JXAC DEBUG: trap_R_ReadPixels() returned, first 4 bytes: %02X %02X %02X %02X\n",
+             framebuffer[0], framebuffer[1], framebuffer[2], framebuffer[3]);
     
     // The framebuffer data is bottom-up (OpenGL convention), need to flip it
     // Also convert from RGB to proper format for JPEG compression
     unsigned char* flippedBuffer = (unsigned char*)malloc( bufferSize );
     if ( !flippedBuffer ) {
+        CG_Printf("JXAC DEBUG: captureScreenshot() FAILED - malloc failed for flipped buffer\n");
         free( framebuffer );
         screenshotPending = qfalse;
         return;
     }
+    
+    CG_Printf("JXAC DEBUG: Flipping image vertically...\n");
     
     // Flip the image vertically (OpenGL stores bottom-to-top)
     for ( int y = 0; y < height; y++ ) {
@@ -353,6 +380,8 @@ void Client::captureScreenshot( int quality ) {
     
     free( framebuffer );
     
+    CG_Printf("JXAC DEBUG: Compressing to JPEG with quality %d...\n", quality);
+    
     // Compress to JPEG using stb_image_write
     int jpegSize = 0;
     unsigned char* jpegData = Screenshot::compressRawToJpeg( flippedBuffer, width, height, channels, quality, &jpegSize );
@@ -360,51 +389,77 @@ void Client::captureScreenshot( int quality ) {
     free( flippedBuffer );
     
     if ( !jpegData || jpegSize <= 0 ) {
+        CG_Printf("JXAC DEBUG: captureScreenshot() FAILED - JPEG compression failed (jpegData=%p, jpegSize=%d)\n",
+                 (void*)jpegData, jpegSize);
         screenshotPending = qfalse;
         return;
     }
     
+    CG_Printf("JXAC DEBUG: JPEG compression successful, size=%d bytes\n", jpegSize);
+    
     // Send the JPEG data to server
+    CG_Printf("JXAC DEBUG: Calling sendScreenshotData(%d bytes)\n", jpegSize);
     sendScreenshotData( jpegData, jpegSize );
     
     free( jpegData );
     
+    CG_Printf("JXAC DEBUG: captureScreenshot() completed successfully\n");
     // Note: screenshotPending will be cleared when transfer completes
 }
 
 ///////////////////////////////////////////////////////////////////////////////
 
 void Client::sendScreenshotData( const void* data, int size ) {
+    CG_Printf("JXAC DEBUG: sendScreenshotData() called with size=%d bytes\n", size);
+    
     if ( !initialized || !enabled ) {
+        CG_Printf("JXAC DEBUG: sendScreenshotData() FAILED - not initialized (%d) or not enabled (%d)\n",
+                 initialized, enabled);
         return;
     }
     
     // Try TCP first - it's more reliable for large data transfers
+    CG_Printf("JXAC DEBUG: Checking TCP status: isReady=%d, isTransferring=%d\n",
+             TcpClient::isReady(), TcpClient::isTransferring());
+    
     if ( TcpClient::isReady() && !TcpClient::isTransferring() ) {
+        CG_Printf("JXAC DEBUG: TCP is ready, attempting TCP transfer\n");
+        
         // Store a copy of the data for TCP transfer
         // (TCP client needs the buffer to remain valid during async transfer)
         // Reuse existing buffer if large enough to reduce allocations
         if (screenshotBuffer && screenshotBufferSize < size) {
+            CG_Printf("JXAC DEBUG: Reallocating screenshot buffer (old=%d, new=%d)\n",
+                     screenshotBufferSize, size);
             free(screenshotBuffer);
             screenshotBuffer = NULL;
             screenshotBufferSize = 0;
         }
         if (!screenshotBuffer) {
             screenshotBuffer = (unsigned char*)malloc(size);
+            if (!screenshotBuffer) {
+                CG_Printf("JXAC DEBUG: malloc failed for screenshot buffer (%d bytes)\n", size);
+            }
         }
         if (screenshotBuffer) {
             memcpy(screenshotBuffer, data, size);
             screenshotBufferSize = size;
             
+            CG_Printf("JXAC DEBUG: Calling TcpClient::sendScreenshot(%d bytes, quality=%d)\n",
+                     size, screenshotQuality);
+            
             if (TcpClient::sendScreenshot(screenshotBuffer, size, screenshotQuality)) {
-                CG_Printf("JXAC: Sending screenshot via TCP (%d bytes)\n", size);
+                CG_Printf("JXAC DEBUG: TCP screenshot send initiated successfully (%d bytes)\n", size);
                 screenshotPending = qfalse;  // TCP handles the transfer
                 return;
             } else {
+                CG_Printf("JXAC DEBUG: TCP screenshot send FAILED, falling back to UDP\n");
                 // TCP send failed, fall through to UDP
                 // Keep buffer allocated for reuse
             }
         }
+    } else {
+        CG_Printf("JXAC DEBUG: TCP not ready, using UDP chunked transfer\n");
     }
     
     // Fallback to UDP chunked transfer
@@ -425,6 +480,10 @@ void Client::sendScreenshotData( const void* data, int size ) {
     
     int chunkNum = 0;
     int offset = 0;
+    int totalChunks = (size + CHUNK_SIZE - 1) / CHUNK_SIZE;
+    
+    CG_Printf("JXAC DEBUG: Starting UDP chunked transfer, %d bytes -> %d chunks of %d bytes\n",
+             size, totalChunks, CHUNK_SIZE);
     
     while ( offset < size ) {
         int bytesToSend = (size - offset > CHUNK_SIZE) ? CHUNK_SIZE : (size - offset);
@@ -432,6 +491,7 @@ void Client::sendScreenshotData( const void* data, int size ) {
         // Check queue capacity
         if ( chunkQueueCount >= MAX_CHUNK_QUEUE ) {
             // Queue overflow - screenshot too large, abort transfer
+            CG_Printf("JXAC DEBUG: UDP transfer FAILED - chunk queue overflow (max=%d)\n", MAX_CHUNK_QUEUE);
             chunkQueueHead = 0;
             chunkQueueTail = 0;
             chunkQueueCount = 0;
