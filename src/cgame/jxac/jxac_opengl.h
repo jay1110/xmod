@@ -24,6 +24,7 @@ namespace OpenGL {
 #define JXAC_GL_FRONT               0x0404
 #define JXAC_GL_BACK                0x0405
 #define JXAC_GL_RGB                 0x1907
+#define JXAC_GL_RGBA                0x1908
 #define JXAC_GL_UNSIGNED_BYTE       0x1401
 #define JXAC_GL_PACK_ALIGNMENT      0x0D05
 #define JXAC_GL_FRAMEBUFFER         0x8D40
@@ -49,7 +50,8 @@ bool isInitialized();
 
 // Capture framebuffer to buffer
 // Returns true on success, false on failure
-// buffer must be pre-allocated with width*height*3 bytes
+// buffer must be pre-allocated with width*height*3 bytes (RGB output)
+// On Android (OpenGL ES), internally captures RGBA and converts to RGB
 bool captureFramebuffer(int x, int y, int width, int height, unsigned char* buffer);
 
 } // namespace OpenGL

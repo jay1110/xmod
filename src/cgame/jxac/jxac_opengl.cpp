@@ -326,6 +326,55 @@ bool captureFramebuffer(int x, int y, int width, int height, unsigned char* buff
     CG_Printf("JXAC OpenGL DEBUG: Read buffer setup %s\n", readBufferSuccess ? "succeeded" : "skipped/failed (trying anyway)");
     
     // Read pixels from framebuffer
+    // On Android (OpenGL ES), we MUST use GL_RGBA - GL_RGB is not guaranteed
+    // Then convert RGBA to RGB for the output buffer
+#if defined(JXAC_PLATFORM_ANDROID)
+    CG_Printf("JXAC OpenGL DEBUG: Android - using GL_RGBA (required by OpenGL ES)\n");
+    
+    // Allocate temporary RGBA buffer (use size_t to avoid overflow on large screens)
+    size_t rgbaBufferSize = (size_t)width * (size_t)height * 4;
+    
+    // Sanity check - max ~32MB for a 4K screen (3840*2160*4 = ~33MB)
+    if (rgbaBufferSize > 64 * 1024 * 1024) {
+        CG_Printf("JXAC OpenGL DEBUG: FAILED - RGBA buffer too large (%zu bytes)\n", rgbaBufferSize);
+        return false;
+    }
+    
+    unsigned char* rgbaBuffer = (unsigned char*)malloc(rgbaBufferSize);
+    if (!rgbaBuffer) {
+        CG_Printf("JXAC OpenGL DEBUG: FAILED - malloc failed for RGBA buffer (%zu bytes)\n", rgbaBufferSize);
+        return false;
+    }
+    
+    CG_Printf("JXAC OpenGL DEBUG: Calling glReadPixels(%d, %d, %d, %d, GL_RGBA=0x%04X, GL_UNSIGNED_BYTE=0x%04X, %p)\n",
+             x, y, width, height, JXAC_GL_RGBA, JXAC_GL_UNSIGNED_BYTE, (void*)rgbaBuffer);
+    
+    qglReadPixels(x, y, width, height, JXAC_GL_RGBA, JXAC_GL_UNSIGNED_BYTE, rgbaBuffer);
+    
+    // Check for errors
+    if (qglGetError) {
+        unsigned int err = qglGetError();
+        if (err != JXAC_GL_NO_ERROR) {
+            CG_Printf("JXAC OpenGL DEBUG: glReadPixels error: 0x%04X\n", err);
+            free(rgbaBuffer);
+            return false;
+        }
+    }
+    
+    // Convert RGBA to RGB
+    CG_Printf("JXAC OpenGL DEBUG: Converting RGBA to RGB...\n");
+    for (int i = 0; i < width * height; i++) {
+        buffer[i * 3 + 0] = rgbaBuffer[i * 4 + 0];  // R
+        buffer[i * 3 + 1] = rgbaBuffer[i * 4 + 1];  // G
+        buffer[i * 3 + 2] = rgbaBuffer[i * 4 + 2];  // B
+        // Alpha (rgbaBuffer[i * 4 + 3]) is discarded
+    }
+    
+    free(rgbaBuffer);
+    
+    CG_Printf("JXAC OpenGL DEBUG: RGBA to RGB conversion complete\n");
+#else
+    // Desktop OpenGL: GL_RGB works fine
     CG_Printf("JXAC OpenGL DEBUG: Calling glReadPixels(%d, %d, %d, %d, GL_RGB=0x%04X, GL_UNSIGNED_BYTE=0x%04X, %p)\n",
              x, y, width, height, JXAC_GL_RGB, JXAC_GL_UNSIGNED_BYTE, (void*)buffer);
     
@@ -339,6 +388,7 @@ bool captureFramebuffer(int x, int y, int width, int height, unsigned char* buff
             return false;
         }
     }
+#endif
     
     // Check if we got any data (first pixel shouldn't be all zero typically)
     CG_Printf("JXAC OpenGL DEBUG: glReadPixels completed, first 8 bytes: %02X %02X %02X %02X %02X %02X %02X %02X\n",
