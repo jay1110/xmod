@@ -271,15 +271,6 @@ void TcpClient::processConnected() {
             chunkSize = JXAC_TCP_CHUNK_SIZE;
         }
         
-        // Log progress periodically (every 10%)
-        int progressPercent = (sendOffset * 100) / sendSize;
-        static int lastProgress = -1;
-        if (progressPercent / 10 != lastProgress / 10) {
-            CG_Printf("JXAC TCP DEBUG: Transfer progress: %d/%d bytes (%d%%)\n", 
-                     sendOffset, sendSize, progressPercent);
-            lastProgress = progressPercent;
-        }
-        
         if (sendMessage(JXAC_TCP_MSG_SS_DATA, sendBuffer + sendOffset, chunkSize)) {
             sendOffset += chunkSize;
             lastActivityTime = cg.time;
@@ -287,19 +278,15 @@ void TcpClient::processConnected() {
             // Check if transfer complete
             if (sendOffset >= sendSize) {
                 // Send end marker
-                CG_Printf("JXAC TCP DEBUG: Sending SS_END message\n");
                 sendMessage(JXAC_TCP_MSG_SS_END, NULL, 0);
                 
-                CG_Printf("JXAC TCP DEBUG: Screenshot transfer complete (%d bytes sent successfully)\n", sendSize);
                 sendBuffer = NULL;
                 sendSize = 0;
                 sendOffset = 0;
                 clientState = JXAC_TCP_STATE_READY;
-                lastProgress = -1;  // Reset for next transfer
             }
-        } else {
-            CG_Printf("JXAC TCP DEBUG: sendMessage(SS_DATA) FAILED at offset %d/%d\n", sendOffset, sendSize);
         }
+        // Note: If send fails (would block), we'll retry next frame automatically
     }
     
     // Process any incoming data
@@ -371,18 +358,11 @@ void TcpClient::processReceive() {
 ///////////////////////////////////////////////////////////////////////////////
 
 qboolean TcpClient::sendScreenshot(const unsigned char* data, int size, int quality) {
-    CG_Printf("JXAC TCP DEBUG: sendScreenshot() called - state=%d, data=%p, size=%d, quality=%d\n",
-             clientState, (void*)data, size, quality);
-    
     if (clientState != JXAC_TCP_STATE_READY) {
-        CG_Printf("JXAC TCP DEBUG: sendScreenshot() FAILED - not ready (state=%d, expected=%d)\n", 
-                 clientState, JXAC_TCP_STATE_READY);
         return qfalse;
     }
     
     if (!data || size <= 0 || size > JXAC_TCP_MAX_SS_SIZE) {
-        CG_Printf("JXAC TCP DEBUG: sendScreenshot() FAILED - invalid data (data=%p, size=%d, max=%d)\n",
-                 (void*)data, size, JXAC_TCP_MAX_SS_SIZE);
         return qfalse;
     }
     
@@ -392,10 +372,7 @@ qboolean TcpClient::sendScreenshot(const unsigned char* data, int size, int qual
     ssStart.quality = quality;
     ssStart.reserved = 0;
     
-    CG_Printf("JXAC TCP DEBUG: Sending SS_START message (totalSize=%d, quality=%d)\n", size, quality);
-    
     if (!sendMessage(JXAC_TCP_MSG_SS_START, &ssStart, sizeof(ssStart))) {
-        CG_Printf("JXAC TCP DEBUG: sendScreenshot() FAILED - sendMessage(SS_START) failed\n");
         return qfalse;
     }
     
@@ -406,7 +383,6 @@ qboolean TcpClient::sendScreenshot(const unsigned char* data, int size, int qual
     sendQuality = quality;
     clientState = JXAC_TCP_STATE_TRANSFERRING;
     
-    CG_Printf("JXAC TCP DEBUG: Screenshot transfer started (%d bytes, state now TRANSFERRING)\n", size);
     return qtrue;
 }
 
@@ -450,15 +426,10 @@ qboolean TcpClient::sendRaw(const void* data, int dataLen) {
         }
         else if (sent == JXAC_SOCKET_ERROR) {
             if (jxac_socket_wouldblock()) {
-                // Would block - try again next frame
-                // For simplicity, we'll just fail here
-                // A more robust implementation would buffer unsent data
-                CG_Printf("JXAC TCP DEBUG: sendRaw() FAILED - would block (sent %d/%d bytes)\n",
-                         totalSent, dataLen);
+                // Would block - caller should retry later
                 return qfalse;
             }
-            CG_Printf("JXAC TCP DEBUG: sendRaw() FAILED - socket error %d (sent %d/%d bytes)\n",
-                     jxac_socket_errno, totalSent, dataLen);
+            // Real socket error
             return qfalse;
         }
     }
