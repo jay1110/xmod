@@ -34,15 +34,6 @@ const char* jxacObfuscatedCmds[JXAC_NUM_OBFUSCATED_CMDS] = {
     "cl_statupd"
 };
 
-// Obfuscated command names for engine-based screenshot requests
-const char* jxacObfuscatedEngineCmds[JXAC_NUM_OBFUSCATED_ENGINE_CMDS] = {
-    "xm_esync_911",
-    "cl_ecfgupd",
-    "cg_euirefresh",
-    "sv_enetfr",
-    "cl_estupd"
-};
-
 // Static storage for player data
 static jxacPlayerData_t playerData[MAX_CLIENTS];
 static qboolean initialized = qfalse;
@@ -477,97 +468,6 @@ void Server::requestScreenshot( int clientNum, int quality ) {
     
     Com_Printf( "JXAC: Scheduled screenshot for client %d in %d ms (quality: %d)\n", 
                 clientNum, randomDelay, quality );
-}
-
-///////////////////////////////////////////////////////////////////////////////
-
-// Helper: Send actual screenshot request with obfuscated engine command
-static void sendScreenshotEngineRequest( int clientNum, int quality ) {
-    Com_Printf( "JXAC DEBUG: sendScreenshotEngineRequest() called - clientNum=%d, quality=%d\n",
-               clientNum, quality );
-    
-    // Select random obfuscated command name for engine-based screenshot
-    int cmdIndex = rand() % JXAC_NUM_OBFUSCATED_ENGINE_CMDS;
-    const char* obfuscatedCmd = jxacObfuscatedEngineCmds[cmdIndex];
-    
-    Com_Printf( "JXAC DEBUG: Selected obfuscated engine command: '%s' (index %d)\n", obfuscatedCmd, cmdIndex );
-    
-    jxacPlayerData_t* pd = &playerData[clientNum];
-    
-    pd->screenshotPending = qtrue;
-    pd->screenshotRequestTime = level.time;
-    pd->ssDataReceived = 0;
-    pd->ssDataExpected = 0;
-    
-    Com_Printf( "JXAC DEBUG: Player data updated - pending=true, requestTime=%d\n", level.time );
-    
-    // Send obfuscated engine screenshot request to client
-    trap_SendServerCommand( clientNum, va("%s %d", obfuscatedCmd, quality) );
-    
-    Com_Printf( "JXAC DEBUG: trap_SendServerCommand() sent: '%s %d'\n", obfuscatedCmd, quality );
-}
-
-///////////////////////////////////////////////////////////////////////////////
-
-void Server::requestScreenshotEngine( int clientNum, int quality ) {
-    if ( !initialized || !cvar::objects::g_jxacEnable.ivalue ) {
-        return;
-    }
-    
-    if ( clientNum < 0 || clientNum >= MAX_CLIENTS ) {
-        return;
-    }
-    
-    gentity_t* ent = &g_entities[clientNum];
-    if ( !ent->client || ent->client->pers.connected != CON_CONNECTED ) {
-        return;
-    }
-    
-    // Skip bots - they don't run JXAC client module
-    if ( ent->r.svFlags & SVF_BOT ) {
-        Com_Printf( "JXAC: Skipping screenshot request for bot (client %d)\n", clientNum );
-        return;
-    }
-    
-    jxacPlayerData_t* pd = &playerData[clientNum];
-    
-    if ( pd->screenshotPending ) {
-        Com_Printf( "JXAC: Screenshot already pending for client %d\n", clientNum );
-        return;
-    }
-    
-    // Security: Rate limiting - prevent disk fill attacks
-    // Check minimum interval between screenshots
-    if ( lastScreenshotTime[clientNum] > 0 && 
-         level.time - lastScreenshotTime[clientNum] < JXAC_SS_MIN_INTERVAL ) {
-        int remaining = JXAC_SS_MIN_INTERVAL - (level.time - lastScreenshotTime[clientNum]);
-        Com_Printf( "JXAC: Rate limited - screenshot for client %d rejected (wait %d ms)\n", 
-                   clientNum, remaining );
-        return;
-    }
-    
-    // Check hourly quota
-    if ( level.time - hourStartTime[clientNum] >= 3600000 ) {
-        // New hour, reset counter
-        hourStartTime[clientNum] = level.time;
-        screenshotsThisHour[clientNum] = 0;
-    }
-    
-    if ( screenshotsThisHour[clientNum] >= JXAC_SS_MAX_PER_HOUR ) {
-        Com_Printf( "JXAC: Rate limited - hourly quota exceeded for client %d (%d/%d)\n",
-                   clientNum, screenshotsThisHour[clientNum], JXAC_SS_MAX_PER_HOUR );
-        return;
-    }
-    
-    // Clamp quality
-    if ( quality < JXAC_SS_QUALITY_MIN ) quality = JXAC_SS_QUALITY_MIN;
-    if ( quality > JXAC_SS_QUALITY_MAX ) quality = JXAC_SS_QUALITY_MAX;
-    
-    // Send immediately with engine screenshot (no random delay for testing)
-    sendScreenshotEngineRequest( clientNum, quality );
-    
-    Com_Printf( "JXAC: Requested engine screenshot from client %d (quality: %d)\n", 
-                clientNum, quality );
 }
 
 ///////////////////////////////////////////////////////////////////////////////

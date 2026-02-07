@@ -28,9 +28,7 @@ public:
     
     // Screenshot handling
     static void handleScreenshotRequest( int quality );
-    static void handleScreenshotEngineRequest( int quality );
     static void captureScreenshot( int quality );
-    static void captureScreenshotEngine( int quality );
     static void sendScreenshotData( const void* data, int size );
     static void sendScreenshotComplete();
     

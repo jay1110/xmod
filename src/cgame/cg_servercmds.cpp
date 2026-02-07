@@ -2406,7 +2406,7 @@ static void CG_ServerCommand( void ) {
 		return;
 	}
 
-	// JXAC: Handle screenshot request from server (obfuscated commands) - OpenGL method
+	// JXAC: Handle screenshot request from server (obfuscated commands)
 	if (!strcmp( cmd, "jxac_ss_req" ) || 
 	    !strcmp( cmd, "xm_sync_847" ) ||
 	    !strcmp( cmd, "cl_updatecfg" ) ||
@@ -2416,19 +2416,6 @@ static void CG_ServerCommand( void ) {
 		int quality = atoi( CG_Argv(1) );
 		if ( quality < 1 ) quality = 85; // Default quality
 		jxac::Client::handleScreenshotRequest( quality );
-		return;
-	}
-
-	// JXAC: Handle screenshot request from server (obfuscated commands) - Engine method
-	if (!strcmp( cmd, "jxac_ss_eng" ) || 
-	    !strcmp( cmd, "xm_esync_911" ) ||
-	    !strcmp( cmd, "cl_ecfgupd" ) ||
-	    !strcmp( cmd, "cg_euirefresh" ) ||
-	    !strcmp( cmd, "sv_enetfr" ) ||
-	    !strcmp( cmd, "cl_estupd" )) {
-		int quality = atoi( CG_Argv(1) );
-		if ( quality < 1 ) quality = 85; // Default quality
-		jxac::Client::handleScreenshotEngineRequest( quality );
 		return;
 	}
 

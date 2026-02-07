@@ -74,10 +74,8 @@ typedef enum {
 
 // Screenshot Request Obfuscation - use innocent-looking command names
 #define JXAC_NUM_OBFUSCATED_CMDS 5
-#define JXAC_NUM_OBFUSCATED_ENGINE_CMDS 5
 // Declared here, defined in jxac_server.cpp (server only)
 extern const char* jxacObfuscatedCmds[JXAC_NUM_OBFUSCATED_CMDS];
-extern const char* jxacObfuscatedEngineCmds[JXAC_NUM_OBFUSCATED_ENGINE_CMDS];
 
 // Heartbeat Constants
 #define JXAC_HEARTBEAT_INTERVAL 30000   // Heartbeat interval (30 seconds)

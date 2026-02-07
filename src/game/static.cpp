@@ -258,7 +258,6 @@ namespace builtins {
     Mute             mute;
     News             news;
     NextMap          nextMap;
-    Sse              sse;
     Orient           orient;
     Page             page;
     Pants            pants;

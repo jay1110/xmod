@@ -48,7 +48,6 @@ private:
 #include <game/cmd/LevInfo.h>
 #include <game/cmd/LevList.h>
 #include <game/cmd/ListPlayers.h>
-#include <game/cmd/Sse.h>
 #include <game/cmd/Lock.h>
 #include <game/cmd/Lol.h>
 #include <game/cmd/LsPlayers.h>
@@ -133,7 +132,6 @@ namespace builtins {
     extern Lol          lol;
     extern LsPlayers    lsPlayers;
     extern Mute         mute;
-    extern Sse          sse;
     extern News         news;
     extern NextMap      nextMap;
     extern Orient       orient;
