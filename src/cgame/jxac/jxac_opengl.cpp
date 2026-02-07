@@ -52,14 +52,6 @@ bool init() {
     
     CG_Printf("JXAC OpenGL DEBUG: Initializing direct OpenGL access...\n");
 
-#if defined(JXAC_PLATFORM_ANDROID)
-    // Android: OpenGL ES screenshot capture is not yet implemented
-    // Return false to gracefully skip screenshot instead of crashing
-    CG_Printf("JXAC OpenGL DEBUG: Android platform detected\n");
-    CG_Printf("^3JXAC: Screenshot capture not yet supported on Android (OpenGL ES)\n");
-    return false;
-#endif
-
 #ifdef _WIN32
     // Windows (32-bit and 64-bit): Get handle to opengl32.dll (already loaded by engine)
     // Use GetModuleHandleA explicitly for ANSI string
