@@ -50,9 +50,22 @@ bool init() {
     
     CG_Printf("JXAC OpenGL DEBUG: Initializing direct OpenGL access...\n");
 
+#if defined(JXAC_PLATFORM_ANDROID)
+    // Android: OpenGL ES screenshot capture is currently unstable
+    // Disable for now to prevent crashes
+    CG_Printf("JXAC OpenGL DEBUG: Android platform - direct OpenGL capture disabled (not implemented)\n");
+    return false;
+#endif
+
 #ifdef _WIN32
-    // Windows: Get handle to opengl32.dll (already loaded by engine)
-    // Use GetModuleHandleA explicitly for ANSI string to avoid Unicode issues on Win64
+#ifdef _WIN64
+    // Windows 64-bit: Direct OpenGL capture has calling convention issues
+    // Disable for now to prevent crashes
+    CG_Printf("JXAC OpenGL DEBUG: Windows 64-bit - direct OpenGL capture disabled (unstable)\n");
+    return false;
+#else
+    // Windows 32-bit: Get handle to opengl32.dll (already loaded by engine)
+    // Use GetModuleHandleA explicitly for ANSI string
     HMODULE hOpenGL = GetModuleHandleA("opengl32.dll");
     if (!hOpenGL) {
         CG_Printf("JXAC OpenGL DEBUG: FAILED - GetModuleHandleA(\"opengl32.dll\") returned NULL\n");
@@ -83,9 +96,10 @@ bool init() {
     CG_Printf("  glPixelStorei:     %p\n", (void*)qglPixelStorei);
     CG_Printf("  glGetError:        %p\n", (void*)qglGetError);
     CG_Printf("  glBindFramebuffer: %p\n", (void*)qglBindFramebuffer);
+#endif
     
 #else
-    // Unix-like: Linux, macOS, Android
+    // Unix-like: Linux, macOS (Android returns early above)
     // Try different libraries depending on platform
     
 #if defined(JXAC_PLATFORM_MACOS)
@@ -96,15 +110,6 @@ bool init() {
         NULL
     };
     CG_Printf("JXAC OpenGL DEBUG: macOS platform detected, using OpenGL.framework\n");
-#elif defined(JXAC_PLATFORM_ANDROID)
-    // Android: Use OpenGL ES
-    const char* libPaths[] = {
-        "libGLESv2.so",
-        "libGLESv3.so",
-        "libGL.so",
-        NULL
-    };
-    CG_Printf("JXAC OpenGL DEBUG: Android platform detected, using OpenGL ES\n");
 #else
     // Linux (x86, x86_64, aarch64): Use libGL
     const char* libPaths[] = {
@@ -325,56 +330,9 @@ bool captureFramebuffer(int x, int y, int width, int height, unsigned char* buff
     
     CG_Printf("JXAC OpenGL DEBUG: Read buffer setup %s\n", readBufferSuccess ? "succeeded" : "skipped/failed (trying anyway)");
     
-    // Read pixels from framebuffer
-    // On Android (OpenGL ES), we MUST use GL_RGBA - GL_RGB is not guaranteed
-    // Then convert RGBA to RGB for the output buffer
-#if defined(JXAC_PLATFORM_ANDROID)
-    CG_Printf("JXAC OpenGL DEBUG: Android - using GL_RGBA (required by OpenGL ES)\n");
-    
-    // Allocate temporary RGBA buffer (use size_t to avoid overflow on large screens)
-    size_t rgbaBufferSize = (size_t)width * (size_t)height * 4;
-    
-    // Sanity check - max ~32MB for a 4K screen (3840*2160*4 = ~33MB)
-    if (rgbaBufferSize > 64 * 1024 * 1024) {
-        CG_Printf("JXAC OpenGL DEBUG: FAILED - RGBA buffer too large (%zu bytes)\n", rgbaBufferSize);
-        return false;
-    }
-    
-    unsigned char* rgbaBuffer = (unsigned char*)malloc(rgbaBufferSize);
-    if (!rgbaBuffer) {
-        CG_Printf("JXAC OpenGL DEBUG: FAILED - malloc failed for RGBA buffer (%zu bytes)\n", rgbaBufferSize);
-        return false;
-    }
-    
-    CG_Printf("JXAC OpenGL DEBUG: Calling glReadPixels(%d, %d, %d, %d, GL_RGBA=0x%04X, GL_UNSIGNED_BYTE=0x%04X, %p)\n",
-             x, y, width, height, JXAC_GL_RGBA, JXAC_GL_UNSIGNED_BYTE, (void*)rgbaBuffer);
-    
-    qglReadPixels(x, y, width, height, JXAC_GL_RGBA, JXAC_GL_UNSIGNED_BYTE, rgbaBuffer);
-    
-    // Check for errors
-    if (qglGetError) {
-        unsigned int err = qglGetError();
-        if (err != JXAC_GL_NO_ERROR) {
-            CG_Printf("JXAC OpenGL DEBUG: glReadPixels error: 0x%04X\n", err);
-            free(rgbaBuffer);
-            return false;
-        }
-    }
-    
-    // Convert RGBA to RGB
-    CG_Printf("JXAC OpenGL DEBUG: Converting RGBA to RGB...\n");
-    for (int i = 0; i < width * height; i++) {
-        buffer[i * 3 + 0] = rgbaBuffer[i * 4 + 0];  // R
-        buffer[i * 3 + 1] = rgbaBuffer[i * 4 + 1];  // G
-        buffer[i * 3 + 2] = rgbaBuffer[i * 4 + 2];  // B
-        // Alpha (rgbaBuffer[i * 4 + 3]) is discarded
-    }
-    
-    free(rgbaBuffer);
-    
-    CG_Printf("JXAC OpenGL DEBUG: RGBA to RGB conversion complete\n");
-#else
-    // Desktop OpenGL: GL_RGB works fine
+    // Read pixels from framebuffer using GL_RGB format
+    // Supported platforms: Linux (32/64-bit, ARM64), macOS, Windows 32-bit
+    // Unsupported (return early in init()): Android, Windows 64-bit
     CG_Printf("JXAC OpenGL DEBUG: Calling glReadPixels(%d, %d, %d, %d, GL_RGB=0x%04X, GL_UNSIGNED_BYTE=0x%04X, %p)\n",
              x, y, width, height, JXAC_GL_RGB, JXAC_GL_UNSIGNED_BYTE, (void*)buffer);
     
@@ -388,7 +346,6 @@ bool captureFramebuffer(int x, int y, int width, int height, unsigned char* buff
             return false;
         }
     }
-#endif
     
     // Check if we got any data (first pixel shouldn't be all zero typically)
     CG_Printf("JXAC OpenGL DEBUG: glReadPixels completed, first 8 bytes: %02X %02X %02X %02X %02X %02X %02X %02X\n",
