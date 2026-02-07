@@ -260,12 +260,16 @@ bool captureFramebuffer(int x, int y, int width, int height, unsigned char* buff
         }
     }
     
-    // Try GL_FRONT first (since we're reading AFTER SwapBuffers, the displayed image is in front buffer)
-    // If that fails, fall back to GL_BACK
+    // Try to read from the correct buffer
+    // On Linux/macOS/Android with modern display systems, GL_FRONT is often invalid
+    // Modern compositing and display servers don't maintain a valid front buffer
+    // On Windows, GL_FRONT typically works better after SwapBuffers
     bool readBufferSuccess = false;
     
     if (qglReadBuffer) {
-        // First try GL_FRONT (the currently displayed buffer - after SwapBuffers)
+#ifdef _WIN32
+        // Windows: Try GL_FRONT first (displayed buffer after SwapBuffers)
+        CG_Printf("JXAC OpenGL DEBUG: Windows - trying GL_FRONT first\n");
         CG_Printf("JXAC OpenGL DEBUG: Calling glReadBuffer(GL_FRONT=0x%04X)\n", JXAC_GL_FRONT);
         qglReadBuffer(JXAC_GL_FRONT);
         
@@ -273,17 +277,11 @@ bool captureFramebuffer(int x, int y, int width, int height, unsigned char* buff
             unsigned int err = qglGetError();
             if (err != JXAC_GL_NO_ERROR) {
                 CG_Printf("JXAC OpenGL DEBUG: glReadBuffer(GL_FRONT) error: 0x%04X\n", err);
-                
-                // Try GL_BACK as fallback
-                CG_Printf("JXAC OpenGL DEBUG: Trying glReadBuffer(GL_BACK=0x%04X)\n", JXAC_GL_BACK);
+                CG_Printf("JXAC OpenGL DEBUG: Trying GL_BACK as fallback\n");
                 qglReadBuffer(JXAC_GL_BACK);
-                
                 if (qglGetError) {
                     err = qglGetError();
-                    if (err != JXAC_GL_NO_ERROR) {
-                        CG_Printf("JXAC OpenGL DEBUG: glReadBuffer(GL_BACK) also failed: 0x%04X\n", err);
-                        CG_Printf("JXAC OpenGL DEBUG: Will try glReadPixels anyway without setting read buffer\n");
-                    } else {
+                    if (err == JXAC_GL_NO_ERROR) {
                         readBufferSuccess = true;
                     }
                 } else {
@@ -295,6 +293,34 @@ bool captureFramebuffer(int x, int y, int width, int height, unsigned char* buff
         } else {
             readBufferSuccess = true;
         }
+#else
+        // Linux/macOS/Android: Try GL_BACK first
+        // Modern display systems (compositors, Wayland, etc.) don't maintain GL_FRONT
+        CG_Printf("JXAC OpenGL DEBUG: Linux/Unix - trying GL_BACK first\n");
+        CG_Printf("JXAC OpenGL DEBUG: Calling glReadBuffer(GL_BACK=0x%04X)\n", JXAC_GL_BACK);
+        qglReadBuffer(JXAC_GL_BACK);
+        
+        if (qglGetError) {
+            unsigned int err = qglGetError();
+            if (err != JXAC_GL_NO_ERROR) {
+                CG_Printf("JXAC OpenGL DEBUG: glReadBuffer(GL_BACK) error: 0x%04X\n", err);
+                CG_Printf("JXAC OpenGL DEBUG: Trying GL_FRONT as fallback\n");
+                qglReadBuffer(JXAC_GL_FRONT);
+                if (qglGetError) {
+                    err = qglGetError();
+                    if (err == JXAC_GL_NO_ERROR) {
+                        readBufferSuccess = true;
+                    }
+                } else {
+                    readBufferSuccess = true;
+                }
+            } else {
+                readBufferSuccess = true;
+            }
+        } else {
+            readBufferSuccess = true;
+        }
+#endif
     }
     
     CG_Printf("JXAC OpenGL DEBUG: Read buffer setup %s\n", readBufferSuccess ? "succeeded" : "skipped/failed (trying anyway)");
