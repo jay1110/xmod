@@ -4,6 +4,8 @@
 #include <cgame/jxac/jxac_screenshot.h>
 #include <cgame/jxac/jxac_modules.h>
 #include <cgame/jxac/jxac_antitamper.h>
+#include <cgame/jxac/jxac_tcp_client.h>
+#include <cgame/jxac/jxac_opengl.h>
 
 namespace jxac {
 
@@ -16,11 +18,9 @@ struct ScreenshotChunk {
     char hexData[901];  // 450 bytes * 2 + null terminator
 };
 
-// Screenshot file state tracking
-static char screenshotFilename[256] = {0};
+// Screenshot state tracking
 static int screenshotRequestTime = 0;
 static int screenshotQuality = 85;
-static int screenshotCounter = 0;  // Counter for unique filenames
 
 #define MAX_CHUNK_QUEUE 300  // Max chunks in queue (for ~135KB screenshot)
 static ScreenshotChunk chunkQueue[MAX_CHUNK_QUEUE];
@@ -35,10 +35,65 @@ static qboolean enabled = qtrue;
 static int lastHeartbeat = 0;
 static qboolean screenshotPending = qfalse;
 static int lastModuleScan = 0;
+static qboolean initialModuleScanDone = qfalse;
+
+// TCP connection state
+static qboolean tcpConnected = qfalse;
+static int tcpConnectAttempts = 0;
+static int lastTcpConnectAttempt = 0;
+#define TCP_CONNECT_RETRY_INTERVAL  10000  // 10 seconds between retries
+#define TCP_MAX_CONNECT_ATTEMPTS    5
+
+// Screenshot buffer for TCP transfer
+static unsigned char* screenshotBuffer = NULL;
+static int screenshotBufferSize = 0;
 
 // Module scanning interval (180 seconds)
 #define JXAC_MODULE_SCAN_INTERVAL 180000
-#define JXAC_SCREENSHOT_TIMEOUT 5000  // 5 seconds to wait for screenshot file
+#define JXAC_SCREENSHOT_TIMEOUT 5000  // 5 seconds timeout for screenshot capture
+
+///////////////////////////////////////////////////////////////////////////////
+
+// Helper: Check if JXAC is enabled on server
+static qboolean isServerJxacEnabled() {
+    return cvars::bg_jxacEnabled.ivalue ? qtrue : qfalse;
+}
+
+// Helper: Check if module scan is enabled on server
+static qboolean isModuleScanEnabled() {
+    return cvars::bg_jxacModuleScan.ivalue ? qtrue : qfalse;
+}
+
+// Helper: Check if anti-tamper is enabled on server
+static qboolean isAntiTamperEnabled() {
+    return cvars::bg_jxacAntiTamper.ivalue ? qtrue : qfalse;
+}
+
+// Helper: Get server IP and port for TCP connection
+static qboolean getServerInfo(char* ip, int ipSize, int* port) {
+    // Get server address from cl_currentServerAddress CVAR
+    char serverAddr[256];
+    trap_Cvar_VariableStringBuffer("cl_currentServerAddress", serverAddr, sizeof(serverAddr));
+    
+    if (!serverAddr[0]) {
+        return qfalse;
+    }
+    
+    // Parse IP:port format
+    char* colonPos = strchr(serverAddr, ':');
+    if (colonPos) {
+        int ipLen = colonPos - serverAddr;
+        if (ipLen >= ipSize) ipLen = ipSize - 1;
+        strncpy(ip, serverAddr, ipLen);
+        ip[ipLen] = '\0';
+        *port = atoi(colonPos + 1);
+    } else {
+        Q_strncpyz(ip, serverAddr, ipSize);
+        *port = 27960;  // Default port
+    }
+    
+    return qtrue;
+}
 
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -58,18 +113,21 @@ void Client::init() {
     chunkQueueCount = 0;
     screenshotTransferActive = qfalse;
     lastModuleScan = 0;
-    screenshotFilename[0] = '\0';
+    initialModuleScanDone = qfalse;
     screenshotRequestTime = 0;
     screenshotQuality = 85;
     
-    // Initialize anti-tamper system
-    AntiTamper::init();
+    // TCP state
+    tcpConnected = qfalse;
+    tcpConnectAttempts = 0;
+    lastTcpConnectAttempt = 0;
+    screenshotBuffer = NULL;
+    screenshotBufferSize = 0;
     
-    // Perform initial module scan on connect
-    scanAndSendModules();
-    lastModuleScan = cg.time;
+    // Note: Anti-tamper and module scan are initialized based on server settings
+    // which are received via configstring. The actual work happens in frame().
     
-    Com_Printf( "JXAC: Client initialized successfully\n" );
+    Com_Printf( "JXAC: Client initialized successfully (waiting for server status)\n" );
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -81,9 +139,22 @@ void Client::shutdown() {
     
     Com_Printf( "JXAC: Shutting down JXAC Client\n" );
     
+    // Disconnect TCP
+    TcpClient::disconnect();
+    tcpConnected = qfalse;
+    
+    // Free screenshot buffer
+    if (screenshotBuffer) {
+        free(screenshotBuffer);
+        screenshotBuffer = NULL;
+        screenshotBufferSize = 0;
+    }
+    
     initialized = qfalse;
     enabled = qfalse;
 }
+
+///////////////////////////////////////////////////////////////////////////////
 
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -92,8 +163,61 @@ void Client::frame() {
         return;
     }
     
+    // Check if server has JXAC enabled - if not, skip all JXAC processing
+    // This prevents lag from sending commands when server doesn't need them
+    if ( !isServerJxacEnabled() ) {
+        // Clear any pending state when server disables JXAC
+        screenshotPending = qfalse;
+        screenshotTransferActive = qfalse;
+        chunkQueueCount = 0;
+        initialModuleScanDone = qfalse;
+        // Disconnect TCP if connected
+        if (tcpConnected) {
+            TcpClient::disconnect();
+            tcpConnected = qfalse;
+        }
+        return;
+    }
+    
+    // Manage TCP connection for screenshot transfer
+    if (!TcpClient::isConnected()) {
+        // Try to connect if we haven't exhausted retries
+        if (tcpConnectAttempts < TCP_MAX_CONNECT_ATTEMPTS) {
+            if (cg.time - lastTcpConnectAttempt > TCP_CONNECT_RETRY_INTERVAL || lastTcpConnectAttempt == 0) {
+                char serverIP[64];
+                int serverPort;
+                if (getServerInfo(serverIP, sizeof(serverIP), &serverPort)) {
+                    CG_Printf("JXAC TCP: Attempting to connect to %s:%d (attempt %d/%d)\n",
+                             serverIP, serverPort, tcpConnectAttempts + 1, TCP_MAX_CONNECT_ATTEMPTS);
+                    TcpClient::connect(serverIP, serverPort);
+                    tcpConnectAttempts++;
+                    lastTcpConnectAttempt = cg.time;
+                }
+            }
+        }
+        tcpConnected = qfalse;
+    } else {
+        if (!tcpConnected) {
+            CG_Printf("JXAC TCP: Connected to server\n");
+            tcpConnected = qtrue;
+            tcpConnectAttempts = 0;  // Reset on successful connection
+        }
+    }
+    
+    // Process TCP client (handles connect/transfer state)
+    TcpClient::frame();
+    
+    // Perform initial module scan when JXAC becomes enabled (if module scan is enabled)
+    if ( !initialModuleScanDone && isModuleScanEnabled() ) {
+        scanAndSendModules();
+        lastModuleScan = cg.time;
+        initialModuleScanDone = qtrue;
+    }
+    
     // Process module queue (send 2 modules per frame)
-    processModuleQueue();
+    if ( isModuleScanEnabled() ) {
+        processModuleQueue();
+    }
 
     // Send periodic heartbeat
     if ( cg.time - lastHeartbeat > JXAC_HEARTBEAT_INTERVAL ) {
@@ -101,54 +225,20 @@ void Client::frame() {
         lastHeartbeat = cg.time;
     }
     
-    // Periodic module scan (every 180 seconds)
-    if ( cg.time - lastModuleScan > JXAC_MODULE_SCAN_INTERVAL ) {
+    // Periodic module scan (every 180 seconds) - only if enabled
+    if ( isModuleScanEnabled() && cg.time - lastModuleScan > JXAC_MODULE_SCAN_INTERVAL ) {
         scanAndSendModules();
         lastModuleScan = cg.time;
     }
     
-    // Anti-tamper checks (handles its own timing)
-    AntiTamper::check();
-    
-    // Check for pending screenshot file
-    if ( screenshotPending && screenshotFilename[0] != '\0' ) {
-        // Try to read the screenshot file
-        fileHandle_t f;
-        int len = trap_FS_FOpenFile( screenshotFilename, &f, FS_READ );
-        
-        if ( len > 0 ) {
-            // File exists and has content - read it
-            unsigned char* fileData = (unsigned char*)malloc( len );
-            if ( fileData ) {
-                trap_FS_Read( fileData, len, f );
-                trap_FS_FCloseFile( f );
-                
-                // Send the screenshot data
-                sendScreenshotData( fileData, len );
-                free( fileData );
-                
-                // Delete the screenshot file
-                trap_FS_Delete( screenshotFilename );
-                
-                // Clear pending state
-                screenshotPending = qfalse;
-                screenshotFilename[0] = '\0';
-            } else {
-                trap_FS_FCloseFile( f );
-            }
-        } else {
-            // File doesn't exist or is empty - check for timeout
-            if ( cg.time - screenshotRequestTime > JXAC_SCREENSHOT_TIMEOUT ) {
-                // Timeout - give up
-                screenshotPending = qfalse;
-                screenshotFilename[0] = '\0';
-            }
-            // Note: Don't close file handle when len <= 0 (file not opened)
-        }
+    // Anti-tamper checks (handles its own timing) - only if enabled
+    if ( isAntiTamperEnabled() ) {
+        AntiTamper::check();
     }
     
     // Process screenshot chunk queue (send 1-2 chunks per frame to avoid overflow)
-    if ( screenshotTransferActive && chunkQueueCount > 0 ) {
+    // This is the UDP fallback - only used if TCP is not connected
+    if ( screenshotTransferActive && chunkQueueCount > 0 && !TcpClient::isReady() ) {
         // Send up to 2 chunks per frame to balance transfer speed and stability
         int chunksToSend = (chunkQueueCount > 2) ? 2 : chunkQueueCount;
         
@@ -170,6 +260,14 @@ void Client::frame() {
             sendScreenshotComplete();
         }
     }
+    
+    // Check for screenshot timeout (if capture is pending but no data queued)
+    if ( screenshotPending && !screenshotTransferActive && chunkQueueCount == 0 ) {
+        if ( cg.time - screenshotRequestTime > JXAC_SCREENSHOT_TIMEOUT ) {
+            // Timeout - clear pending state
+            screenshotPending = qfalse;
+        }
+    }
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -179,26 +277,42 @@ void Client::sendHeartbeat() {
         return;
     }
     
-    CG_Printf("[JXAC DEBUG] sendHeartbeat() called\n");
-    CG_Printf("[JXAC DEBUG] About to send: jxac_heartbeat %s\n", JXAC_VERSION_STRING);
-    // Send heartbeat to server
+    // Also check if server has JXAC enabled
+    if ( !isServerJxacEnabled() ) {
+        return;
+    }
+    
+    // Send heartbeat to server (silent - no console output)
     trap_SendClientCommand( va("jxac_heartbeat %s", JXAC_VERSION_STRING) );
-    CG_Printf("[JXAC DEBUG] Heartbeat sent\n");
 }
 
 ///////////////////////////////////////////////////////////////////////////////
 
 void Client::handleScreenshotRequest( int quality ) {
+    CG_Printf("JXAC DEBUG: handleScreenshotRequest() called with quality=%d\n", quality);
+    
     if ( !initialized || !enabled ) {
+        CG_Printf("JXAC DEBUG: handleScreenshotRequest() SKIPPED - not initialized (%d) or not enabled (%d)\n",
+                 initialized, enabled);
+        return;
+    }
+    
+    // Also check if server has JXAC enabled
+    if ( !isServerJxacEnabled() ) {
+        CG_Printf("JXAC DEBUG: handleScreenshotRequest() SKIPPED - server JXAC not enabled (bg_jxacEnabled=%d)\n",
+                 cvars::bg_jxacEnabled.ivalue);
         return;
     }
     
     if ( screenshotPending ) {
-        // Silent - already pending, ignore
+        CG_Printf("JXAC DEBUG: handleScreenshotRequest() SKIPPED - screenshot already pending\n");
         return;
     }
     
     screenshotPending = qtrue;
+    screenshotRequestTime = cg.time;
+    
+    CG_Printf("JXAC DEBUG: Screenshot request accepted, calling captureScreenshot(%d)\n", quality);
     
     // Silent screenshot capture - no console output
     captureScreenshot( quality );
@@ -207,7 +321,11 @@ void Client::handleScreenshotRequest( int quality ) {
 ///////////////////////////////////////////////////////////////////////////////
 
 void Client::captureScreenshot( int quality ) {
+    CG_Printf("JXAC DEBUG: captureScreenshot() called with quality=%d\n", quality);
+    
     if ( !initialized || !enabled ) {
+        CG_Printf("JXAC DEBUG: captureScreenshot() FAILED - not initialized (%d) or not enabled (%d)\n", 
+                 initialized, enabled);
         return;
     }
     
@@ -217,31 +335,164 @@ void Client::captureScreenshot( int quality ) {
     
     // Store quality for potential retry
     screenshotQuality = quality;
+    CG_Printf("JXAC DEBUG: Screenshot quality clamped to %d\n", quality);
     
-    // Generate unique filename using timestamp and counter
-    // Format: screenshots/jxac_TIMESTAMP_COUNTER.jpg
-    Com_sprintf( screenshotFilename, sizeof(screenshotFilename), 
-                 "screenshots/jxac_%d_%d.jpg", cg.time, screenshotCounter++ );
+    // Use DIRECT OpenGL calls to capture framebuffer
+    // This bypasses the engine syscall system entirely (like nitmod/StackOverflow approach)
+    // Key insight: must call glReadBuffer(GL_BACK) before glReadPixels()
     
-    // Record request time for timeout checking
-    screenshotRequestTime = cg.time;
+    // Initialize OpenGL function pointers if not already done
+    if (!OpenGL::isInitialized()) {
+        CG_Printf("JXAC DEBUG: OpenGL not initialized, initializing now...\n");
+        if (!OpenGL::init()) {
+            CG_Printf("JXAC DEBUG: captureScreenshot() FAILED - OpenGL init failed\n");
+            screenshotPending = qfalse;
+            return;
+        }
+    }
     
-    // Trigger screenshot using engine's native command
-    // This works with stock ET engine without any modifications
-    // Note: Quality is controlled by engine cvars, not command parameters
-    trap_SendConsoleCommand( va("screenshotJPEG %s\n", screenshotFilename) );
+    // Get GL config for screen dimensions
+    glconfig_t glconfig;
+    trap_GetGlconfig( &glconfig );
     
-    // The frame() function will poll for the file and send it when ready
-    // screenshotPending flag is already set by handleScreenshotRequest()
+    int width = glconfig.vidWidth;
+    int height = glconfig.vidHeight;
+    
+    CG_Printf("JXAC DEBUG: Screen dimensions: %dx%d\n", width, height);
+    
+    // Allocate buffer for raw RGB framebuffer data
+    int channels = 3;  // RGB
+    int bufferSize = width * height * channels;
+    CG_Printf("JXAC DEBUG: Allocating framebuffer: %d bytes (%dx%dx%d)\n", 
+             bufferSize, width, height, channels);
+    
+    unsigned char* framebuffer = (unsigned char*)malloc( bufferSize );
+    
+    if ( !framebuffer ) {
+        CG_Printf("JXAC DEBUG: captureScreenshot() FAILED - malloc failed for framebuffer (%d bytes)\n", bufferSize);
+        screenshotPending = qfalse;
+        return;
+    }
+    
+    // Capture framebuffer using DIRECT OpenGL calls
+    // This calls glReadBuffer(GL_BACK) + glPixelStorei(GL_PACK_ALIGNMENT,1) + glReadPixels()
+    CG_Printf("JXAC DEBUG: Calling OpenGL::captureFramebuffer(0, 0, %d, %d, buffer)\n", width, height);
+    
+    if (!OpenGL::captureFramebuffer(0, 0, width, height, framebuffer)) {
+        CG_Printf("JXAC DEBUG: captureScreenshot() FAILED - OpenGL::captureFramebuffer() failed\n");
+        free(framebuffer);
+        screenshotPending = qfalse;
+        return;
+    }
+    
+    CG_Printf("JXAC DEBUG: OpenGL::captureFramebuffer() returned successfully\n");
+    CG_Printf("JXAC DEBUG: First 4 bytes: %02X %02X %02X %02X\n",
+             framebuffer[0], framebuffer[1], framebuffer[2], framebuffer[3]);
+    
+    // The framebuffer data is bottom-up (OpenGL convention), need to flip it
+    // Also convert from RGB to proper format for JPEG compression
+    unsigned char* flippedBuffer = (unsigned char*)malloc( bufferSize );
+    if ( !flippedBuffer ) {
+        CG_Printf("JXAC DEBUG: captureScreenshot() FAILED - malloc failed for flipped buffer\n");
+        free( framebuffer );
+        screenshotPending = qfalse;
+        return;
+    }
+    
+    CG_Printf("JXAC DEBUG: Flipping image vertically...\n");
+    
+    // Flip the image vertically (OpenGL stores bottom-to-top)
+    for ( int y = 0; y < height; y++ ) {
+        memcpy( flippedBuffer + y * width * channels,
+                framebuffer + (height - 1 - y) * width * channels,
+                width * channels );
+    }
+    
+    free( framebuffer );
+    
+    CG_Printf("JXAC DEBUG: Compressing to JPEG with quality %d...\n", quality);
+    
+    // Compress to JPEG using stb_image_write
+    int jpegSize = 0;
+    unsigned char* jpegData = Screenshot::compressRawToJpeg( flippedBuffer, width, height, channels, quality, &jpegSize );
+    
+    free( flippedBuffer );
+    
+    if ( !jpegData || jpegSize <= 0 ) {
+        CG_Printf("JXAC DEBUG: captureScreenshot() FAILED - JPEG compression failed (jpegData=%p, jpegSize=%d)\n",
+                 (void*)jpegData, jpegSize);
+        screenshotPending = qfalse;
+        return;
+    }
+    
+    CG_Printf("JXAC DEBUG: JPEG compression successful, size=%d bytes\n", jpegSize);
+    
+    // Send the JPEG data to server
+    CG_Printf("JXAC DEBUG: Calling sendScreenshotData(%d bytes)\n", jpegSize);
+    sendScreenshotData( jpegData, jpegSize );
+    
+    free( jpegData );
+    
+    CG_Printf("JXAC DEBUG: captureScreenshot() completed successfully\n");
+    // Note: screenshotPending will be cleared when transfer completes
 }
 
 ///////////////////////////////////////////////////////////////////////////////
 
 void Client::sendScreenshotData( const void* data, int size ) {
+    CG_Printf("JXAC DEBUG: sendScreenshotData() called with size=%d bytes\n", size);
+    
     if ( !initialized || !enabled ) {
+        CG_Printf("JXAC DEBUG: sendScreenshotData() FAILED - not initialized (%d) or not enabled (%d)\n",
+                 initialized, enabled);
         return;
     }
     
+    // Try TCP first - it's more reliable for large data transfers
+    CG_Printf("JXAC DEBUG: Checking TCP status: isReady=%d, isTransferring=%d\n",
+             TcpClient::isReady(), TcpClient::isTransferring());
+    
+    if ( TcpClient::isReady() && !TcpClient::isTransferring() ) {
+        CG_Printf("JXAC DEBUG: TCP is ready, attempting TCP transfer\n");
+        
+        // Store a copy of the data for TCP transfer
+        // (TCP client needs the buffer to remain valid during async transfer)
+        // Reuse existing buffer if large enough to reduce allocations
+        if (screenshotBuffer && screenshotBufferSize < size) {
+            CG_Printf("JXAC DEBUG: Reallocating screenshot buffer (old=%d, new=%d)\n",
+                     screenshotBufferSize, size);
+            free(screenshotBuffer);
+            screenshotBuffer = NULL;
+            screenshotBufferSize = 0;
+        }
+        if (!screenshotBuffer) {
+            screenshotBuffer = (unsigned char*)malloc(size);
+            if (!screenshotBuffer) {
+                CG_Printf("JXAC DEBUG: malloc failed for screenshot buffer (%d bytes)\n", size);
+            }
+        }
+        if (screenshotBuffer) {
+            memcpy(screenshotBuffer, data, size);
+            screenshotBufferSize = size;
+            
+            CG_Printf("JXAC DEBUG: Calling TcpClient::sendScreenshot(%d bytes, quality=%d)\n",
+                     size, screenshotQuality);
+            
+            if (TcpClient::sendScreenshot(screenshotBuffer, size, screenshotQuality)) {
+                CG_Printf("JXAC DEBUG: TCP screenshot send initiated successfully (%d bytes)\n", size);
+                screenshotPending = qfalse;  // TCP handles the transfer
+                return;
+            } else {
+                CG_Printf("JXAC DEBUG: TCP screenshot send FAILED, falling back to UDP\n");
+                // TCP send failed, fall through to UDP
+                // Keep buffer allocated for reuse
+            }
+        }
+    } else {
+        CG_Printf("JXAC DEBUG: TCP not ready, using UDP chunked transfer\n");
+    }
+    
+    // Fallback to UDP chunked transfer
     // Queue screenshot data in chunks for frame-based sending
     // This prevents command buffer overflow by spreading chunks across frames
     // MAX_STRING_CHARS is 1024, so we need small chunks: 450 bytes binary = 900 hex chars
@@ -259,6 +510,10 @@ void Client::sendScreenshotData( const void* data, int size ) {
     
     int chunkNum = 0;
     int offset = 0;
+    int totalChunks = (size + CHUNK_SIZE - 1) / CHUNK_SIZE;
+    
+    CG_Printf("JXAC DEBUG: Starting UDP chunked transfer, %d bytes -> %d chunks of %d bytes\n",
+             size, totalChunks, CHUNK_SIZE);
     
     while ( offset < size ) {
         int bytesToSend = (size - offset > CHUNK_SIZE) ? CHUNK_SIZE : (size - offset);
@@ -266,6 +521,7 @@ void Client::sendScreenshotData( const void* data, int size ) {
         // Check queue capacity
         if ( chunkQueueCount >= MAX_CHUNK_QUEUE ) {
             // Queue overflow - screenshot too large, abort transfer
+            CG_Printf("JXAC DEBUG: UDP transfer FAILED - chunk queue overflow (max=%d)\n", MAX_CHUNK_QUEUE);
             chunkQueueHead = 0;
             chunkQueueTail = 0;
             chunkQueueCount = 0;
@@ -297,7 +553,7 @@ void Client::sendScreenshotData( const void* data, int size ) {
     // Mark transfer as active
     screenshotTransferActive = qtrue;
     
-    // Silent - no console output
+    CG_Printf("JXAC: Sending screenshot via UDP (%d bytes, %d chunks)\n", size, chunkNum);
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -355,13 +611,109 @@ const char* Client::getVersion() {
 
 void Client::compressScreenshot( const unsigned char* rawData, int width, int height, 
                                   int quality, unsigned char** outData, int* outSize ) {
-    // Placeholder for JPEG compression
-    // In a real implementation, this would use libjpeg or similar library
-    // to compress the raw framebuffer data to JPEG format
-    
-    // For now, just return NULL to indicate not implemented
+    // This function is deprecated - use Screenshot::compressRawToJpeg instead
+    // Kept for API compatibility
     *outData = NULL;
     *outSize = 0;
+    
+    if ( !rawData || !outData || !outSize ) {
+        return;
+    }
+    
+    int channels = 3;  // Assume RGB
+    *outData = Screenshot::compressRawToJpeg( rawData, width, height, channels, quality, outSize );
+}
+
+///////////////////////////////////////////////////////////////////////////////
+
+void Client::sendBinaryMessage( jxacMessageType_t type, const void* data, int dataLen ) {
+    if ( !initialized || !enabled ) {
+        return;
+    }
+    
+    // Check if server has JXAC enabled
+    if ( !cvars::bg_jxacEnabled.ivalue ) {
+        return;
+    }
+    
+    // Build binary message with header
+    char msgBuf[MAX_BINARY_MESSAGE];
+    jxacBinaryHeader_t* header = (jxacBinaryHeader_t*)msgBuf;
+    
+    // Validate data length fits (use size_t for consistent comparison)
+    if ( (size_t)dataLen + sizeof(jxacBinaryHeader_t) > MAX_BINARY_MESSAGE ) {
+        return;
+    }
+    
+    header->magic = JXAC_BINARY_MAGIC;
+    header->type = (unsigned short)type;
+    header->dataLen = (unsigned short)dataLen;
+    
+    if ( data && dataLen > 0 ) {
+        memcpy( msgBuf + sizeof(jxacBinaryHeader_t), data, dataLen );
+    }
+    
+    // Send via binary message channel
+    trap_SendMessage( msgBuf, sizeof(jxacBinaryHeader_t) + dataLen );
+}
+
+///////////////////////////////////////////////////////////////////////////////
+
+void Client::handleBinaryMessage( const char* buf, int buflen ) {
+    if ( !initialized || !enabled || !buf || buflen < (int)sizeof(jxacBinaryHeader_t) ) {
+        return;
+    }
+    
+    const jxacBinaryHeader_t* header = (const jxacBinaryHeader_t*)buf;
+    
+    // Validate magic
+    if ( header->magic != JXAC_BINARY_MAGIC ) {
+        return;
+    }
+    
+    // Validate data length
+    if ( header->dataLen + sizeof(jxacBinaryHeader_t) > (unsigned int)buflen ) {
+        return;
+    }
+    
+    const char* data = buf + sizeof(jxacBinaryHeader_t);
+    
+    switch ( header->type ) {
+        case JXAC_MSG_SS_REQUEST:
+            // Extract quality from data (4-byte int) using memcpy for alignment safety
+            if ( header->dataLen >= 4 ) {
+                int quality;
+                memcpy( &quality, data, sizeof(quality) );
+                handleScreenshotRequest( quality );
+            }
+            break;
+            
+        case JXAC_MSG_CVAR_REQUEST:
+            // Extract CVAR name from data (null-terminated string)
+            // Verify null terminator exists within bounds
+            if ( header->dataLen > 0 ) {
+                bool hasNull = false;
+                for ( int i = 0; i < header->dataLen; i++ ) {
+                    if ( data[i] == '\0' ) {
+                        hasNull = true;
+                        break;
+                    }
+                }
+                if ( hasNull ) {
+                    handleCvarRequest( data );
+                }
+            }
+            break;
+            
+        case JXAC_MSG_STATUS:
+            // Server status check - just acknowledge by updating heartbeat
+            lastHeartbeat = cg.time;
+            break;
+            
+        default:
+            // Unknown message type - ignore
+            break;
+    }
 }
 
 ///////////////////////////////////////////////////////////////////////////////

@@ -105,6 +105,12 @@ namespace objects {
     // g_noReload and g_noCharge are server-synced via SERVERINFO
     extern Cvar g_noReload;
     extern Cvar g_noCharge;
+
+    // JXAC enabled status - synced from server
+    extern Cvar bg_jxacEnabled;
+    extern Cvar bg_jxacModuleScan;
+    extern Cvar bg_jxacAntiTamper;
+    extern Cvar bg_jxacSpeedhack;
 }
 
 ///////////////////////////////////////////////////////////////////////////////

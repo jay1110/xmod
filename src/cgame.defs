@@ -42,7 +42,7 @@ MODULE.CGAME.pdb      = $(BUILD/)cgame/
 
 MODULE.CGAME.CXX.I<   += $(BUILD/)cgame
 MODULE.CGAME.CXX.D    += CGAMEDLL
-MODULE.CGAME.CXX.l    += $(MATH.l) $(IPHLPAPI.l) $(ADVAPI.l) $(DYNLOAD.l)
+MODULE.CGAME.CXX.l    += $(MATH.l) $(IPHLPAPI.l) $(ADVAPI.l) $(DYNLOAD.l) $(WS2_32.l)
 
 
 MODULE.CGAME.CXX.fwork += IOKit CoreFoundation

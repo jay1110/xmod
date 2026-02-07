@@ -31,6 +31,10 @@ namespace objects {
     extern Cvar g_jxacCvarFile;
     extern Cvar g_jxacCheatFile;
     
+    extern Cvar g_jxacModuleScan;
+    extern Cvar g_jxacAntiTamper;
+    extern Cvar g_jxacCheckSpeedhack;
+    
     extern Cvar g_jxacCvarScan;
     extern Cvar g_jxacCvarScanWait;
     extern Cvar g_jxacCvarScanDelay;

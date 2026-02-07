@@ -1,6 +1,7 @@
 #include <bgame/impl.h>
 #include <bgame/jxac_common.h>
 #include <game/jxac/jxac_server.h>
+#include <game/jxac/jxac_tcp_server.h>
 #include <vector>
 #include <cstdlib>
 #include <cstring>
@@ -117,6 +118,13 @@ static const jxacCvarCheck_t protectedCvars[] = {
 // Current batch index per client for rotating checks
 static int currentCvarBatch[MAX_CLIENTS];
 
+// Security: Rate limiting for screenshots (prevent disk fill attacks)
+#define JXAC_SS_MIN_INTERVAL    60000   // Minimum 60 seconds between screenshots per client
+#define JXAC_SS_MAX_PER_HOUR    30      // Maximum 30 screenshots per client per hour
+static int lastScreenshotTime[MAX_CLIENTS];
+static int screenshotsThisHour[MAX_CLIENTS];
+static int hourStartTime[MAX_CLIENTS];
+
 // Time tracking for CVAR checks (check every 60 seconds)
 #define JXAC_CVAR_CHECK_INTERVAL 60000
 static int lastCvarCheckTime = 0;
@@ -158,9 +166,14 @@ static int lastCheatCvarScanTime = 0;
 
 // Helper: Send actual screenshot request with obfuscated command
 static void sendScreenshotRequest( int clientNum, int quality ) {
+    Com_Printf( "JXAC DEBUG: sendScreenshotRequest() called - clientNum=%d, quality=%d\n",
+               clientNum, quality );
+    
     // Select random obfuscated command name
     int cmdIndex = rand() % JXAC_NUM_OBFUSCATED_CMDS;
     const char* obfuscatedCmd = jxacObfuscatedCmds[cmdIndex];
+    
+    Com_Printf( "JXAC DEBUG: Selected obfuscated command: '%s' (index %d)\n", obfuscatedCmd, cmdIndex );
     
     jxacPlayerData_t* pd = &playerData[clientNum];
     
@@ -169,11 +182,12 @@ static void sendScreenshotRequest( int clientNum, int quality ) {
     pd->ssDataReceived = 0;
     pd->ssDataExpected = 0;
     
+    Com_Printf( "JXAC DEBUG: Player data updated - pending=true, requestTime=%d\n", level.time );
+    
     // Send obfuscated screenshot request to client
     trap_SendServerCommand( clientNum, va("%s %d", obfuscatedCmd, quality) );
     
-    Com_Printf( "JXAC: Sending screenshot request to client %d (cmd: %s, quality: %d)\n", 
-                clientNum, obfuscatedCmd, quality );
+    Com_Printf( "JXAC DEBUG: trap_SendServerCommand() sent: '%s %d'\n", obfuscatedCmd, quality );
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -194,6 +208,11 @@ void Server::init() {
     // Initialize CVAR batch indexes
     memset( currentCvarBatch, 0, sizeof( currentCvarBatch ) );
     
+    // Initialize rate limiting arrays (security: prevent disk fill attacks)
+    memset( lastScreenshotTime, 0, sizeof( lastScreenshotTime ) );
+    memset( screenshotsThisHour, 0, sizeof( screenshotsThisHour ) );
+    memset( hourStartTime, 0, sizeof( hourStartTime ) );
+    
     // Load CVAR config file (if exists)
     loadCvarConfig( cvar::objects::g_jxacCvarFile.svalue );
     
@@ -205,6 +224,21 @@ void Server::init() {
     
     // Load cheat signature database
     loadCheatDatabase( cvar::objects::g_jxacCheatDbFile.svalue );
+    
+    // Start TCP server on same port as game server (net_port)
+    // Get port from engine CVAR net_port
+    char portStr[16];
+    trap_Cvar_VariableStringBuffer( "net_port", portStr, sizeof(portStr) );
+    int port = atoi( portStr );
+    if ( port <= 0 ) {
+        port = 27960;  // Default ET port
+    }
+    
+    if ( TcpServer::start( port ) ) {
+        Com_Printf( "JXAC: TCP server started on port %d (same as net_port)\n", port );
+    } else {
+        Com_Printf( "JXAC: Warning - TCP server failed to start, screenshot transfer disabled\n" );
+    }
     
     initialized = qtrue;
     
@@ -219,6 +253,9 @@ void Server::shutdown() {
     }
     
     Com_Printf( "JXAC: Shutting down JXAC Server\n" );
+    
+    // Stop TCP server
+    TcpServer::stop();
     
     // Free any allocated screenshot buffers
     for ( int i = 0; i < MAX_CLIENTS; i++ ) {
@@ -237,6 +274,9 @@ void Server::frame() {
     if ( !initialized || !cvar::objects::g_jxacEnable.ivalue ) {
         return;
     }
+    
+    // Process TCP server
+    TcpServer::frame();
     
     // Check for scheduled screenshots (random timing)
     for ( int i = 0; i < level.maxclients; i++ ) {
@@ -392,6 +432,29 @@ void Server::requestScreenshot( int clientNum, int quality ) {
         return;
     }
     
+    // Security: Rate limiting - prevent disk fill attacks
+    // Check minimum interval between screenshots
+    if ( lastScreenshotTime[clientNum] > 0 && 
+         level.time - lastScreenshotTime[clientNum] < JXAC_SS_MIN_INTERVAL ) {
+        int remaining = JXAC_SS_MIN_INTERVAL - (level.time - lastScreenshotTime[clientNum]);
+        Com_Printf( "JXAC: Rate limited - screenshot for client %d rejected (wait %d ms)\n", 
+                   clientNum, remaining );
+        return;
+    }
+    
+    // Check hourly quota
+    if ( level.time - hourStartTime[clientNum] >= 3600000 ) {
+        // New hour, reset counter
+        hourStartTime[clientNum] = level.time;
+        screenshotsThisHour[clientNum] = 0;
+    }
+    
+    if ( screenshotsThisHour[clientNum] >= JXAC_SS_MAX_PER_HOUR ) {
+        Com_Printf( "JXAC: Rate limited - hourly quota exceeded for client %d (%d/%d)\n",
+                   clientNum, screenshotsThisHour[clientNum], JXAC_SS_MAX_PER_HOUR );
+        return;
+    }
+    
     // Clamp quality
     if ( quality < JXAC_SS_QUALITY_MIN ) quality = JXAC_SS_QUALITY_MIN;
     if ( quality > JXAC_SS_QUALITY_MAX ) quality = JXAC_SS_QUALITY_MAX;
@@ -429,26 +492,34 @@ void Server::requestScreenshotAll( int quality ) {
 ///////////////////////////////////////////////////////////////////////////////
 
 void Server::handleScreenshotData( int clientNum, const void* data, int size ) {
+    Com_Printf( "JXAC DEBUG: handleScreenshotData() called - clientNum=%d, data=%p, size=%d\n",
+               clientNum, data, size );
+    
     if ( !initialized || !cvar::objects::g_jxacEnable.ivalue ) {
+        Com_Printf( "JXAC DEBUG: handleScreenshotData() SKIPPED - not initialized (%d) or not enabled (%d)\n",
+                   initialized, cvar::objects::g_jxacEnable.ivalue );
         return;
     }
     
     if ( clientNum < 0 || clientNum >= MAX_CLIENTS ) {
+        Com_Printf( "JXAC DEBUG: handleScreenshotData() FAILED - invalid clientNum %d\n", clientNum );
         return;
     }
     
     jxacPlayerData_t* pd = &playerData[clientNum];
     
     if ( !pd->screenshotPending ) {
-        Com_Printf( "JXAC: Received unexpected screenshot data from client %d\n", clientNum );
+        Com_Printf( "JXAC DEBUG: Received unexpected screenshot data from client %d (no request pending)\n", clientNum );
         return;
     }
     
     // First chunk - allocate buffer
     if ( pd->ssBuffer == NULL ) {
+        Com_Printf( "JXAC DEBUG: Allocating screenshot buffer for client %d (max %d bytes)\n", 
+                   clientNum, JXAC_SS_MAX_SIZE );
         pd->ssBuffer = (unsigned char*)malloc( JXAC_SS_MAX_SIZE );
         if ( !pd->ssBuffer ) {
-            Com_Printf( "JXAC: Failed to allocate screenshot buffer for client %d\n", clientNum );
+            Com_Printf( "JXAC DEBUG: malloc FAILED for screenshot buffer (%d bytes)\n", JXAC_SS_MAX_SIZE );
             pd->screenshotPending = qfalse;
             return;
         }
@@ -456,7 +527,8 @@ void Server::handleScreenshotData( int clientNum, const void* data, int size ) {
     
     // Check bounds
     if ( pd->ssDataReceived + size > JXAC_SS_MAX_SIZE ) {
-        Com_Printf( "JXAC: Screenshot data exceeds maximum size for client %d\n", clientNum );
+        Com_Printf( "JXAC DEBUG: Screenshot data overflow - client %d (received=%d + size=%d > max=%d)\n", 
+                   clientNum, pd->ssDataReceived, size, JXAC_SS_MAX_SIZE );
         free( pd->ssBuffer );
         pd->ssBuffer = NULL;
         pd->screenshotPending = qfalse;
@@ -467,35 +539,76 @@ void Server::handleScreenshotData( int clientNum, const void* data, int size ) {
     // Copy data to buffer
     memcpy( pd->ssBuffer + pd->ssDataReceived, data, size );
     pd->ssDataReceived += size;
+    
+    Com_Printf( "JXAC DEBUG: Screenshot data received from client %d: %d bytes (total: %d)\n",
+               clientNum, size, pd->ssDataReceived );
 }
 
 ///////////////////////////////////////////////////////////////////////////////
 
 void Server::handleScreenshotComplete( int clientNum ) {
+    Com_Printf( "JXAC DEBUG: handleScreenshotComplete() called for client %d\n", clientNum );
+    
     if ( !initialized || !cvar::objects::g_jxacEnable.ivalue ) {
+        Com_Printf( "JXAC DEBUG: handleScreenshotComplete() SKIPPED - not initialized or disabled\n" );
         return;
     }
     
     if ( clientNum < 0 || clientNum >= MAX_CLIENTS ) {
+        Com_Printf( "JXAC DEBUG: handleScreenshotComplete() FAILED - invalid clientNum %d\n", clientNum );
         return;
     }
     
     jxacPlayerData_t* pd = &playerData[clientNum];
     
     if ( !pd->screenshotPending || !pd->ssBuffer ) {
-        Com_Printf( "JXAC: Received screenshot complete without pending request for client %d\n", clientNum );
+        Com_Printf( "JXAC DEBUG: handleScreenshotComplete() FAILED - pending=%d, buffer=%p\n",
+                   pd->screenshotPending, (void*)pd->ssBuffer );
         return;
     }
     
-    Com_Printf( "JXAC: Screenshot complete for client %d (%d bytes)\n", clientNum, pd->ssDataReceived );
+    // Security: Validate JPEG header (SOI marker: 0xFF 0xD8)
+    if ( pd->ssDataReceived < 3 || 
+         pd->ssBuffer[0] != 0xFF || 
+         pd->ssBuffer[1] != 0xD8 ) {
+        Com_Printf( "JXAC DEBUG: handleScreenshotComplete() FAILED - Invalid JPEG header (got: 0x%02X 0x%02X, expected: 0xFF 0xD8)\n",
+                   pd->ssDataReceived > 0 ? pd->ssBuffer[0] : 0,
+                   pd->ssDataReceived > 1 ? pd->ssBuffer[1] : 0 );
+        free( pd->ssBuffer );
+        pd->ssBuffer = NULL;
+        pd->screenshotPending = qfalse;
+        reportViolation( clientNum, JXAC_VIOLATION_SS_BLOCKED, "Invalid screenshot data (not JPEG)" );
+        return;
+    }
+    
+    // Security: Validate JPEG footer (EOI marker: 0xFF 0xD9) - optional but recommended
+    if ( pd->ssDataReceived >= 2 ) {
+        if ( pd->ssBuffer[pd->ssDataReceived - 2] != 0xFF || 
+             pd->ssBuffer[pd->ssDataReceived - 1] != 0xD9 ) {
+            Com_Printf( "JXAC DEBUG: WARNING - JPEG footer invalid (got: 0x%02X 0x%02X, expected: 0xFF 0xD9)\n",
+                       pd->ssBuffer[pd->ssDataReceived - 2],
+                       pd->ssBuffer[pd->ssDataReceived - 1] );
+            // Just warn, don't reject - some JPEGs might have trailing data
+        }
+    }
+    
+    Com_Printf( "JXAC DEBUG: Screenshot complete for client %d (%d bytes received, JPEG validated)\n", 
+               clientNum, pd->ssDataReceived );
+    
+    // Update rate limiting counters
+    lastScreenshotTime[clientNum] = level.time;
+    screenshotsThisHour[clientNum]++;
     
     // Save screenshot to disk
+    Com_Printf( "JXAC DEBUG: Calling saveScreenshot(%d, buffer, %d)\n", clientNum, pd->ssDataReceived );
     saveScreenshot( clientNum, pd->ssBuffer, pd->ssDataReceived );
     
     // Clean up
     free( pd->ssBuffer );
     pd->ssBuffer = NULL;
     pd->screenshotPending = qfalse;
+    
+    Com_Printf( "JXAC DEBUG: handleScreenshotComplete() finished successfully\n" );
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -822,12 +935,17 @@ void Server::banPlayer( int clientNum, const char* reason ) {
 ///////////////////////////////////////////////////////////////////////////////
 
 void Server::saveScreenshot( int clientNum, const unsigned char* data, int size ) {
+    Com_Printf( "JXAC DEBUG: saveScreenshot() called - clientNum=%d, data=%p, size=%d\n",
+               clientNum, (void*)data, size );
+    
     if ( clientNum < 0 || clientNum >= MAX_CLIENTS ) {
+        Com_Printf( "JXAC DEBUG: saveScreenshot() FAILED - invalid clientNum %d\n", clientNum );
         return;
     }
     
     gentity_t* ent = &g_entities[clientNum];
     if ( !ent->client ) {
+        Com_Printf( "JXAC DEBUG: saveScreenshot() FAILED - no client entity for slot %d\n", clientNum );
         return;
     }
     
@@ -852,19 +970,23 @@ void Server::saveScreenshot( int clientNum, const unsigned char* data, int size 
     Com_sprintf( filename, sizeof( filename ), "%s%s_%s.jpg", 
                  cvar::objects::g_jxacScreenshotPath.svalue, cleanname, timestamp );
     
+    Com_Printf( "JXAC DEBUG: Screenshot filename: %s (path='%s')\n", 
+               filename, cvar::objects::g_jxacScreenshotPath.svalue );
+    
     // Write file
     fileHandle_t f;
     trap_FS_FOpenFile( filename, &f, FS_WRITE );
     
     if ( !f ) {
-        Com_Printf( "JXAC: Failed to open screenshot file: %s\n", filename );
+        Com_Printf( "JXAC DEBUG: trap_FS_FOpenFile() FAILED for %s\n", filename );
         return;
     }
     
+    Com_Printf( "JXAC DEBUG: File opened, writing %d bytes...\n", size );
     trap_FS_Write( data, size, f );
     trap_FS_FCloseFile( f );
     
-    Com_Printf( "JXAC: Screenshot saved: %s (%d bytes)\n", filename, size );
+    Com_Printf( "JXAC DEBUG: Screenshot saved successfully: %s (%d bytes)\n", filename, size );
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -951,10 +1073,13 @@ void Server::checkTimeouts() {
         
         // Check screenshot request timeout (30 seconds)
         if ( pd->screenshotPending ) {
-            if ( level.time - pd->screenshotRequestTime > 30000 ) {
-                Com_Printf( "JXAC: Screenshot timeout for client %d\n", i );
+            int elapsed = level.time - pd->screenshotRequestTime;
+            if ( elapsed > 30000 ) {
+                Com_Printf( "JXAC DEBUG: Screenshot timeout for client %d (elapsed=%dms, received=%d bytes)\n", 
+                           i, elapsed, pd->ssDataReceived );
                 
                 if ( pd->ssBuffer ) {
+                    Com_Printf( "JXAC DEBUG: Freeing incomplete screenshot buffer\n" );
                     free( pd->ssBuffer );
                     pd->ssBuffer = NULL;
                 }
@@ -1306,6 +1431,149 @@ void Server::checkModuleSignature( int clientNum, const char* moduleName, const 
         }
         
         return;
+    }
+}
+
+///////////////////////////////////////////////////////////////////////////////
+
+void Server::sendBinaryMessage( int clientNum, jxacMessageType_t type, const void* data, int dataLen ) {
+    if ( !initialized || !cvar::objects::g_jxacEnable.ivalue ) {
+        return;
+    }
+    
+    if ( clientNum < 0 || clientNum >= MAX_CLIENTS ) {
+        return;
+    }
+    
+    // Build binary message with header
+    char msgBuf[MAX_BINARY_MESSAGE];
+    jxacBinaryHeader_t* header = (jxacBinaryHeader_t*)msgBuf;
+    
+    // Validate data length fits (use size_t for consistent comparison)
+    if ( (size_t)dataLen + sizeof(jxacBinaryHeader_t) > MAX_BINARY_MESSAGE ) {
+        return;
+    }
+    
+    header->magic = JXAC_BINARY_MAGIC;
+    header->type = (unsigned short)type;
+    header->dataLen = (unsigned short)dataLen;
+    
+    if ( data && dataLen > 0 ) {
+        memcpy( msgBuf + sizeof(jxacBinaryHeader_t), data, dataLen );
+    }
+    
+    // Send via binary message channel
+    trap_SendMessage( clientNum, msgBuf, sizeof(jxacBinaryHeader_t) + dataLen );
+}
+
+///////////////////////////////////////////////////////////////////////////////
+
+// Helper function to find null terminator within bounds
+static int findNullTerminator( const char* data, int maxLen ) {
+    for ( int i = 0; i < maxLen; i++ ) {
+        if ( data[i] == '\0' ) {
+            return i;
+        }
+    }
+    return -1;  // Not found
+}
+
+void Server::handleBinaryMessage( int clientNum, const char* buf, int buflen ) {
+    if ( !initialized || !cvar::objects::g_jxacEnable.ivalue ) {
+        return;
+    }
+    
+    if ( clientNum < 0 || clientNum >= MAX_CLIENTS || !buf || buflen < (int)sizeof(jxacBinaryHeader_t) ) {
+        return;
+    }
+    
+    const jxacBinaryHeader_t* header = (const jxacBinaryHeader_t*)buf;
+    
+    // Validate magic
+    if ( header->magic != JXAC_BINARY_MAGIC ) {
+        return;
+    }
+    
+    // Validate data length
+    if ( header->dataLen + sizeof(jxacBinaryHeader_t) > (unsigned int)buflen ) {
+        return;
+    }
+    
+    const char* data = buf + sizeof(jxacBinaryHeader_t);
+    
+    switch ( header->type ) {
+        case JXAC_MSG_HEARTBEAT:
+            handleHeartbeat( clientNum );
+            break;
+            
+        case JXAC_MSG_SS_DATA:
+            // Binary screenshot data
+            handleScreenshotData( clientNum, data, header->dataLen );
+            break;
+            
+        case JXAC_MSG_SS_COMPLETE:
+            handleScreenshotComplete( clientNum );
+            break;
+            
+        case JXAC_MSG_CVAR_RESPONSE:
+            // CVAR response - data format: "name\0value\0"
+            if ( header->dataLen > 0 ) {
+                // Find first null terminator
+                int nameEnd = findNullTerminator( data, header->dataLen );
+                if ( nameEnd >= 0 && nameEnd < header->dataLen - 1 ) {
+                    const char* cvarName = data;
+                    const char* cvarValue = data + nameEnd + 1;
+                    // Verify value is also null-terminated within bounds
+                    int valueEnd = findNullTerminator( cvarValue, header->dataLen - nameEnd - 1 );
+                    if ( valueEnd >= 0 ) {
+                        handleCvarResponse( clientNum, cvarName, cvarValue );
+                    }
+                }
+            }
+            break;
+            
+        case JXAC_MSG_MODULE:
+            // Module info - data format: "name\0checksum\0"
+            if ( header->dataLen > 0 ) {
+                // Find first null terminator
+                int nameEnd = findNullTerminator( data, header->dataLen );
+                if ( nameEnd >= 0 && nameEnd < header->dataLen - 1 ) {
+                    const char* moduleName = data;
+                    const char* checksum = data + nameEnd + 1;
+                    // Verify checksum is also null-terminated within bounds
+                    int checksumEnd = findNullTerminator( checksum, header->dataLen - nameEnd - 1 );
+                    if ( checksumEnd >= 0 ) {
+                        checkModuleSignature( clientNum, moduleName, checksum );
+                    }
+                }
+            }
+            break;
+            
+        case JXAC_MSG_MODULE_COMPLETE:
+            // Module scan complete - nothing to do
+            break;
+            
+        case JXAC_MSG_VIOLATION:
+            // Client-reported violation - use memcpy for alignment safety
+            if ( header->dataLen >= 4 ) {
+                int violationTypeInt;
+                memcpy( &violationTypeInt, data, sizeof(violationTypeInt) );
+                jxacViolationType_t violationType = (jxacViolationType_t)violationTypeInt;
+                const char* details = "";
+                if ( header->dataLen > 4 ) {
+                    // Verify details string is null-terminated
+                    int detailsEnd = findNullTerminator( data + 4, header->dataLen - 4 );
+                    if ( detailsEnd >= 0 ) {
+                        details = data + 4;
+                    }
+                }
+                reportViolation( clientNum, violationType, details );
+            }
+            break;
+            
+        default:
+            // Unknown message type - ignore
+            break;
     }
 }
 

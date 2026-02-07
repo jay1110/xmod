@@ -764,7 +764,10 @@ vmMain( int command, int arg0, int arg1, int arg2, int arg3, int arg4, int arg5,
 	case GAME_SNAPSHOT_CALLBACK:
 		return G_SnapshotCallback( arg0, arg1 );
 	case GAME_MESSAGERECEIVED:
-		return -1;
+		// JXAC: Handle binary messages from clients
+		// arg0 = clientNum, arg1 = buf, arg2 = buflen, arg3 = commandTime
+		jxac::Server::handleBinaryMessage( arg0, (const char*)arg1, arg2 );
+		return 0;
 	}
 
 	return -1;

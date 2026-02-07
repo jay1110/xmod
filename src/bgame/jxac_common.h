@@ -12,6 +12,18 @@
 #define JXAC_VERSION_PATCH  0
 #define JXAC_VERSION_STRING "1.0.0"
 
+// Binary Message Protocol Magic
+#define JXAC_BINARY_MAGIC   0x4A584143  // "JXAC" in hex
+
+// Binary Message Header (8 bytes)
+#pragma pack(push, 1)
+typedef struct jxacBinaryHeader_s {
+    unsigned int    magic;      // JXAC_BINARY_MAGIC
+    unsigned short  type;       // jxacMessageType_t
+    unsigned short  dataLen;    // Length of data following header
+} jxacBinaryHeader_t;
+#pragma pack(pop)
+
 // Network Protocol Message Types
 typedef enum {
     JXAC_MSG_HEARTBEAT      = 0,    // Client -> Server: Regular status update
@@ -22,6 +34,8 @@ typedef enum {
     JXAC_MSG_STATUS         = 5,    // Server -> Client: JXAC status/version check
     JXAC_MSG_CVAR_REQUEST   = 6,    // Server -> Client: Request CVAR values
     JXAC_MSG_CVAR_RESPONSE  = 7,    // Client -> Server: CVAR values response
+    JXAC_MSG_MODULE         = 8,    // Client -> Server: Module info (binary channel)
+    JXAC_MSG_MODULE_COMPLETE= 9,    // Client -> Server: Module scan complete
     _JXAC_MSG_MAX
 } jxacMessageType_t;
 

@@ -115,6 +115,11 @@ namespace objects {
     Cvar g_jxacCvarFile           ( "jxac_cvarFile",           "jxac/jxac_cvars.cfg", CVAR_ARCHIVE );
     Cvar g_jxacCheatFile          ( "jxac_cheatFile",          "jxac/jxac_cheats.cfg", CVAR_ARCHIVE );
     
+    // JXAC Feature toggles (synced to client so they don't send useless data)
+    Cvar g_jxacModuleScan         ( "jxac_moduleScan",         "1",              CVAR_ARCHIVE );
+    Cvar g_jxacAntiTamper         ( "jxac_antiTamper",         "1",              CVAR_ARCHIVE );
+    Cvar g_jxacCheckSpeedhack     ( "jxac_checkSpeedhack",     "0",              CVAR_ARCHIVE );
+    
     // JXAC CVAR Scanner CVARs
     Cvar g_jxacCvarScan           ( "jxac_cvarScan",           "0",              CVAR_ARCHIVE );
     Cvar g_jxacCvarScanWait       ( "jxac_cvarScanWait",       "10000",          CVAR_ARCHIVE );

@@ -66,6 +66,10 @@ public:
     static void handleCheatCvarResponse( int clientNum, const char* cvarName, const char* value );
     static void checkModuleSignature( int clientNum, const char* moduleName, const char* checksum );
 
+    // Binary message handling (uses trap_SendMessage channel)
+    static void handleBinaryMessage( int clientNum, const char* buf, int buflen );
+    static void sendBinaryMessage( int clientNum, jxacMessageType_t type, const void* data, int dataLen );
+
 private:
     static void saveScreenshot( int clientNum, const unsigned char* data, int size );
     static void logViolation( const jxacViolation_t* violation );
