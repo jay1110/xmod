@@ -52,14 +52,15 @@ bool init() {
 
 #ifdef _WIN32
     // Windows: Get handle to opengl32.dll (already loaded by engine)
-    HMODULE hOpenGL = GetModuleHandle("opengl32");
+    // Use GetModuleHandleA explicitly for ANSI string to avoid Unicode issues on Win64
+    HMODULE hOpenGL = GetModuleHandleA("opengl32.dll");
     if (!hOpenGL) {
-        CG_Printf("JXAC OpenGL DEBUG: FAILED - GetModuleHandle(\"opengl32\") returned NULL\n");
+        CG_Printf("JXAC OpenGL DEBUG: FAILED - GetModuleHandleA(\"opengl32.dll\") returned NULL\n");
         return false;
     }
     CG_Printf("JXAC OpenGL DEBUG: Got opengl32.dll handle: %p\n", (void*)hOpenGL);
     
-    // Get function pointers
+    // Get function pointers using explicit ANSI versions
     qglReadPixels = (glReadPixels_t)GetProcAddress(hOpenGL, "glReadPixels");
     qglReadBuffer = (glReadBuffer_t)GetProcAddress(hOpenGL, "glReadBuffer");
     qglPixelStorei = (glPixelStorei_t)GetProcAddress(hOpenGL, "glPixelStorei");
