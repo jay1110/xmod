@@ -16,6 +16,8 @@
 #include <dlfcn.h>
 #endif
 
+#include <cstdlib>  // for malloc/free
+
 // Platform detection
 #if defined(__APPLE__)
     #include <TargetConditionals.h>
@@ -34,7 +36,7 @@ static glPixelStorei_t      qglPixelStorei = NULL;
 static glGetError_t         qglGetError = NULL;
 static glBindFramebuffer_t  qglBindFramebuffer = NULL;
 
-// Library handle (Linux only)
+// Library handle (non-Windows only)
 #ifndef _WIN32
 static void* glLibrary = NULL;
 #endif
@@ -50,21 +52,8 @@ bool init() {
     
     CG_Printf("JXAC OpenGL DEBUG: Initializing direct OpenGL access...\n");
 
-#if defined(JXAC_PLATFORM_ANDROID)
-    // Android: OpenGL ES screenshot capture is currently unstable
-    // Disable for now to prevent crashes
-    CG_Printf("JXAC OpenGL DEBUG: Android platform - direct OpenGL capture disabled (not implemented)\n");
-    return false;
-#endif
-
 #ifdef _WIN32
-#ifdef _WIN64
-    // Windows 64-bit: Direct OpenGL capture has calling convention issues
-    // Disable for now to prevent crashes
-    CG_Printf("JXAC OpenGL DEBUG: Windows 64-bit - direct OpenGL capture disabled (unstable)\n");
-    return false;
-#else
-    // Windows 32-bit: Get handle to opengl32.dll (already loaded by engine)
+    // Windows (32-bit and 64-bit): Get handle to opengl32.dll (already loaded by engine)
     // Use GetModuleHandleA explicitly for ANSI string
     HMODULE hOpenGL = GetModuleHandleA("opengl32.dll");
     if (!hOpenGL) {
@@ -73,14 +62,14 @@ bool init() {
     }
     CG_Printf("JXAC OpenGL DEBUG: Got opengl32.dll handle: %p\n", (void*)hOpenGL);
     
-    // Get function pointers using explicit ANSI versions
+    // Get function pointers - these are standard OpenGL functions exported by opengl32.dll
     qglReadPixels = (glReadPixels_t)GetProcAddress(hOpenGL, "glReadPixels");
     qglReadBuffer = (glReadBuffer_t)GetProcAddress(hOpenGL, "glReadBuffer");
     qglPixelStorei = (glPixelStorei_t)GetProcAddress(hOpenGL, "glPixelStorei");
     qglGetError = (glGetError_t)GetProcAddress(hOpenGL, "glGetError");
     
     // glBindFramebuffer is an extension, need to get via wglGetProcAddress
-    // wglGetProcAddress uses WINAPI (__stdcall) calling convention
+    // Note: PROC is the correct return type per Windows API, but void* works the same on x64
     typedef PROC (WINAPI *wglGetProcAddress_t)(LPCSTR);
     wglGetProcAddress_t wglGetProcAddr = (wglGetProcAddress_t)GetProcAddress(hOpenGL, "wglGetProcAddress");
     if (wglGetProcAddr) {
@@ -96,10 +85,9 @@ bool init() {
     CG_Printf("  glPixelStorei:     %p\n", (void*)qglPixelStorei);
     CG_Printf("  glGetError:        %p\n", (void*)qglGetError);
     CG_Printf("  glBindFramebuffer: %p\n", (void*)qglBindFramebuffer);
-#endif
     
 #else
-    // Unix-like: Linux, macOS (Android returns early above)
+    // Unix-like: Linux, macOS, Android
     // Try different libraries depending on platform
     
 #if defined(JXAC_PLATFORM_MACOS)
@@ -110,6 +98,14 @@ bool init() {
         NULL
     };
     CG_Printf("JXAC OpenGL DEBUG: macOS platform detected, using OpenGL.framework\n");
+#elif defined(JXAC_PLATFORM_ANDROID)
+    // Android: Use OpenGL ES
+    const char* libPaths[] = {
+        "libGLESv3.so",
+        "libGLESv2.so",
+        NULL
+    };
+    CG_Printf("JXAC OpenGL DEBUG: Android platform detected, using OpenGL ES\n");
 #else
     // Linux (x86, x86_64, aarch64): Use libGL
     const char* libPaths[] = {
@@ -265,9 +261,8 @@ bool captureFramebuffer(int x, int y, int width, int height, unsigned char* buff
         }
     }
     
-    // Try to read from the correct buffer
+    // Set up read buffer
     // On Linux/macOS/Android with modern display systems, GL_FRONT is often invalid
-    // Modern compositing and display servers don't maintain a valid front buffer
     // On Windows, GL_FRONT typically works better after SwapBuffers
     bool readBufferSuccess = false;
     
@@ -275,23 +270,15 @@ bool captureFramebuffer(int x, int y, int width, int height, unsigned char* buff
 #ifdef _WIN32
         // Windows: Try GL_FRONT first (displayed buffer after SwapBuffers)
         CG_Printf("JXAC OpenGL DEBUG: Windows - trying GL_FRONT first\n");
-        CG_Printf("JXAC OpenGL DEBUG: Calling glReadBuffer(GL_FRONT=0x%04X)\n", JXAC_GL_FRONT);
         qglReadBuffer(JXAC_GL_FRONT);
         
         if (qglGetError) {
             unsigned int err = qglGetError();
             if (err != JXAC_GL_NO_ERROR) {
-                CG_Printf("JXAC OpenGL DEBUG: glReadBuffer(GL_FRONT) error: 0x%04X\n", err);
-                CG_Printf("JXAC OpenGL DEBUG: Trying GL_BACK as fallback\n");
+                CG_Printf("JXAC OpenGL DEBUG: glReadBuffer(GL_FRONT) error: 0x%04X, trying GL_BACK\n", err);
                 qglReadBuffer(JXAC_GL_BACK);
-                if (qglGetError) {
-                    err = qglGetError();
-                    if (err == JXAC_GL_NO_ERROR) {
-                        readBufferSuccess = true;
-                    }
-                } else {
-                    readBufferSuccess = true;
-                }
+                err = qglGetError ? qglGetError() : JXAC_GL_NO_ERROR;
+                readBufferSuccess = (err == JXAC_GL_NO_ERROR);
             } else {
                 readBufferSuccess = true;
             }
@@ -301,24 +288,16 @@ bool captureFramebuffer(int x, int y, int width, int height, unsigned char* buff
 #else
         // Linux/macOS/Android: Try GL_BACK first
         // Modern display systems (compositors, Wayland, etc.) don't maintain GL_FRONT
-        CG_Printf("JXAC OpenGL DEBUG: Linux/Unix - trying GL_BACK first\n");
-        CG_Printf("JXAC OpenGL DEBUG: Calling glReadBuffer(GL_BACK=0x%04X)\n", JXAC_GL_BACK);
+        CG_Printf("JXAC OpenGL DEBUG: Unix - trying GL_BACK first\n");
         qglReadBuffer(JXAC_GL_BACK);
         
         if (qglGetError) {
             unsigned int err = qglGetError();
             if (err != JXAC_GL_NO_ERROR) {
-                CG_Printf("JXAC OpenGL DEBUG: glReadBuffer(GL_BACK) error: 0x%04X\n", err);
-                CG_Printf("JXAC OpenGL DEBUG: Trying GL_FRONT as fallback\n");
+                CG_Printf("JXAC OpenGL DEBUG: glReadBuffer(GL_BACK) error: 0x%04X, trying GL_FRONT\n", err);
                 qglReadBuffer(JXAC_GL_FRONT);
-                if (qglGetError) {
-                    err = qglGetError();
-                    if (err == JXAC_GL_NO_ERROR) {
-                        readBufferSuccess = true;
-                    }
-                } else {
-                    readBufferSuccess = true;
-                }
+                err = qglGetError ? qglGetError() : JXAC_GL_NO_ERROR;
+                readBufferSuccess = (err == JXAC_GL_NO_ERROR);
             } else {
                 readBufferSuccess = true;
             }
@@ -330,12 +309,53 @@ bool captureFramebuffer(int x, int y, int width, int height, unsigned char* buff
     
     CG_Printf("JXAC OpenGL DEBUG: Read buffer setup %s\n", readBufferSuccess ? "succeeded" : "skipped/failed (trying anyway)");
     
-    // Read pixels from framebuffer using GL_RGB format
-    // Supported platforms: Linux (32/64-bit, ARM64), macOS, Windows 32-bit
-    // Unsupported (return early in init()): Android, Windows 64-bit
-    CG_Printf("JXAC OpenGL DEBUG: Calling glReadPixels(%d, %d, %d, %d, GL_RGB=0x%04X, GL_UNSIGNED_BYTE=0x%04X, %p)\n",
-             x, y, width, height, JXAC_GL_RGB, JXAC_GL_UNSIGNED_BYTE, (void*)buffer);
+    // Read pixels from framebuffer
+    // On Android (OpenGL ES), we MUST use GL_RGBA - GL_RGB is not guaranteed to work
+    // Then convert RGBA to RGB for the output buffer
+#if defined(JXAC_PLATFORM_ANDROID)
+    CG_Printf("JXAC OpenGL DEBUG: Android - using GL_RGBA (required by OpenGL ES)\n");
     
+    // Allocate temporary RGBA buffer (use size_t to avoid overflow on large screens)
+    size_t rgbaBufferSize = (size_t)width * (size_t)height * 4;
+    
+    // Sanity check - max ~64MB
+    if (rgbaBufferSize > 64 * 1024 * 1024) {
+        CG_Printf("JXAC OpenGL DEBUG: FAILED - RGBA buffer too large (%zu bytes)\n", rgbaBufferSize);
+        return false;
+    }
+    
+    unsigned char* rgbaBuffer = (unsigned char*)malloc(rgbaBufferSize);
+    if (!rgbaBuffer) {
+        CG_Printf("JXAC OpenGL DEBUG: FAILED - malloc failed for RGBA buffer (%zu bytes)\n", rgbaBufferSize);
+        return false;
+    }
+    
+    CG_Printf("JXAC OpenGL DEBUG: Calling glReadPixels with GL_RGBA\n");
+    qglReadPixels(x, y, width, height, JXAC_GL_RGBA, JXAC_GL_UNSIGNED_BYTE, rgbaBuffer);
+    
+    // Check for errors
+    if (qglGetError) {
+        unsigned int err = qglGetError();
+        if (err != JXAC_GL_NO_ERROR) {
+            CG_Printf("JXAC OpenGL DEBUG: glReadPixels error: 0x%04X\n", err);
+            free(rgbaBuffer);
+            return false;
+        }
+    }
+    
+    // Convert RGBA to RGB
+    CG_Printf("JXAC OpenGL DEBUG: Converting RGBA to RGB...\n");
+    for (int i = 0; i < width * height; i++) {
+        buffer[i * 3 + 0] = rgbaBuffer[i * 4 + 0];  // R
+        buffer[i * 3 + 1] = rgbaBuffer[i * 4 + 1];  // G
+        buffer[i * 3 + 2] = rgbaBuffer[i * 4 + 2];  // B
+    }
+    
+    free(rgbaBuffer);
+    CG_Printf("JXAC OpenGL DEBUG: RGBA to RGB conversion complete\n");
+#else
+    // Desktop OpenGL (Windows, Linux, macOS): GL_RGB works fine
+    CG_Printf("JXAC OpenGL DEBUG: Calling glReadPixels with GL_RGB\n");
     qglReadPixels(x, y, width, height, JXAC_GL_RGB, JXAC_GL_UNSIGNED_BYTE, buffer);
     
     // Check for errors
@@ -346,6 +366,7 @@ bool captureFramebuffer(int x, int y, int width, int height, unsigned char* buff
             return false;
         }
     }
+#endif
     
     // Check if we got any data (first pixel shouldn't be all zero typically)
     CG_Printf("JXAC OpenGL DEBUG: glReadPixels completed, first 8 bytes: %02X %02X %02X %02X %02X %02X %02X %02X\n",
