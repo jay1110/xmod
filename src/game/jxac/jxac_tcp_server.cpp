@@ -50,7 +50,7 @@ qboolean TcpServer::start(int port) {
     addr.sin_addr.s_addr = INADDR_ANY;
     addr.sin_port = htons((unsigned short)port);
     
-    if (bind(listenSocket, (struct sockaddr*)&addr, sizeof(addr)) == JXAC_SOCKET_ERROR) {
+    if (::bind(listenSocket, (struct sockaddr*)&addr, sizeof(addr)) == JXAC_SOCKET_ERROR) {
         Com_Printf("JXAC TCP: Failed to bind to port %d (errno %d)\n", port, jxac_socket_errno);
         jxac_closesocket(listenSocket);
         listenSocket = JXAC_INVALID_SOCKET;
