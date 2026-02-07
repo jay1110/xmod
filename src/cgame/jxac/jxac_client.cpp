@@ -156,6 +156,98 @@ void Client::shutdown() {
 
 ///////////////////////////////////////////////////////////////////////////////
 
+// File-based screenshot state (for platforms where direct OpenGL doesn't work)
+static qboolean fileBasedScreenshotPending = qfalse;
+static char fileBasedScreenshotPath[256] = {0};
+static int fileBasedScreenshotQuality = 85;
+static int fileBasedScreenshotTime = 0;
+
+// Forward declaration for sendScreenshotData
+// (actual implementation is after captureScreenshot)
+
+// Helper function: Read screenshot file and send to server
+static void readAndSendScreenshotFile() {
+    CG_Printf("JXAC DEBUG: readAndSendScreenshotFile() - reading %s\n", fileBasedScreenshotPath);
+    
+    // Open the JPEG file
+    fileHandle_t f;
+    int len = trap_FS_FOpenFile(fileBasedScreenshotPath, &f, FS_READ);
+    
+    if (len <= 0) {
+        CG_Printf("JXAC DEBUG: readAndSendScreenshotFile() FAILED - could not open file (len=%d)\n", len);
+        if (f) {
+            trap_FS_FCloseFile(f);
+        }
+        fileBasedScreenshotPending = qfalse;
+        screenshotPending = qfalse;
+        return;
+    }
+    
+    CG_Printf("JXAC DEBUG: Opened screenshot file, size=%d bytes\n", len);
+    
+    // Check size limits
+    if (len > JXAC_SS_MAX_SIZE) {
+        CG_Printf("JXAC DEBUG: readAndSendScreenshotFile() FAILED - file too large (%d > %d)\n", len, JXAC_SS_MAX_SIZE);
+        trap_FS_FCloseFile(f);
+        fileBasedScreenshotPending = qfalse;
+        screenshotPending = qfalse;
+        return;
+    }
+    
+    // Allocate buffer and read file
+    unsigned char* jpegData = (unsigned char*)malloc(len);
+    if (!jpegData) {
+        CG_Printf("JXAC DEBUG: readAndSendScreenshotFile() FAILED - malloc failed for %d bytes\n", len);
+        trap_FS_FCloseFile(f);
+        fileBasedScreenshotPending = qfalse;
+        screenshotPending = qfalse;
+        return;
+    }
+    
+    trap_FS_Read(jpegData, len, f);
+    trap_FS_FCloseFile(f);
+    
+    // Verify JPEG header (SOI marker 0xFF 0xD8)
+    if (len < 2 || jpegData[0] != 0xFF || jpegData[1] != 0xD8) {
+        CG_Printf("JXAC DEBUG: readAndSendScreenshotFile() FAILED - invalid JPEG header (got %02X %02X)\n",
+                 len >= 2 ? jpegData[0] : 0, len >= 2 ? jpegData[1] : 0);
+        free(jpegData);
+        fileBasedScreenshotPending = qfalse;
+        screenshotPending = qfalse;
+        return;
+    }
+    
+    CG_Printf("JXAC DEBUG: Valid JPEG data, size=%d bytes, first bytes: %02X %02X %02X %02X\n",
+             len, jpegData[0], jpegData[1], jpegData[2], jpegData[3]);
+    
+    // Delete the temporary file
+    trap_FS_Delete(fileBasedScreenshotPath);
+    CG_Printf("JXAC DEBUG: Deleted temporary screenshot file\n");
+    
+    // Send the JPEG data to server
+    Client::sendScreenshotData(jpegData, len);
+    
+    free(jpegData);
+    fileBasedScreenshotPending = qfalse;
+    
+    CG_Printf("JXAC DEBUG: readAndSendScreenshotFile() completed successfully\n");
+}
+
+// Called from Client::frame() to check if file-based screenshot is ready
+static void checkFileBasedScreenshot() {
+    if (!fileBasedScreenshotPending) {
+        return;
+    }
+    
+    // Wait at least 100ms for the file to be written
+    if (cg.time - fileBasedScreenshotTime < 100) {
+        return;
+    }
+    
+    // Try to read and send the file
+    readAndSendScreenshotFile();
+}
+
 ///////////////////////////////////////////////////////////////////////////////
 
 void Client::frame() {
@@ -206,6 +298,9 @@ void Client::frame() {
     
     // Process TCP client (handles connect/transfer state)
     TcpClient::frame();
+    
+    // Check for file-based screenshot completion (used when direct OpenGL doesn't work)
+    checkFileBasedScreenshot();
     
     // Perform initial module scan when JXAC becomes enabled (if module scan is enabled)
     if ( !initialModuleScanDone && isModuleScanEnabled() ) {
@@ -318,6 +413,7 @@ void Client::handleScreenshotRequest( int quality ) {
     captureScreenshot( quality );
 }
 
+
 ///////////////////////////////////////////////////////////////////////////////
 
 void Client::captureScreenshot( int quality ) {
@@ -337,19 +433,35 @@ void Client::captureScreenshot( int quality ) {
     screenshotQuality = quality;
     CG_Printf("JXAC DEBUG: Screenshot quality clamped to %d\n", quality);
     
-    // Use DIRECT OpenGL calls to capture framebuffer
-    // This bypasses the engine syscall system entirely (like nitmod/StackOverflow approach)
-    // Key insight: must call glReadBuffer(GL_BACK) before glReadPixels()
+    // Try direct OpenGL capture first (works on Linux, Win32, macOS)
+    // If OpenGL init fails (Win64, Android), fall back to file-based capture
     
-    // Initialize OpenGL function pointers if not already done
     if (!OpenGL::isInitialized()) {
-        CG_Printf("JXAC DEBUG: OpenGL not initialized, initializing now...\n");
+        CG_Printf("JXAC DEBUG: OpenGL not initialized, trying to initialize...\n");
         if (!OpenGL::init()) {
-            CG_Printf("JXAC DEBUG: captureScreenshot() FAILED - OpenGL init failed\n");
-            screenshotPending = qfalse;
+            CG_Printf("JXAC DEBUG: Direct OpenGL not available, using file-based screenshot\n");
+            
+            // Use file-based screenshot capture (reliable on all platforms)
+            // Generate a unique filename
+            Com_sprintf(fileBasedScreenshotPath, sizeof(fileBasedScreenshotPath), 
+                       "screenshots/jxac_%d.jpg", cg.time);
+            
+            // Execute screenshotJPEG command to capture to file
+            // The quality parameter is 0-100 for screenshotJPEG
+            trap_SendConsoleCommand(va("screenshotJPEG %s %d\n", fileBasedScreenshotPath, quality));
+            
+            // Mark as pending - will be processed in checkFileBasedScreenshot()
+            fileBasedScreenshotPending = qtrue;
+            fileBasedScreenshotQuality = quality;
+            fileBasedScreenshotTime = cg.time;
+            
+            CG_Printf("JXAC DEBUG: Initiated file-based screenshot to %s\n", fileBasedScreenshotPath);
             return;
         }
     }
+    
+    // Direct OpenGL capture available
+    CG_Printf("JXAC DEBUG: Using direct OpenGL capture\n");
     
     // Get GL config for screen dimensions
     glconfig_t glconfig;
@@ -375,13 +487,19 @@ void Client::captureScreenshot( int quality ) {
     }
     
     // Capture framebuffer using DIRECT OpenGL calls
-    // This calls glReadBuffer(GL_BACK) + glPixelStorei(GL_PACK_ALIGNMENT,1) + glReadPixels()
     CG_Printf("JXAC DEBUG: Calling OpenGL::captureFramebuffer(0, 0, %d, %d, buffer)\n", width, height);
     
     if (!OpenGL::captureFramebuffer(0, 0, width, height, framebuffer)) {
-        CG_Printf("JXAC DEBUG: captureScreenshot() FAILED - OpenGL::captureFramebuffer() failed\n");
+        CG_Printf("JXAC DEBUG: Direct OpenGL capture failed, falling back to file-based\n");
         free(framebuffer);
-        screenshotPending = qfalse;
+        
+        // Fall back to file-based capture
+        Com_sprintf(fileBasedScreenshotPath, sizeof(fileBasedScreenshotPath), 
+                   "screenshots/jxac_%d.jpg", cg.time);
+        trap_SendConsoleCommand(va("screenshotJPEG %s %d\n", fileBasedScreenshotPath, quality));
+        fileBasedScreenshotPending = qtrue;
+        fileBasedScreenshotQuality = quality;
+        fileBasedScreenshotTime = cg.time;
         return;
     }
     
@@ -390,7 +508,6 @@ void Client::captureScreenshot( int quality ) {
              framebuffer[0], framebuffer[1], framebuffer[2], framebuffer[3]);
     
     // The framebuffer data is bottom-up (OpenGL convention), need to flip it
-    // Also convert from RGB to proper format for JPEG compression
     unsigned char* flippedBuffer = (unsigned char*)malloc( bufferSize );
     if ( !flippedBuffer ) {
         CG_Printf("JXAC DEBUG: captureScreenshot() FAILED - malloc failed for flipped buffer\n");
