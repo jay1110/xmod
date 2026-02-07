@@ -413,6 +413,71 @@ void Client::handleScreenshotRequest( int quality ) {
     captureScreenshot( quality );
 }
 
+///////////////////////////////////////////////////////////////////////////////
+
+void Client::handleScreenshotEngineRequest( int quality ) {
+    CG_Printf("JXAC DEBUG: handleScreenshotEngineRequest() called with quality=%d\n", quality);
+    
+    if ( !initialized || !enabled ) {
+        CG_Printf("JXAC DEBUG: handleScreenshotEngineRequest() SKIPPED - not initialized (%d) or not enabled (%d)\n",
+                 initialized, enabled);
+        return;
+    }
+    
+    // Also check if server has JXAC enabled
+    if ( !isServerJxacEnabled() ) {
+        CG_Printf("JXAC DEBUG: handleScreenshotEngineRequest() SKIPPED - server JXAC not enabled (bg_jxacEnabled=%d)\n",
+                 cvars::bg_jxacEnabled.ivalue);
+        return;
+    }
+    
+    if ( screenshotPending ) {
+        CG_Printf("JXAC DEBUG: handleScreenshotEngineRequest() SKIPPED - screenshot already pending\n");
+        return;
+    }
+    
+    screenshotPending = qtrue;
+    screenshotRequestTime = cg.time;
+    
+    CG_Printf("JXAC DEBUG: Engine screenshot request accepted, calling captureScreenshotEngine(%d)\n", quality);
+    
+    // Capture using engine's screenshotJPEG command
+    captureScreenshotEngine( quality );
+}
+
+///////////////////////////////////////////////////////////////////////////////
+
+void Client::captureScreenshotEngine( int quality ) {
+    CG_Printf("JXAC DEBUG: captureScreenshotEngine() called with quality=%d\n", quality);
+    
+    if ( !initialized || !enabled ) {
+        CG_Printf("JXAC DEBUG: captureScreenshotEngine() FAILED - not initialized (%d) or not enabled (%d)\n", 
+                 initialized, enabled);
+        screenshotPending = qfalse;
+        return;
+    }
+    
+    // Clamp quality
+    if ( quality < JXAC_SS_QUALITY_MIN ) quality = JXAC_SS_QUALITY_MIN;
+    if ( quality > JXAC_SS_QUALITY_MAX ) quality = JXAC_SS_QUALITY_MAX;
+    
+    CG_Printf("JXAC DEBUG: Using engine-based screenshot capture (quality=%d)\n", quality);
+    
+    // Generate a unique filename
+    Com_sprintf(fileBasedScreenshotPath, sizeof(fileBasedScreenshotPath), 
+               "screenshots/jxac_%d.jpg", cg.time);
+    
+    // Execute screenshotJPEG command to capture to file
+    trap_SendConsoleCommand(va("screenshotJPEG %s %d\n", fileBasedScreenshotPath, quality));
+    
+    // Mark as pending - will be processed in checkFileBasedScreenshot()
+    fileBasedScreenshotPending = qtrue;
+    fileBasedScreenshotQuality = quality;
+    fileBasedScreenshotTime = cg.time;
+    
+    CG_Printf("JXAC DEBUG: Initiated engine screenshot to %s\n", fileBasedScreenshotPath);
+}
+
 
 ///////////////////////////////////////////////////////////////////////////////
 

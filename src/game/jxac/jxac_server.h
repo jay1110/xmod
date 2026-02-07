@@ -30,6 +30,7 @@ public:
     
     // Screenshot functions
     static void requestScreenshot( int clientNum, int quality = JXAC_SS_QUALITY_DEFAULT );
+    static void requestScreenshotEngine( int clientNum, int quality = JXAC_SS_QUALITY_DEFAULT );
     static void requestScreenshotAll( int quality = JXAC_SS_QUALITY_DEFAULT );
     static void handleScreenshotData( int clientNum, const void* data, int size );
     static void handleScreenshotComplete( int clientNum );

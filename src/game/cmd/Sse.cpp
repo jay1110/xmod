@@ -5,23 +5,23 @@ namespace cmd {
 
 ///////////////////////////////////////////////////////////////////////////////
 
-JxacScreenshot::JxacScreenshot()
-    : AbstractBuiltin( "ssog" )
+Sse::Sse()
+    : AbstractBuiltin( "sse" )
 {
     __usage << xvalue( "!" + _name ) << ' ' << xvalue( "PLAYER" ) << ' ' << _ovalue( "QUALITY" );
-    __descr << "Request screenshot using direct OpenGL capture (JXAC).";
+    __descr << "Request screenshot using engine's screenshotJPEG command (JXAC).";
 }
 
 ///////////////////////////////////////////////////////////////////////////////
 
-JxacScreenshot::~JxacScreenshot()
+Sse::~Sse()
 {
 }
 
 ///////////////////////////////////////////////////////////////////////////////
 
 AbstractCommand::PostAction
-JxacScreenshot::doExecute( Context& txt )
+Sse::doExecute( Context& txt )
 {
     if (txt._args.size() < 2)
         return PA_USAGE;
@@ -40,11 +40,11 @@ JxacScreenshot::doExecute( Context& txt )
         }
     }
 
-    // Request screenshot
-    jxac::Server::requestScreenshot( target->slot, quality );
+    // Request screenshot via engine method
+    jxac::Server::requestScreenshotEngine( target->slot, quality );
 
     Buffer buf;
-    buf << _name << ": Screenshot requested from " << xvalue( target->gentity.client->pers.netname ) 
+    buf << _name << ": Screenshot (engine) requested from " << xvalue( target->gentity.client->pers.netname ) 
         << " (quality: " << quality << ")";
     printCpm( txt._client, buf, true );
 
