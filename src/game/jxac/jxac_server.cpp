@@ -128,8 +128,8 @@ static const jxacCvarCheck_t protectedCvars[] = {
 static int currentCvarBatch[MAX_CLIENTS];
 
 // Security: Rate limiting for screenshots (prevent disk fill attacks)
-#define JXAC_SS_MIN_INTERVAL    60000   // Minimum 60 seconds between screenshots per client
-#define JXAC_SS_MAX_PER_HOUR    30      // Maximum 30 screenshots per client per hour
+#define JXAC_SS_MIN_INTERVAL    5000    // Minimum 5 seconds between screenshots per client (for testing)
+#define JXAC_SS_MAX_PER_HOUR    120     // Maximum 120 screenshots per client per hour (for testing)
 static int lastScreenshotTime[MAX_CLIENTS];
 static int screenshotsThisHour[MAX_CLIENTS];
 static int hourStartTime[MAX_CLIENTS];

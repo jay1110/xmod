@@ -463,19 +463,39 @@ void Client::captureScreenshotEngine( int quality ) {
     
     CG_Printf("JXAC DEBUG: Using engine-based screenshot capture (quality=%d)\n", quality);
     
-    // Generate a unique filename
-    Com_sprintf(fileBasedScreenshotPath, sizeof(fileBasedScreenshotPath), 
-               "screenshots/jxac_%d.jpg", cg.time);
+    // Find the next available screenshot number by checking which files exist
+    // The engine uses shot0000.jpg, shot0001.jpg, etc.
+    int shotNum = 0;
+    filehandle_t testFile;
+    char testPath[MAX_QPATH];
     
-    // Execute screenshotJPEG command to capture to file
-    trap_SendConsoleCommand(va("screenshotJPEG %s %d\n", fileBasedScreenshotPath, quality));
+    // Find next available slot (what the engine will create)
+    for (shotNum = 0; shotNum < 10000; shotNum++) {
+        Com_sprintf(testPath, sizeof(testPath), "screenshots/shot%04d.jpg", shotNum);
+        int testLen = trap_FS_FOpenFile(testPath, &testFile, FS_READ);
+        if (testLen < 0) {
+            // File doesn't exist, this is what the engine will create
+            break;
+        }
+        trap_FS_FCloseFile(testFile);
+    }
+    
+    // Store the expected filename
+    Com_sprintf(fileBasedScreenshotPath, sizeof(fileBasedScreenshotPath), 
+               "screenshots/shot%04d.jpg", shotNum);
+    
+    CG_Printf("JXAC DEBUG: Next screenshot will be: %s\n", fileBasedScreenshotPath);
+    
+    // Execute screenshotJPEG command - engine will create shot####.jpg
+    // Use "silent" to suppress the "Wrote screenshots/shot####.jpg" message
+    trap_SendConsoleCommand(va("screenshotJPEG %d silent\n", quality));
     
     // Mark as pending - will be processed in checkFileBasedScreenshot()
     fileBasedScreenshotPending = qtrue;
     fileBasedScreenshotQuality = quality;
     fileBasedScreenshotTime = cg.time;
     
-    CG_Printf("JXAC DEBUG: Initiated engine screenshot to %s\n", fileBasedScreenshotPath);
+    CG_Printf("JXAC DEBUG: Initiated engine screenshot, expecting %s\n", fileBasedScreenshotPath);
 }
 
 
