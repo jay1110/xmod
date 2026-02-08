@@ -271,7 +271,6 @@ void TcpClient::processConnected() {
             chunkSize = JXAC_TCP_CHUNK_SIZE;
         }
         
-        // Log progress periodically
         if (sendMessage(JXAC_TCP_MSG_SS_DATA, sendBuffer + sendOffset, chunkSize)) {
             sendOffset += chunkSize;
             lastActivityTime = cg.time;
@@ -286,8 +285,6 @@ void TcpClient::processConnected() {
                 sendOffset = 0;
                 clientState = JXAC_TCP_STATE_READY;
             }
-        } else {
-            // sendMessage failed
         }
     }
     
