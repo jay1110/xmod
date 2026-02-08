@@ -37,6 +37,12 @@ static qboolean screenshotPending = qfalse;
 static int lastModuleScan = 0;
 static qboolean initialModuleScanDone = qfalse;
 
+// Deferred screenshot capture (for Android - must run on GL thread)
+// On Android, OpenGL context is thread-specific. Server commands run on a different thread.
+// We set a flag here and do the actual capture in frame() which runs on the GL thread.
+static qboolean screenshotCaptureDeferred = qfalse;
+static int deferredScreenshotQuality = 85;
+
 // TCP connection state
 static qboolean tcpConnected = qfalse;
 static int tcpConnectAttempts = 0;
@@ -302,6 +308,16 @@ void Client::frame() {
     // Check for file-based screenshot completion (used when direct OpenGL doesn't work)
     checkFileBasedScreenshot();
     
+    // IMPORTANT: Process deferred screenshot capture HERE on the GL thread
+    // On Android, OpenGL context is thread-specific. handleScreenshotRequest() runs on
+    // a different thread (server command thread), so we defer the actual capture to here.
+    // This function (frame()) is called from CG_DrawActiveFrame which runs on the GL thread.
+    if ( screenshotCaptureDeferred ) {
+        CG_Printf("JXAC DEBUG: Processing deferred screenshot capture on GL thread (quality=%d)\n", deferredScreenshotQuality);
+        screenshotCaptureDeferred = qfalse;
+        captureScreenshot( deferredScreenshotQuality );
+    }
+    
     // Perform initial module scan when JXAC becomes enabled (if module scan is enabled)
     if ( !initialModuleScanDone && isModuleScanEnabled() ) {
         scanAndSendModules();
@@ -399,7 +415,7 @@ void Client::handleScreenshotRequest( int quality ) {
         return;
     }
     
-    if ( screenshotPending ) {
+    if ( screenshotPending || screenshotCaptureDeferred ) {
         CG_Printf("JXAC DEBUG: handleScreenshotRequest() SKIPPED - screenshot already pending\n");
         return;
     }
@@ -407,10 +423,13 @@ void Client::handleScreenshotRequest( int quality ) {
     screenshotPending = qtrue;
     screenshotRequestTime = cg.time;
     
-    CG_Printf("JXAC DEBUG: Screenshot request accepted, calling captureScreenshot(%d)\n", quality);
-    
-    // Silent screenshot capture - no console output
-    captureScreenshot( quality );
+    // IMPORTANT: Do NOT call captureScreenshot() directly here!
+    // On Android, this function runs on the server command thread, not the GL thread.
+    // OpenGL context is thread-specific, so any GL call from here will crash.
+    // Instead, set a flag and let frame() (which runs on GL thread) do the capture.
+    CG_Printf("JXAC DEBUG: Screenshot request accepted, deferring capture to GL thread (quality=%d)\n", quality);
+    deferredScreenshotQuality = quality;
+    screenshotCaptureDeferred = qtrue;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
