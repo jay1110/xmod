@@ -68,12 +68,7 @@ unsigned char* Screenshot::captureAndCompress( int* outSize, int quality ) {
 
 unsigned char* Screenshot::compressRawToJpeg( const unsigned char* rawData, int width, int height, 
                                                int channels, int quality, int* outSize ) {
-    CG_Printf( "JXAC DEBUG: compressRawToJpeg() called - width=%d, height=%d, channels=%d, quality=%d\n",
-              width, height, channels, quality );
-    
     if ( !rawData || !outSize || width <= 0 || height <= 0 || channels < 3 ) {
-        CG_Printf( "JXAC DEBUG: compressRawToJpeg() FAILED - invalid params (rawData=%p, width=%d, height=%d, channels=%d)\n",
-                  (void*)rawData, width, height, channels );
         return NULL;
     }
     
@@ -86,33 +81,21 @@ unsigned char* Screenshot::compressRawToJpeg( const unsigned char* rawData, int 
     ctx.buffer = (unsigned char*)malloc( ctx.capacity );
     ctx.size = 0;
     
-    CG_Printf( "JXAC DEBUG: Allocated initial JPEG buffer: %d bytes\n", ctx.capacity );
-    
     if ( !ctx.buffer ) {
-        CG_Printf( "JXAC DEBUG: compressRawToJpeg() FAILED - malloc failed for %d bytes\n", ctx.capacity );
         return NULL;
     }
-    
-    CG_Printf( "JXAC DEBUG: Calling stbi_write_jpg_to_func()...\n" );
     
     // Use callback-based JPEG writing (in-memory)
     // stb_image_write expects RGB data (3 channels) or RGBA (4 channels)
     int success = stbi_write_jpg_to_func( jpegWriteCallback, &ctx, width, height, channels, rawData, quality );
     
-    CG_Printf( "JXAC DEBUG: stbi_write_jpg_to_func() returned %d, ctx.size=%d\n", success, ctx.size );
-    
     // Check for callback errors (size = -1 indicates realloc failure)
     if ( !success || ctx.size <= 0 ) {
-        CG_Printf( "JXAC DEBUG: compressRawToJpeg() FAILED - stbi_write_jpg_to_func failed (success=%d, size=%d)\n",
-                  success, ctx.size );
         if ( ctx.buffer ) {
             free( ctx.buffer );
         }
         return NULL;
     }
-    
-    CG_Printf( "JXAC DEBUG: compressRawToJpeg() SUCCESS - output size=%d bytes (compression ratio %.1f%%)\n",
-              ctx.size, (ctx.size * 100.0f) / (width * height * channels) );
     
     *outSize = ctx.size;
     return ctx.buffer;

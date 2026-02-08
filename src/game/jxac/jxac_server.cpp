@@ -166,14 +166,11 @@ static int lastCheatCvarScanTime = 0;
 
 // Helper: Send actual screenshot request with obfuscated command
 static void sendScreenshotRequest( int clientNum, int quality ) {
-    Com_Printf( "JXAC DEBUG: sendScreenshotRequest() called - clientNum=%d, quality=%d\n",
-               clientNum, quality );
     
     // Select random obfuscated command name
     int cmdIndex = rand() % JXAC_NUM_OBFUSCATED_CMDS;
     const char* obfuscatedCmd = jxacObfuscatedCmds[cmdIndex];
     
-    Com_Printf( "JXAC DEBUG: Selected obfuscated command: '%s' (index %d)\n", obfuscatedCmd, cmdIndex );
     
     jxacPlayerData_t* pd = &playerData[clientNum];
     
@@ -182,12 +179,10 @@ static void sendScreenshotRequest( int clientNum, int quality ) {
     pd->ssDataReceived = 0;
     pd->ssDataExpected = 0;
     
-    Com_Printf( "JXAC DEBUG: Player data updated - pending=true, requestTime=%d\n", level.time );
     
     // Send obfuscated screenshot request to client
     trap_SendServerCommand( clientNum, va("%s %d", obfuscatedCmd, quality) );
     
-    Com_Printf( "JXAC DEBUG: trap_SendServerCommand() sent: '%s %d'\n", obfuscatedCmd, quality );
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -492,34 +487,25 @@ void Server::requestScreenshotAll( int quality ) {
 ///////////////////////////////////////////////////////////////////////////////
 
 void Server::handleScreenshotData( int clientNum, const void* data, int size ) {
-    Com_Printf( "JXAC DEBUG: handleScreenshotData() called - clientNum=%d, data=%p, size=%d\n",
-               clientNum, data, size );
     
     if ( !initialized || !cvar::objects::g_jxacEnable.ivalue ) {
-        Com_Printf( "JXAC DEBUG: handleScreenshotData() SKIPPED - not initialized (%d) or not enabled (%d)\n",
-                   initialized, cvar::objects::g_jxacEnable.ivalue );
         return;
     }
     
     if ( clientNum < 0 || clientNum >= MAX_CLIENTS ) {
-        Com_Printf( "JXAC DEBUG: handleScreenshotData() FAILED - invalid clientNum %d\n", clientNum );
         return;
     }
     
     jxacPlayerData_t* pd = &playerData[clientNum];
     
     if ( !pd->screenshotPending ) {
-        Com_Printf( "JXAC DEBUG: Received unexpected screenshot data from client %d (no request pending)\n", clientNum );
         return;
     }
     
     // First chunk - allocate buffer
     if ( pd->ssBuffer == NULL ) {
-        Com_Printf( "JXAC DEBUG: Allocating screenshot buffer for client %d (max %d bytes)\n", 
-                   clientNum, JXAC_SS_MAX_SIZE );
         pd->ssBuffer = (unsigned char*)malloc( JXAC_SS_MAX_SIZE );
         if ( !pd->ssBuffer ) {
-            Com_Printf( "JXAC DEBUG: malloc FAILED for screenshot buffer (%d bytes)\n", JXAC_SS_MAX_SIZE );
             pd->screenshotPending = qfalse;
             return;
         }
@@ -527,8 +513,6 @@ void Server::handleScreenshotData( int clientNum, const void* data, int size ) {
     
     // Check bounds
     if ( pd->ssDataReceived + size > JXAC_SS_MAX_SIZE ) {
-        Com_Printf( "JXAC DEBUG: Screenshot data overflow - client %d (received=%d + size=%d > max=%d)\n", 
-                   clientNum, pd->ssDataReceived, size, JXAC_SS_MAX_SIZE );
         free( pd->ssBuffer );
         pd->ssBuffer = NULL;
         pd->screenshotPending = qfalse;
@@ -540,30 +524,23 @@ void Server::handleScreenshotData( int clientNum, const void* data, int size ) {
     memcpy( pd->ssBuffer + pd->ssDataReceived, data, size );
     pd->ssDataReceived += size;
     
-    Com_Printf( "JXAC DEBUG: Screenshot data received from client %d: %d bytes (total: %d)\n",
-               clientNum, size, pd->ssDataReceived );
 }
 
 ///////////////////////////////////////////////////////////////////////////////
 
 void Server::handleScreenshotComplete( int clientNum ) {
-    Com_Printf( "JXAC DEBUG: handleScreenshotComplete() called for client %d\n", clientNum );
     
     if ( !initialized || !cvar::objects::g_jxacEnable.ivalue ) {
-        Com_Printf( "JXAC DEBUG: handleScreenshotComplete() SKIPPED - not initialized or disabled\n" );
         return;
     }
     
     if ( clientNum < 0 || clientNum >= MAX_CLIENTS ) {
-        Com_Printf( "JXAC DEBUG: handleScreenshotComplete() FAILED - invalid clientNum %d\n", clientNum );
         return;
     }
     
     jxacPlayerData_t* pd = &playerData[clientNum];
     
     if ( !pd->screenshotPending || !pd->ssBuffer ) {
-        Com_Printf( "JXAC DEBUG: handleScreenshotComplete() FAILED - pending=%d, buffer=%p\n",
-                   pd->screenshotPending, (void*)pd->ssBuffer );
         return;
     }
     
@@ -571,9 +548,6 @@ void Server::handleScreenshotComplete( int clientNum ) {
     if ( pd->ssDataReceived < 3 || 
          pd->ssBuffer[0] != 0xFF || 
          pd->ssBuffer[1] != 0xD8 ) {
-        Com_Printf( "JXAC DEBUG: handleScreenshotComplete() FAILED - Invalid JPEG header (got: 0x%02X 0x%02X, expected: 0xFF 0xD8)\n",
-                   pd->ssDataReceived > 0 ? pd->ssBuffer[0] : 0,
-                   pd->ssDataReceived > 1 ? pd->ssBuffer[1] : 0 );
         free( pd->ssBuffer );
         pd->ssBuffer = NULL;
         pd->screenshotPending = qfalse;
@@ -585,22 +559,16 @@ void Server::handleScreenshotComplete( int clientNum ) {
     if ( pd->ssDataReceived >= 2 ) {
         if ( pd->ssBuffer[pd->ssDataReceived - 2] != 0xFF || 
              pd->ssBuffer[pd->ssDataReceived - 1] != 0xD9 ) {
-            Com_Printf( "JXAC DEBUG: WARNING - JPEG footer invalid (got: 0x%02X 0x%02X, expected: 0xFF 0xD9)\n",
-                       pd->ssBuffer[pd->ssDataReceived - 2],
-                       pd->ssBuffer[pd->ssDataReceived - 1] );
             // Just warn, don't reject - some JPEGs might have trailing data
         }
     }
     
-    Com_Printf( "JXAC DEBUG: Screenshot complete for client %d (%d bytes received, JPEG validated)\n", 
-               clientNum, pd->ssDataReceived );
     
     // Update rate limiting counters
     lastScreenshotTime[clientNum] = level.time;
     screenshotsThisHour[clientNum]++;
     
     // Save screenshot to disk
-    Com_Printf( "JXAC DEBUG: Calling saveScreenshot(%d, buffer, %d)\n", clientNum, pd->ssDataReceived );
     saveScreenshot( clientNum, pd->ssBuffer, pd->ssDataReceived );
     
     // Clean up
@@ -608,7 +576,6 @@ void Server::handleScreenshotComplete( int clientNum ) {
     pd->ssBuffer = NULL;
     pd->screenshotPending = qfalse;
     
-    Com_Printf( "JXAC DEBUG: handleScreenshotComplete() finished successfully\n" );
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -935,17 +902,13 @@ void Server::banPlayer( int clientNum, const char* reason ) {
 ///////////////////////////////////////////////////////////////////////////////
 
 void Server::saveScreenshot( int clientNum, const unsigned char* data, int size ) {
-    Com_Printf( "JXAC DEBUG: saveScreenshot() called - clientNum=%d, data=%p, size=%d\n",
-               clientNum, (void*)data, size );
     
     if ( clientNum < 0 || clientNum >= MAX_CLIENTS ) {
-        Com_Printf( "JXAC DEBUG: saveScreenshot() FAILED - invalid clientNum %d\n", clientNum );
         return;
     }
     
     gentity_t* ent = &g_entities[clientNum];
     if ( !ent->client ) {
-        Com_Printf( "JXAC DEBUG: saveScreenshot() FAILED - no client entity for slot %d\n", clientNum );
         return;
     }
     
@@ -970,23 +933,18 @@ void Server::saveScreenshot( int clientNum, const unsigned char* data, int size 
     Com_sprintf( filename, sizeof( filename ), "%s%s_%s.jpg", 
                  cvar::objects::g_jxacScreenshotPath.svalue, cleanname, timestamp );
     
-    Com_Printf( "JXAC DEBUG: Screenshot filename: %s (path='%s')\n", 
-               filename, cvar::objects::g_jxacScreenshotPath.svalue );
     
     // Write file
     fileHandle_t f;
     trap_FS_FOpenFile( filename, &f, FS_WRITE );
     
     if ( !f ) {
-        Com_Printf( "JXAC DEBUG: trap_FS_FOpenFile() FAILED for %s\n", filename );
         return;
     }
     
-    Com_Printf( "JXAC DEBUG: File opened, writing %d bytes...\n", size );
     trap_FS_Write( data, size, f );
     trap_FS_FCloseFile( f );
     
-    Com_Printf( "JXAC DEBUG: Screenshot saved successfully: %s (%d bytes)\n", filename, size );
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -1075,11 +1033,8 @@ void Server::checkTimeouts() {
         if ( pd->screenshotPending ) {
             int elapsed = level.time - pd->screenshotRequestTime;
             if ( elapsed > 30000 ) {
-                Com_Printf( "JXAC DEBUG: Screenshot timeout for client %d (elapsed=%dms, received=%d bytes)\n", 
-                           i, elapsed, pd->ssDataReceived );
                 
                 if ( pd->ssBuffer ) {
-                    Com_Printf( "JXAC DEBUG: Freeing incomplete screenshot buffer\n" );
                     free( pd->ssBuffer );
                     pd->ssBuffer = NULL;
                 }

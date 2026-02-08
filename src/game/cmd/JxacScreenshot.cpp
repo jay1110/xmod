@@ -46,7 +46,7 @@ JxacScreenshot::doExecute( Context& txt )
     Buffer buf;
     buf << _name << ": Screenshot requested from " << xvalue( target->gentity.client->pers.netname ) 
         << " (quality: " << quality << ")";
-    printCpm( txt._client, buf, true );
+    printCpm( txt._client, buf, false );
 
     return PA_NONE;
 }

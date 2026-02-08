@@ -359,15 +359,11 @@ void TcpServer::handleScreenshotStart(jxacTcpClientConn_t* conn, const jxacTcpSs
 
 void TcpServer::handleScreenshotData(jxacTcpClientConn_t* conn, const unsigned char* data, int dataLen) {
     if (conn->state != JXAC_TCP_STATE_TRANSFERRING || !conn->ssBuffer) {
-        Com_Printf("JXAC TCP DEBUG: handleScreenshotData() SKIPPED - wrong state (%d) or no buffer\n",
-                  conn->state);
         return;
     }
     
     // Check bounds
     if (conn->ssReceived + dataLen > conn->ssSize) {
-        Com_Printf("JXAC TCP DEBUG: Screenshot data overflow from client %d (received=%u, dataLen=%d, expected=%u)\n", 
-                  conn->clientNum, conn->ssReceived, dataLen, conn->ssSize);
         conn->state = JXAC_TCP_STATE_READY;
         free(conn->ssBuffer);
         conn->ssBuffer = NULL;
@@ -377,15 +373,6 @@ void TcpServer::handleScreenshotData(jxacTcpClientConn_t* conn, const unsigned c
     // Copy data to buffer
     memcpy(conn->ssBuffer + conn->ssReceived, data, dataLen);
     conn->ssReceived += dataLen;
-    
-    // Log progress periodically (every 10%)
-    int progressPercent = (conn->ssReceived * 100) / conn->ssSize;
-    static int lastProgress = -1;
-    if (progressPercent / 10 != lastProgress / 10) {
-        Com_Printf("JXAC TCP DEBUG: Receive progress from client %d: %u/%u bytes (%d%%)\n",
-                  conn->clientNum, conn->ssReceived, conn->ssSize, progressPercent);
-        lastProgress = progressPercent;
-    }
 }
 
 ///////////////////////////////////////////////////////////////////////////////
