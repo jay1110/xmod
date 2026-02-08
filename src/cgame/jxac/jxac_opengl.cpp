@@ -26,26 +26,36 @@
 static FILE* debugLogFile = NULL;
 
 static void JXAC_DebugLog(const char* fmt, ...) {
-    // Open file if not yet open
+    char buf[1024];
+    va_list args;
+    va_start(args, fmt);
+    Q_vsnprintf(buf, sizeof(buf), fmt, args);
+    va_end(args);
+    
+    // Open file if not yet open - use different paths for different platforms
     if (!debugLogFile) {
+#ifdef JXAC_PLATFORM_ANDROID
+        // Android: Try multiple paths
+        debugLogFile = fopen("/sdcard/jxac_debug.log", "a");
+        if (!debugLogFile) {
+            debugLogFile = fopen("/storage/emulated/0/jxac_debug.log", "a");
+        }
+        if (!debugLogFile) {
+            debugLogFile = fopen("jxac_debug.log", "a");
+        }
+#else
         debugLogFile = fopen("jxac_debug.log", "a");
+#endif
     }
     
+    // Write to file
     if (debugLogFile) {
-        va_list args;
-        va_start(args, fmt);
-        vfprintf(debugLogFile, fmt, args);
-        va_end(args);
+        fprintf(debugLogFile, "%s", buf);
         fflush(debugLogFile);  // CRITICAL: flush immediately so logs survive crash
     }
     
     // Also print to console
-    va_list args2;
-    va_start(args2, fmt);
-    char buf[1024];
-    Q_vsnprintf(buf, sizeof(buf), fmt, args2);
-    va_end(args2);
-    JXAC_DebugLog("%s", buf);
+    CG_Printf("%s", buf);
 }
 
 // Platform detection
