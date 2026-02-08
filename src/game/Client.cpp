@@ -951,6 +951,10 @@ Client::greeting()
     if( user.fakeguid )
         return;
 
+    // Skip greeting for bots
+    if( gentity.r.svFlags & SVF_BOT )
+        return;
+
     // Handle text first
     if (user.greetingText.length() || lev.greetingText.length()) {
         static char token[MAX_TOKEN_CHARS];
