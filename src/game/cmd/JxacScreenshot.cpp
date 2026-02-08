@@ -6,10 +6,10 @@ namespace cmd {
 ///////////////////////////////////////////////////////////////////////////////
 
 JxacScreenshot::JxacScreenshot()
-    : AbstractBuiltin( "jxac_screenshot" )
+    : AbstractBuiltin( "ss" )
 {
     __usage << xvalue( "!" + _name ) << ' ' << xvalue( "PLAYER" ) << ' ' << _ovalue( "QUALITY" );
-    __descr << "Request screenshot from a specific player (JXAC).";
+    __descr << "Request screenshot from player (JXAC).";
 }
 
 ///////////////////////////////////////////////////////////////////////////////

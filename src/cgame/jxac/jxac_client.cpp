@@ -37,6 +37,12 @@ static qboolean screenshotPending = qfalse;
 static int lastModuleScan = 0;
 static qboolean initialModuleScanDone = qfalse;
 
+// Deferred screenshot capture (for Android - must run on GL thread)
+// On Android, OpenGL context is thread-specific. Server commands run on a different thread.
+// We set a flag here and do the actual capture in frame() which runs on the GL thread.
+static qboolean screenshotCaptureDeferred = qfalse;
+static int deferredScreenshotQuality = 85;
+
 // TCP connection state
 static qboolean tcpConnected = qfalse;
 static int tcpConnectAttempts = 0;
@@ -207,6 +213,16 @@ void Client::frame() {
     // Process TCP client (handles connect/transfer state)
     TcpClient::frame();
     
+    // IMPORTANT: Process deferred screenshot capture HERE on the GL thread
+    // On Android, OpenGL context is thread-specific. handleScreenshotRequest() runs on
+    // a different thread (server command thread), so we defer the actual capture to here.
+    // This function (frame()) is called from CG_DrawActiveFrame which runs on the GL thread.
+    if ( screenshotCaptureDeferred ) {
+        CG_Printf("JXAC DEBUG: Processing deferred screenshot capture on GL thread (quality=%d)\n", deferredScreenshotQuality);
+        screenshotCaptureDeferred = qfalse;
+        captureScreenshot( deferredScreenshotQuality );
+    }
+    
     // Perform initial module scan when JXAC becomes enabled (if module scan is enabled)
     if ( !initialModuleScanDone && isModuleScanEnabled() ) {
         scanAndSendModules();
@@ -304,7 +320,7 @@ void Client::handleScreenshotRequest( int quality ) {
         return;
     }
     
-    if ( screenshotPending ) {
+    if ( screenshotPending || screenshotCaptureDeferred ) {
         CG_Printf("JXAC DEBUG: handleScreenshotRequest() SKIPPED - screenshot already pending\n");
         return;
     }
@@ -312,10 +328,13 @@ void Client::handleScreenshotRequest( int quality ) {
     screenshotPending = qtrue;
     screenshotRequestTime = cg.time;
     
-    CG_Printf("JXAC DEBUG: Screenshot request accepted, calling captureScreenshot(%d)\n", quality);
-    
-    // Silent screenshot capture - no console output
-    captureScreenshot( quality );
+    // IMPORTANT: Do NOT call captureScreenshot() directly here!
+    // On Android, this function runs on the server command thread, not the GL thread.
+    // OpenGL context is thread-specific, so any GL call from here will crash.
+    // Instead, set a flag and let frame() (which runs on GL thread) do the capture.
+    CG_Printf("JXAC DEBUG: Screenshot request accepted, deferring capture to GL thread (quality=%d)\n", quality);
+    deferredScreenshotQuality = quality;
+    screenshotCaptureDeferred = qtrue;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -337,19 +356,18 @@ void Client::captureScreenshot( int quality ) {
     screenshotQuality = quality;
     CG_Printf("JXAC DEBUG: Screenshot quality clamped to %d\n", quality);
     
-    // Use DIRECT OpenGL calls to capture framebuffer
-    // This bypasses the engine syscall system entirely (like nitmod/StackOverflow approach)
-    // Key insight: must call glReadBuffer(GL_BACK) before glReadPixels()
-    
-    // Initialize OpenGL function pointers if not already done
+    // Initialize OpenGL if not already done
     if (!OpenGL::isInitialized()) {
-        CG_Printf("JXAC DEBUG: OpenGL not initialized, initializing now...\n");
+        CG_Printf("JXAC DEBUG: OpenGL not initialized, trying to initialize...\n");
         if (!OpenGL::init()) {
-            CG_Printf("JXAC DEBUG: captureScreenshot() FAILED - OpenGL init failed\n");
+            CG_Printf("JXAC DEBUG: OpenGL::init() FAILED - screenshot not possible\n");
             screenshotPending = qfalse;
             return;
         }
     }
+    
+    // Direct OpenGL capture
+    CG_Printf("JXAC DEBUG: Using direct OpenGL capture\n");
     
     // Get GL config for screen dimensions
     glconfig_t glconfig;
@@ -375,11 +393,10 @@ void Client::captureScreenshot( int quality ) {
     }
     
     // Capture framebuffer using DIRECT OpenGL calls
-    // This calls glReadBuffer(GL_BACK) + glPixelStorei(GL_PACK_ALIGNMENT,1) + glReadPixels()
     CG_Printf("JXAC DEBUG: Calling OpenGL::captureFramebuffer(0, 0, %d, %d, buffer)\n", width, height);
     
     if (!OpenGL::captureFramebuffer(0, 0, width, height, framebuffer)) {
-        CG_Printf("JXAC DEBUG: captureScreenshot() FAILED - OpenGL::captureFramebuffer() failed\n");
+        CG_Printf("JXAC DEBUG: OpenGL::captureFramebuffer() FAILED\n");
         free(framebuffer);
         screenshotPending = qfalse;
         return;
@@ -390,7 +407,6 @@ void Client::captureScreenshot( int quality ) {
              framebuffer[0], framebuffer[1], framebuffer[2], framebuffer[3]);
     
     // The framebuffer data is bottom-up (OpenGL convention), need to flip it
-    // Also convert from RGB to proper format for JPEG compression
     unsigned char* flippedBuffer = (unsigned char*)malloc( bufferSize );
     if ( !flippedBuffer ) {
         CG_Printf("JXAC DEBUG: captureScreenshot() FAILED - malloc failed for flipped buffer\n");
