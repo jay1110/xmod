@@ -40,7 +40,6 @@ qboolean TcpClient::connect(const char* serverIP, int port) {
     // Initialize socket library
     if (!tcpInitialized) {
         if (jxac_socket_init() != 0) {
-            CG_Printf("JXAC TCP: Failed to initialize socket library\n");
             return qfalse;
         }
         tcpInitialized = qtrue;
@@ -49,7 +48,6 @@ qboolean TcpClient::connect(const char* serverIP, int port) {
     // Create socket
     clientSocket = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
     if (clientSocket == JXAC_INVALID_SOCKET) {
-        CG_Printf("JXAC TCP: Failed to create socket\n");
         return qfalse;
     }
     
@@ -65,8 +63,6 @@ qboolean TcpClient::connect(const char* serverIP, int port) {
     // First try direct IP conversion
     if (inet_pton(AF_INET, serverIP, &addr.sin_addr) <= 0) {
         // Not a valid IP - try DNS resolution
-        CG_Printf("JXAC TCP: Resolving hostname: %s...\n", serverIP);
-        
         struct addrinfo hints, *result = NULL;
         memset(&hints, 0, sizeof(hints));
         hints.ai_family = AF_INET;       // IPv4 only
@@ -74,8 +70,6 @@ qboolean TcpClient::connect(const char* serverIP, int port) {
         
         int gai_result = getaddrinfo(serverIP, NULL, &hints, &result);
         if (gai_result != 0 || result == NULL) {
-            CG_Printf("JXAC TCP: DNS resolution failed for '%s': %s\n", 
-                     serverIP, gai_strerror(gai_result));
             jxac_closesocket(clientSocket);
             clientSocket = JXAC_INVALID_SOCKET;
             return qfalse;
@@ -84,11 +78,6 @@ qboolean TcpClient::connect(const char* serverIP, int port) {
         // Copy resolved address
         struct sockaddr_in* resolved = (struct sockaddr_in*)result->ai_addr;
         addr.sin_addr = resolved->sin_addr;
-        
-        // Log the resolved IP
-        char resolvedIP[64];
-        inet_ntop(AF_INET, &addr.sin_addr, resolvedIP, sizeof(resolvedIP));
-        CG_Printf("JXAC TCP: Resolved %s -> %s\n", serverIP, resolvedIP);
         
         freeaddrinfo(result);
     }
@@ -102,8 +91,6 @@ qboolean TcpClient::connect(const char* serverIP, int port) {
     
     if (result == JXAC_SOCKET_ERROR) {
         if (!jxac_socket_wouldblock()) {
-            CG_Printf("JXAC TCP: Connect failed to %s:%d (errno %d)\n", 
-                     serverIP, port, jxac_socket_errno);
             jxac_closesocket(clientSocket);
             clientSocket = JXAC_INVALID_SOCKET;
             return qfalse;
@@ -115,7 +102,6 @@ qboolean TcpClient::connect(const char* serverIP, int port) {
     connectStartTime = cg.time;
     lastActivityTime = cg.time;
     
-    CG_Printf("JXAC TCP: Connecting to %s:%d...\n", serverIP, port);
     return qtrue;
 }
 
@@ -137,8 +123,6 @@ void TcpClient::disconnect() {
     sendSize = 0;
     sendOffset = 0;
     recvBufferLen = 0;
-    
-    CG_Printf("JXAC TCP: Disconnected\n");
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -199,7 +183,6 @@ qboolean TcpClient::isTransferring() {
 void TcpClient::processConnecting() {
     // Check connect timeout
     if (cg.time - connectStartTime > JXAC_TCP_CONNECT_TIMEOUT) {
-        CG_Printf("JXAC TCP: Connect timeout\n");
         disconnect();
         return;
     }
@@ -218,14 +201,12 @@ void TcpClient::processConnecting() {
     
     if (result > 0) {
         if (FD_ISSET(clientSocket, &errorSet)) {
-            CG_Printf("JXAC TCP: Connect failed\n");
             disconnect();
             return;
         }
         
         if (FD_ISSET(clientSocket, &writeSet)) {
             // Connected!
-            CG_Printf("JXAC TCP: Connected to %s:%d\n", serverAddress, serverPort);
             jxac_socket_setnodelay(clientSocket);
             clientState = JXAC_TCP_STATE_CONNECTED;
             lastActivityTime = cg.time;
@@ -253,9 +234,7 @@ void TcpClient::sendHandshake() {
     
     if (sendMessage(JXAC_TCP_MSG_HANDSHAKE, &handshake, sizeof(handshake))) {
         clientState = JXAC_TCP_STATE_HANDSHAKING;
-        CG_Printf("JXAC TCP: Sent handshake\n");
     } else {
-        CG_Printf("JXAC TCP: Failed to send handshake\n");
         disconnect();
     }
 }
@@ -318,13 +297,11 @@ void TcpClient::processReceive() {
             switch (header->type) {
                 case JXAC_TCP_MSG_SS_ACK:
                     if (clientState == JXAC_TCP_STATE_HANDSHAKING) {
-                        CG_Printf("JXAC TCP: Handshake acknowledged\n");
                         clientState = JXAC_TCP_STATE_READY;
                     }
                     break;
                     
                 case JXAC_TCP_MSG_DISCONNECT:
-                    CG_Printf("JXAC TCP: Server disconnected\n");
                     disconnect();
                     return;
                     
@@ -342,13 +319,11 @@ void TcpClient::processReceive() {
     }
     else if (recvLen == 0) {
         // Connection closed
-        CG_Printf("JXAC TCP: Server closed connection\n");
         disconnect();
     }
     else {
         // Error or would block
         if (!jxac_socket_wouldblock()) {
-            CG_Printf("JXAC TCP: Receive error (errno %d)\n", jxac_socket_errno);
             disconnect();
         }
     }
