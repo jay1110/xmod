@@ -92,9 +92,16 @@ bool init() {
     
     JXAC_DebugLog("JXAC OpenGL DEBUG: Initializing direct OpenGL access...\n");
 
-// NOTE: Android early-return was REMOVED because we now defer the capture to the GL thread.
-// The capture happens in Client::frame() which is called from CG_DrawActiveFrame (GL thread).
-// So the OpenGL context IS available when captureFramebuffer() is called.
+// Android: Direct OpenGL calls from cgame are NOT possible.
+// The cgame module runs in a different thread than the OpenGL renderer,
+// and the EGL context is not bound in the cgame thread - even during CG_DrawActiveFrame.
+// On Android, we use trap_R_ReadPixels (engine syscall) instead, which is handled
+// in Client::captureScreenshot(). Direct OpenGL init is not needed.
+#if defined(JXAC_PLATFORM_ANDROID)
+    JXAC_DebugLog("JXAC OpenGL DEBUG: Android detected - direct OpenGL not available from cgame thread\n");
+    JXAC_DebugLog("JXAC OpenGL DEBUG: Will use trap_R_ReadPixels (engine syscall) instead\n");
+    return false;
+#endif
 
 #ifdef _WIN32
     // Windows (32-bit and 64-bit): Get handle to opengl32.dll (already loaded by engine)

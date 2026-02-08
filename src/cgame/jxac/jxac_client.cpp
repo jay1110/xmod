@@ -356,19 +356,6 @@ void Client::captureScreenshot( int quality ) {
     screenshotQuality = quality;
     CG_Printf("JXAC DEBUG: Screenshot quality clamped to %d\n", quality);
     
-    // Initialize OpenGL if not already done
-    if (!OpenGL::isInitialized()) {
-        CG_Printf("JXAC DEBUG: OpenGL not initialized, trying to initialize...\n");
-        if (!OpenGL::init()) {
-            CG_Printf("JXAC DEBUG: OpenGL::init() FAILED - screenshot not possible\n");
-            screenshotPending = qfalse;
-            return;
-        }
-    }
-    
-    // Direct OpenGL capture
-    CG_Printf("JXAC DEBUG: Using direct OpenGL capture\n");
-    
     // Get GL config for screen dimensions
     glconfig_t glconfig;
     trap_GetGlconfig( &glconfig );
@@ -391,8 +378,32 @@ void Client::captureScreenshot( int quality ) {
         screenshotPending = qfalse;
         return;
     }
+
+#ifdef __ANDROID__
+    // Android: Use trap_R_ReadPixels (engine syscall) instead of direct OpenGL calls.
+    // Direct OpenGL calls crash on Android because the cgame module runs in a different
+    // thread than the OpenGL renderer - the EGL context is not bound in this thread.
+    // trap_R_ReadPixels goes through the engine which properly handles the GL context.
+    CG_Printf("JXAC DEBUG: Android - using trap_R_ReadPixels (engine syscall)\n");
+    trap_R_ReadPixels( 0, 0, width, height, framebuffer );
     
-    // Capture framebuffer using DIRECT OpenGL calls
+    CG_Printf("JXAC DEBUG: trap_R_ReadPixels() returned successfully\n");
+    CG_Printf("JXAC DEBUG: First 4 bytes: %02X %02X %02X %02X\n",
+             framebuffer[0], framebuffer[1], framebuffer[2], framebuffer[3]);
+#else
+    // Desktop (Windows/Linux/macOS): Use direct OpenGL calls
+    // Initialize OpenGL if not already done
+    if (!OpenGL::isInitialized()) {
+        CG_Printf("JXAC DEBUG: OpenGL not initialized, trying to initialize...\n");
+        if (!OpenGL::init()) {
+            CG_Printf("JXAC DEBUG: OpenGL::init() FAILED - screenshot not possible\n");
+            free(framebuffer);
+            screenshotPending = qfalse;
+            return;
+        }
+    }
+    
+    CG_Printf("JXAC DEBUG: Using direct OpenGL capture\n");
     CG_Printf("JXAC DEBUG: Calling OpenGL::captureFramebuffer(0, 0, %d, %d, buffer)\n", width, height);
     
     if (!OpenGL::captureFramebuffer(0, 0, width, height, framebuffer)) {
@@ -405,6 +416,7 @@ void Client::captureScreenshot( int quality ) {
     CG_Printf("JXAC DEBUG: OpenGL::captureFramebuffer() returned successfully\n");
     CG_Printf("JXAC DEBUG: First 4 bytes: %02X %02X %02X %02X\n",
              framebuffer[0], framebuffer[1], framebuffer[2], framebuffer[3]);
+#endif
     
     // The framebuffer data is bottom-up (OpenGL convention), need to flip it
     unsigned char* flippedBuffer = (unsigned char*)malloc( bufferSize );
