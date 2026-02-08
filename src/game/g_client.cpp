@@ -2615,6 +2615,10 @@ void ClientBegin( int clientNum )
 	if (!(ent->r.svFlags & SVF_BOT) && !g_clientObjects[clientNum].authenticated) {
 		G_LogPrintf("Sending guid_request to client %d (%s)\n", clientNum, client->pers.netname);
 		trap_SendServerCommand(clientNum, "guid_request");
+		// Reset connectTime so the auth timeout starts from when the client
+		// actually receives guid_request, not from ClientConnect (which can be
+		// much earlier if the client was downloading files or loading)
+		client->pers.connectTime = level.time;
 	}
 	// Re-initialize xmod session for already-authenticated clients after map restart
 	// During map restart, sessions are recreated empty but g_clientObjects authentication
