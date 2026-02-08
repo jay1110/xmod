@@ -92,20 +92,9 @@ bool init() {
     
     JXAC_DebugLog("JXAC OpenGL DEBUG: Initializing direct OpenGL access...\n");
 
-#ifdef JXAC_PLATFORM_ANDROID
-    // Android: Direct OpenGL calls from cgame module are NOT possible
-    // The cgame module runs in a different thread than the OpenGL renderer.
-    // OpenGL contexts are thread-specific, so calling any OpenGL function
-    // from the cgame thread causes an immediate crash.
-    // 
-    // Evidence: Crash happens at glBindFramebuffer() call - the first OpenGL call.
-    // This is a fundamental limitation that cannot be worked around from the mod.
-    // It would require changes to ET Legacy engine (adding a CG_R_READPIXELS syscall).
-    CG_Printf("^3JXAC: Screenshot capture not available on Android\n");
-    CG_Printf("^3JXAC: OpenGL context is bound to renderer thread, cgame runs in different thread\n");
-    JXAC_DebugLog("JXAC OpenGL DEBUG: Android - DISABLED (cgame runs in different thread than OpenGL renderer)\n");
-    return false;
-#endif
+// NOTE: Android early-return was REMOVED because we now defer the capture to the GL thread.
+// The capture happens in Client::frame() which is called from CG_DrawActiveFrame (GL thread).
+// So the OpenGL context IS available when captureFramebuffer() is called.
 
 #ifdef _WIN32
     // Windows (32-bit and 64-bit): Get handle to opengl32.dll (already loaded by engine)
