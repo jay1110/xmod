@@ -17,6 +17,36 @@
 #endif
 
 #include <cstdlib>  // for malloc/free
+#include <cstdio>   // for FILE, fprintf, fflush
+
+// =============================================================================
+// FILE-BASED DEBUG LOGGING
+// Writes to jxac_debug.log immediately with fflush() so logs survive crashes
+// =============================================================================
+static FILE* debugLogFile = NULL;
+
+static void JXAC_DebugLog(const char* fmt, ...) {
+    // Open file if not yet open
+    if (!debugLogFile) {
+        debugLogFile = fopen("jxac_debug.log", "a");
+    }
+    
+    if (debugLogFile) {
+        va_list args;
+        va_start(args, fmt);
+        vfprintf(debugLogFile, fmt, args);
+        va_end(args);
+        fflush(debugLogFile);  // CRITICAL: flush immediately so logs survive crash
+    }
+    
+    // Also print to console
+    va_list args2;
+    va_start(args2, fmt);
+    char buf[1024];
+    Q_vsnprintf(buf, sizeof(buf), fmt, args2);
+    va_end(args2);
+    JXAC_DebugLog("%s", buf);
+}
 
 // Platform detection
 #if defined(__APPLE__)
@@ -50,17 +80,17 @@ bool init() {
         return true;
     }
     
-    CG_Printf("JXAC OpenGL DEBUG: Initializing direct OpenGL access...\n");
+    JXAC_DebugLog("JXAC OpenGL DEBUG: Initializing direct OpenGL access...\n");
 
 #ifdef _WIN32
     // Windows (32-bit and 64-bit): Get handle to opengl32.dll (already loaded by engine)
     // Use GetModuleHandleA explicitly for ANSI string
     HMODULE hOpenGL = GetModuleHandleA("opengl32.dll");
     if (!hOpenGL) {
-        CG_Printf("JXAC OpenGL DEBUG: FAILED - GetModuleHandleA(\"opengl32.dll\") returned NULL\n");
+        JXAC_DebugLog("JXAC OpenGL DEBUG: FAILED - GetModuleHandleA(\"opengl32.dll\") returned NULL\n");
         return false;
     }
-    CG_Printf("JXAC OpenGL DEBUG: Got opengl32.dll handle: %p\n", (void*)hOpenGL);
+    JXAC_DebugLog("JXAC OpenGL DEBUG: Got opengl32.dll handle: %p\n", (void*)hOpenGL);
     
     // Get function pointers - these are standard OpenGL functions exported by opengl32.dll
     qglReadPixels = (glReadPixels_t)GetProcAddress(hOpenGL, "glReadPixels");
@@ -79,12 +109,12 @@ bool init() {
         }
     }
     
-    CG_Printf("JXAC OpenGL DEBUG: Function pointers:\n");
-    CG_Printf("  glReadPixels:      %p\n", (void*)qglReadPixels);
-    CG_Printf("  glReadBuffer:      %p\n", (void*)qglReadBuffer);
-    CG_Printf("  glPixelStorei:     %p\n", (void*)qglPixelStorei);
-    CG_Printf("  glGetError:        %p\n", (void*)qglGetError);
-    CG_Printf("  glBindFramebuffer: %p\n", (void*)qglBindFramebuffer);
+    JXAC_DebugLog("JXAC OpenGL DEBUG: Function pointers:\n");
+    JXAC_DebugLog("  glReadPixels:      %p\n", (void*)qglReadPixels);
+    JXAC_DebugLog("  glReadBuffer:      %p\n", (void*)qglReadBuffer);
+    JXAC_DebugLog("  glPixelStorei:     %p\n", (void*)qglPixelStorei);
+    JXAC_DebugLog("  glGetError:        %p\n", (void*)qglGetError);
+    JXAC_DebugLog("  glBindFramebuffer: %p\n", (void*)qglBindFramebuffer);
     
 #else
     // Unix-like: Linux, macOS, Android
@@ -97,7 +127,7 @@ bool init() {
         "/System/Library/Frameworks/OpenGL.framework/Versions/A/OpenGL",
         NULL
     };
-    CG_Printf("JXAC OpenGL DEBUG: macOS platform detected, using OpenGL.framework\n");
+    JXAC_DebugLog("JXAC OpenGL DEBUG: macOS platform detected, using OpenGL.framework\n");
 #elif defined(JXAC_PLATFORM_ANDROID)
     // Android: Use OpenGL ES
     const char* libPaths[] = {
@@ -105,7 +135,7 @@ bool init() {
         "libGLESv2.so",
         NULL
     };
-    CG_Printf("JXAC OpenGL DEBUG: Android platform detected, using OpenGL ES\n");
+    JXAC_DebugLog("JXAC OpenGL DEBUG: Android platform detected, using OpenGL ES\n");
 #else
     // Linux (x86, x86_64, aarch64): Use libGL
     const char* libPaths[] = {
@@ -113,14 +143,14 @@ bool init() {
         "libGL.so",
         NULL
     };
-    CG_Printf("JXAC OpenGL DEBUG: Linux platform detected, using libGL\n");
+    JXAC_DebugLog("JXAC OpenGL DEBUG: Linux platform detected, using libGL\n");
 #endif
     
     // Try to get handle to already-loaded library
     for (int i = 0; libPaths[i] != NULL; i++) {
         glLibrary = dlopen(libPaths[i], RTLD_LAZY | RTLD_NOLOAD);
         if (glLibrary) {
-            CG_Printf("JXAC OpenGL DEBUG: Got already-loaded %s handle: %p\n", libPaths[i], glLibrary);
+            JXAC_DebugLog("JXAC OpenGL DEBUG: Got already-loaded %s handle: %p\n", libPaths[i], glLibrary);
             break;
         }
     }
@@ -130,14 +160,14 @@ bool init() {
         for (int i = 0; libPaths[i] != NULL; i++) {
             glLibrary = dlopen(libPaths[i], RTLD_LAZY);
             if (glLibrary) {
-                CG_Printf("JXAC OpenGL DEBUG: Loaded %s handle: %p\n", libPaths[i], glLibrary);
+                JXAC_DebugLog("JXAC OpenGL DEBUG: Loaded %s handle: %p\n", libPaths[i], glLibrary);
                 break;
             }
         }
     }
     
     if (!glLibrary) {
-        CG_Printf("JXAC OpenGL DEBUG: FAILED - could not load OpenGL library: %s\n", dlerror());
+        JXAC_DebugLog("JXAC OpenGL DEBUG: FAILED - could not load OpenGL library: %s\n", dlerror());
         return false;
     }
     
@@ -151,30 +181,30 @@ bool init() {
         qglBindFramebuffer = (glBindFramebuffer_t)dlsym(glLibrary, "glBindFramebufferEXT");
     }
     
-    CG_Printf("JXAC OpenGL DEBUG: Function pointers:\n");
-    CG_Printf("  glReadPixels:      %p\n", (void*)qglReadPixels);
-    CG_Printf("  glReadBuffer:      %p\n", (void*)qglReadBuffer);
-    CG_Printf("  glPixelStorei:     %p\n", (void*)qglPixelStorei);
-    CG_Printf("  glGetError:        %p\n", (void*)qglGetError);
-    CG_Printf("  glBindFramebuffer: %p\n", (void*)qglBindFramebuffer);
+    JXAC_DebugLog("JXAC OpenGL DEBUG: Function pointers:\n");
+    JXAC_DebugLog("  glReadPixels:      %p\n", (void*)qglReadPixels);
+    JXAC_DebugLog("  glReadBuffer:      %p\n", (void*)qglReadBuffer);
+    JXAC_DebugLog("  glPixelStorei:     %p\n", (void*)qglPixelStorei);
+    JXAC_DebugLog("  glGetError:        %p\n", (void*)qglGetError);
+    JXAC_DebugLog("  glBindFramebuffer: %p\n", (void*)qglBindFramebuffer);
 #endif
     
     // Check required functions
     if (!qglReadPixels) {
-        CG_Printf("JXAC OpenGL DEBUG: FAILED - glReadPixels not found\n");
+        JXAC_DebugLog("JXAC OpenGL DEBUG: FAILED - glReadPixels not found\n");
         return false;
     }
     
     // glReadBuffer and glPixelStorei are optional but recommended
     if (!qglReadBuffer) {
-        CG_Printf("JXAC OpenGL DEBUG: WARNING - glReadBuffer not found (may affect capture)\n");
+        JXAC_DebugLog("JXAC OpenGL DEBUG: WARNING - glReadBuffer not found (may affect capture)\n");
     }
     if (!qglPixelStorei) {
-        CG_Printf("JXAC OpenGL DEBUG: WARNING - glPixelStorei not found (may affect alignment)\n");
+        JXAC_DebugLog("JXAC OpenGL DEBUG: WARNING - glPixelStorei not found (may affect alignment)\n");
     }
     
     isInit = true;
-    CG_Printf("JXAC OpenGL DEBUG: Initialization successful\n");
+    JXAC_DebugLog("JXAC OpenGL DEBUG: Initialization successful\n");
     return true;
 }
 
@@ -196,7 +226,7 @@ void shutdown() {
     qglBindFramebuffer = NULL;
     isInit = false;
     
-    CG_Printf("JXAC OpenGL DEBUG: Shutdown complete\n");
+    JXAC_DebugLog("JXAC OpenGL DEBUG: Shutdown complete\n");
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -209,54 +239,54 @@ bool isInitialized() {
 
 bool captureFramebuffer(int x, int y, int width, int height, unsigned char* buffer) {
     if (!isInit) {
-        CG_Printf("JXAC OpenGL DEBUG: captureFramebuffer() FAILED - not initialized\n");
+        JXAC_DebugLog("JXAC OpenGL DEBUG: captureFramebuffer() FAILED - not initialized\n");
         if (!init()) {
             return false;
         }
     }
     
     if (!buffer) {
-        CG_Printf("JXAC OpenGL DEBUG: captureFramebuffer() FAILED - buffer is NULL\n");
+        JXAC_DebugLog("JXAC OpenGL DEBUG: captureFramebuffer() FAILED - buffer is NULL\n");
         return false;
     }
     
-    CG_Printf("JXAC OpenGL DEBUG: captureFramebuffer(%d, %d, %d, %d, %p)\n",
+    JXAC_DebugLog("JXAC OpenGL DEBUG: captureFramebuffer(%d, %d, %d, %d, %p)\n",
              x, y, width, height, (void*)buffer);
     
     // Clear any existing GL errors
     if (qglGetError) {
         unsigned int err;
         while ((err = qglGetError()) != JXAC_GL_NO_ERROR) {
-            CG_Printf("JXAC OpenGL DEBUG: Cleared pre-existing GL error: 0x%04X\n", err);
+            JXAC_DebugLog("JXAC OpenGL DEBUG: Cleared pre-existing GL error: 0x%04X\n", err);
         }
     }
     
     // IMPORTANT: Bind default framebuffer (0) first
     // This ensures we're not reading from an FBO
     if (qglBindFramebuffer) {
-        CG_Printf("JXAC OpenGL DEBUG: Calling glBindFramebuffer(GL_FRAMEBUFFER=0x%04X, 0)\n", JXAC_GL_FRAMEBUFFER);
+        JXAC_DebugLog("JXAC OpenGL DEBUG: Calling glBindFramebuffer(GL_FRAMEBUFFER=0x%04X, 0)\n", JXAC_GL_FRAMEBUFFER);
         qglBindFramebuffer(JXAC_GL_FRAMEBUFFER, 0);
         
         if (qglGetError) {
             unsigned int err = qglGetError();
             if (err != JXAC_GL_NO_ERROR) {
-                CG_Printf("JXAC OpenGL DEBUG: glBindFramebuffer error: 0x%04X (may be expected if no FBO support)\n", err);
+                JXAC_DebugLog("JXAC OpenGL DEBUG: glBindFramebuffer error: 0x%04X (may be expected if no FBO support)\n", err);
             }
         }
     } else {
-        CG_Printf("JXAC OpenGL DEBUG: glBindFramebuffer not available, skipping\n");
+        JXAC_DebugLog("JXAC OpenGL DEBUG: glBindFramebuffer not available, skipping\n");
     }
     
     // Set pixel store alignment to 1 (no padding between rows)
     // This is important for proper pixel reading
     if (qglPixelStorei) {
-        CG_Printf("JXAC OpenGL DEBUG: Calling glPixelStorei(GL_PACK_ALIGNMENT, 1)\n");
+        JXAC_DebugLog("JXAC OpenGL DEBUG: Calling glPixelStorei(GL_PACK_ALIGNMENT, 1)\n");
         qglPixelStorei(JXAC_GL_PACK_ALIGNMENT, 1);
         
         if (qglGetError) {
             unsigned int err = qglGetError();
             if (err != JXAC_GL_NO_ERROR) {
-                CG_Printf("JXAC OpenGL DEBUG: glPixelStorei error: 0x%04X\n", err);
+                JXAC_DebugLog("JXAC OpenGL DEBUG: glPixelStorei error: 0x%04X\n", err);
             }
         }
     }
@@ -268,31 +298,31 @@ bool captureFramebuffer(int x, int y, int width, int height, unsigned char* buff
 #if defined(JXAC_PLATFORM_ANDROID)
     // Android/OpenGL ES: DO NOT call glReadBuffer - it doesn't exist!
     // Just read directly from the default framebuffer (which is already bound above)
-    CG_Printf("JXAC OpenGL DEBUG: Android - skipping glReadBuffer (doesn't exist in OpenGL ES)\n");
+    JXAC_DebugLog("JXAC OpenGL DEBUG: Android - skipping glReadBuffer (doesn't exist in OpenGL ES)\n");
 #else
     // Desktop OpenGL: Set read buffer
     if (qglReadBuffer) {
 #ifdef _WIN32
         // Windows: Try GL_FRONT first (displayed buffer after SwapBuffers)
-        CG_Printf("JXAC OpenGL DEBUG: Windows - trying GL_FRONT first\n");
+        JXAC_DebugLog("JXAC OpenGL DEBUG: Windows - trying GL_FRONT first\n");
         qglReadBuffer(JXAC_GL_FRONT);
         
         if (qglGetError) {
             unsigned int err = qglGetError();
             if (err != JXAC_GL_NO_ERROR) {
-                CG_Printf("JXAC OpenGL DEBUG: glReadBuffer(GL_FRONT) error: 0x%04X, trying GL_BACK\n", err);
+                JXAC_DebugLog("JXAC OpenGL DEBUG: glReadBuffer(GL_FRONT) error: 0x%04X, trying GL_BACK\n", err);
                 qglReadBuffer(JXAC_GL_BACK);
             }
         }
 #else
         // Linux/macOS: Try GL_BACK first (modern compositors don't maintain GL_FRONT)
-        CG_Printf("JXAC OpenGL DEBUG: Linux/macOS - trying GL_BACK first\n");
+        JXAC_DebugLog("JXAC OpenGL DEBUG: Linux/macOS - trying GL_BACK first\n");
         qglReadBuffer(JXAC_GL_BACK);
         
         if (qglGetError) {
             unsigned int err = qglGetError();
             if (err != JXAC_GL_NO_ERROR) {
-                CG_Printf("JXAC OpenGL DEBUG: glReadBuffer(GL_BACK) error: 0x%04X, trying GL_FRONT\n", err);
+                JXAC_DebugLog("JXAC OpenGL DEBUG: glReadBuffer(GL_BACK) error: 0x%04X, trying GL_FRONT\n", err);
                 qglReadBuffer(JXAC_GL_FRONT);
             }
         }
@@ -318,7 +348,7 @@ bool captureFramebuffer(int x, int y, int width, int height, unsigned char* buff
     
 #if defined(JXAC_PLATFORM_ANDROID)
     // Android: Try GL_RGB first (ET Legacy approach), fall back to GL_RGBA if it fails
-    CG_Printf("JXAC OpenGL DEBUG: Android - trying GL_RGB first (ET Legacy method)\n");
+    JXAC_DebugLog("JXAC OpenGL DEBUG: Android - trying GL_RGB first (ET Legacy method)\n");
     
     // Clear any errors
     if (qglGetError) {
@@ -331,24 +361,24 @@ bool captureFramebuffer(int x, int y, int width, int height, unsigned char* buff
     if (qglGetError) {
         unsigned int err = qglGetError();
         if (err != JXAC_GL_NO_ERROR) {
-            CG_Printf("JXAC OpenGL DEBUG: glReadPixels(GL_RGB) error: 0x%04X, trying GL_RGBA\n", err);
+            JXAC_DebugLog("JXAC OpenGL DEBUG: glReadPixels(GL_RGB) error: 0x%04X, trying GL_RGBA\n", err);
             rgbSuccess = false;
         }
     }
     
     if (!rgbSuccess) {
         // GL_RGB failed, try GL_RGBA
-        CG_Printf("JXAC OpenGL DEBUG: Falling back to GL_RGBA...\n");
+        JXAC_DebugLog("JXAC OpenGL DEBUG: Falling back to GL_RGBA...\n");
         
         size_t rgbaBufferSize = (size_t)width * (size_t)height * 4;
         if (rgbaBufferSize > 64 * 1024 * 1024) {
-            CG_Printf("JXAC OpenGL DEBUG: FAILED - RGBA buffer too large (%zu bytes)\n", rgbaBufferSize);
+            JXAC_DebugLog("JXAC OpenGL DEBUG: FAILED - RGBA buffer too large (%zu bytes)\n", rgbaBufferSize);
             return false;
         }
         
         unsigned char* rgbaBuffer = (unsigned char*)malloc(rgbaBufferSize);
         if (!rgbaBuffer) {
-            CG_Printf("JXAC OpenGL DEBUG: FAILED - malloc failed for RGBA buffer\n");
+            JXAC_DebugLog("JXAC OpenGL DEBUG: FAILED - malloc failed for RGBA buffer\n");
             return false;
         }
         
@@ -357,14 +387,14 @@ bool captureFramebuffer(int x, int y, int width, int height, unsigned char* buff
         if (qglGetError) {
             unsigned int err = qglGetError();
             if (err != JXAC_GL_NO_ERROR) {
-                CG_Printf("JXAC OpenGL DEBUG: glReadPixels(GL_RGBA) also failed: 0x%04X\n", err);
+                JXAC_DebugLog("JXAC OpenGL DEBUG: glReadPixels(GL_RGBA) also failed: 0x%04X\n", err);
                 free(rgbaBuffer);
                 return false;
             }
         }
         
         // Convert RGBA to RGB
-        CG_Printf("JXAC OpenGL DEBUG: Converting RGBA to RGB...\n");
+        JXAC_DebugLog("JXAC OpenGL DEBUG: Converting RGBA to RGB...\n");
         for (int i = 0; i < width * height; i++) {
             buffer[i * 3 + 0] = rgbaBuffer[i * 4 + 0];
             buffer[i * 3 + 1] = rgbaBuffer[i * 4 + 1];
@@ -374,30 +404,30 @@ bool captureFramebuffer(int x, int y, int width, int height, unsigned char* buff
     }
 #else
     // Desktop OpenGL (Windows, Linux, macOS): GL_RGB works fine
-    CG_Printf("JXAC OpenGL DEBUG: Calling glReadPixels with GL_RGB\n");
+    JXAC_DebugLog("JXAC OpenGL DEBUG: Calling glReadPixels with GL_RGB\n");
     qglReadPixels(x, y, width, height, JXAC_GL_RGB, JXAC_GL_UNSIGNED_BYTE, buffer);
     
     // Check for errors
     if (qglGetError) {
         unsigned int err = qglGetError();
         if (err != JXAC_GL_NO_ERROR) {
-            CG_Printf("JXAC OpenGL DEBUG: glReadPixels error: 0x%04X\n", err);
+            JXAC_DebugLog("JXAC OpenGL DEBUG: glReadPixels error: 0x%04X\n", err);
             return false;
         }
     }
 #endif
     
     // Check if we got any data (first pixel shouldn't be all zero typically)
-    CG_Printf("JXAC OpenGL DEBUG: glReadPixels completed, first 8 bytes: %02X %02X %02X %02X %02X %02X %02X %02X\n",
+    JXAC_DebugLog("JXAC OpenGL DEBUG: glReadPixels completed, first 8 bytes: %02X %02X %02X %02X %02X %02X %02X %02X\n",
              buffer[0], buffer[1], buffer[2], buffer[3],
              buffer[4], buffer[5], buffer[6], buffer[7]);
     
     // Also check middle of image
     int midOffset = (height / 2) * width * 3 + (width / 2) * 3;
-    CG_Printf("JXAC OpenGL DEBUG: Middle pixel bytes: %02X %02X %02X\n",
+    JXAC_DebugLog("JXAC OpenGL DEBUG: Middle pixel bytes: %02X %02X %02X\n",
              buffer[midOffset], buffer[midOffset+1], buffer[midOffset+2]);
     
-    CG_Printf("JXAC OpenGL DEBUG: captureFramebuffer() SUCCESS\n");
+    JXAC_DebugLog("JXAC OpenGL DEBUG: captureFramebuffer() SUCCESS\n");
     return true;
 }
 
