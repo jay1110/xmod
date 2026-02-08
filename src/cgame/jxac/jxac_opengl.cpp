@@ -5,10 +5,18 @@
 // Windows: GetModuleHandle("opengl32") + GetProcAddress()
 // Linux/aarch64: dlopen("libGL.so.1") + dlsym()
 // macOS: dlopen OpenGL.framework + dlsym()
-// Android: dlopen("libGLESv2.so") + dlsym()
+// Android: NOT SUPPORTED - cgame runs in different thread than OpenGL renderer
 
 #include <bgame/impl.h>
 #include "jxac_opengl.h"
+
+// Platform detection - MUST be at top before any code uses it
+#if defined(__APPLE__)
+    #include <TargetConditionals.h>
+    #define JXAC_PLATFORM_MACOS
+#elif defined(__ANDROID__)
+    #define JXAC_PLATFORM_ANDROID
+#endif
 
 #ifdef _WIN32
 #include <windows.h>
@@ -58,14 +66,6 @@ static void JXAC_DebugLog(const char* fmt, ...) {
     CG_Printf("%s", buf);
 }
 
-// Platform detection
-#if defined(__APPLE__)
-    #include <TargetConditionals.h>
-    #define JXAC_PLATFORM_MACOS
-#elif defined(__ANDROID__)
-    #define JXAC_PLATFORM_ANDROID
-#endif
-
 namespace jxac {
 namespace OpenGL {
 
@@ -91,6 +91,21 @@ bool init() {
     }
     
     JXAC_DebugLog("JXAC OpenGL DEBUG: Initializing direct OpenGL access...\n");
+
+#ifdef JXAC_PLATFORM_ANDROID
+    // Android: Direct OpenGL calls from cgame module are NOT possible
+    // The cgame module runs in a different thread than the OpenGL renderer.
+    // OpenGL contexts are thread-specific, so calling any OpenGL function
+    // from the cgame thread causes an immediate crash.
+    // 
+    // Evidence: Crash happens at glBindFramebuffer() call - the first OpenGL call.
+    // This is a fundamental limitation that cannot be worked around from the mod.
+    // It would require changes to ET Legacy engine (adding a CG_R_READPIXELS syscall).
+    CG_Printf("^3JXAC: Screenshot capture not available on Android\n");
+    CG_Printf("^3JXAC: OpenGL context is bound to renderer thread, cgame runs in different thread\n");
+    JXAC_DebugLog("JXAC OpenGL DEBUG: Android - DISABLED (cgame runs in different thread than OpenGL renderer)\n");
+    return false;
+#endif
 
 #ifdef _WIN32
     // Windows (32-bit and 64-bit): Get handle to opengl32.dll (already loaded by engine)
