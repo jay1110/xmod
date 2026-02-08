@@ -168,8 +168,6 @@ void scanAndSendModules() {
     scanLoadedModulesLinux(modules);
 #endif
     
-    Com_Printf("JXAC: Scanned %d loaded modules\n", (int)modules.size());
-    
     // Queue modules for frame-based sending (prevents command overflow)
     moduleQueueHead = 0;
     moduleQueueTail = 0;
@@ -184,7 +182,6 @@ void scanAndSendModules() {
 
     if (moduleQueueCount > 0) {
         moduleTransferActive = qtrue;
-        Com_Printf("JXAC: Queued %d modules for transfer\n", moduleQueueCount);
     }
 }
 
@@ -209,7 +206,6 @@ void processModuleQueue() {
     if (moduleQueueCount == 0) {
         moduleTransferActive = qfalse;
         trap_SendClientCommand(va("jxac_module_complete %d", moduleTotalCount));
-        Com_Printf("JXAC: Module transfer complete\n");
     }
 }
 
