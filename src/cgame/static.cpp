@@ -102,7 +102,7 @@ namespace objects {
     Cvar cl_timeNudge  ( "cl_timeNudge",  "0",  0, cb_cl_timeNudge );
 
     Cvar sv_fps     ( "sv_fps",     "20", 0, cb_sv_fps );
-    Cvar sv_maxRate ( "sv_maxRate", "25000" );
+    Cvar sv_maxRate ( "sv_maxRate", "90000" );
 } // namespace objects
 
 ///////////////////////////////////////////////////////////////////////////////

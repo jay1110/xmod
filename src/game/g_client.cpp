@@ -1934,31 +1934,71 @@ void ClientUserinfoChanged( int clientNum ) {
 
     // send over a subset of the userinfo keys so other clients can
     // print scoreboards, display models, and play custom sounds
-    // "skill" key: 0 = human player, 1 = bot (value 1 used to identify bots, not actual skill)
-    // This allows clients to identify bots without needing server-side entity access.
-    // Used by CG_DrawDisconnect() to skip "Connection Interrupted" display when spectating bots.
-    int botSkillValue = (ent->r.svFlags & SVF_BOT) ? 1 : 0;
-    s = va( "n\\%s\\t\\%i\\c\\%i\\r\\%i\\m\\%s\\s\\%s\\dn\\%s\\dr\\%i\\w\\%i\\lw\\%i\\sw\\%i\\mu\\%i\\ref\\%i\\sc\\%i\\u\\%i\\skill\\%i",
-        client->pers.netname, 
-        client->sess.sessionTeam, 
-        client->sess.playerType, 
-        client->sess.rank, 
-        medalStr,
-        skillStr,
-        client->disguiseNetname,
-        client->disguiseRank,
-        client->sess.playerWeapon,
-        client->sess.latchPlayerWeapon,
-        client->sess.latchPlayerWeapon2,
-        ::xmod::isClientMuted(clientNum) ? 1 : 0,
-        client->sess.referee,
-        client->sess.shoutcaster,
-        client->sess.uci,
-        botSkillValue
-    );
+    // Compressed: only non-zero/non-default keys are included to reduce gamestate size
+    // and help against MAX_GAMESTATE_CHARS exceeded errors
+    {
+        char csStr[MAX_INFO_STRING];
+        int len;
 
-    trap_GetConfigstring( CS_PLAYERS + clientNum, oldname, sizeof( oldname ) );
-    trap_SetConfigstring( CS_PLAYERS + clientNum, s );
+        // Always include: name, team, class, rank (required fields)
+        len = snprintf( csStr, sizeof(csStr), "n\\%s\\t\\%i\\c\\%i\\r\\%i",
+            client->pers.netname,
+            client->sess.sessionTeam,
+            client->sess.playerType,
+            client->sess.rank );
+
+        // Medals: only include if not all zeros
+        if (Q_stricmp( medalStr, "0000000" )) {
+            len += snprintf( csStr + len, sizeof(csStr) - len, "\\m\\%s", medalStr );
+        }
+
+        // Skills: only include if not all zeros
+        if (Q_stricmp( skillStr, "0000000" )) {
+            len += snprintf( csStr + len, sizeof(csStr) - len, "\\s\\%s", skillStr );
+        }
+
+        // Disguise name: only include if not empty
+        if (client->disguiseNetname[0]) {
+            len += snprintf( csStr + len, sizeof(csStr) - len, "\\dn\\%s", client->disguiseNetname );
+        }
+
+        // Remaining fields: only include if non-zero
+        if (client->disguiseRank) {
+            len += snprintf( csStr + len, sizeof(csStr) - len, "\\dr\\%i", client->disguiseRank );
+        }
+        if (client->sess.playerWeapon) {
+            len += snprintf( csStr + len, sizeof(csStr) - len, "\\w\\%i", client->sess.playerWeapon );
+        }
+        if (client->sess.latchPlayerWeapon) {
+            len += snprintf( csStr + len, sizeof(csStr) - len, "\\lw\\%i", client->sess.latchPlayerWeapon );
+        }
+        if (client->sess.latchPlayerWeapon2) {
+            len += snprintf( csStr + len, sizeof(csStr) - len, "\\sw\\%i", client->sess.latchPlayerWeapon2 );
+        }
+        if (::xmod::isClientMuted(clientNum)) {
+            len += snprintf( csStr + len, sizeof(csStr) - len, "\\mu\\1" );
+        }
+        if (client->sess.referee) {
+            len += snprintf( csStr + len, sizeof(csStr) - len, "\\ref\\%i", client->sess.referee );
+        }
+        if (client->sess.shoutcaster) {
+            len += snprintf( csStr + len, sizeof(csStr) - len, "\\sc\\%i", client->sess.shoutcaster );
+        }
+        if (client->sess.uci) {
+            len += snprintf( csStr + len, sizeof(csStr) - len, "\\u\\%i", client->sess.uci );
+        }
+
+        // "skill" key: 1 = bot (allows clients to identify bots)
+        // Used by CG_DrawDisconnect() to skip "Connection Interrupted" display when spectating bots.
+        if (ent->r.svFlags & SVF_BOT) {
+            len += snprintf( csStr + len, sizeof(csStr) - len, "\\skill\\1" );
+        }
+
+        s = csStr;
+
+        trap_GetConfigstring( CS_PLAYERS + clientNum, oldname, sizeof( oldname ) );
+        trap_SetConfigstring( CS_PLAYERS + clientNum, s );
+    }
 
     if (Q_stricmp( oldname, s )) {
         G_LogPrintf( "ClientUserinfoChanged: %i %s\n", clientNum, s );

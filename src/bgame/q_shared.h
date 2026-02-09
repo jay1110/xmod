@@ -252,7 +252,7 @@ typedef int		clipHandle_t;
 // exceed MAX_STRING_CHARS
 #define	MAX_STRING_CHARS	1024	// max length of a string passed to Cmd_TokenizeString
 #define	MAX_STRING_TOKENS	256		// max tokens resulting from Cmd_TokenizeString
-#define	MAX_TOKEN_CHARS		1024	// max length of an individual token
+#define	MAX_TOKEN_CHARS		4096	// max length of an individual token
 
 #define	MAX_INFO_STRING		1024
 #define	MAX_INFO_KEY		1024
@@ -729,7 +729,7 @@ qboolean COM_BitCheck( const int array[], int bitNum );
 void COM_BitSet( int array[], int bitNum );
 void COM_BitClear( int array[], int bitNum );
 
-#define MAX_TOKENLENGTH		1024
+#define MAX_TOKENLENGTH		4096
 
 #ifndef TT_STRING
 //token types

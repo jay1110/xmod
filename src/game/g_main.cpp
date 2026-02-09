@@ -391,7 +391,7 @@ cvarTable_t		gameCvarTable[] = {
     { &g_antiwarp,          "g_antiwarp",           "1",        0 },
     { &g_countryflags,      "g_countryflags",       "1",        CVAR_ARCHIVE | CVAR_SERVERINFO },
 
-    { &sv_maxRate,          "sv_maxRate",           "25000",    CVAR_SYSTEMINFO | CVAR_ARCHIVE },
+    { &sv_maxRate,          "sv_maxRate",           "90000",    CVAR_SYSTEMINFO | CVAR_ARCHIVE },
 
 	// Class specific
 	{ &g_engineers,			"g_engineers",			"0",		CVAR_ARCHIVE },
@@ -2952,7 +2952,7 @@ Print to the logfile with a time stamp if it is open
 */
 void QDECL G_LogPrintf( const char *fmt, ... ) {
 	va_list		argptr;
-	char		string[1024];
+	char		string[4096];
 	int			min, tens, sec, l;
 
 	sec = level.time / 1000;
