@@ -391,16 +391,19 @@ extern const unsigned int aReinfSeeds[MAX_REINFSEEDS];
 #define CS_WEAPONSCRIPTS				45
 #define CS_WEAPONSCRIPTS_COUNT			WP_NUM_WEAPONS
 
-// CS_MODELS starts after CS_WEAPONSCRIPTS range ends (44 + WP_NUM_WEAPONS)
-#define	CS_MODELS						( CS_WEAPONSCRIPTS + CS_WEAPONSCRIPTS_COUNT )
+// Player configstrings placed early (like NitMod's CS_PLAYERS=64 approach)
+// to keep the most dynamic/important configstrings at lower indices
+#define	CS_PLAYERS						( CS_WEAPONSCRIPTS + CS_WEAPONSCRIPTS_COUNT )
+#define CS_MULTI_SPAWNTARGETS			( CS_PLAYERS +				MAX_CLIENTS					)
+
+// Resource configstrings (models, sounds, shaders, etc.) moved after players
+#define	CS_MODELS						( CS_MULTI_SPAWNTARGETS +	MAX_MULTI_SPAWNTARGETS		)
 #define	CS_SOUNDS						( CS_MODELS +				MAX_MODELS					)
 #define CS_SHADERS						( CS_SOUNDS +				MAX_SOUNDS					)
 #define CS_SHADERSTATE					( CS_SHADERS +				MAX_CS_SHADERS				) // Gordon: this MUST be after CS_SHADERS
 #define CS_SKINS						( CS_SHADERSTATE +			1							)
 #define CS_CHARACTERS					( CS_SKINS +				MAX_CS_SKINS				)
-#define	CS_PLAYERS						( CS_CHARACTERS +			MAX_CHARACTERS				)
-#define CS_MULTI_SPAWNTARGETS			( CS_PLAYERS +				MAX_CLIENTS					)
-#define CS_OID_TRIGGERS					( CS_MULTI_SPAWNTARGETS +	MAX_MULTI_SPAWNTARGETS		)
+#define CS_OID_TRIGGERS					( CS_CHARACTERS +			MAX_CHARACTERS				)
 #define CS_OID_DATA						( CS_OID_TRIGGERS +			MAX_OID_TRIGGERS			)
 #define CS_DLIGHTS						( CS_OID_DATA +				MAX_OID_TRIGGERS			)
 #define CS_SPLINES						( CS_DLIGHTS +				MAX_DLIGHT_CONFIGSTRINGS	)
