@@ -1307,6 +1307,7 @@ typedef struct {
 	// These are NOT stored in engine configstrings (which contribute to MAX_GAMESTATE_CHARS).
 	// Instead, they're synced to clients via "ncs" server commands.
 	char		ncs[NCS_MAX][NCS_STRING_SIZE];
+	qboolean	ncsDirty[NCS_MAX];		// dirty flags for deferred NCS broadcast
 
 	// RPCS deferred queue: spreads commands across frames to prevent
 	// "msg overflowed" and "reliable command was cycled out" errors.

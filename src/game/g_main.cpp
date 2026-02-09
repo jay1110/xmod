@@ -4156,6 +4156,9 @@ void G_RunFrame( int levelTime ) {
     cmd::CrazyGravity::run();
 	G_Update_CS_Airstrikes();
 
+	// Process dirty NCS entries - queue changed model/sound/shader data for broadcast
+	G_NcsProcessDirty();
+
 	// Process deferred RPCS queue - sends queued commands gradually to prevent
 	// "msg overflowed" and "reliable command was cycled out" client errors
 	G_RpcsProcessQueues();

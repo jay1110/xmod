@@ -122,19 +122,15 @@ void G_NcsSetConfigstring( int ncsIndex, const char *value ) {
 		value = "";
 	}
 
-	// Only update and broadcast if the value changed
+	// Only update if the value changed
 	if ( strcmp( level.ncs[ncsIndex], value ) == 0 ) {
 		return;
 	}
 
 	Q_strncpyz( level.ncs[ncsIndex], value, NCS_STRING_SIZE );
 
-	// Broadcast to all connected clients
-	for ( int i = 0; i < level.maxclients; i++ ) {
-		if ( level.clients[i].pers.connected == CON_CONNECTED ) {
-			trap_SendServerCommand( i, va( "ncs %i \"%s\"", ncsIndex, level.ncs[ncsIndex] ) );
-		}
-	}
+	// Mark as dirty for deferred broadcast in G_NcsProcessDirty()
+	level.ncsDirty[ncsIndex] = qtrue;
 }
 
 /*

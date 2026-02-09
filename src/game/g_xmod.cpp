@@ -1300,7 +1300,7 @@ Commands are drained gradually in G_RpcsProcessQueues() during RunFrame
 to prevent "msg overflowed" and "reliable command was cycled out" errors.
 ================
 */
-static void G_RpcsEnqueue( int clientNum, const char *cmd ) {
+void G_RpcsEnqueue( int clientNum, const char *cmd ) {
     if ( clientNum < 0 || clientNum >= MAX_CLIENTS ) {
         return;
     }
@@ -1440,6 +1440,32 @@ void G_SendXmodCS( int clientNum ) {
     for ( int i = 0; i < NCS_MAX; i++ ) {
         if ( level.ncs[i][0] ) {
             G_RpcsEnqueue( clientNum, va("ncs %i \"%s\"", i, level.ncs[i]) );
+        }
+    }
+}
+
+/*
+================
+G_NcsProcessDirty
+----------------
+Called every server frame from G_RunFrame (before G_RpcsProcessQueues).
+Queues dirty NCS entries into the RPCS queue for all connected clients.
+This defers NCS broadcasts to prevent "reliable command was cycled out"
+errors when many models/sounds are registered in a single frame.
+================
+*/
+void G_NcsProcessDirty( void ) {
+    for ( int i = 0; i < NCS_MAX; i++ ) {
+        if ( !level.ncsDirty[i] ) {
+            continue;
+        }
+        level.ncsDirty[i] = qfalse;
+
+        const char *cmd = va( "ncs %i \"%s\"", i, level.ncs[i] );
+        for ( int c = 0; c < level.maxclients; c++ ) {
+            if ( level.clients[c].pers.connected == CON_CONNECTED ) {
+                G_RpcsEnqueue( c, cmd );
+            }
         }
     }
 }
