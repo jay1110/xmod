@@ -1,6 +1,7 @@
 #include <bgame/impl.h>
 #include <game/xmod_database.h>
 #include <game/xmod_globals.h>
+#include <game/g_weaponscripts.h>
 
 /*
 ====================
@@ -208,7 +209,8 @@ void G_InitCustomLevels() {
 			skillLevels[i][4],
 			skillLevels[i][5] ));
 	}
-	trap_SetConfigstring( CS_SKILLLEVELS, info );
+	// Send skill levels via server command (RPCS) instead of configstring
+	trap_SendServerCommand( -1, va("xcs s \"%s\"", info) );
 }
 
 /*
@@ -1168,7 +1170,9 @@ void G_FallDamage( gentity_t *ent, int event ) {
 G_UpdateXmodCS
 ----------------
 Jaybird
-Updates the ConfigString for Xmod's client side stuff.
+Sends Xmod's client side data via server commands (RPCS approach).
+This avoids counting towards the 16000 byte MAX_GAMESTATE_CHARS limit.
+Data is sent via "xcs" server command instead of configstrings.
 If a cvar is here and is a game-tunable it should probably be flagged with CVAR_XMODINFO.
 ================
 */
@@ -1176,7 +1180,7 @@ void G_UpdateXmodCS() {
     char cs[MAX_INFO_STRING] = { '\0' };
     char cs2[MAX_INFO_STRING] = { '\0' };
 
-    // CS_XMODINFO - Original CVARs (keep unchanged to avoid breaking existing clients)
+    // XMODINFO - Original CVARs
     Info_SetValueForKey( cs, "jver", XMOD_title );
 
     // CVARS
@@ -1246,9 +1250,11 @@ void G_UpdateXmodCS() {
 
     Info_SetValueForKey( cs, "z", cvars::bg_proneDelay.svalue );
 
-    trap_SetConfigstring( CS_XMODINFO, cs );
+    // Send xmod info via server command (RPCS) instead of configstring
+    // "xcs 1 <data>" = xmodinfo, "xcs 2 <data>" = xmodinfo2
+    trap_SendServerCommand( -1, va("xcs 1 \"%s\"", cs) );
 
-    // CS_XMODINFO2 - Newer CVARs that caused overflow
+    // XMODINFO2 - Newer CVARs
     Info_SetValueForKey( cs2, "A", cvars::bg_doubleJump.svalue );
     Info_SetValueForKey( cs2, "B", cvars::bg_djHeight.svalue );
     Info_SetValueForKey( cs2, "C", cvars::bg_weaponsenable.svalue );
@@ -1268,7 +1274,111 @@ void G_UpdateXmodCS() {
     Info_SetValueForKey( cs2, "I", cvars::g_jxacAntiTamper.svalue );      // Anti-tamper enabled
     Info_SetValueForKey( cs2, "J", cvars::g_jxacCheckSpeedhack.svalue );  // Speedhack check enabled
 
-    trap_SetConfigstring( CS_XMODINFO2, cs2 );
+    trap_SendServerCommand( -1, va("xcs 2 \"%s\"", cs2) );
+}
+
+/*
+================
+G_SendXmodCS
+----------------
+Sends all RPCS (xmod configstring) data to a specific client.
+Called during ClientBegin to ensure connecting clients receive all mod data
+that is no longer part of the gamestate.
+================
+*/
+void G_SendXmodCS( int clientNum ) {
+    char cs[MAX_INFO_STRING] = { '\0' };
+    char cs2[MAX_INFO_STRING] = { '\0' };
+
+    // XMODINFO
+    Info_SetValueForKey( cs, "jver", XMOD_title );
+    Info_SetValueForKey( cs, "0", cvars::bg_bulletmode.svalue );
+    Info_SetValueForKey( cs, "1", cvars::bg_hitmode.svalue );
+    Info_SetValueForKey( cs, "2", cvars::bg_ammoUnlimited.svalue );
+    Info_SetValueForKey( cs, "3", cvars::bg_ammoFireDelayNudge.svalue );
+    Info_SetValueForKey( cs, "4", cvars::bg_ammoNextDelayNudge.svalue );
+    Info_SetValueForKey( cs, "5", cvars::bg_dynamiteTime.svalue );
+    Info_SetValueForKey( cs, "6", cvars::bg_glow.svalue );
+    Info_SetValueForKey( cs, "7", cvars::bg_misc.svalue );
+    Info_SetValueForKey( cs, "8", cvars::bg_panzerWar.svalue );
+    Info_SetValueForKey( cs, "9", cvars::bg_poisonSyringes.svalue );
+    Info_SetValueForKey( cs, "a", cvars::bg_skills.svalue );
+    Info_SetValueForKey( cs, "b", cvars::bg_sniperWar.svalue );
+    Info_SetValueForKey( cs, "c", cvars::bg_weapons.svalue );
+    Info_SetValueForKey( cs, "d", cvars::bg_wolfrof.svalue );
+
+    char val_buf[16];
+    Com_sprintf(val_buf, sizeof(val_buf), "%d", cvars::bg_maxEngineers.ivalue);
+    Info_SetValueForKey( cs, "e", val_buf );
+    Com_sprintf(val_buf, sizeof(val_buf), "%d", cvars::bg_maxMedics.ivalue);
+    Info_SetValueForKey( cs, "f", val_buf );
+    Com_sprintf(val_buf, sizeof(val_buf), "%d", cvars::bg_maxFieldOps.ivalue);
+    Info_SetValueForKey( cs, "g", val_buf );
+    Com_sprintf(val_buf, sizeof(val_buf), "%d", cvars::bg_maxCovertOps.ivalue);
+    Info_SetValueForKey( cs, "h", val_buf );
+    Com_sprintf(val_buf, sizeof(val_buf), "%d", cvars::bg_maxPanzers.ivalue);
+    Info_SetValueForKey( cs, "i", val_buf );
+    Com_sprintf(val_buf, sizeof(val_buf), "%d", cvars::bg_maxMG42s.ivalue);
+    Info_SetValueForKey( cs, "j", val_buf );
+    Com_sprintf(val_buf, sizeof(val_buf), "%d", cvars::bg_maxMortars.ivalue);
+    Info_SetValueForKey( cs, "k", val_buf );
+    Com_sprintf(val_buf, sizeof(val_buf), "%d", cvars::bg_maxGrenLaunchers.ivalue);
+    Info_SetValueForKey( cs, "l", val_buf );
+    Com_sprintf(val_buf, sizeof(val_buf), "%d", cvars::bg_maxFlamers.ivalue);
+    Info_SetValueForKey( cs, "m", val_buf );
+    Com_sprintf(val_buf, sizeof(val_buf), "%d", cvars::bg_maxM97s.ivalue);
+    Info_SetValueForKey( cs, "n", val_buf );
+
+    Info_SetValueForKey( cs, "o", cvars::bg_sk5_battle.svalue );
+    Info_SetValueForKey( cs, "p", cvars::bg_sk5_lightweap.svalue );
+    Info_SetValueForKey( cs, "q", cvars::bg_sk5_cvops.svalue );
+    Info_SetValueForKey( cs, "r", cvars::bg_sk5_eng.svalue );
+    Info_SetValueForKey( cs, "s", cvars::bg_sk5_fdops.svalue );
+    Info_SetValueForKey( cs, "t", cvars::bg_sk5_medic.svalue );
+    Info_SetValueForKey( cs, "u", cvars::bg_sk5_soldier.svalue );
+    Info_SetValueForKey( cs, "v", cvars::bg_covertops.svalue );
+    Info_SetValueForKey( cs, "w", cvars::bg_fixedphysics.svalue );
+    Info_SetValueForKey( cs, "x", cvars::bg_fixedphysicsfps.svalue );
+    Info_SetValueForKey( cs, "z", cvars::bg_proneDelay.svalue );
+
+    trap_SendServerCommand( clientNum, va("xcs 1 \"%s\"", cs) );
+
+    // XMODINFO2
+    Info_SetValueForKey( cs2, "A", cvars::bg_doubleJump.svalue );
+    Info_SetValueForKey( cs2, "B", cvars::bg_djHeight.svalue );
+    Info_SetValueForKey( cs2, "C", cvars::bg_weaponsenable.svalue );
+    Info_SetValueForKey( cs2, "D", cvars::g_noReload.svalue );
+    Info_SetValueForKey( cs2, "E", cvars::g_noCharge.svalue );
+    Info_SetValueForKey( cs2, "F", va("%i", g_spawnInvulNoClip.integer) );
+    Info_SetValueForKey( cs2, "G", cvars::g_jxacEnable.svalue );
+    Info_SetValueForKey( cs2, "H", cvars::g_jxacModuleScan.svalue );
+    Info_SetValueForKey( cs2, "I", cvars::g_jxacAntiTamper.svalue );
+    Info_SetValueForKey( cs2, "J", cvars::g_jxacCheckSpeedhack.svalue );
+
+    trap_SendServerCommand( clientNum, va("xcs 2 \"%s\"", cs2) );
+
+    // Skill levels
+    {
+        char info[MAX_INFO_STRING] = { '\0' };
+        for (int i = 0; i < SK_NUM_SKILLS; i++) {
+            Info_SetValueForKey(info, va("skill_%i",i), va("%i %i %i %i %i",
+                skillLevels[i][1], skillLevels[i][2], skillLevels[i][3],
+                skillLevels[i][4], skillLevels[i][5]));
+        }
+        trap_SendServerCommand( clientNum, va("xcs s \"%s\"", info) );
+    }
+
+    // Watermark info
+    {
+        char wm[MAX_INFO_STRING] = { '\0' };
+        Info_SetValueForKey( wm, "wmFA", va("%i", g_watermarkFadeAfter.integer));
+        Info_SetValueForKey( wm, "wmFT", va("%i", g_watermarkFadeTime.integer));
+        Info_SetValueForKey( wm, "wmFN", g_watermark.string );
+        trap_SendServerCommand( clientNum, va("xcs m \"%s\"", wm) );
+    }
+
+    // Weapon scripts
+    G_SendWeaponScripts( clientNum );
 }
 
 /*************************************************

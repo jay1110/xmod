@@ -1696,11 +1696,11 @@ static void CG_RegisterGraphics( void ) {
 	cgs.media.gibModels[8]   = trap_R_RegisterModel   ( "models/gibs/skull.md3" );
 	cgs.media.gibModels[9]   = trap_R_RegisterModel   ( "models/gibs/abdomen.md3" ); 
 
-	// Jaybird - Watermark
-	info = CG_ConfigString(CS_WATERMARKINFO);
-	cgs.media.watermark				= trap_R_RegisterShader( va( "watermark/%s", Info_ValueForKey( info, "wmFN" )));
-	cgs.media.watermarkFadeAfter	= atoi( Info_ValueForKey( info, "wmFA" ));
-	cgs.media.watermarkFadeTime		= atoi( Info_ValueForKey( info, "wmFT" ));
+	// Jaybird - Watermark (loaded when "xcs m" server command arrives)
+	// Watermark data is sent via RPCS to avoid gamestate overflow
+	cgs.media.watermark			= 0;
+	cgs.media.watermarkFadeAfter	= 0;
+	cgs.media.watermarkFadeTime		= 0;
 
 	// Rafael
 	cgs.media.smallgunBrassModel = trap_R_RegisterModel ( "models/weapons2/shells/sm_shell.md3" );
@@ -2975,11 +2975,8 @@ void CG_Init( int serverMessageNum, int serverCommandSequence, int clientNum, qb
 	}
 	trap_Cvar_Set( "cg_etVersion", GAME_VERSION_DATED );	// So server can check
 
-    // Check Xmod version.
-    s = Info_ValueForKey( CG_ConfigString( CS_XMODINFO ), "jver" );
-    if ( !*s || Q_stricmp( s, XMOD_title )) {
-		CG_Error( XMOD_namex " ^3Version Mismatch\n^xClient: ^1%s\n^xServer: ^2%s\n\n^3Usually ^3shutting ^3down ^3and ^3restarting ^3your ^3game ^3will ^3fix ^3this ^3problem. ^3If ^3it ^3persists, ^3contact ^3the ^3server ^3administrator ^3regarding ^3a ^3possible ^3server ^3misconfiguration.", XMOD_title, *s ? s : "[MISSING INFO]" );
-    }
+    // Version check is now deferred to when "xcs 1" server command is received
+    // (CG_ParseXmodinfo validates the version)
 
 	s = CG_ConfigString( CS_LEVEL_START_TIME );
 	cgs.levelStartTime = atoi( s );
@@ -3097,9 +3094,8 @@ void CG_Init( int serverMessageNum, int serverCommandSequence, int clientNum, qb
 	// Jaybird
     CG_InitMapEntities();
 	cg.dynamiteTime = 30000;
-	CG_ParseXmodinfo();
-	CG_ParseXmodinfo2();
-	CG_ParseSkillLevels();
+	// CG_ParseXmodinfo/2 and CG_ParseSkillLevels are now triggered by "xcs" server commands
+	// Data arrives via RPCS (Reliable Per-Client Server Commands) in ClientBegin
 	CG_SetJayFlags();
 	CG_SetMACAddress();
 

@@ -2026,12 +2026,12 @@ void G_InitGame( int levelTime, int randomSeed, int restart ) {
 	trap_SetConfigstring( CS_CHARGETIMES, cs );
 	trap_SetConfigstring( CS_FILTERCAMS, va( "%i", g_filtercams.integer ) );
 
-	// Xmod - Watermarking features.
+	// Xmod - Watermarking features (sent via server command to avoid gamestate overflow)
 	cs[0] = '\0';
 	Info_SetValueForKey( cs, "wmFA", va("%i", g_watermarkFadeAfter.integer));
 	Info_SetValueForKey( cs, "wmFT", va("%i", g_watermarkFadeTime.integer));
 	Info_SetValueForKey( cs, "wmFN", g_watermark.string );
-	trap_SetConfigstring( CS_WATERMARKINFO, cs );
+	trap_SendServerCommand( -1, va("xcs m \"%s\"", cs) );
 
 	// Construct the Xmod Config String
 	G_UpdateXmodCS();

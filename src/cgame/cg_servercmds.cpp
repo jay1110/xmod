@@ -248,7 +248,13 @@ Jaybird
 ==================
 */
 void CG_ParseXmodinfo( void) {
-    const char* const info = CG_ConfigString( CS_XMODINFO );
+    const char* const info = cgs.rpcsXmodinfo;
+
+    // Version check (deferred from init since data arrives via RPCS)
+    const char* jver = Info_ValueForKey( info, "jver" );
+    if ( *jver && Q_stricmp( jver, XMOD_title )) {
+        CG_Error( XMOD_namex " ^3Version Mismatch\n^xClient: ^1%s\n^xServer: ^2%s\n\n^3Usually ^3shutting ^3down ^3and ^3restarting ^3your ^3game ^3will ^3fix ^3this ^3problem. ^3If ^3it ^3persists, ^3contact ^3the ^3server ^3administrator ^3regarding ^3a ^3possible ^3server ^3misconfiguration.", XMOD_title, jver );
+    }
 
     cvars::bg_bulletmode.set ( Info_ValueForKey( info, "0" ));
     cvars::bg_hitmode.set    ( Info_ValueForKey( info, "1" ));
@@ -312,7 +318,7 @@ Parse newer CVARs from CS_XMODINFO2 (overflow from CS_XMODINFO)
 ==================
 */
 void CG_ParseXmodinfo2( void) {
-    const char* const info = CG_ConfigString( CS_XMODINFO2 );
+    const char* const info = cgs.rpcsXmodinfo2;
 
     cvars::bg_doubleJump.set      ( Info_ValueForKey( info, "A" ));
     cvars::bg_djHeight.set        ( Info_ValueForKey( info, "B" ));
@@ -337,11 +343,10 @@ void CG_ParseXmodinfo2( void) {
 /*
 ==================
 CG_ParseWeaponScript
-Parse weapon script data from a configstring
+Parse weapon script data from an info string (received via RPCS server command)
 ==================
 */
-static void CG_ParseWeaponScript( int weapon ) {
-    const char* const info = CG_ConfigString( CS_WEAPONSCRIPTS + weapon );
+static void CG_ParseWeaponScript( int weapon, const char* info ) {
     const char* val;
 
     if ( weapon < 0 || weapon >= WP_NUM_WEAPONS ) {
@@ -384,13 +389,17 @@ static void CG_ParseWeaponScript( int weapon ) {
 /*
 ==================
 CG_ParseWeaponScripts
-Parse all weapon script configstrings at init time
+Initialize weapon scripts (actual data arrives via "xcs w" server commands)
 ==================
 */
 void CG_ParseWeaponScripts( void ) {
     int i;
     for ( i = 0; i < WP_NUM_WEAPONS; i++ ) {
-        CG_ParseWeaponScript( i );
+        // Clear weapon script data - will be populated by "xcs w" server commands
+        cgs.weaponScripts[i].name[0] = '\0';
+        cgs.weaponScripts[i].killMessage[0] = '\0';
+        cgs.weaponScripts[i].killMessage2[0] = '\0';
+        cgs.weaponScripts[i].selfKillMessage[0] = '\0';
     }
 }
 
@@ -405,7 +414,7 @@ void CG_ParseSkillLevels( void ) {
 	char *str;
 	int i;
 
-	info = CG_ConfigString( CS_SKILLLEVELS );
+	info = cgs.rpcsSkillLevels;
 	if (!*info)
 		return;
 
@@ -781,18 +790,6 @@ void CG_ConfigStringModified( void )
             CG_ParseServerVersionInfo( csval ); // OSP - set versioning info for older demo playback
             return;
 
-        case CS_XMODINFO:
-            CG_ParseXmodinfo();
-            return;
-
-        case CS_XMODINFO2:
-            CG_ParseXmodinfo2();
-            return;
-
-        case CS_SKILLLEVELS:
-            CG_ParseSkillLevels();
-            return;
-
         case CS_REINFSEEDS:
             CG_ParseReinforcementTimes( csval ); // OSP - set reinforcement times for each team
             return;
@@ -862,12 +859,6 @@ void CG_ConfigStringModified( void )
 
         default:
             break;
-    }
-
-    // Handle weapon script configstrings
-    if (index >= CS_WEAPONSCRIPTS && index < CS_WEAPONSCRIPTS + WP_NUM_WEAPONS) {
-        CG_ParseWeaponScript( index - CS_WEAPONSCRIPTS );
-        return;
     }
 
     if (index >= CS_MULTI_SPAWNTARGETS && index < CS_MULTI_SPAWNTARGETS + MAX_MULTI_SPAWNTARGETS) {
@@ -2574,6 +2565,38 @@ static void CG_ServerCommand( void ) {
 
 	if( !Q_stricmp( cmd, "sdbg" ) ) {
 		CG_StatsDebugAddText( CG_Argv(1) );
+		return;
+	}
+
+	// RPCS: xmod configstring data sent via server command instead of configstrings
+	// Format: "xcs <type> [index] <data>"
+	// Types: 1=xmodinfo, 2=xmodinfo2, s=skilllevels, m=watermark, w=weaponscript
+	if ( !Q_stricmp( cmd, "xcs" ) ) {
+		const char* type = CG_Argv(1);
+		if ( !Q_stricmp( type, "1" ) ) {
+			Q_strncpyz( cgs.rpcsXmodinfo, CG_Argv(2), sizeof(cgs.rpcsXmodinfo) );
+			CG_ParseXmodinfo();
+		} else if ( !Q_stricmp( type, "2" ) ) {
+			Q_strncpyz( cgs.rpcsXmodinfo2, CG_Argv(2), sizeof(cgs.rpcsXmodinfo2) );
+			CG_ParseXmodinfo2();
+		} else if ( !Q_stricmp( type, "s" ) ) {
+			Q_strncpyz( cgs.rpcsSkillLevels, CG_Argv(2), sizeof(cgs.rpcsSkillLevels) );
+			CG_ParseSkillLevels();
+		} else if ( !Q_stricmp( type, "m" ) ) {
+			Q_strncpyz( cgs.rpcsWatermark, CG_Argv(2), sizeof(cgs.rpcsWatermark) );
+			// Load watermark when RPCS data arrives
+			const char* wmInfo = cgs.rpcsWatermark;
+			const char* wmFN = Info_ValueForKey( wmInfo, "wmFN" );
+			if ( wmFN[0] ) {
+				cgs.media.watermark = trap_R_RegisterShader( va( "watermark/%s", wmFN ) );
+			}
+			cgs.media.watermarkFadeAfter = atoi( Info_ValueForKey( wmInfo, "wmFA" ) );
+			cgs.media.watermarkFadeTime = atoi( Info_ValueForKey( wmInfo, "wmFT" ) );
+		} else if ( !Q_stricmp( type, "w" ) ) {
+			int weapon = atoi( CG_Argv(2) );
+			const char* data = CG_Argv(3);
+			CG_ParseWeaponScript( weapon, data );
+		}
 		return;
 	}
 

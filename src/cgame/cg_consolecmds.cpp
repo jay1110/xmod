@@ -655,7 +655,7 @@ static void CG_PrivateSend_f( void )
 }
 
 static void CG_PrintXmodInfo_f( void ) {
-	char *s = Info_ValueForKey( CG_ConfigString( CS_XMODINFO ), "jver" );
+	char *s = Info_ValueForKey( cgs.rpcsXmodinfo, "jver" );
     const string stitle = s ? s : "undefined";
 
     using namespace text;

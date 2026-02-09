@@ -378,32 +378,23 @@ extern const unsigned int aReinfSeeds[MAX_REINFSEEDS];
 #define CS_ENDGAME_STATS				37
 #define CS_CHARGETIMES					38
 #define CS_FILTERCAMS					39
-#define CS_XMODINFO					40
-#define CS_WATERMARKINFO				41
-#define CS_XMODINFO2				42		// Second XMODINFO for class/weapon restrictions (overflow from CS_XMODINFO)
 
-#define CS_AVAILABLESTRIKES				43
-#define CS_SKILLLEVELS					44
+#define CS_AVAILABLESTRIKES				40
 
-// Weapon script configstrings - stores custom name, killMessage, killMessage2, selfKillMessage per weapon
-// Format: "n\<name>\k\<killMessage>\l\<killMessage2>\s\<selfKillMessage>"
-// Keys: n=name, k=killMessage1, l=killMessage2, s=selfKillMessage
-#define CS_WEAPONSCRIPTS				45
-#define CS_WEAPONSCRIPTS_COUNT			WP_NUM_WEAPONS
+// RPCS (Reliable Per-Client Server Commands) for mod-specific data:
+// CS_XMODINFO, CS_XMODINFO2, CS_WEAPONSCRIPTS, CS_SKILLLEVELS, and CS_WATERMARKINFO
+// are now sent via server commands ("xcs") instead of configstrings to avoid
+// MAX_GAMESTATE_CHARS exceeded errors. These are no longer configstring indices.
 
-// Player configstrings placed early, before resource configstrings
-// (follows NitMod's strategy of placing CS_PLAYERS at low indices)
-#define	CS_PLAYERS						( CS_WEAPONSCRIPTS + CS_WEAPONSCRIPTS_COUNT )
-#define CS_MULTI_SPAWNTARGETS			( CS_PLAYERS +				MAX_CLIENTS					)
-
-// Resource configstrings (models, sounds, shaders, etc.) moved after players
-#define	CS_MODELS						( CS_MULTI_SPAWNTARGETS +	MAX_MULTI_SPAWNTARGETS		)
+#define	CS_MODELS						41
 #define	CS_SOUNDS						( CS_MODELS +				MAX_MODELS					)
 #define CS_SHADERS						( CS_SOUNDS +				MAX_SOUNDS					)
 #define CS_SHADERSTATE					( CS_SHADERS +				MAX_CS_SHADERS				) // Gordon: this MUST be after CS_SHADERS
 #define CS_SKINS						( CS_SHADERSTATE +			1							)
 #define CS_CHARACTERS					( CS_SKINS +				MAX_CS_SKINS				)
-#define CS_OID_TRIGGERS					( CS_CHARACTERS +			MAX_CHARACTERS				)
+#define	CS_PLAYERS						( CS_CHARACTERS +			MAX_CHARACTERS				)
+#define CS_MULTI_SPAWNTARGETS			( CS_PLAYERS +				MAX_CLIENTS					)
+#define CS_OID_TRIGGERS					( CS_MULTI_SPAWNTARGETS +	MAX_MULTI_SPAWNTARGETS		)
 #define CS_OID_DATA						( CS_OID_TRIGGERS +			MAX_OID_TRIGGERS			)
 #define CS_DLIGHTS						( CS_OID_DATA +				MAX_OID_TRIGGERS			)
 #define CS_SPLINES						( CS_DLIGHTS +				MAX_DLIGHT_CONFIGSTRINGS	)

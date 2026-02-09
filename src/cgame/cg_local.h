@@ -2217,6 +2217,14 @@ typedef struct {
 	
 	// g_spectatorNames: Spectators can see player names like shoutcasters
 	int					spectatorNames;
+
+	// RPCS (Reliable Per-Client Server Commands) storage
+	// These hold mod-specific data sent via "xcs" server commands
+	// instead of configstrings to avoid MAX_GAMESTATE_CHARS exceeded
+	char				rpcsXmodinfo[MAX_INFO_STRING];
+	char				rpcsXmodinfo2[MAX_INFO_STRING];
+	char				rpcsSkillLevels[MAX_INFO_STRING];
+	char				rpcsWatermark[MAX_INFO_STRING];
 } cgs_t;
 
 //==============================================================================
