@@ -4155,6 +4155,10 @@ void G_RunFrame( int levelTime ) {
     cmd::CrazyGravity::run();
 	G_Update_CS_Airstrikes();
 
+	// Process deferred RPCS queue - sends queued commands gradually to prevent
+	// "msg overflowed" and "reliable command was cycled out" client errors
+	G_RpcsProcessQueues();
+
 	// Call Lua et_RunFrame callback
 	G_LuaHook_RunFrame(levelTime);
 

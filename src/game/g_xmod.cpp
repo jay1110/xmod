@@ -1293,11 +1293,70 @@ void G_UpdateXmodCS() {
 
 /*
 ================
+G_RpcsEnqueue
+----------------
+Queue a server command for deferred sending to a specific client.
+Commands are drained gradually in G_RpcsProcessQueues() during RunFrame
+to prevent "msg overflowed" and "reliable command was cycled out" errors.
+================
+*/
+static void G_RpcsEnqueue( int clientNum, const char *cmd ) {
+    if ( clientNum < 0 || clientNum >= MAX_CLIENTS ) {
+        return;
+    }
+
+    auto *q = &level.rpcsQueue[clientNum];
+    if ( q->count >= RPCS_QUEUE_SIZE ) {
+        G_LogPrintf( "WARNING: RPCS queue full for client %d, dropping command\n", clientNum );
+        return;
+    }
+
+    Q_strncpyz( q->cmds[q->head], cmd, MAX_STRING_CHARS );
+    q->head = ( q->head + 1 ) % RPCS_QUEUE_SIZE;
+    q->count++;
+}
+
+/*
+================
+G_RpcsProcessQueues
+----------------
+Called every server frame from G_RunFrame.
+Drains up to RPCS_CMDS_PER_FRAME commands per client per frame.
+================
+*/
+void G_RpcsProcessQueues( void ) {
+    for ( int i = 0; i < level.maxclients; i++ ) {
+        auto *q = &level.rpcsQueue[i];
+        if ( q->count <= 0 ) {
+            continue;
+        }
+
+        // Only send to connected clients
+        if ( level.clients[i].pers.connected != CON_CONNECTED ) {
+            // Client disconnected, flush their queue
+            q->head = 0;
+            q->tail = 0;
+            q->count = 0;
+            continue;
+        }
+
+        int sent = 0;
+        while ( q->count > 0 && sent < RPCS_CMDS_PER_FRAME ) {
+            trap_SendServerCommand( i, q->cmds[q->tail] );
+            q->tail = ( q->tail + 1 ) % RPCS_QUEUE_SIZE;
+            q->count--;
+            sent++;
+        }
+    }
+}
+
+/*
+================
 G_SendXmodCS
 ----------------
-Sends all RPCS (xmod configstring) data to a specific client.
-Called during ClientBegin to ensure connecting clients receive all mod data
-that is no longer part of the gamestate.
+Queues all RPCS (xmod configstring) data for deferred sending to a client.
+Called during ClientBegin. Commands are sent gradually across frames by
+G_RpcsProcessQueues() to prevent reliable command buffer overflow.
 ================
 */
 void G_SendXmodCS( int clientNum ) {
@@ -1306,8 +1365,8 @@ void G_SendXmodCS( int clientNum ) {
 
     G_BuildXmodCS( cs, sizeof(cs), cs2, sizeof(cs2) );
 
-    trap_SendServerCommand( clientNum, va("xcs 1 \"%s\"", cs) );
-    trap_SendServerCommand( clientNum, va("xcs 2 \"%s\"", cs2) );
+    G_RpcsEnqueue( clientNum, va("xcs 1 \"%s\"", cs) );
+    G_RpcsEnqueue( clientNum, va("xcs 2 \"%s\"", cs2) );
 
     // Skill levels
     {
@@ -1317,7 +1376,7 @@ void G_SendXmodCS( int clientNum ) {
                 skillLevels[i][1], skillLevels[i][2], skillLevels[i][3],
                 skillLevels[i][4], skillLevels[i][5]));
         }
-        trap_SendServerCommand( clientNum, va("xcs s \"%s\"", info) );
+        G_RpcsEnqueue( clientNum, va("xcs s \"%s\"", info) );
     }
 
     // Watermark info
@@ -1326,31 +1385,56 @@ void G_SendXmodCS( int clientNum ) {
         Info_SetValueForKey( wm, "wmFA", va("%i", g_watermarkFadeAfter.integer));
         Info_SetValueForKey( wm, "wmFT", va("%i", g_watermarkFadeTime.integer));
         Info_SetValueForKey( wm, "wmFN", g_watermark.string );
-        trap_SendServerCommand( clientNum, va("xcs m \"%s\"", wm) );
+        G_RpcsEnqueue( clientNum, va("xcs m \"%s\"", wm) );
     }
 
-    // Weapon scripts
-    G_SendWeaponScripts( clientNum );
+    // Weapon scripts (only send weapons that actually have scripts)
+    {
+        char wcs[MAX_INFO_STRING];
+        for ( int i = 0; i < WP_NUM_WEAPONS; i++ ) {
+            weaponScriptDef_t *script = G_GetWeaponScript( i );
+            if ( script && script->hasScript ) {
+                wcs[0] = '\0';
+                if ( script->name[0] ) {
+                    Info_SetValueForKey( wcs, "n", script->name );
+                }
+                if ( script->killMessage[0] ) {
+                    Info_SetValueForKey( wcs, "k", script->killMessage );
+                }
+                if ( script->killMessage2[0] ) {
+                    Info_SetValueForKey( wcs, "l", script->killMessage2 );
+                }
+                if ( script->selfKillMessage[0] ) {
+                    Info_SetValueForKey( wcs, "s", script->selfKillMessage );
+                }
+                G_RpcsEnqueue( clientNum, va("xcs w %i \"%s\"", i, wcs) );
+            }
+        }
+    }
 
     // Map XP data (RPCS: moved out of configstrings)
-    trap_SendServerCommand( clientNum, va("xcs a \"%s\"", level.axisMapsXP) );
-    trap_SendServerCommand( clientNum, va("xcs b \"%s\"", level.alliedMapsXP) );
+    if ( level.axisMapsXP[0] ) {
+        G_RpcsEnqueue( clientNum, va("xcs a \"%s\"", level.axisMapsXP) );
+    }
+    if ( level.alliedMapsXP[0] ) {
+        G_RpcsEnqueue( clientNum, va("xcs b \"%s\"", level.alliedMapsXP) );
+    }
 
     // Charge times, filtercams, endgame stats (RPCS: moved out of configstrings)
     if ( level.rpcsChargeTimes[0] ) {
-        trap_SendServerCommand( clientNum, va("xcs c \"%s\"", level.rpcsChargeTimes) );
+        G_RpcsEnqueue( clientNum, va("xcs c \"%s\"", level.rpcsChargeTimes) );
     }
     if ( level.rpcsFilterCams[0] ) {
-        trap_SendServerCommand( clientNum, va("xcs f \"%s\"", level.rpcsFilterCams) );
+        G_RpcsEnqueue( clientNum, va("xcs f \"%s\"", level.rpcsFilterCams) );
     }
     if ( level.rpcsEndgameStats[0] ) {
-        trap_SendServerCommand( clientNum, va("xcs e \"%s\"", level.rpcsEndgameStats) );
+        G_RpcsEnqueue( clientNum, va("xcs e \"%s\"", level.rpcsEndgameStats) );
     }
 
     // Player info (RPCS: full player data, CS_PLAYERS only has minimal name+team)
     for ( int i = 0; i < level.maxclients; i++ ) {
         if ( level.rpcsPlayerInfo[i][0] ) {
-            trap_SendServerCommand( clientNum, va("xcs p %i \"%s\"", i, level.rpcsPlayerInfo[i]) );
+            G_RpcsEnqueue( clientNum, va("xcs p %i \"%s\"", i, level.rpcsPlayerInfo[i]) );
         }
     }
 }

@@ -1303,6 +1303,18 @@ typedef struct {
 	char		rpcsFilterCams[32];
 	char		rpcsEndgameStats[MAX_INFO_STRING];
 
+	// RPCS deferred queue: spreads commands across frames to prevent
+	// "msg overflowed" and "reliable command was cycled out" errors.
+	// The ET engine can only buffer ~64 reliable commands per client.
+#define RPCS_QUEUE_SIZE		96		// max queued commands per client (~80 needed worst case)
+#define RPCS_CMDS_PER_FRAME	16		// max commands sent per client per frame
+	struct {
+		char	cmds[RPCS_QUEUE_SIZE][MAX_STRING_CHARS];
+		int		head;		// next slot to write
+		int		tail;		// next slot to send
+		int		count;		// number of queued commands
+	} rpcsQueue[MAX_CLIENTS];
+
 } level_locals_t;
 
 typedef struct {

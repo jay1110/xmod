@@ -291,6 +291,7 @@ qboolean G_IsKickableCanister   ( int );
 void     G_Update_CS_Airstrikes  ( );
 void     G_UpdateXmodCS        ( );
 void     G_SendXmodCS           ( int clientNum );
+void     G_RpcsProcessQueues    ( void );
 void     G_UpdateUptime          ( );
 qboolean IsReflectable           ( int );
 bool     G_MutePlayer            ( gentity_t*, string, string = "" );

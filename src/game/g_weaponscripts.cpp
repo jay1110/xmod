@@ -658,24 +658,25 @@ void G_BroadcastWeaponScripts( void )
     for ( i = 0; i < WP_NUM_WEAPONS; i++ ) {
         script = &weaponScripts[i];
         
-        // Clear the configstring
+        // Only broadcast weapons that have scripts
+        if ( !script->hasScript ) {
+            continue;
+        }
+        
+        // Build data with weapon script info
         cs[0] = '\0';
         
-        if ( script->hasScript ) {
-            // Build data with weapon script info
-            // Format: n\<name>\k\<killMessage>\l\<killMessage2>\s\<selfKillMessage>
-            if ( script->name[0] ) {
-                Info_SetValueForKey( cs, "n", script->name );
-            }
-            if ( script->killMessage[0] ) {
-                Info_SetValueForKey( cs, "k", script->killMessage );
-            }
-            if ( script->killMessage2[0] ) {
-                Info_SetValueForKey( cs, "l", script->killMessage2 );
-            }
-            if ( script->selfKillMessage[0] ) {
-                Info_SetValueForKey( cs, "s", script->selfKillMessage );
-            }
+        if ( script->name[0] ) {
+            Info_SetValueForKey( cs, "n", script->name );
+        }
+        if ( script->killMessage[0] ) {
+            Info_SetValueForKey( cs, "k", script->killMessage );
+        }
+        if ( script->killMessage2[0] ) {
+            Info_SetValueForKey( cs, "l", script->killMessage2 );
+        }
+        if ( script->selfKillMessage[0] ) {
+            Info_SetValueForKey( cs, "s", script->selfKillMessage );
         }
         
         // Send weapon script via server command (RPCS) instead of configstring
@@ -700,21 +701,24 @@ void G_SendWeaponScripts( int clientNum )
     for ( i = 0; i < WP_NUM_WEAPONS; i++ ) {
         script = &weaponScripts[i];
         
+        // Only send weapons that have scripts
+        if ( !script->hasScript ) {
+            continue;
+        }
+        
         cs[0] = '\0';
         
-        if ( script->hasScript ) {
-            if ( script->name[0] ) {
-                Info_SetValueForKey( cs, "n", script->name );
-            }
-            if ( script->killMessage[0] ) {
-                Info_SetValueForKey( cs, "k", script->killMessage );
-            }
-            if ( script->killMessage2[0] ) {
-                Info_SetValueForKey( cs, "l", script->killMessage2 );
-            }
-            if ( script->selfKillMessage[0] ) {
-                Info_SetValueForKey( cs, "s", script->selfKillMessage );
-            }
+        if ( script->name[0] ) {
+            Info_SetValueForKey( cs, "n", script->name );
+        }
+        if ( script->killMessage[0] ) {
+            Info_SetValueForKey( cs, "k", script->killMessage );
+        }
+        if ( script->killMessage2[0] ) {
+            Info_SetValueForKey( cs, "l", script->killMessage2 );
+        }
+        if ( script->selfKillMessage[0] ) {
+            Info_SetValueForKey( cs, "s", script->selfKillMessage );
         }
         
         trap_SendServerCommand( clientNum, va("xcs w %i \"%s\"", i, cs) );
