@@ -1389,26 +1389,24 @@ void G_SendXmodCS( int clientNum ) {
     }
 
     // Weapon scripts (only send weapons that actually have scripts)
-    {
-        char wcs[MAX_INFO_STRING];
-        for ( int i = 0; i < WP_NUM_WEAPONS; i++ ) {
-            weaponScriptDef_t *script = G_GetWeaponScript( i );
-            if ( script && script->hasScript ) {
-                wcs[0] = '\0';
-                if ( script->name[0] ) {
-                    Info_SetValueForKey( wcs, "n", script->name );
-                }
-                if ( script->killMessage[0] ) {
-                    Info_SetValueForKey( wcs, "k", script->killMessage );
-                }
-                if ( script->killMessage2[0] ) {
-                    Info_SetValueForKey( wcs, "l", script->killMessage2 );
-                }
-                if ( script->selfKillMessage[0] ) {
-                    Info_SetValueForKey( wcs, "s", script->selfKillMessage );
-                }
-                G_RpcsEnqueue( clientNum, va("xcs w %i \"%s\"", i, wcs) );
+    for ( int i = 0; i < WP_NUM_WEAPONS; i++ ) {
+        weaponScriptDef_t *script = G_GetWeaponScript( i );
+        if ( script && script->hasScript ) {
+            char wcs[MAX_INFO_STRING];
+            wcs[0] = '\0';
+            if ( script->name[0] ) {
+                Info_SetValueForKey( wcs, "n", script->name );
             }
+            if ( script->killMessage[0] ) {
+                Info_SetValueForKey( wcs, "k", script->killMessage );
+            }
+            if ( script->killMessage2[0] ) {
+                Info_SetValueForKey( wcs, "l", script->killMessage2 );
+            }
+            if ( script->selfKillMessage[0] ) {
+                Info_SetValueForKey( wcs, "s", script->selfKillMessage );
+            }
+            G_RpcsEnqueue( clientNum, va("xcs w %i \"%s\"", i, wcs) );
         }
     }
 
