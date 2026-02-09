@@ -2247,12 +2247,8 @@ CG_ConfigString
 =================
 */
 const char *CG_ConfigString( int index ) {
-	if ( index < 0 || index >= MAX_CONFIGSTRINGS ) {
-		CG_Error( "CG_ConfigString: bad index: %i", index );
-	}
-
 	// NCS: models, sounds, shaders, shaderstate, skins, characters
-	// are stored in private NCS buffers, not engine gamestate
+	// use virtual indices (700+) not in engine gamestate. Check these first.
 	if ( index >= CS_MODELS && index < CS_MODELS + MAX_MODELS ) {
 		return CG_NcsConfigString( NCS_MODELS + (index - CS_MODELS) );
 	}
@@ -2270,6 +2266,11 @@ const char *CG_ConfigString( int index ) {
 	}
 	if ( index >= CS_CHARACTERS && index < CS_CHARACTERS + MAX_CHARACTERS ) {
 		return CG_NcsConfigString( NCS_CHARACTERS + (index - CS_CHARACTERS) );
+	}
+
+	// Engine configstrings
+	if ( index < 0 || index >= MAX_CONFIGSTRINGS ) {
+		CG_Error( "CG_ConfigString: bad index: %i", index );
 	}
 
 	// RPCS: return full player info from RPCS buffer instead of gamestate

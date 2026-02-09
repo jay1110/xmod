@@ -117,7 +117,6 @@ Sets an NCS entry and broadcasts it to all connected clients.
 void G_NcsSetConfigstring( int ncsIndex, const char *value ) {
 	if ( ncsIndex < 0 || ncsIndex >= NCS_MAX ) {
 		G_Error( "G_NcsSetConfigstring: bad index %i\n", ncsIndex );
-		return;
 	}
 	if ( !value ) {
 		value = "";

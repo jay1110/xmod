@@ -401,10 +401,12 @@ extern const unsigned int aReinfSeeds[MAX_REINFSEEDS];
 #define NCS_MAX							( NCS_CHARACTERS +			MAX_CHARACTERS				)
 #define NCS_STRING_SIZE					1024	// max string size per NCS entry
 
-// CS_MODELS etc. are kept as defines for code compatibility but are NCS-managed
-// (mapped to engine configstring indices that start at 41, but never actually
-// stored in the engine gamestate - see NCS system in g_utils.cpp / cg_servercmds.cpp)
-#define	CS_MODELS						41
+// CS_MODELS etc. are kept as defines for code compatibility but are NCS-managed.
+// They use high index values (700+) that do NOT overlap with actual engine
+// configstrings (CS_PLAYERS starts at 41). These indices are NEVER stored in the
+// engine gamestate - they're only used as identifiers for G_FindConfigstringIndex
+// and CG_ConfigString to route to the NCS system.
+#define	CS_MODELS						700
 #define	CS_SOUNDS						( CS_MODELS +				MAX_MODELS					)
 #define CS_SHADERS						( CS_SOUNDS +				MAX_SOUNDS					)
 #define CS_SHADERSTATE					( CS_SHADERS +				MAX_CS_SHADERS				)
