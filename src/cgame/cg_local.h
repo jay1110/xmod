@@ -2227,6 +2227,7 @@ typedef struct {
 	char				rpcsWatermark[MAX_INFO_STRING];
 	char				rpcsAxisMapsXP[MAX_STRING_CHARS];
 	char				rpcsAlliedMapsXP[MAX_STRING_CHARS];
+	char				rpcsPlayers[MAX_CLIENTS][MAX_INFO_STRING]; // Full player info via RPCS
 } cgs_t;
 
 //==============================================================================

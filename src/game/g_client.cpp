@@ -2011,8 +2011,30 @@ void ClientUserinfoChanged( int clientNum ) {
         s = csStr;
     }
 
-    trap_GetConfigstring( CS_PLAYERS + clientNum, oldname, sizeof( oldname ) );
-    trap_SetConfigstring( CS_PLAYERS + clientNum, s );
+    // RPCS: Set minimal configstring for UI module compatibility,
+    // and send full player data via RPCS to avoid MAX_GAMESTATE_CHARS exceeded.
+    // The UI module (limbo menu, fireteam menu) reads: n, t, mu, ref from CS_PLAYERS.
+    // The cgame module uses the RPCS buffer for the full data.
+    {
+        char minimalCS[MAX_INFO_STRING];
+        int mlen = snprintf( minimalCS, sizeof(minimalCS), "n\\%s\\t\\%i",
+            client->pers.netname,
+            client->sess.sessionTeam );
+        // Include mu and ref for UI module (limbo menu mute/referee display)
+        if (::xmod::isClientMuted(clientNum)) {
+            mlen += snprintf( minimalCS + mlen, sizeof(minimalCS) - mlen, "\\mu\\1" );
+        }
+        if (client->sess.referee) {
+            snprintf( minimalCS + mlen, sizeof(minimalCS) - mlen, "\\ref\\%i", client->sess.referee );
+        }
+
+        trap_GetConfigstring( CS_PLAYERS + clientNum, oldname, sizeof( oldname ) );
+        trap_SetConfigstring( CS_PLAYERS + clientNum, minimalCS );
+
+        // Store full player info for connecting clients and send via RPCS
+        Q_strncpyz( level.rpcsPlayerInfo[clientNum], s, sizeof(level.rpcsPlayerInfo[clientNum]) );
+        trap_SendServerCommand( -1, va("xcs p %i \"%s\"", clientNum, s) );
+    }
 
     if (Q_stricmp( oldname, s )) {
         G_LogPrintf( "ClientUserinfoChanged: %i %s\n", clientNum, s );
@@ -3343,6 +3365,9 @@ void ClientDisconnect( int clientNum ) {
 	ent->active = qfalse;
 	ent->r.svFlags &= ~SVF_BOT;
 	trap_SetConfigstring( CS_PLAYERS + clientNum, "");
+	// Clear RPCS player data on disconnect
+	level.rpcsPlayerInfo[clientNum][0] = '\0';
+	trap_SendServerCommand( -1, va("xcs p %i \"\"", clientNum) );
 
 
 	CalculateRanks();

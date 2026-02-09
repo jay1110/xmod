@@ -1335,6 +1335,13 @@ void G_SendXmodCS( int clientNum ) {
     // Map XP data (RPCS: moved out of configstrings)
     trap_SendServerCommand( clientNum, va("xcs a \"%s\"", level.axisMapsXP) );
     trap_SendServerCommand( clientNum, va("xcs b \"%s\"", level.alliedMapsXP) );
+
+    // Player info (RPCS: full player data, CS_PLAYERS only has minimal name+team)
+    for ( int i = 0; i < level.maxclients; i++ ) {
+        if ( level.rpcsPlayerInfo[i][0] ) {
+            trap_SendServerCommand( clientNum, va("xcs p %i \"%s\"", i, level.rpcsPlayerInfo[i]) );
+        }
+    }
 }
 
 /*************************************************

@@ -384,9 +384,10 @@ extern const unsigned int aReinfSeeds[MAX_REINFSEEDS];
 
 // RPCS (Reliable Per-Client Server Commands) for mod-specific data:
 // CS_XMODINFO, CS_XMODINFO2, CS_WEAPONSCRIPTS, CS_SKILLLEVELS, CS_WATERMARKINFO,
-// CS_AXIS_MAPS_XP, and CS_ALLIED_MAPS_XP are now sent via server commands ("xcs")
-// instead of configstrings to avoid MAX_GAMESTATE_CHARS exceeded errors.
-// These are no longer configstring indices.
+// CS_AXIS_MAPS_XP, CS_ALLIED_MAPS_XP, and CS_PLAYERS (full data) are now sent via
+// server commands ("xcs") instead of configstrings to avoid MAX_GAMESTATE_CHARS
+// exceeded errors. CS_PLAYERS still contains minimal data (name+team+mu+ref) for
+// UI module compatibility.
 
 #define	CS_MODELS						41
 #define	CS_SOUNDS						( CS_MODELS +				MAX_MODELS					)

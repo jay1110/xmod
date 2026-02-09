@@ -908,7 +908,12 @@ void CG_ConfigStringModified( void )
     }
 
     if (index >= CS_PLAYERS && index < CS_PLAYERS+MAX_CLIENTS) {
-        CG_NewClientInfo( index - CS_PLAYERS );
+        int clientNum = index - CS_PLAYERS;
+        // If configstring is empty (disconnect), clear RPCS buffer too
+        if ( !csval[0] ) {
+            cgs.rpcsPlayers[clientNum][0] = '\0';
+        }
+        CG_NewClientInfo( clientNum );
         return;
     }
 
@@ -2568,7 +2573,7 @@ static void CG_ServerCommand( void ) {
 	// RPCS: xmod configstring data sent via server command instead of configstrings
 	// Format: "xcs <type> [index] <data>"
 	// Types: 1=xmodinfo, 2=xmodinfo2, s=skilllevels, m=watermark, w=weaponscript,
-	//        a=axisMapsXP, b=alliedMapsXP
+	//        a=axisMapsXP, b=alliedMapsXP, p=playerinfo
 	if ( !Q_stricmp( cmd, "xcs" ) ) {
 		const char* type = CG_Argv(1);
 		if ( !Q_stricmp( type, "1" ) ) {
@@ -2600,6 +2605,13 @@ static void CG_ServerCommand( void ) {
 		} else if ( !Q_stricmp( type, "b" ) ) {
 			Q_strncpyz( cgs.rpcsAlliedMapsXP, CG_Argv(2), sizeof(cgs.rpcsAlliedMapsXP) );
 			CG_ParseTeamXPs( 1 );
+		} else if ( !Q_stricmp( type, "p" ) ) {
+			// Player info via RPCS: "xcs p <clientNum> <data>"
+			int clientNum = atoi( CG_Argv(2) );
+			if ( clientNum >= 0 && clientNum < MAX_CLIENTS ) {
+				Q_strncpyz( cgs.rpcsPlayers[clientNum], CG_Argv(3), sizeof(cgs.rpcsPlayers[clientNum]) );
+				CG_NewClientInfo( clientNum );
+			}
 		}
 		return;
 	}

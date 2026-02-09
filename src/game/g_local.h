@@ -1293,6 +1293,11 @@ typedef struct {
 	char		axisMapsXP[MAX_STRING_CHARS];
 	char		alliedMapsXP[MAX_STRING_CHARS];
 
+	// RPCS: Full player info (moved out of configstrings to avoid MAX_GAMESTATE_CHARS exceeded)
+	// CS_PLAYERS only contains minimal data (name+team) for UI compatibility.
+	// This buffer holds the full player info sent via RPCS to cgame.
+	char		rpcsPlayerInfo[MAX_CLIENTS][MAX_INFO_STRING];
+
 } level_locals_t;
 
 typedef struct {
