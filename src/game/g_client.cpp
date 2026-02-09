@@ -1934,35 +1934,74 @@ void ClientUserinfoChanged( int clientNum ) {
 
     // send over a subset of the userinfo keys so other clients can
     // print scoreboards, display models, and play custom sounds
-    // "skill" key: 0 = human player, 1 = bot (value 1 used to identify bots, not actual skill)
-    // This allows clients to identify bots without needing server-side entity access.
-    // Used by CG_DrawDisconnect() to skip "Connection Interrupted" display when spectating bots.
-    int botSkillValue = (ent->r.svFlags & SVF_BOT) ? 1 : 0;
-    s = va( "n\\%s\\t\\%i\\c\\%i\\r\\%i\\m\\%s\\s\\%s\\dn\\%s\\dr\\%i\\w\\%i\\lw\\%i\\sw\\%i\\mu\\%i\\ref\\%i\\sc\\%i\\u\\%i\\skill\\%i",
-        client->pers.netname, 
-        client->sess.sessionTeam, 
-        client->sess.playerType, 
-        client->sess.rank, 
-        medalStr,
-        skillStr,
-        client->disguiseNetname,
-        client->disguiseRank,
-        client->sess.playerWeapon,
-        client->sess.latchPlayerWeapon,
-        client->sess.latchPlayerWeapon2,
-        ::xmod::isClientMuted(clientNum) ? 1 : 0,
-        client->sess.referee,
-        client->sess.shoutcaster,
-        client->sess.uci,
-        botSkillValue
-    );
+    // Optimized: only include keys with non-zero/non-default values to reduce
+    // gamestate size and avoid MAX_GAMESTATE_CHARS exceeded errors (ETLegacy approach)
+    {
+        char configStr[MAX_INFO_STRING];
+        int  len, infoLen;
 
-    trap_GetConfigstring( CS_PLAYERS + clientNum, oldname, sizeof( oldname ) );
-    trap_SetConfigstring( CS_PLAYERS + clientNum, s );
+        infoLen = sizeof(configStr);
+        len = snprintf(configStr, infoLen, "n\\%s\\t\\%i\\c\\%i\\r\\%i\\m\\%s\\s\\%s",
+            client->pers.netname,
+            client->sess.sessionTeam,
+            client->sess.playerType,
+            client->sess.rank,
+            medalStr,
+            skillStr
+        );
 
-    if (Q_stricmp( oldname, s )) {
-        G_LogPrintf( "ClientUserinfoChanged: %i %s\n", clientNum, s );
-        G_DPrintf( "ClientUserinfoChanged: %i :: %s\n", clientNum, s );
+        if (client->disguiseNetname[0]) {
+            len += snprintf(configStr + len, infoLen - len, "\\dn\\%s", client->disguiseNetname);
+        }
+
+        if (client->disguiseRank) {
+            len += snprintf(configStr + len, infoLen - len, "\\dr\\%i", client->disguiseRank);
+        }
+
+        if (client->sess.playerWeapon) {
+            len += snprintf(configStr + len, infoLen - len, "\\w\\%i", client->sess.playerWeapon);
+        }
+
+        if (client->sess.latchPlayerWeapon) {
+            len += snprintf(configStr + len, infoLen - len, "\\lw\\%i", client->sess.latchPlayerWeapon);
+        }
+
+        if (client->sess.latchPlayerWeapon2) {
+            len += snprintf(configStr + len, infoLen - len, "\\sw\\%i", client->sess.latchPlayerWeapon2);
+        }
+
+        if (::xmod::isClientMuted(clientNum)) {
+            len += snprintf(configStr + len, infoLen - len, "\\mu\\%i", 1);
+        }
+
+        if (client->sess.referee) {
+            len += snprintf(configStr + len, infoLen - len, "\\ref\\%i", client->sess.referee);
+        }
+
+        if (client->sess.shoutcaster) {
+            len += snprintf(configStr + len, infoLen - len, "\\sc\\%i", client->sess.shoutcaster);
+        }
+
+        if (client->sess.uci) {
+            len += snprintf(configStr + len, infoLen - len, "\\u\\%i", client->sess.uci);
+        }
+
+        // "skill" key: 0 = human player, 1 = bot (value 1 used to identify bots, not actual skill)
+        // This allows clients to identify bots without needing server-side entity access.
+        // Used by CG_DrawDisconnect() to skip "Connection Interrupted" display when spectating bots.
+        if (ent->r.svFlags & SVF_BOT) {
+            len += snprintf(configStr + len, infoLen - len, "\\skill\\%i", 1);
+        }
+
+        s = configStr;
+
+        trap_GetConfigstring( CS_PLAYERS + clientNum, oldname, sizeof( oldname ) );
+        trap_SetConfigstring( CS_PLAYERS + clientNum, s );
+
+        if (Q_stricmp( oldname, s )) {
+            G_LogPrintf( "ClientUserinfoChanged: %i %s\n", clientNum, s );
+            G_DPrintf( "ClientUserinfoChanged: %i :: %s\n", clientNum, s );
+        }
     }
 
     // No need to index - SQLite database is the source of truth
