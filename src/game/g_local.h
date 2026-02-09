@@ -1298,6 +1298,11 @@ typedef struct {
 	// This buffer holds the full player info sent via RPCS to cgame.
 	char		rpcsPlayerInfo[MAX_CLIENTS][MAX_INFO_STRING];
 
+	// RPCS: Charge times, filtercams, endgame stats (moved out of configstrings)
+	char		rpcsChargeTimes[MAX_INFO_STRING];
+	char		rpcsFilterCams[32];
+	char		rpcsEndgameStats[MAX_INFO_STRING];
+
 } level_locals_t;
 
 typedef struct {

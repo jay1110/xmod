@@ -718,7 +718,8 @@ CG_ChargeTimesChanged
 void CG_ChargeTimesChanged( void ) {
 	const char *info;
 
-	info = CG_ConfigString( CS_CHARGETIMES );
+	// RPCS: Read charge times from RPCS buffer instead of configstring
+	info = cgs.rpcsChargeTimes;
 
 	cg.soldierChargeTime[0] = atoi(Info_ValueForKey( info, "axs_sld" ));
 	cg.soldierChargeTime[1] = atoi(Info_ValueForKey( info, "ald_sld" ));
@@ -845,16 +846,10 @@ void CG_ConfigStringModified( void )
             CG_ShaderStateChanged();
             return;
 
-        case CS_CHARGETIMES:
-            CG_ChargeTimesChanged();
-            return;
+        // CS_CHARGETIMES and CS_FILTERCAMS moved to RPCS ("xcs c" and "xcs f")
 
         case CS_SKYBOXORG:
             CG_ParseSkyBox();
-            return;
-
-        case CS_FILTERCAMS:
-            cg.filtercams = atoi( csval ) ? qtrue : qfalse;
             return;
 
         default:
@@ -1253,7 +1248,7 @@ static void CG_MapRestart( void ) {
 	cg.v_noFireTime = 0;
 	cg.v_fireTime = 0;
 
-	cg.filtercams = atoi( CG_ConfigString( CS_FILTERCAMS ) ) ? qtrue : qfalse;
+	cg.filtercams = atoi( cgs.rpcsFilterCams ) ? qtrue : qfalse;
 
 	CG_ChargeTimesChanged();
 
@@ -2573,7 +2568,8 @@ static void CG_ServerCommand( void ) {
 	// RPCS: xmod configstring data sent via server command instead of configstrings
 	// Format: "xcs <type> [index] <data>"
 	// Types: 1=xmodinfo, 2=xmodinfo2, s=skilllevels, m=watermark, w=weaponscript,
-	//        a=axisMapsXP, b=alliedMapsXP, p=playerinfo
+	//        a=axisMapsXP, b=alliedMapsXP, p=playerinfo, c=chargetimes, f=filtercams,
+	//        e=endgamestats
 	if ( !Q_stricmp( cmd, "xcs" ) ) {
 		const char* type = CG_Argv(1);
 		if ( !Q_stricmp( type, "1" ) ) {
@@ -2612,6 +2608,17 @@ static void CG_ServerCommand( void ) {
 				Q_strncpyz( cgs.rpcsPlayers[clientNum], CG_Argv(3), sizeof(cgs.rpcsPlayers[clientNum]) );
 				CG_NewClientInfo( clientNum );
 			}
+		} else if ( !Q_stricmp( type, "c" ) ) {
+			// Charge times via RPCS
+			Q_strncpyz( cgs.rpcsChargeTimes, CG_Argv(2), sizeof(cgs.rpcsChargeTimes) );
+			CG_ChargeTimesChanged();
+		} else if ( !Q_stricmp( type, "f" ) ) {
+			// Filtercams via RPCS
+			Q_strncpyz( cgs.rpcsFilterCams, CG_Argv(2), sizeof(cgs.rpcsFilterCams) );
+			cg.filtercams = atoi( cgs.rpcsFilterCams ) ? qtrue : qfalse;
+		} else if ( !Q_stricmp( type, "e" ) ) {
+			// Endgame stats via RPCS
+			Q_strncpyz( cgs.rpcsEndgameStats, CG_Argv(2), sizeof(cgs.rpcsEndgameStats) );
 		}
 		return;
 	}

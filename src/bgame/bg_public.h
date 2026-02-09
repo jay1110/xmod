@@ -373,21 +373,19 @@ extern const unsigned int aReinfSeeds[MAX_REINFSEEDS];
 #define CS_SERVERTOGGLES				32  	// Shows current enable/disabled settings (for voting UI)
 #define CS_GLOBALFOGVARS				33
 // CS_AXIS_MAPS_XP and CS_ALLIED_MAPS_XP moved to RPCS ("xcs a/b")
-// to avoid MAX_GAMESTATE_CHARS exceeded with many maps (ETJump approach)
 // Indices 34-35 unused
 #define CS_INTERMISSION_START_TIME		36		//
-#define CS_ENDGAME_STATS				37
-#define CS_CHARGETIMES					38
-#define CS_FILTERCAMS					39
+// CS_ENDGAME_STATS, CS_CHARGETIMES, CS_FILTERCAMS moved to RPCS ("xcs e/c/f")
+// Indices 37-39 unused
 
 #define CS_AVAILABLESTRIKES				40
 
 // RPCS (Reliable Per-Client Server Commands) for mod-specific data:
 // CS_XMODINFO, CS_XMODINFO2, CS_WEAPONSCRIPTS, CS_SKILLLEVELS, CS_WATERMARKINFO,
-// CS_AXIS_MAPS_XP, CS_ALLIED_MAPS_XP, and CS_PLAYERS (full data) are now sent via
-// server commands ("xcs") instead of configstrings to avoid MAX_GAMESTATE_CHARS
-// exceeded errors. CS_PLAYERS still contains minimal data (name+team+mu+ref) for
-// UI module compatibility.
+// CS_AXIS_MAPS_XP, CS_ALLIED_MAPS_XP, CS_PLAYERS (full data), CS_CHARGETIMES,
+// CS_FILTERCAMS, CS_ENDGAME_STATS are now sent via server commands ("xcs") instead
+// of configstrings to avoid MAX_GAMESTATE_CHARS exceeded errors.
+// CS_PLAYERS still contains minimal data (name+team+mu+ref) for UI module compatibility.
 
 #define	CS_MODELS						41
 #define	CS_SOUNDS						( CS_MODELS +				MAX_MODELS					)

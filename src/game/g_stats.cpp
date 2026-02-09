@@ -782,5 +782,7 @@ void G_BuildEndgameStats( void ) {
 	CHECKSTATMIN( sess.team_kills, 5 );
 	CHECKSTATTIME( ps.persistant[PERS_SCORE], pers.enterTime );
 
-	trap_SetConfigstring( CS_ENDGAME_STATS, buffer );
+	// RPCS: Send endgame stats via server command instead of configstring
+	Q_strncpyz( level.rpcsEndgameStats, buffer, sizeof(level.rpcsEndgameStats) );
+	trap_SendServerCommand( -1, va("xcs e \"%s\"", buffer) );
 }

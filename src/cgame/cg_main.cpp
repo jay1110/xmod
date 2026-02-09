@@ -3070,7 +3070,7 @@ void CG_Init( int serverMessageNum, int serverCommandSequence, int clientNum, qb
 
 	CG_ShaderStateChanged();
 
-	CG_ChargeTimesChanged();
+	// CG_ChargeTimesChanged() - now handled via RPCS "xcs c" (sent in G_SendXmodCS)
 
 	trap_S_ClearLoopingSounds();
 	trap_S_ClearSounds( qfalse );
@@ -3078,7 +3078,7 @@ void CG_Init( int serverMessageNum, int serverCommandSequence, int clientNum, qb
 	cg.teamWonRounds[1] = atoi( CG_ConfigString( CS_ROUNDSCORES1 ) );
 	cg.teamWonRounds[0] = atoi( CG_ConfigString( CS_ROUNDSCORES2 ) );
 
-	cg.filtercams = atoi( CG_ConfigString( CS_FILTERCAMS ) ) ? qtrue : qfalse;
+	// cg.filtercams - now handled via RPCS "xcs f" (sent in G_SendXmodCS)
 
 	CG_ParseFireteams();
 

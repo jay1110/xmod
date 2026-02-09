@@ -1612,7 +1612,9 @@ void G_UpdateCvars( void )
 				}
 
 				if( cv->vmCvar == &g_filtercams ) {
-					trap_SetConfigstring( CS_FILTERCAMS, va( "%i", g_filtercams.integer ) );
+					// RPCS: Send filtercams via server command instead of configstring
+					Q_strncpyz( level.rpcsFilterCams, va( "%i", g_filtercams.integer ), sizeof(level.rpcsFilterCams) );
+					trap_SendServerCommand( -1, va("xcs f \"%s\"", level.rpcsFilterCams) );
 				}
 
 				if( cv->vmCvar == &g_soldierChargeTime ) {
@@ -1747,7 +1749,9 @@ void G_UpdateCvars( void )
 		Info_SetValueForKey( cs, "ald_lnt", va("%i", level.lieutenantChargeTime[1]) );
 		Info_SetValueForKey( cs, "axs_cvo", va("%i", level.covertopsChargeTime[0]) );
 		Info_SetValueForKey( cs, "ald_cvo", va("%i", level.covertopsChargeTime[1]) );
-		trap_SetConfigstring( CS_CHARGETIMES, cs );
+		// RPCS: Send charge times via server command instead of configstring
+		Q_strncpyz( level.rpcsChargeTimes, cs, sizeof(level.rpcsChargeTimes) );
+		trap_SendServerCommand( -1, va("xcs c \"%s\"", cs) );
 	}
 }
 
@@ -2026,8 +2030,11 @@ void G_InitGame( int levelTime, int randomSeed, int restart ) {
 	Info_SetValueForKey( cs, "ald_lnt", va("%i", level.lieutenantChargeTime[1]) );
 	Info_SetValueForKey( cs, "axs_cvo", va("%i", level.covertopsChargeTime[0]) );
 	Info_SetValueForKey( cs, "ald_cvo", va("%i", level.covertopsChargeTime[1]) );
-	trap_SetConfigstring( CS_CHARGETIMES, cs );
-	trap_SetConfigstring( CS_FILTERCAMS, va( "%i", g_filtercams.integer ) );
+	// RPCS: Store charge times for connecting clients (sent in G_SendXmodCS)
+	Q_strncpyz( level.rpcsChargeTimes, cs, sizeof(level.rpcsChargeTimes) );
+
+	// RPCS: Store filtercams for connecting clients (sent in G_SendXmodCS)
+	Q_strncpyz( level.rpcsFilterCams, va( "%i", g_filtercams.integer ), sizeof(level.rpcsFilterCams) );
 
 	// Xmod - Watermarking features (sent via server command to avoid gamestate overflow)
 	cs[0] = '\0';

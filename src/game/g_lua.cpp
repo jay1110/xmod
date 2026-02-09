@@ -4112,11 +4112,9 @@ static void G_LuaRegisterConstants(lua_State* L)
     lua_regconstinteger(L, CS_REINFSEEDS);
     lua_regconstinteger(L, CS_SERVERTOGGLES);
     lua_regconstinteger(L, CS_GLOBALFOGVARS);
-    // CS_AXIS_MAPS_XP and CS_ALLIED_MAPS_XP moved to RPCS
+    // CS_AXIS_MAPS_XP, CS_ALLIED_MAPS_XP, CS_ENDGAME_STATS, CS_CHARGETIMES,
+    // CS_FILTERCAMS moved to RPCS
     lua_regconstinteger(L, CS_INTERMISSION_START_TIME);
-    lua_regconstinteger(L, CS_ENDGAME_STATS);
-    lua_regconstinteger(L, CS_CHARGETIMES);
-    lua_regconstinteger(L, CS_FILTERCAMS);
     lua_regconstinteger(L, CS_MODELS);
     lua_regconstinteger(L, CS_SOUNDS);
     lua_regconstinteger(L, CS_SHADERS);

@@ -2228,6 +2228,9 @@ typedef struct {
 	char				rpcsAxisMapsXP[MAX_STRING_CHARS];
 	char				rpcsAlliedMapsXP[MAX_STRING_CHARS];
 	char				rpcsPlayers[MAX_CLIENTS][MAX_INFO_STRING]; // Full player info via RPCS
+	char				rpcsChargeTimes[MAX_INFO_STRING]; // Charge times via RPCS
+	char				rpcsFilterCams[32]; // Filtercams via RPCS
+	char				rpcsEndgameStats[MAX_INFO_STRING]; // Endgame stats via RPCS
 } cgs_t;
 
 //==============================================================================

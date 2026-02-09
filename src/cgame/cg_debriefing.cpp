@@ -2423,7 +2423,8 @@ const char* awardNames[NUM_ENDGAME_AWARDS] = {
 
 void CG_Debreifing2_Awards_Parse( void ) {
 	int i = 0;
-	char* cs = (char*)CG_ConfigString( CS_ENDGAME_STATS );
+	// RPCS: Read endgame stats from RPCS buffer instead of configstring
+	char* cs = cgs.rpcsEndgameStats;
 	const char* token;
 	char* s;
 	int size, len;

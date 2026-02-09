@@ -1336,6 +1336,17 @@ void G_SendXmodCS( int clientNum ) {
     trap_SendServerCommand( clientNum, va("xcs a \"%s\"", level.axisMapsXP) );
     trap_SendServerCommand( clientNum, va("xcs b \"%s\"", level.alliedMapsXP) );
 
+    // Charge times, filtercams, endgame stats (RPCS: moved out of configstrings)
+    if ( level.rpcsChargeTimes[0] ) {
+        trap_SendServerCommand( clientNum, va("xcs c \"%s\"", level.rpcsChargeTimes) );
+    }
+    if ( level.rpcsFilterCams[0] ) {
+        trap_SendServerCommand( clientNum, va("xcs f \"%s\"", level.rpcsFilterCams) );
+    }
+    if ( level.rpcsEndgameStats[0] ) {
+        trap_SendServerCommand( clientNum, va("xcs e \"%s\"", level.rpcsEndgameStats) );
+    }
+
     // Player info (RPCS: full player data, CS_PLAYERS only has minimal name+team)
     for ( int i = 0; i < level.maxclients; i++ ) {
         if ( level.rpcsPlayerInfo[i][0] ) {
