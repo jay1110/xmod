@@ -2017,16 +2017,17 @@ void ClientUserinfoChanged( int clientNum ) {
     // The cgame module uses the RPCS buffer for the full data.
     {
         char minimalCS[MAX_INFO_STRING];
-        int mlen = snprintf( minimalCS, sizeof(minimalCS), "n\\%s\\t\\%i",
+        int len = snprintf( minimalCS, sizeof(minimalCS), "n\\%s\\t\\%i",
             client->pers.netname,
             client->sess.sessionTeam );
         // Include mu and ref for UI module (limbo menu mute/referee display)
         if (::xmod::isClientMuted(clientNum)) {
-            mlen += snprintf( minimalCS + mlen, sizeof(minimalCS) - mlen, "\\mu\\1" );
+            len += snprintf( minimalCS + len, sizeof(minimalCS) - len, "\\mu\\1" );
         }
         if (client->sess.referee) {
-            snprintf( minimalCS + mlen, sizeof(minimalCS) - mlen, "\\ref\\%i", client->sess.referee );
+            len += snprintf( minimalCS + len, sizeof(minimalCS) - len, "\\ref\\%i", client->sess.referee );
         }
+        (void)len; // suppress unused variable warning
 
         trap_GetConfigstring( CS_PLAYERS + clientNum, oldname, sizeof( oldname ) );
         trap_SetConfigstring( CS_PLAYERS + clientNum, minimalCS );
