@@ -1289,6 +1289,10 @@ typedef struct {
 	qboolean	twoMinute;
 	qboolean	thirtySecond;
 
+	// RPCS: Map XP data (moved out of configstrings to avoid MAX_GAMESTATE_CHARS exceeded)
+	char		axisMapsXP[MAX_STRING_CHARS];
+	char		alliedMapsXP[MAX_STRING_CHARS];
+
 } level_locals_t;
 
 typedef struct {

@@ -1331,6 +1331,10 @@ void G_SendXmodCS( int clientNum ) {
 
     // Weapon scripts
     G_SendWeaponScripts( clientNum );
+
+    // Map XP data (RPCS: moved out of configstrings)
+    trap_SendServerCommand( clientNum, va("xcs a \"%s\"", level.axisMapsXP) );
+    trap_SendServerCommand( clientNum, va("xcs b \"%s\"", level.alliedMapsXP) );
 }
 
 /*************************************************

@@ -2225,6 +2225,8 @@ typedef struct {
 	char				rpcsXmodinfo2[MAX_INFO_STRING];
 	char				rpcsSkillLevels[MAX_INFO_STRING];
 	char				rpcsWatermark[MAX_INFO_STRING];
+	char				rpcsAxisMapsXP[MAX_STRING_CHARS];
+	char				rpcsAlliedMapsXP[MAX_STRING_CHARS];
 } cgs_t;
 
 //==============================================================================

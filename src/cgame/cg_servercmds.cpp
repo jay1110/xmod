@@ -927,10 +927,7 @@ void CG_ConfigStringModified( void )
         return;
     }
 
-    if (index == CS_ALLIED_MAPS_XP || index == CS_AXIS_MAPS_XP) {
-        CG_ParseTeamXPs( index - CS_AXIS_MAPS_XP );
-        return;
-    }
+    // CS_AXIS_MAPS_XP and CS_ALLIED_MAPS_XP moved to RPCS ("xcs a/b")
 
     if (index >= CS_OID_DATA && index < CS_OID_DATA + MAX_OID_TRIGGERS) {
         CG_ParseOIDInfo( index );
@@ -2570,7 +2567,8 @@ static void CG_ServerCommand( void ) {
 
 	// RPCS: xmod configstring data sent via server command instead of configstrings
 	// Format: "xcs <type> [index] <data>"
-	// Types: 1=xmodinfo, 2=xmodinfo2, s=skilllevels, m=watermark, w=weaponscript
+	// Types: 1=xmodinfo, 2=xmodinfo2, s=skilllevels, m=watermark, w=weaponscript,
+	//        a=axisMapsXP, b=alliedMapsXP
 	if ( !Q_stricmp( cmd, "xcs" ) ) {
 		const char* type = CG_Argv(1);
 		if ( !Q_stricmp( type, "1" ) ) {
@@ -2596,6 +2594,12 @@ static void CG_ServerCommand( void ) {
 			int weapon = atoi( CG_Argv(2) );
 			const char* data = CG_Argv(3);
 			CG_ParseWeaponScript( weapon, data );
+		} else if ( !Q_stricmp( type, "a" ) ) {
+			Q_strncpyz( cgs.rpcsAxisMapsXP, CG_Argv(2), sizeof(cgs.rpcsAxisMapsXP) );
+			CG_ParseTeamXPs( 0 );
+		} else if ( !Q_stricmp( type, "b" ) ) {
+			Q_strncpyz( cgs.rpcsAlliedMapsXP, CG_Argv(2), sizeof(cgs.rpcsAlliedMapsXP) );
+			CG_ParseTeamXPs( 1 );
 		}
 		return;
 	}

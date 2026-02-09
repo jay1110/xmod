@@ -1791,28 +1791,31 @@ char *strcut( char *dest, char *src, int num ) {
 
 //g_{axies,allies}mapxp overflows and crashes the server
 void bani_clearmapxp( void ) {
-	trap_SetConfigstring( CS_AXIS_MAPS_XP, "" );
-	trap_SetConfigstring( CS_ALLIED_MAPS_XP, "" );
+	level.axisMapsXP[0] = '\0';
+	level.alliedMapsXP[0] = '\0';
 
 	trap_Cvar_Set( va( "%s_axismapxp0", GAMEVERSION ), "" );
 	trap_Cvar_Set( va( "%s_alliedmapxp0", GAMEVERSION ), "" );
+
+	// Broadcast empty XP data to all clients
+	trap_SendServerCommand( -1, "xcs a \"\"" );
+	trap_SendServerCommand( -1, "xcs b \"\"" );
 }
 
 void bani_storemapxp( void ) {
-	char cs[MAX_STRING_CHARS];
 	char u[MAX_STRING_CHARS];
 	char *k;
 	int i, j;
 
 	//axis
-	trap_GetConfigstring( CS_AXIS_MAPS_XP, cs, sizeof(cs) );
 	for( i = 0; i < SK_NUM_SKILLS; i++ ) {
-		Q_strcat( cs, sizeof( cs ), va( " %i", (int)level.teamXP[ i ][ 0 ] ) );
+		Q_strcat( level.axisMapsXP, sizeof( level.axisMapsXP ), va( " %i", (int)level.teamXP[ i ][ 0 ] ) );
 	}
-	trap_SetConfigstring( CS_AXIS_MAPS_XP, cs );
+	// Broadcast axis XP data to all clients via RPCS
+	trap_SendServerCommand( -1, va("xcs a \"%s\"", level.axisMapsXP) );
 
 	j = 0;
-	k = strcut( u, cs, SNIPSIZE );
+	k = strcut( u, level.axisMapsXP, SNIPSIZE );
 	while( strlen( u ) ) {
 		//"to be continued..."
 		if( strlen( u ) == SNIPSIZE ) {
@@ -1824,14 +1827,14 @@ void bani_storemapxp( void ) {
 	}
 
 	//allies
-	trap_GetConfigstring( CS_ALLIED_MAPS_XP, cs, sizeof(cs) );
 	for( i = 0; i < SK_NUM_SKILLS; i++ ) {
-		Q_strcat( cs, sizeof( cs ), va( " %i", (int)level.teamXP[ i ][ 1 ] ) );
+		Q_strcat( level.alliedMapsXP, sizeof( level.alliedMapsXP ), va( " %i", (int)level.teamXP[ i ][ 1 ] ) );
 	}
-	trap_SetConfigstring( CS_ALLIED_MAPS_XP, cs );
+	// Broadcast allied XP data to all clients via RPCS
+	trap_SendServerCommand( -1, va("xcs b \"%s\"", level.alliedMapsXP) );
 
 	j = 0;
-	k = strcut( u, cs, SNIPSIZE );
+	k = strcut( u, level.alliedMapsXP, SNIPSIZE );
 	while( strlen( u ) ) {
 		//"to be continued..."
 		if( strlen( u ) == SNIPSIZE ) {
@@ -1857,7 +1860,7 @@ void bani_getmapxp( void ) {
 		trap_Cvar_VariableStringBuffer( va( "%s_axismapxp%i", GAMEVERSION, j ), t, sizeof(t) );
 		strcat( s, t );
 	}
-	trap_SetConfigstring( CS_AXIS_MAPS_XP, s );
+	Q_strncpyz( level.axisMapsXP, s, sizeof(level.axisMapsXP) );
 
 	j = 0;
 	trap_Cvar_VariableStringBuffer( va( "%s_alliedmapxp%i", GAMEVERSION, j ), s, sizeof(s) );
@@ -1868,7 +1871,7 @@ void bani_getmapxp( void ) {
 		trap_Cvar_VariableStringBuffer( va( "%s_alliedmapxp%i", GAMEVERSION, j ), t, sizeof(t) );
 		strcat( s, t );
 	}
-	trap_SetConfigstring( CS_ALLIED_MAPS_XP, s );
+	Q_strncpyz( level.alliedMapsXP, s, sizeof(level.alliedMapsXP) );
 }
 
 /*

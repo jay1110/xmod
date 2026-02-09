@@ -102,7 +102,8 @@ static void CG_LoadClientInfo( int clientNum ) {
 
 void CG_ParseTeamXPs( int n ) {
 	int i, j;
-	char* cs = (char*)CG_ConfigString( CS_AXIS_MAPS_XP + n );
+	// Use a local parsing pointer - COM_ParseExt advances it through the buffer
+	char* cs = (n == 0) ? cgs.rpcsAxisMapsXP : cgs.rpcsAlliedMapsXP;
 	const char* token;
 
 	for( i = 0; i < MAX_MAPS_PER_CAMPAIGN; i++ ) {

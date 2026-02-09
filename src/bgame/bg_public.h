@@ -372,8 +372,9 @@ extern const unsigned int aReinfSeeds[MAX_REINFSEEDS];
 #define CS_REINFSEEDS					31		// Reinforcement seeds
 #define CS_SERVERTOGGLES				32  	// Shows current enable/disabled settings (for voting UI)
 #define CS_GLOBALFOGVARS				33
-#define CS_AXIS_MAPS_XP					34
-#define CS_ALLIED_MAPS_XP				35
+// CS_AXIS_MAPS_XP and CS_ALLIED_MAPS_XP moved to RPCS ("xcs a/b")
+// to avoid MAX_GAMESTATE_CHARS exceeded with many maps (ETJump approach)
+// Indices 34-35 unused
 #define CS_INTERMISSION_START_TIME		36		//
 #define CS_ENDGAME_STATS				37
 #define CS_CHARGETIMES					38
@@ -382,9 +383,10 @@ extern const unsigned int aReinfSeeds[MAX_REINFSEEDS];
 #define CS_AVAILABLESTRIKES				40
 
 // RPCS (Reliable Per-Client Server Commands) for mod-specific data:
-// CS_XMODINFO, CS_XMODINFO2, CS_WEAPONSCRIPTS, CS_SKILLLEVELS, and CS_WATERMARKINFO
-// are now sent via server commands ("xcs") instead of configstrings to avoid
-// MAX_GAMESTATE_CHARS exceeded errors. These are no longer configstring indices.
+// CS_XMODINFO, CS_XMODINFO2, CS_WEAPONSCRIPTS, CS_SKILLLEVELS, CS_WATERMARKINFO,
+// CS_AXIS_MAPS_XP, and CS_ALLIED_MAPS_XP are now sent via server commands ("xcs")
+// instead of configstrings to avoid MAX_GAMESTATE_CHARS exceeded errors.
+// These are no longer configstring indices.
 
 #define	CS_MODELS						41
 #define	CS_SOUNDS						( CS_MODELS +				MAX_MODELS					)
