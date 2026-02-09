@@ -9,7 +9,6 @@ std::shared_ptr<ServerCommandsHandler> g_serverCommandsHandler;
 ///////////////////////////////////////////////////////////////////////////////
 
 ServerCommandsHandler::ServerCommandsHandler() {
-    CG_Printf("[ServerCommandsHandler] Initialized\n");
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -42,7 +41,6 @@ bool ServerCommandsHandler::subscribe(const std::string& command,
     }
     
     callbacks_[command] = callback;
-    CG_Printf("[ServerCommandsHandler] Subscribed to command: %s\n", command.c_str());
     return true;
 }
 
@@ -52,7 +50,6 @@ bool ServerCommandsHandler::unsubscribe(const std::string& command) {
     auto it = callbacks_.find(command);
     if (it != callbacks_.end()) {
         callbacks_.erase(it);
-        CG_Printf("[ServerCommandsHandler] Unsubscribed from command: %s\n", command.c_str());
         return true;
     }
     return false;

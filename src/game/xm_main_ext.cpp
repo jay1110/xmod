@@ -61,6 +61,21 @@ qboolean OnClientCommand(int clientNum, const char* cmd) {
 
 		// Validate GUID and HWID format (SHA1 hex = 40 chars)
 		if (isValidHexString(guid, xm_auth::GUID_LENGTH) && isValidHexString(hwid, xm_auth::HWID_LENGTH)) {
+			// Check for duplicate xmodguid - reject if another client already authenticated with the same GUID
+			for (int i = 0; i < level.numConnectedClients; i++) {
+				int otherNum = level.sortedClients[i];
+				if (otherNum == clientNum)
+					continue;
+				if (g_clientObjects[otherNum].authenticated && !g_clientObjects[otherNum].authGuid.empty()) {
+					if (!Q_stricmp(guid, g_clientObjects[otherNum].authGuid.c_str())) {
+						G_LogPrintf("[Auth] Client %d (%s): DUPLICATE xmodguid detected (already in use by client %d)\n",
+							clientNum, clientName, otherNum);
+						trap_DropClient(clientNum, "Duplicate GUID detected.", 0);
+						return qtrue;
+					}
+				}
+			}
+
 			// Store in Client object
 			Client& clientObject = g_clientObjects[clientNum];
 			clientObject.authGuid = guid;

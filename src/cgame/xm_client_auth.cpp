@@ -79,12 +79,10 @@ std::string loadGuidFromFile() {
         if (len >= 32) {
             std::string guid(buffer);
             if (guid.length() >= 32) {
-                CG_Printf("[Auth] GUID loaded from file: %s\n", guid.substr(0, 36).c_str());
                 return guid.substr(0, 36); // UUID format with dashes
             }
         }
     }
-    CG_Printf("[Auth] No existing GUID file found\n");
     return "";
 }
 
@@ -95,7 +93,6 @@ void saveGuidToFile(const std::string& guid) {
     if (trap_FS_FOpenFile("xmodguid.dat", &f, FS_WRITE) >= 0) {
         trap_FS_Write(guid.c_str(), guid.length(), f);
         trap_FS_FCloseFile(f);
-        CG_Printf("[Auth] GUID saved to file\n");
     }
 }
 
@@ -217,7 +214,6 @@ std::string getGuid() {
     // Generate new GUID if not found
     if (g_guid.empty()) {
         g_guid = generateUUID();
-        CG_Printf("[Auth] Generated new GUID: %s\n", g_guid.c_str());
         saveGuidToFile(g_guid);
     }
     
@@ -236,8 +232,6 @@ std::string getHwid() {
 #else
     g_hwid = collectHwidUnix();
 #endif
-    
-    CG_Printf("[Auth] HWID collected: %s\n", g_hwid.c_str());
     
     return g_hwid;
 }
@@ -258,8 +252,6 @@ void login() {
     cmd << xm_auth::CMD_AUTHENTICATE << " " << hashedGuid << " " << hashedHwid;
     std::string cmdStr = cmd.str();
 
-    CG_Printf("[Auth] Sending: %s\n", cmdStr.c_str());
-
     // Send authenticate command to server
     trap_SendClientCommand(cmdStr.c_str());
 }
@@ -267,7 +259,6 @@ void login() {
 ///////////////////////////////////////////////////////////////////////////////
 
 void handleGuidRequest() {
-    CG_Printf("[Auth] Received guid_request from server\n");
     login();
 }
 
@@ -278,8 +269,6 @@ void init() {
         return;
     }
     
-    CG_Printf("[Auth] Initializing authentication system\n");
-    
     g_initialized = true;
     g_guid.clear();
     g_hwid.clear();
@@ -289,7 +278,6 @@ void init() {
     if (xmod::g_serverCommandsHandler) {
         xmod::g_serverCommandsHandler->subscribe("guid_request",
             [](const std::vector<std::string>& args) {
-                CG_Printf("[Auth] Received guid_request from server\n");
                 login();
             }
         );
@@ -297,7 +285,6 @@ void init() {
 
     // Don't send authentication immediately during init
     // Wait for first frame to ensure client is fully ready
-    CG_Printf("[Auth] Authentication deferred to first frame\n");
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -310,7 +297,6 @@ void frame() {
     // Send deferred login on first frame
     if (g_loginPending) {
         g_loginPending = false;
-        CG_Printf("[Auth] Sending deferred authentication\n");
         login();
     }
 }

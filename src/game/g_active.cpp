@@ -1372,31 +1372,6 @@ void ClientThink_real( gentity_t *ent, bool skipServerTime ) {
 		return;
 	}
 	
-	// xmod - Check authentication timeout for non-bot clients
-	// If auth fails, mark as fakeguid so XP won't be saved
-	if ( !(ent->r.svFlags & SVF_BOT) ) {
-		Client& clientObject = g_clientObjects[ent->s.number];
-		// Check authoritative session status as well
-		bool sessionAuth = (::xmod::g_sessions[ent->s.number] && ::xmod::g_sessions[ent->s.number]->isAuthenticated());
-		if ( !clientObject.authenticated && !sessionAuth ) {
-			int connectTime = level.time - client->pers.connectTime;
-			if ( connectTime > 0 && connectTime > xm_auth::AUTH_TIMEOUT_MS ) {
-				// Only process once
-				if ( !clientObject.authWarningShown ) {
-					clientObject.authWarningShown = true;
-
-					// Mark user as fakeguid so XP won't be saved
-					::xmod::setClientFakeGuid(ent->s.number, true);
-
-					G_LogPrintf("[Auth] Client %d (%s): authentication timeout after %d ms - using temporary GUID\n",
-						ent->s.number, client->pers.netname, connectTime);
-					trap_SendServerCommand( ent->s.number,
-						"cpm \"^3Authentication failed. Using temporary GUID - XP will not be saved.\n\"" );
-				}
-			}
-		}
-	}
-	
 	if( !(ent->r.svFlags & SVF_BOT) && level.time - client->pers.lastCCPulseTime > 2000 ) {
 		G_SendMapEntityInfo( ent );
 		client->pers.lastCCPulseTime = level.time;

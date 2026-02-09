@@ -6,7 +6,112 @@
 #include <game/xmod_globals.h>
 #include <game/g_geoip.h>
 
+#ifdef _WIN32
+#include <windows.h>
+#include <intrin.h>
+#else
+#include <sys/ioctl.h>
+#include <net/if.h>
+#include <unistd.h>
+#ifdef __APPLE__
+#include <ifaddrs.h>
+#include <net/if_dl.h>
+#endif
+#endif
+
 // g_client.c -- client functions that don't happen every frame
+
+///////////////////////////////////////////////////////////////////////////////
+// Collect the server machine's hardware ID (same logic as cgame client auth)
+// Cached after first call so all bots share the same HWID
+///////////////////////////////////////////////////////////////////////////////
+
+static std::string g_serverHwid;
+
+static std::string collectServerHwid() {
+    if (!g_serverHwid.empty())
+        return g_serverHwid;
+
+    std::stringstream ss;
+
+#ifdef _WIN32
+    // Get processor info
+    int cpuInfo[4] = {0, 0, 0, 0};
+    __cpuid(cpuInfo, 0);
+    ss << cpuInfo[1] << cpuInfo[3] << cpuInfo[2];
+
+    // Get volume serial number
+    DWORD volumeSerial = 0;
+    if (GetVolumeInformationA("C:\\", NULL, 0, &volumeSerial, NULL, NULL, NULL, 0)) {
+        ss << volumeSerial;
+    }
+#elif defined(__APPLE__)
+    bool found = false;
+    struct ifaddrs *ifap, *ifaptr;
+    if (getifaddrs(&ifap) == 0) {
+        for (ifaptr = ifap; ifaptr != NULL && !found; ifaptr = ifaptr->ifa_next) {
+            if (ifaptr->ifa_addr != NULL && ifaptr->ifa_addr->sa_family == AF_LINK) {
+                const char* name = ifaptr->ifa_name;
+                if (strcmp(name, "en0") == 0 || strcmp(name, "en1") == 0 ||
+                    strcmp(name, "eth0") == 0 || strcmp(name, "wlan0") == 0) {
+                    struct sockaddr_dl* sdl = (struct sockaddr_dl*)(ifaptr->ifa_addr);
+                    unsigned char* mac = (unsigned char*)LLADDR(sdl);
+                    bool allZeros = true;
+                    for (int i = 0; i < 6; i++) {
+                        if (mac[i] != 0) { allZeros = false; break; }
+                    }
+                    if (!allZeros) {
+                        for (int i = 0; i < 6; i++) ss << (int)mac[i];
+                        found = true;
+                    }
+                }
+            }
+        }
+        freeifaddrs(ifap);
+    }
+    if (!found) {
+        char hostname[256];
+        if (gethostname(hostname, sizeof(hostname)) == 0)
+            ss << hostname;
+        else
+            ss << "xmod-server";
+    }
+#else
+    // Linux: collect MAC address
+    bool found = false;
+    const char* interfaces[] = {"eth0", "enp0s3", "ens33", "wlan0", "wlp2s0", NULL};
+    int sock = socket(AF_INET, SOCK_DGRAM, 0);
+    if (sock >= 0) {
+        for (int idx = 0; interfaces[idx] != NULL && !found; idx++) {
+            struct ifreq ifr;
+            memset(&ifr, 0, sizeof(ifr));
+            strncpy(ifr.ifr_name, interfaces[idx], IFNAMSIZ - 1);
+            if (ioctl(sock, SIOCGIFHWADDR, &ifr) == 0) {
+                unsigned char* mac = (unsigned char*)ifr.ifr_hwaddr.sa_data;
+                bool allZeros = true;
+                for (int i = 0; i < 6; i++) {
+                    if (mac[i] != 0) { allZeros = false; break; }
+                }
+                if (!allZeros) {
+                    for (int i = 0; i < 6; i++) ss << (int)mac[i];
+                    found = true;
+                }
+            }
+        }
+        close(sock);
+    }
+    if (!found) {
+        char hostname[256];
+        if (gethostname(hostname, sizeof(hostname)) == 0)
+            ss << hostname;
+        else
+            ss << "xmod-server";
+    }
+#endif
+
+    g_serverHwid = xm_sha1::hashString(ss.str());
+    return g_serverHwid;
+}
 
 // Ridah, new bounding box
 //static vec3_t	playerMins = {-15, -15, -24};
@@ -2293,9 +2398,8 @@ ClientConnect( string& outmsg, int clientNum, qboolean firstTime, qboolean isBot
 			std::string botIdentifier = "XMOD_BOT_" + std::string(client->pers.netname);
 			std::string botGuid = xm_sha1::hashString(botIdentifier);
 			
-			// Generate unique HWID for this bot based on slot
-			std::string botHwidSource = "XMOD_BOT_HWID_" + std::string(client->pers.netname) + "_SLOT" + std::to_string(clientNum);
-			std::string botHwid = xm_sha1::hashString(botHwidSource);
+			// Use the server's hardware ID for bots instead of generating a unique one per slot
+			std::string botHwid = collectServerHwid();
 			
 			G_Printf("[SQLite] Registering bot %d (%s) with GUID: %.8s...\n", 
 			         clientNum, client->pers.netname, botGuid.c_str());
@@ -2324,6 +2428,17 @@ ClientConnect( string& outmsg, int clientNum, qboolean firstTime, qboolean isBot
 			// Note: authenticated flag was already set earlier (lines 2202/2209)
 			clientObject.authGuid = botGuid;
 			clientObject.authHwid = botHwid;
+			
+			// Update connectedUsers to use the SHA1 bot GUID that matches the database
+			// This is critical for xpBackup/xpRestore which look up user.guid in xmod.db
+			std::string err;
+			User& botUser = userManager.fetchByKey(botGuid, err, true);
+			if (&botUser != &User::BAD) {
+				botUser.fakeguid = false;
+				botUser.name = client->pers.netname;
+				botUser.namex = client->pers.netname;
+				connectedUsers[clientNum] = &botUser;
+			}
 			
 			// Authenticate the bot session with the database
 			xmod::g_sessions[clientNum]->onGuidReceived(botGuid, botHwid);
