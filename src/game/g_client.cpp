@@ -1750,6 +1750,7 @@ void ClientUserinfoChanged( int clientNum ) {
     char    *s;
     char    oldname[MAX_STRING_CHARS];
     char    userinfo[MAX_INFO_STRING];
+    char    csStr[MAX_INFO_STRING];
     gclient_t   *client;
     int     i;
     char    skillStr[16] = "";
@@ -1937,68 +1938,81 @@ void ClientUserinfoChanged( int clientNum ) {
     // Compressed: only non-zero/non-default keys are included to reduce gamestate size
     // and help against MAX_GAMESTATE_CHARS exceeded errors
     {
-        char csStr[MAX_INFO_STRING];
-        int len;
+        // SK_NUM_SKILLS zeros - default medal/skill string when all skills/medals are 0
+        static const char defaultSkillMedalStr[] = "0000000";
+        int len, maxLen = (int)sizeof(csStr);
 
         // Always include: name, team, class, rank (required fields)
-        len = snprintf( csStr, sizeof(csStr), "n\\%s\\t\\%i\\c\\%i\\r\\%i",
+        len = snprintf( csStr, maxLen, "n\\%s\\t\\%i\\c\\%i\\r\\%i",
             client->pers.netname,
             client->sess.sessionTeam,
             client->sess.playerType,
             client->sess.rank );
+        if (len >= maxLen) len = maxLen - 1;
 
         // Medals: only include if not all zeros
-        if (Q_stricmp( medalStr, "0000000" )) {
-            len += snprintf( csStr + len, sizeof(csStr) - len, "\\m\\%s", medalStr );
+        if (Q_stricmp( medalStr, defaultSkillMedalStr )) {
+            len += snprintf( csStr + len, maxLen - len, "\\m\\%s", medalStr );
+            if (len >= maxLen) len = maxLen - 1;
         }
 
         // Skills: only include if not all zeros
-        if (Q_stricmp( skillStr, "0000000" )) {
-            len += snprintf( csStr + len, sizeof(csStr) - len, "\\s\\%s", skillStr );
+        if (Q_stricmp( skillStr, defaultSkillMedalStr )) {
+            len += snprintf( csStr + len, maxLen - len, "\\s\\%s", skillStr );
+            if (len >= maxLen) len = maxLen - 1;
         }
 
         // Disguise name: only include if not empty
         if (client->disguiseNetname[0]) {
-            len += snprintf( csStr + len, sizeof(csStr) - len, "\\dn\\%s", client->disguiseNetname );
+            len += snprintf( csStr + len, maxLen - len, "\\dn\\%s", client->disguiseNetname );
+            if (len >= maxLen) len = maxLen - 1;
         }
 
         // Remaining fields: only include if non-zero
         if (client->disguiseRank) {
-            len += snprintf( csStr + len, sizeof(csStr) - len, "\\dr\\%i", client->disguiseRank );
+            len += snprintf( csStr + len, maxLen - len, "\\dr\\%i", client->disguiseRank );
+            if (len >= maxLen) len = maxLen - 1;
         }
         if (client->sess.playerWeapon) {
-            len += snprintf( csStr + len, sizeof(csStr) - len, "\\w\\%i", client->sess.playerWeapon );
+            len += snprintf( csStr + len, maxLen - len, "\\w\\%i", client->sess.playerWeapon );
+            if (len >= maxLen) len = maxLen - 1;
         }
         if (client->sess.latchPlayerWeapon) {
-            len += snprintf( csStr + len, sizeof(csStr) - len, "\\lw\\%i", client->sess.latchPlayerWeapon );
+            len += snprintf( csStr + len, maxLen - len, "\\lw\\%i", client->sess.latchPlayerWeapon );
+            if (len >= maxLen) len = maxLen - 1;
         }
         if (client->sess.latchPlayerWeapon2) {
-            len += snprintf( csStr + len, sizeof(csStr) - len, "\\sw\\%i", client->sess.latchPlayerWeapon2 );
+            len += snprintf( csStr + len, maxLen - len, "\\sw\\%i", client->sess.latchPlayerWeapon2 );
+            if (len >= maxLen) len = maxLen - 1;
         }
         if (::xmod::isClientMuted(clientNum)) {
-            len += snprintf( csStr + len, sizeof(csStr) - len, "\\mu\\1" );
+            len += snprintf( csStr + len, maxLen - len, "\\mu\\1" );
+            if (len >= maxLen) len = maxLen - 1;
         }
         if (client->sess.referee) {
-            len += snprintf( csStr + len, sizeof(csStr) - len, "\\ref\\%i", client->sess.referee );
+            len += snprintf( csStr + len, maxLen - len, "\\ref\\%i", client->sess.referee );
+            if (len >= maxLen) len = maxLen - 1;
         }
         if (client->sess.shoutcaster) {
-            len += snprintf( csStr + len, sizeof(csStr) - len, "\\sc\\%i", client->sess.shoutcaster );
+            len += snprintf( csStr + len, maxLen - len, "\\sc\\%i", client->sess.shoutcaster );
+            if (len >= maxLen) len = maxLen - 1;
         }
         if (client->sess.uci) {
-            len += snprintf( csStr + len, sizeof(csStr) - len, "\\u\\%i", client->sess.uci );
+            len += snprintf( csStr + len, maxLen - len, "\\u\\%i", client->sess.uci );
+            if (len >= maxLen) len = maxLen - 1;
         }
 
         // "skill" key: 1 = bot (allows clients to identify bots)
         // Used by CG_DrawDisconnect() to skip "Connection Interrupted" display when spectating bots.
         if (ent->r.svFlags & SVF_BOT) {
-            len += snprintf( csStr + len, sizeof(csStr) - len, "\\skill\\1" );
+            snprintf( csStr + len, maxLen - len, "\\skill\\1" );
         }
 
         s = csStr;
-
-        trap_GetConfigstring( CS_PLAYERS + clientNum, oldname, sizeof( oldname ) );
-        trap_SetConfigstring( CS_PLAYERS + clientNum, s );
     }
+
+    trap_GetConfigstring( CS_PLAYERS + clientNum, oldname, sizeof( oldname ) );
+    trap_SetConfigstring( CS_PLAYERS + clientNum, s );
 
     if (Q_stricmp( oldname, s )) {
         G_LogPrintf( "ClientUserinfoChanged: %i %s\n", clientNum, s );
