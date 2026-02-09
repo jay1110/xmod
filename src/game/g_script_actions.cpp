@@ -184,7 +184,7 @@ qboolean G_ScriptAction_ShaderRemap( gentity_t* ent, char *params ) {
 }
 
 qboolean G_ScriptAction_ShaderRemapFlush( gentity_t* ent, char *params ) {
-	trap_SetConfigstring(CS_SHADERSTATE, BuildShaderStateConfig());
+	G_NcsSetConfigstring(NCS_SHADERSTATE, BuildShaderStateConfig());
 	return qtrue;
 }
 

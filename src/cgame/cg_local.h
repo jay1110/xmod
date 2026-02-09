@@ -2227,6 +2227,13 @@ typedef struct {
 	char				rpcsWatermark[MAX_INFO_STRING];
 	char				rpcsAxisMapsXP[MAX_STRING_CHARS];
 	char				rpcsAlliedMapsXP[MAX_STRING_CHARS];
+	// NCS (NitMod ConfigStrings): private storage for models/sounds/shaders/skins/characters
+	// These are received via "ncs" server commands instead of being in the engine gamestate.
+	// CG_ConfigString() intercepts NCS-managed ranges to return data from these buffers.
+	int					ncsStringOffsets[NCS_MAX];
+	char				ncsStringData[32000];
+	int					ncsDataUsed;
+
 	char				rpcsPlayers[MAX_CLIENTS][MAX_INFO_STRING]; // Full player info via RPCS
 	char				rpcsChargeTimes[MAX_INFO_STRING]; // Charge times via RPCS
 	char				rpcsFilterCams[32]; // Filtercams via RPCS
@@ -2480,6 +2487,7 @@ extern	vmCvar_t		cg_countryflags;
 qboolean CG_Cvar_ClampInt( const char *name, vmCvar_t *vmCvar, int min, int max );
 void CG_ParseSkillLevels( void);
 const char *CG_ConfigString( int index );
+const char *CG_NcsConfigString( int ncsIndex );
 int CG_ConfigStringCopy( int index, char* buff, int buffsize );
 const char *CG_Argv( int arg );
 

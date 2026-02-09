@@ -2223,19 +2223,63 @@ CG_ConfigString
 =================
 */
 
+/*
+=================
+CG_NcsConfigString
+Returns NCS string data for a given NCS index, or empty string if not set.
+=================
+*/
+const char *CG_NcsConfigString( int ncsIndex ) {
+	static const char empty[] = "";
+	if ( ncsIndex < 0 || ncsIndex >= NCS_MAX ) {
+		return empty;
+	}
+	int offset = cgs.ncsStringOffsets[ncsIndex];
+	if ( offset < 0 ) {
+		return empty;
+	}
+	return cgs.ncsStringData + offset;
+}
+
+/*
+=================
+CG_ConfigString
+=================
+*/
 const char *CG_ConfigString( int index ) {
 	if ( index < 0 || index >= MAX_CONFIGSTRINGS ) {
 		CG_Error( "CG_ConfigString: bad index: %i", index );
 	}
+
+	// NCS: models, sounds, shaders, shaderstate, skins, characters
+	// are stored in private NCS buffers, not engine gamestate
+	if ( index >= CS_MODELS && index < CS_MODELS + MAX_MODELS ) {
+		return CG_NcsConfigString( NCS_MODELS + (index - CS_MODELS) );
+	}
+	if ( index >= CS_SOUNDS && index < CS_SOUNDS + MAX_SOUNDS ) {
+		return CG_NcsConfigString( NCS_SOUNDS + (index - CS_SOUNDS) );
+	}
+	if ( index >= CS_SHADERS && index < CS_SHADERS + MAX_CS_SHADERS ) {
+		return CG_NcsConfigString( NCS_SHADERS + (index - CS_SHADERS) );
+	}
+	if ( index == CS_SHADERSTATE ) {
+		return CG_NcsConfigString( NCS_SHADERSTATE );
+	}
+	if ( index >= CS_SKINS && index < CS_SKINS + MAX_CS_SKINS ) {
+		return CG_NcsConfigString( NCS_SKINS + (index - CS_SKINS) );
+	}
+	if ( index >= CS_CHARACTERS && index < CS_CHARACTERS + MAX_CHARACTERS ) {
+		return CG_NcsConfigString( NCS_CHARACTERS + (index - CS_CHARACTERS) );
+	}
+
 	// RPCS: return full player info from RPCS buffer instead of gamestate
-	// The gamestate only contains minimal data (n\Name\t\Team) for UI compatibility,
-	// while the RPCS buffer contains the complete player info to save gamestate space.
 	if ( index >= CS_PLAYERS && index < CS_PLAYERS + MAX_CLIENTS ) {
 		int clientNum = index - CS_PLAYERS;
 		if ( cgs.rpcsPlayers[clientNum][0] ) {
 			return cgs.rpcsPlayers[clientNum];
 		}
 	}
+
 	return cgs.gameState.stringData + cgs.gameState.stringOffsets[ index ];
 }
 
@@ -2877,6 +2921,10 @@ void CG_Init( int serverMessageNum, int serverCommandSequence, int clientNum, qb
 	memset( cg_entities, 0, sizeof(cg_entities) );
 
 	cgs.initing = qtrue;
+
+	// Initialize NCS offsets to -1 (not set)
+	memset( cgs.ncsStringOffsets, -1, sizeof(cgs.ncsStringOffsets) );
+	cgs.ncsDataUsed = 0;
 
 	for( i = 0; i < MAX_CLIENTS; i++ ) {
 		cg.artilleryRequestTime[i] = -99999;

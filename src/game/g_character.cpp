@@ -254,7 +254,8 @@ void G_UpdateCharacter( gclient_t *client )
 
 		if( client->pers.characterIndex != characterIndex ) {
 			client->pers.characterIndex = characterIndex;
-			trap_GetConfigstring( CS_CHARACTERS + characterIndex, infostring, MAX_INFO_STRING );
+			// NCS: read from private NCS storage instead of engine configstring
+			Q_strncpyz( infostring, level.ncs[NCS_CHARACTERS + characterIndex], MAX_INFO_STRING );
 			if( !(client->pers.character = BG_FindCharacter( infostring ) ) ) {
 				// not found - create it (this should never happen as we should have everything precached)
 				client->pers.character = BG_FindFreeCharacter( infostring );

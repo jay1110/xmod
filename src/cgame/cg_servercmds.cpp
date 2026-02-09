@@ -669,6 +669,61 @@ void CG_SetConfigValues( void ) {
 
 /*
 =====================
+CG_NcsResourceRegister
+Register a model/sound/shader/skin/character from NCS data.
+Called when an NCS entry is updated via server command.
+=====================
+*/
+static void CG_NcsResourceRegister( int ncsIndex ) {
+	const char *data = CG_NcsConfigString( ncsIndex );
+	if ( !data[0] ) {
+		return;
+	}
+
+	if ( ncsIndex >= NCS_MODELS && ncsIndex < NCS_MODELS + MAX_MODELS ) {
+		cgs.gameModels[ ncsIndex - NCS_MODELS ] = trap_R_RegisterModel( data );
+		return;
+	}
+	if ( ncsIndex >= NCS_SOUNDS && ncsIndex < NCS_SOUNDS + MAX_SOUNDS ) {
+		if ( data[0] != '*' ) {
+			if ( !strstr( data, ".wav" ) )
+				CG_SoundScriptPrecache( data );
+			else
+				cgs.gameSounds[ ncsIndex - NCS_SOUNDS ] = trap_S_RegisterSound( data, qfalse );
+		}
+		return;
+	}
+	if ( ncsIndex >= NCS_SHADERS && ncsIndex < NCS_SHADERS + MAX_CS_SHADERS ) {
+		int si = ncsIndex - NCS_SHADERS;
+		cgs.gameShaders[si] = (data[0] == '*')
+			? trap_R_RegisterShader( data + 1 )
+			: trap_R_RegisterShaderNoMip( data );
+		Q_strncpyz( cgs.gameShaderNames[si], data[0] == '*' ? data + 1 : data, MAX_QPATH );
+		return;
+	}
+	if ( ncsIndex == NCS_SHADERSTATE ) {
+		CG_ShaderStateChanged();
+		return;
+	}
+	if ( ncsIndex >= NCS_SKINS && ncsIndex < NCS_SKINS + MAX_CS_SKINS ) {
+		cgs.gameModelSkins[ ncsIndex - NCS_SKINS ] = trap_R_RegisterSkin( data );
+		return;
+	}
+	if ( ncsIndex >= NCS_CHARACTERS && ncsIndex < NCS_CHARACTERS + MAX_CHARACTERS ) {
+		if ( !BG_FindCharacter( data ) ) {
+			int ci = ncsIndex - NCS_CHARACTERS;
+			cgs.gameCharacters[ci] = BG_FindFreeCharacter( data );
+			Q_strncpyz( cgs.gameCharacters[ci]->characterFile, data, sizeof(cgs.gameCharacters[ci]->characterFile) );
+			if ( !CG_RegisterCharacter( data, cgs.gameCharacters[ci] ) ) {
+				CG_Printf( "^1ERROR: CG_NcsResourceRegister: failed to load character '%s'\n", data );
+			}
+		}
+		return;
+	}
+}
+
+/*
+=====================
 CG_ShaderStateChanged
 =====================
 */
@@ -842,10 +897,7 @@ void CG_ConfigStringModified( void )
             CG_ParseGlobalFog();
             return;
 
-        case CS_SHADERSTATE:
-            CG_ShaderStateChanged();
-            return;
-
+        // CS_SHADERSTATE is NCS-managed (sent via "ncs" commands)
         // CS_CHARGETIMES and CS_FILTERCAMS moved to RPCS ("xcs c" and "xcs f")
 
         case CS_SKYBOXORG:
@@ -861,46 +913,8 @@ void CG_ConfigStringModified( void )
         return;
     }
 
-    if (index >= CS_MODELS && index < CS_MODELS+MAX_MODELS) {
-        cgs.gameModels[ index-CS_MODELS ] = trap_R_RegisterModel( csval );
-        return;
-    }
-
-    if (index >= CS_SOUNDS && index < CS_SOUNDS+MAX_SOUNDS ) {
-        if (csval[0] != '*') {  // player specific sounds don't register here
-            // Ridah, register sound scripts seperately
-            if (!strstr( csval, ".wav" ))
-                CG_SoundScriptPrecache( csval );
-            else
-                cgs.gameSounds[ index-CS_SOUNDS] = trap_S_RegisterSound( csval, qfalse ); //FIXME: add a compress flag? 
-        }
-        return;
-    }
-
-    if (index >= CS_SHADERS && index < CS_SHADERS + MAX_CS_SHADERS) {
-        cgs.gameShaders[ index - CS_SHADERS ] = (csval[0] == '*')
-            ? trap_R_RegisterShader( csval + 1 )
-            : trap_R_RegisterShaderNoMip( csval );
-        Q_strncpyz( cgs.gameShaderNames[index - CS_SHADERS], csval[0] == '*' ? csval + 1 : csval, MAX_QPATH );
-        return;
-    }
-
-    if (index >= CS_SKINS && index < CS_SKINS+MAX_CS_SKINS) {
-        cgs.gameModelSkins[ index-CS_SKINS ] = trap_R_RegisterSkin( csval );
-        return;
-    }
-
-    if (index >= CS_CHARACTERS && index < CS_CHARACTERS+MAX_CHARACTERS) {
-        if (!BG_FindCharacter( csval )) {
-            cgs.gameCharacters[ index - CS_CHARACTERS ] = BG_FindFreeCharacter( csval );
-
-            Q_strncpyz( cgs.gameCharacters[ index - CS_CHARACTERS ]->characterFile, csval, sizeof(cgs.gameCharacters[ index - CS_CHARACTERS ]->characterFile) );
-
-            if (!CG_RegisterCharacter( csval, cgs.gameCharacters[ index - CS_CHARACTERS ] ))
-                CG_Error( "ERROR: CG_ConfigStringModified: failed to load character file '%s'\n", csval );
-        }
-        return;
-    }
+    // CS_MODELS, CS_SOUNDS, CS_SHADERS, CS_SHADERSTATE, CS_SKINS, CS_CHARACTERS
+    // are NCS-managed (sent via "ncs" commands, not engine configstrings)
 
     if (index >= CS_PLAYERS && index < CS_PLAYERS+MAX_CLIENTS) {
         int clientNum = index - CS_PLAYERS;
@@ -2619,6 +2633,57 @@ static void CG_ServerCommand( void ) {
 		} else if ( !Q_stricmp( type, "e" ) ) {
 			// Endgame stats via RPCS
 			Q_strncpyz( cgs.rpcsEndgameStats, CG_Argv(2), sizeof(cgs.rpcsEndgameStats) );
+		}
+		return;
+	}
+
+	// NCS (NitMod ConfigStrings): handle model/sound/shader/skin/character data
+	// Format: "ncs <ncsIndex> "<data>""
+	if ( !Q_stricmp( cmd, "ncs" ) ) {
+		int ncsIndex = atoi( CG_Argv(1) );
+		const char *data = CG_Argv(2);
+
+		if ( ncsIndex < 0 || ncsIndex >= NCS_MAX ) {
+			CG_Printf( "^3WARNING: ncs index %d out of range\n", ncsIndex );
+			return;
+		}
+
+		// Store in NCS buffer (rebuild like NitMod does)
+		const char *oldData = CG_NcsConfigString( ncsIndex );
+		if ( strcmp( oldData, data ) != 0 ) {
+			// Rebuild NCS string data (like NitMod's nitrox_ConfigStringModified)
+			int oldOffsets[NCS_MAX];
+			memcpy( oldOffsets, cgs.ncsStringOffsets, sizeof(oldOffsets) );
+			char oldStringData[32000];
+			memcpy( oldStringData, cgs.ncsStringData, sizeof(oldStringData) );
+
+			memset( cgs.ncsStringOffsets, -1, sizeof(cgs.ncsStringOffsets) );
+			cgs.ncsDataUsed = 0;
+
+			for ( int i = 0; i < NCS_MAX; i++ ) {
+				const char *src;
+				if ( i == ncsIndex ) {
+					src = data;
+				} else if ( oldOffsets[i] >= 0 ) {
+					src = oldStringData + oldOffsets[i];
+				} else {
+					continue;
+				}
+				if ( !src[0] ) {
+					continue;
+				}
+				int len = strlen( src ) + 1;
+				if ( cgs.ncsDataUsed + len > (int)sizeof(cgs.ncsStringData) ) {
+					CG_Printf( "^1ERROR: NCS string data overflow\n" );
+					break;
+				}
+				cgs.ncsStringOffsets[i] = cgs.ncsDataUsed;
+				memcpy( cgs.ncsStringData + cgs.ncsDataUsed, src, len );
+				cgs.ncsDataUsed += len;
+			}
+
+			// Register the resource
+			CG_NcsResourceRegister( ncsIndex );
 		}
 		return;
 	}

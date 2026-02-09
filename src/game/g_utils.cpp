@@ -83,24 +83,105 @@ const char *BuildShaderStateConfig() {
 
 model / sound configstring indexes
 
+NCS (NitMod ConfigStrings): models, sounds, shaders, shaderstate,
+skins, and characters are stored in private mod-side buffers and
+synced to clients via "ncs" server commands. This eliminates these
+entries from the engine gamestate, preventing MAX_GAMESTATE_CHARS
+overflow even with hundreds of maps.
+
 =========================================================================
 */
 
 /*
 ================
+G_NcsIndex
+Returns the NCS buffer index for a given configstring range start,
+or -1 if the range is not NCS-managed.
+================
+*/
+static int G_NcsIndex( int csStart ) {
+	if ( csStart == CS_MODELS )		return NCS_MODELS;
+	if ( csStart == CS_SOUNDS )		return NCS_SOUNDS;
+	if ( csStart == CS_SHADERS )	return NCS_SHADERS;
+	if ( csStart == CS_SKINS )		return NCS_SKINS;
+	if ( csStart == CS_CHARACTERS )	return NCS_CHARACTERS;
+	return -1;
+}
+
+/*
+================
+G_NcsSetConfigstring
+Sets an NCS entry and broadcasts it to all connected clients.
+================
+*/
+void G_NcsSetConfigstring( int ncsIndex, const char *value ) {
+	if ( ncsIndex < 0 || ncsIndex >= NCS_MAX ) {
+		G_Error( "G_NcsSetConfigstring: bad index %i\n", ncsIndex );
+		return;
+	}
+	if ( !value ) {
+		value = "";
+	}
+
+	// Only update and broadcast if the value changed
+	if ( strcmp( level.ncs[ncsIndex], value ) == 0 ) {
+		return;
+	}
+
+	Q_strncpyz( level.ncs[ncsIndex], value, NCS_STRING_SIZE );
+
+	// Broadcast to all connected clients
+	for ( int i = 0; i < level.maxclients; i++ ) {
+		if ( level.clients[i].pers.connected == CON_CONNECTED ) {
+			trap_SendServerCommand( i, va( "ncs %i \"%s\"", ncsIndex, level.ncs[ncsIndex] ) );
+		}
+	}
+}
+
+/*
+================
 G_FindConfigstringIndex
 
+Uses NCS (private mod storage) for models/sounds/shaders/skins/characters.
+Uses engine configstrings for all other ranges.
 ================
 */
 int G_FindConfigstringIndex( const char *name, int start, int max, qboolean create ) {
 	int		i;
-	char	s[MAX_STRING_CHARS];
+	int		ncsBase;
 
 	if ( !name || !name[0] ) {
 		return 0;
 	}
 
-	for ( i=1 ; i<max ; i++ ) {
+	// Check if this range is NCS-managed
+	ncsBase = G_NcsIndex( start );
+	if ( ncsBase >= 0 ) {
+		// NCS path: search private buffer
+		for ( i = 1; i < max; i++ ) {
+			if ( !level.ncs[ncsBase + i][0] ) {
+				break;
+			}
+			if ( !strcmp( level.ncs[ncsBase + i], name ) ) {
+				return i;
+			}
+		}
+
+		if ( !create ) {
+			return 0;
+		}
+
+		if ( i == max ) {
+			G_Error( "G_FindConfigstringIndex: overflow" );
+		}
+
+		G_NcsSetConfigstring( ncsBase + i, name );
+		return i;
+	}
+
+	// Standard engine configstring path
+	char	s[MAX_STRING_CHARS];
+	for ( i = 1; i < max; i++ ) {
 		trap_GetConfigstring( start + i, s, sizeof( s ) );
 		if ( !s[0] ) {
 			break;

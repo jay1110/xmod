@@ -1435,6 +1435,13 @@ void G_SendXmodCS( int clientNum ) {
             G_RpcsEnqueue( clientNum, va("xcs p %i \"%s\"", i, level.rpcsPlayerInfo[i]) );
         }
     }
+
+    // NCS (NitMod ConfigStrings): send all non-empty entries for models/sounds/shaders/skins/characters
+    for ( int i = 0; i < NCS_MAX; i++ ) {
+        if ( level.ncs[i][0] ) {
+            G_RpcsEnqueue( clientNum, va("ncs %i \"%s\"", i, level.ncs[i]) );
+        }
+    }
 }
 
 /*************************************************
