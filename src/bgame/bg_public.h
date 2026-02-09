@@ -391,8 +391,8 @@ extern const unsigned int aReinfSeeds[MAX_REINFSEEDS];
 #define CS_WEAPONSCRIPTS				45
 #define CS_WEAPONSCRIPTS_COUNT			WP_NUM_WEAPONS
 
-// Player configstrings placed early (like NitMod's CS_PLAYERS=64 approach)
-// to keep the most dynamic/important configstrings at lower indices
+// Player configstrings placed early, before resource configstrings
+// (follows NitMod's strategy of placing CS_PLAYERS at low indices)
 #define	CS_PLAYERS						( CS_WEAPONSCRIPTS + CS_WEAPONSCRIPTS_COUNT )
 #define CS_MULTI_SPAWNTARGETS			( CS_PLAYERS +				MAX_CLIENTS					)
 
