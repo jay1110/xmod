@@ -2621,6 +2621,11 @@ static void CG_ServerCommand( void ) {
 			if ( clientNum >= 0 && clientNum < MAX_CLIENTS ) {
 				Q_strncpyz( cgs.rpcsPlayers[clientNum], CG_Argv(3), sizeof(cgs.rpcsPlayers[clientNum]) );
 				CG_NewClientInfo( clientNum );
+				// After receiving our own player data, mark initial load as done
+				// so that subsequent skill changes are properly announced
+				if ( clientNum == cg.clientNum && !cgs.rpcsInitialLoadDone ) {
+					cgs.rpcsInitialLoadDone = qtrue;
+				}
 			}
 		} else if ( !Q_stricmp( type, "c" ) ) {
 			// Charge times via RPCS

@@ -2235,6 +2235,7 @@ typedef struct {
 	int					ncsDataUsed;
 
 	char				rpcsPlayers[MAX_CLIENTS][MAX_INFO_STRING]; // Full player info via RPCS
+	qboolean			rpcsInitialLoadDone; // Set after initial RPCS data is received; suppresses skill announcements
 	char				rpcsChargeTimes[MAX_INFO_STRING]; // Charge times via RPCS
 	char				rpcsFilterCams[32]; // Filtercams via RPCS
 	char				rpcsEndgameStats[MAX_INFO_STRING]; // Endgame stats via RPCS

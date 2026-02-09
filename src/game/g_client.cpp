@@ -2455,7 +2455,7 @@ ClientConnect( string& outmsg, int clientNum, qboolean firstTime, qboolean isBot
 
 	// don't do the "xxx connected" messages if they were carried over from previous level
 	//		TAT 12/10/2002 - Don't display connected messages in single player
-	if ( firstTime )
+	if ( firstTime && !isBot )
 	{
 		trap_SendServerCommand( -1, va("cpm \"%s" S_COLOR_WHITE " connected\n\"", client->pers.netname) );
 	}
@@ -2679,7 +2679,7 @@ void ClientBegin( int clientNum )
 		limbo(ent, qfalse);
 	}
 
-	if(client->sess.sessionTeam != TEAM_SPECTATOR) {
+	if(client->sess.sessionTeam != TEAM_SPECTATOR && !(ent->r.svFlags & SVF_BOT)) {
 		trap_SendServerCommand( -1, va("print \"[lof]%s" S_COLOR_WHITE " [lon]entered the game\n\"", client->pers.netname) );
 	}
 
