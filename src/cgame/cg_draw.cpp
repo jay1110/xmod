@@ -1274,9 +1274,12 @@ static void CG_DrawLagometer( void ) {
 	float	ax, ay, aw, ah, mid, range;
 	int		color;
 	float	vscale;
-	vec4_t colorBG = { 0.16f, 0.2f, 0.17f, 0.4f };
-	vec4_t colorBD = { 0.5f, 0.5f, 0.5f, 0.5f };
+	vec4_t colorBG;
+	vec4_t colorBD;
     vec4_t colorAW = { 0, 0.5, 0, 0.5f};
+
+	CG_GetHudBackgroundColor( colorBG );
+	CG_GetHudBorderColor( colorBD );
 
 	if ( !cg_lagometer.integer || cgs.localServer ) {
 		CG_DrawDisconnect();

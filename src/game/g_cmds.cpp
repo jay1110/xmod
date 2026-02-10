@@ -23,7 +23,7 @@ void G_SendScore( gentity_t *ent ) {
 	int			i;
 	gclient_t	*cl;
 	int			numSorted;
-	int			team, size, count;
+	int			packet, size, count;
 	char		buffer[1024];
 	char		startbuffer[32];
 
@@ -34,14 +34,14 @@ void G_SendScore( gentity_t *ent ) {
 	}
 
 	i = 0;
-	// Gordon: team doesnt actually mean team, ignore...
-	for(team = 0; team < 2; team++) {
+	// Send score packets: sc0 (with team scores), sc1, sc2, etc. for overflow
+	for(packet = 0; i < numSorted && packet < 8; packet++) {
 		*buffer = '\0';
 		*startbuffer = '\0';
-		if( team == 0 ) {
+		if( packet == 0 ) {
 			Q_strncpyz(startbuffer, va("sc0 %i %i", level.teamScores[TEAM_AXIS], level.teamScores[TEAM_ALLIES]), 32 );
 		} else {
-			Q_strncpyz(startbuffer, "sc1", 32 );
+			Q_strncpyz(startbuffer, va("sc%i", packet), 32 );
 		}
 		size = strlen(startbuffer) + 1;
 		count = 0;
@@ -122,7 +122,7 @@ void G_SendScore( gentity_t *ent ) {
 			}
 		}
 
-		if(count > 0 || team == 0) {
+		if(count > 0 || packet == 0) {
 if (!(cvars::g_test.ivalue & G_TEST_SKIP_SC))
 			trap_SendServerCommand( ent-g_entities, va("%s %i%s", startbuffer, count, buffer));
 		}

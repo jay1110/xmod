@@ -2153,12 +2153,17 @@ static void CG_AddWeaponWithPowerups( refEntity_t *gun, int powerups, playerStat
 			gun->shaderRGBA[2] = drawGunColors[colorIndex][2];
 			gun->shaderRGBA[3] = (byte)alpha;
 		} else if (cg_drawGun.integer == 1 && alpha < 255) {
-			// cg_drawGun 1 (default) with alpha transparency, no color tint
+			// cg_drawGun 1 (default) with alpha: render weapon normally first,
+			// then overlay a transparent black layer to fade it out.
+			// This preserves the original weapon texture appearance.
+			trap_R_AddRefEntityToScene( gun );
+
+			// Second pass: draw transparent black overlay to fade the weapon
 			gun->customShader = cgs.media.transparentWeaponShader;
-			gun->shaderRGBA[0] = 0xff;
-			gun->shaderRGBA[1] = 0xff;
-			gun->shaderRGBA[2] = 0xff;
-			gun->shaderRGBA[3] = (byte)alpha;
+			gun->shaderRGBA[0] = 0;
+			gun->shaderRGBA[1] = 0;
+			gun->shaderRGBA[2] = 0;
+			gun->shaderRGBA[3] = 255 - (byte)alpha;
 		}
 	}
 
