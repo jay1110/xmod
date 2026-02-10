@@ -2450,7 +2450,7 @@ static void CG_ServerCommand( void ) {
 	if ( !strcmp( cmd, "sc0" ) ) {
 		CG_ParseScore(TEAM_AXIS);
 		return;
-	} else if ( !strncmp( cmd, "sc", 2 ) && cmd[2] >= '1' && cmd[2] <= '9' ) {
+	} else if ( !strncmp( cmd, "sc", 2 ) && cmd[2] >= '1' && cmd[2] <= '7' && cmd[3] == '\0' ) {
 		CG_ParseScore(TEAM_ALLIES);
 		return;
 	}
