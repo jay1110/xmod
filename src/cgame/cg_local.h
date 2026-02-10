@@ -1959,8 +1959,8 @@ typedef struct {
 
 typedef struct oidInfo_s {
 	int spawnflags;
-	qhandle_t customimageallies;
-	qhandle_t customimageaxis;
+	int customimageidxallies;	// shader index into cgs.gameShaders[] (resolved at draw time)
+	int customimageidxaxis;		// shader index into cgs.gameShaders[] (resolved at draw time)
 	int entityNum;
 	int objflags;
 	char name[MAX_QPATH];

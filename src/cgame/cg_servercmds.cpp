@@ -207,12 +207,12 @@ void CG_ParseOIDInfo( int num ) {
 
 	cs = Info_ValueForKey( info, "cia" );
 	if( cs && *cs ) {
-		cgs.oidInfo[ index ].customimageallies = cgs.gameShaders[atoi( cs )];
+		cgs.oidInfo[ index ].customimageidxallies = atoi( cs );
 	}
 
 	cs = Info_ValueForKey( info, "cix" );
 	if( cs && *cs ) {
-		cgs.oidInfo[ index ].customimageaxis = cgs.gameShaders[atoi( cs )];
+		cgs.oidInfo[ index ].customimageidxaxis = atoi( cs );
 	}
 
 	cs = Info_ValueForKey( info, "o" );
@@ -716,11 +716,6 @@ static void CG_NcsResourceRegister( int ncsIndex ) {
 	}
 	if ( ncsIndex == NCS_SHADERSTATE ) {
 		CG_ShaderStateChanged();
-		// Re-parse OID infos now that gameShaders[] are loaded from NCS.
-		// During CG_Init, CG_ParseOIDInfos runs before NCS data arrives,
-		// so oidInfo custom images (which reference cgs.gameShaders[]) are 0.
-		// This fixes missing commandmap markers after the NCS/RPCS migration.
-		CG_ParseOIDInfos();
 		return;
 	}
 	if ( ncsIndex >= NCS_SKINS && ncsIndex < NCS_SKINS + MAX_CS_SKINS ) {
