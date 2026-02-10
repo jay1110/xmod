@@ -1591,8 +1591,7 @@ typedef struct {
 	//qhandle_t	genericConstructionShaderModel;
 	qhandle_t	alliedUniformShader;
 	qhandle_t	axisUniformShader;
-	qhandle_t	transparentWeaponShader;  // For cg_drawGun 2-5
-	qhandle_t	transparentWeaponLitShader;  // For cg_drawGun 1 with alpha
+	qhandle_t	transparentWeaponShader;  // For cg_drawGun 2-32
 
 	sfxHandle_t	sfx_artilleryExp[3];
 	sfxHandle_t	sfx_artilleryDist;

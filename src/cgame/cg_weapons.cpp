@@ -2152,12 +2152,6 @@ static void CG_AddWeaponWithPowerups( refEntity_t *gun, int powerups, playerStat
 			gun->shaderRGBA[1] = drawGunColors[colorIndex][1];
 			gun->shaderRGBA[2] = drawGunColors[colorIndex][2];
 			gun->shaderRGBA[3] = (byte)alpha;
-		} else if (cg_drawGun.integer == 1 && alpha < 255) {
-			// cg_drawGun 1 (default) with alpha: use lit transparent shader
-			// which preserves the model's lighting/shading while making it
-			// transparent. Uses rgbGen lightingDiffuse for proper 3D shading.
-			gun->customShader = cgs.media.transparentWeaponLitShader;
-			gun->shaderRGBA[3] = (byte)alpha;
 		}
 	}
 

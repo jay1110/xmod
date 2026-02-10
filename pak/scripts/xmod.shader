@@ -93,7 +93,7 @@ etpro/color_construction
 	}
 }
 
-// Simple transparent shader for transparent weapon rendering (colored modes)
+// Transparent shader for cg_drawGun 2-32 colored weapon rendering
 xmod/transparent_weapon
 {
 	cull none
@@ -103,20 +103,6 @@ xmod/transparent_weapon
 		map $whiteimage
 		blendFunc GL_SRC_ALPHA GL_ONE_MINUS_SRC_ALPHA
 		rgbGen entity
-		alphaGen entity
-	}
-}
-
-// Lit transparent shader for cg_drawGun 1 alpha (preserves lighting/shading)
-xmod/transparent_weapon_lit
-{
-	cull none
-	noPicmip
-	surfaceparm trans
-	{
-		map $whiteimage
-		blendFunc GL_SRC_ALPHA GL_ONE_MINUS_SRC_ALPHA
-		rgbGen lightingDiffuse
 		alphaGen entity
 	}
 }

@@ -1793,7 +1793,6 @@ static void CG_RegisterGraphics( void ) {
 	cgs.media.alliedUniformShader =				trap_R_RegisterShader( "sprites/uniform_allied" );
 	cgs.media.axisUniformShader =				trap_R_RegisterShader( "sprites/uniform_axis" );
 	cgs.media.transparentWeaponShader =			trap_R_RegisterShader( "xmod/transparent_weapon" );
-	cgs.media.transparentWeaponLitShader =		trap_R_RegisterShader( "xmod/transparent_weapon_lit" );
 
 	// used in:
 	// command map
