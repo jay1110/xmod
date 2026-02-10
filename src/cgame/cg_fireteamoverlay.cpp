@@ -265,8 +265,10 @@ void CG_DrawFireTeamOverlay( rectDef_t* rect ) {
 	vec4_t clr2 =	{ 0.f,		0.f,	0.f,	.2f };
 	vec4_t clr3 =	{ 0.25f,	0.f,	0.f,	153/255.f };
 	vec4_t tclr =	{ 0.6f,		0.6f,	0.6f,	1.0f };
-	vec4_t bgColor		= { 0.0f, 0.0f, 0.0f, 0.6f };		// window
-	vec4_t borderColor	= { 0.5f, 0.5f, 0.5f, 0.5f };	// window
+	vec4_t bgColor;
+	vec4_t borderColor;
+	CG_GetHudBackgroundColor( bgColor );
+	CG_GetHudBorderColor( borderColor );
     string locStrings[MAX_FIRETEAM_MEMBERS];
 
 	if(!(f = CG_IsOnFireteam( cg.clientNum ))) {
