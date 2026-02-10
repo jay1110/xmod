@@ -1325,11 +1325,9 @@ by spreading broadcasts across multiple frames via the RPCS queue.
 ================
 */
 void G_RpcsBroadcast( const char *cmd ) {
-    char buf[MAX_STRING_CHARS];
-    Q_strncpyz( buf, cmd, sizeof(buf) );
     for ( int i = 0; i < level.maxclients; i++ ) {
         if ( level.clients[i].pers.connected == CON_CONNECTED ) {
-            G_RpcsEnqueue( i, buf );
+            G_RpcsEnqueue( i, cmd );
         }
     }
 }
