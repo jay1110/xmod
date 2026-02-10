@@ -2033,8 +2033,17 @@ void ClientUserinfoChanged( int clientNum ) {
         trap_SetConfigstring( CS_PLAYERS + clientNum, minimalCS );
 
         // Store full player info for connecting clients and send via RPCS
+        // Use deferred queue to prevent "Server command overflow" when many
+        // players update at once (e.g. after warmup ends, round restart)
         Q_strncpyz( level.rpcsPlayerInfo[clientNum], s, sizeof(level.rpcsPlayerInfo[clientNum]) );
-        trap_SendServerCommand( -1, va("xcs p %i \"%s\"", clientNum, s) );
+        {
+            const char *cmd = va("xcs p %i \"%s\"", clientNum, s);
+            for (int i = 0; i < level.maxclients; i++) {
+                if (level.clients[i].pers.connected == CON_CONNECTED) {
+                    G_RpcsEnqueue( i, cmd );
+                }
+            }
+        }
     }
 
     if (Q_stricmp( oldname, s )) {
