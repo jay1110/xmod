@@ -2154,7 +2154,7 @@ static void CG_AddWeaponWithPowerups( refEntity_t *gun, int powerups, playerStat
 			gun->shaderRGBA[3] = (byte)alpha;
 		} else if (cg_drawGun.integer == 1 && alpha < 255) {
 			// cg_drawGun 1 (default) with alpha: use transparent shader with
-			// light gray color for a ghostly/see-through weapon appearance.
+			// white color for a ghostly/see-through weapon appearance.
 			gun->customShader = cgs.media.transparentWeaponShader;
 			gun->shaderRGBA[0] = 255;
 			gun->shaderRGBA[1] = 255;
