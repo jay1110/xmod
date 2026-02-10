@@ -405,8 +405,6 @@ void G_ProcessKillAssistance( gentity_t *victim, gentity_t *killer, int meansOfD
 			trap_SendServerCommand(i, va("xassist \"^1TK Assist! ^7(%.0fXP)\"", xpAward));
 		}
 
-		G_LogPrintf("KillAssist: %i assisted killing %i (damage: %i, xp: %.0f)\n", 
-			i, victim->s.number, damage, xpAward);
 	}
 
 cleanup:

@@ -280,26 +280,27 @@ void CG_NewClientInfo( int clientNum ) {
 				// Gordon: slick hack so that funcs we call use the new value now
 				cgs.clientinfo[ cg.clientNum ].skill[ i ] = newInfo.skill[ i ];
 
-				if( i == SK_HEAVY_WEAPONS && oldskill < 4 && newInfo.skill[i] >= 4 ) {
-					CG_LimboPanel_SetSelectedWeaponNumForSlot( 1, 2 ); // Selects SMG
-					CG_LimboPanel_SendSetupMsg( qfalse );
-				}
+				// Only auto-select weapons and show messages for real skill changes,
+				// not during initial RPCS load where skills go from 0 to restored values
+				if( cgs.rpcsInitialLoadDone ) {
+					if( i == SK_HEAVY_WEAPONS && oldskill < 4 && newInfo.skill[i] >= 4 ) {
+						CG_LimboPanel_SetSelectedWeaponNumForSlot( 1, 2 ); // Selects SMG
+						CG_LimboPanel_SendSetupMsg( qfalse );
+					}
 
-				if( i == SK_LIGHT_WEAPONS && oldskill < 4 && newInfo.skill[i] >= 4 ) {
-					if( cgs.clientinfo[ cg.clientNum ].skill[SK_HEAVY_WEAPONS] >= 4 ) {
-						// CHRUKER: b020 - Only select Akimbo guns (1) if using the single gun (0)
-						if( cgs.ccSelectedWeapon2 == 0 ) {
+					if( i == SK_LIGHT_WEAPONS && oldskill < 4 && newInfo.skill[i] >= 4 ) {
+						if( cgs.clientinfo[ cg.clientNum ].skill[SK_HEAVY_WEAPONS] >= 4 ) {
+							// CHRUKER: b020 - Only select Akimbo guns (1) if using the single gun (0)
+							if( cgs.ccSelectedWeapon2 == 0 ) {
+								CG_LimboPanel_SetSelectedWeaponNumForSlot( 1, 1 ); // Selects Akimbo guns
+								CG_LimboPanel_SendSetupMsg( qfalse );
+							}
+						} else {
 							CG_LimboPanel_SetSelectedWeaponNumForSlot( 1, 1 ); // Selects Akimbo guns
 							CG_LimboPanel_SendSetupMsg( qfalse );
-						}
-					} else {
-						CG_LimboPanel_SetSelectedWeaponNumForSlot( 1, 1 ); // Selects Akimbo guns
-						CG_LimboPanel_SendSetupMsg( qfalse );
-					}					
-				}
+						}					
+					}
 
-				// Only show skill upgrade messages after initial load
-				if( cgs.rpcsInitialLoadDone ) {
 					CG_AddPMItemBig( PM_SKILL, va("Increased %s skill to level %i!", skillNames[i], newInfo.skill[i] ), cgs.media.skillPics[ i ] );
 
 					CG_PriorityCenterPrint( va( "You have been rewarded with %s", cg_skillRewards[ i ][ newInfo.skill[i]-1 ]), int(SCREEN_HEIGHT - (SCREEN_HEIGHT * 0.20f)), SMALLCHAR_WIDTH, 99999 );

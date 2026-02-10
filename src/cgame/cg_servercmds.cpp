@@ -207,12 +207,12 @@ void CG_ParseOIDInfo( int num ) {
 
 	cs = Info_ValueForKey( info, "cia" );
 	if( cs && *cs ) {
-		cgs.oidInfo[ index ].customimageallies = cgs.gameShaders[atoi( cs )];
+		cgs.oidInfo[ index ].customimageidxallies = atoi( cs );
 	}
 
 	cs = Info_ValueForKey( info, "cix" );
 	if( cs && *cs ) {
-		cgs.oidInfo[ index ].customimageaxis = cgs.gameShaders[atoi( cs )];
+		cgs.oidInfo[ index ].customimageidxaxis = atoi( cs );
 	}
 
 	cs = Info_ValueForKey( info, "o" );
@@ -1275,9 +1275,11 @@ static void CG_MapRestart( void ) {
 	cg.v_noFireTime = 0;
 	cg.v_fireTime = 0;
 
-	cg.filtercams = atoi( cgs.rpcsFilterCams ) ? qtrue : qfalse;
+	cg.filtercams = cgs.rpcsFilterCams[0] ? (atoi( cgs.rpcsFilterCams ) ? qtrue : qfalse) : qfalse;
 
-	CG_ChargeTimesChanged();
+	if ( cgs.rpcsChargeTimes[0] ) {
+		CG_ChargeTimesChanged();
+	}
 
 	CG_ParseFireteams();
 

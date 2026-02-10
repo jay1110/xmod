@@ -752,7 +752,10 @@ static void CG_DrawMapEntity( mapEntityData_t *mEnt, float x, float y, float w, 
 		}
 
 		if( oidInfo ) {
-			customimage = mEnt->team == TEAM_AXIS ? oidInfo->customimageaxis : oidInfo->customimageallies;
+			int idx = mEnt->team == TEAM_AXIS ? oidInfo->customimageidxaxis : oidInfo->customimageidxallies;
+			if ( idx > 0 && idx < MAX_CS_SHADERS ) {
+				customimage = cgs.gameShaders[idx];
+			}
 		}
 
 /*		if((mEnt->yaw & 0xFF) & (1 << (atoi(CG_ConfigString(mEnt->team == TEAM_AXIS ? CS_MAIN_AXIS_OBJECTIVE : CS_MAIN_ALLIES_OBJECTIVE)) - 1))) {
