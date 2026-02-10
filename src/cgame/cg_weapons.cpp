@@ -2157,6 +2157,8 @@ static void CG_AddWeaponWithPowerups( refEntity_t *gun, int powerups, playerStat
 			// mechanism to make the weapon transparent while preserving
 			// the original weapon textures. The renderer fades from opaque
 			// (at fadeStartTime) to invisible (at fadeEndTime).
+			// Duration is arbitrary (only the ratio matters for the fade
+			// position); 10000ms provides good integer precision.
 			int duration = 10000;
 			int elapsed = (255 - alpha) * duration / 255;
 			gun->fadeStartTime = cg.time - elapsed;
