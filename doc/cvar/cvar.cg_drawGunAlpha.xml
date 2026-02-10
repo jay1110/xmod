@@ -1,0 +1,49 @@
+<refentry id="cvar.cg_drawGunAlpha">
+
+<refmeta>
+    <refentrytitle>cg_drawGunAlpha</refentrytitle>
+    <manvolnum>cvar</manvolnum>
+</refmeta>
+
+<refnamediv>
+    <refname>cg_drawGunAlpha</refname>
+    <refpurpose>set transparency for colored weapon display modes</refpurpose>
+</refnamediv>
+
+<refsynopsisdiv>
+    <cmdsynopsis>
+        <command>cg_drawGunAlpha</command>
+        <arg><replaceable>alpha</replaceable></arg>
+    </cmdsynopsis>
+</refsynopsisdiv>
+
+<refsection>
+<title>Default</title>
+    <cmdsynopsis>
+        <command>cg_drawGunAlpha</command>
+        <arg choice="plain"><literal>128</literal></arg>
+    </cmdsynopsis>
+</refsection>
+
+<refsection>
+<title>Description</title>
+<para>
+    <command>cg_drawGunAlpha</command>
+    sets the transparency of the first-person weapon when using
+    colored display modes (<command>cg_drawGun</command> values 2 through 32).
+    <replaceable>alpha</replaceable> is an integer between <literal>0</literal> (fully transparent)
+    and <literal>255</literal> (fully opaque).
+</para>
+<para>
+    This setting has no effect when <command>cg_drawGun</command> is <literal>0</literal>
+    (weapon hidden) or <literal>1</literal> (normal display).
+</para>
+</refsection>
+
+<refsection>
+<title>See Also</title>
+<para>
+    <xref linkend="cvar.cg_drawGun"/>
+</para>
+</refsection>
+</refentry>
