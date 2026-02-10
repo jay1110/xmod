@@ -17,7 +17,9 @@ Xmod is a popular server-side modification for **Wolfenstein: Enemy Territory** 
   - [HUD Customization](#hud-customization)
   - [Weapon Display](#weapon-display)
   - [Display Settings](#display-settings)
+  - [Popup Settings](#popup-settings)
   - [Sound Settings](#sound-settings)
+  - [Network Settings](#network-settings)
 - [Admin Commands](#admin-commands)
 - [Building from Source](#building-from-source)
 - [Platform Support](#platform-support)
@@ -174,9 +176,24 @@ These CVARs are set by players in their client console. All are saved to config 
 
 | CVAR | Default | Description |
 |------|---------|-------------|
-| `cg_drawGun` | 1 | First-person weapon display mode. 1=normal, 2-32=transparent colored weapon (see color table below), 0=hidden |
+| `cg_drawGun` | 1 | First-person weapon display mode. 1=normal, 2-32=transparent colored weapon, 0=hidden |
 | `cg_drawGunAlpha` | 128 | Weapon transparency when using colored modes (`cg_drawGun` 2-32). Range 0-255 (0=invisible, 255=fully opaque). |
 | `cg_muzzleFlash` | 1 | Show muzzle flash effects |
+
+**`cg_drawGun` color values:**
+
+| Value | Color | Value | Color | Value | Color |
+|-------|-------|-------|-------|-------|-------|
+| 2 | Black | 12 | Light Gray | 22 | Violet |
+| 3 | Red | 13 | Dark Green | 23 | Steel Blue |
+| 4 | Green | 14 | Olive | 24 | Light Green |
+| 5 | Yellow | 15 | Dark Blue | 25 | Forest Green |
+| 6 | Blue | 16 | Dark Red | 26 | Red-Pink |
+| 7 | Cyan | 17 | Brown | 27 | Dark Red |
+| 8 | Magenta | 18 | Light Orange | 28 | Brown |
+| 9 | White | 19 | Teal | 29 | Tan |
+| 10 | Orange | 20 | Purple | 30 | Olive |
+| 11 | Gray | 21 | Sky Blue | 31-32 | Yellow |
 
 ### Display Settings
 
