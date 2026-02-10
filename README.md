@@ -13,6 +13,11 @@ Xmod is a popular server-side modification for **Wolfenstein: Enemy Territory** 
 - [Server Configuration](#server-configuration)
   - [Key CVARs](#key-cvars)
   - [Game Modes](#game-modes)
+- [Client Settings](#client-settings)
+  - [HUD Customization](#hud-customization)
+  - [Weapon Display](#weapon-display)
+  - [Display Settings](#display-settings)
+  - [Sound Settings](#sound-settings)
 - [Admin Commands](#admin-commands)
 - [Building from Source](#building-from-source)
 - [Platform Support](#platform-support)
@@ -145,6 +150,73 @@ xmod/
 | `g_adminLog` | "" | Admin action log file |
 | `g_kickTime` | 120 | Default kick duration (seconds) |
 | `g_muteTime` | 60 | Default mute duration (seconds) |
+
+---
+
+## Client Settings
+
+These CVARs are set by players in their client console. All are saved to config (`CVAR_ARCHIVE`).
+
+### HUD Customization
+
+| CVAR | Default | Description |
+|------|---------|-------------|
+| `cg_hudAlpha` | 1.0 | Global HUD transparency (0.0=invisible, 1.0=fully opaque). Affects FPS, speed, clock, timer, fireteam overlay, and lagometer backgrounds. |
+| `cg_hudBackgroundColor` | "0.16 0.2 0.17 0.8" | HUD element background color as "R G B A" (values 0.0-1.0). Applied to FPS counter, speed display, clock, timer, fireteam overlay, and lagometer. |
+| `cg_hudBorderColor` | "0.5 0.5 0.5 0.5" | HUD element border color as "R G B A" (values 0.0-1.0). |
+| `cg_althud` | 0 | Use alternative HUD layout |
+| `cg_drawClock` | 0 | Display local clock on screen |
+| `cg_drawSpeed` | 0 | Display player movement speed |
+| `cg_speedRefresh` | 100 | Speed display refresh interval (ms) |
+| `cg_drawDisconnectIcon` | 0 | Show disconnect icon for lagging players |
+
+### Weapon Display
+
+| CVAR | Default | Description |
+|------|---------|-------------|
+| `cg_drawGun` | 1 | First-person weapon display mode. 1=normal, 2-32=transparent colored weapon (see color table below), 0=hidden |
+| `cg_drawGunAlpha` | 128 | Weapon transparency when using colored modes (`cg_drawGun` 2-32). Range 0-255 (0=invisible, 255=fully opaque). |
+| `cg_muzzleFlash` | 1 | Show muzzle flash effects |
+
+### Display Settings
+
+| CVAR | Default | Description |
+|------|---------|-------------|
+| `cg_console` | 0 | Custom console display mode |
+| `cg_consoleShadowed` | 1 | Draw shadows on console text |
+| `cg_countryflags` | 1 | Show country flags next to player names |
+| `cg_watermarkOpacity` | 1.0 | Server watermark opacity (0.0-1.0) |
+| `cg_mapZoom` | 5.159 | Command map zoom level |
+| `cg_locationMode` | 0 | Location display mode |
+| `cg_locationMaxChars` | 25 | Max characters for location display |
+| `cg_locationJustify` | 0 | Location text justification |
+| `cg_obituaryLocation` | 0 | Show location in kill messages |
+| `cg_obituaryFilter` | 0 | Filter kill messages |
+
+### Popup Settings
+
+| CVAR | Default | Description |
+|------|---------|-------------|
+| `cg_popupTime` | 0 | Popup message display duration |
+| `cg_popupFadeTime` | 2500 | Popup message fade duration (ms) |
+| `cg_popupWaitTime` | 5000 | Time between popup messages (ms) |
+| `cg_numPopups` | 10 | Maximum number of popup messages on screen |
+
+### Sound Settings
+
+| CVAR | Default | Description |
+|------|---------|-------------|
+| `cg_hitsounds` | 1 | Play hit confirmation sounds |
+| `cg_killspreesounds` | 1 | Play killing spree announcement sounds |
+| `cg_pmsounds` | 1 | Play private message notification sounds |
+
+### Network Settings
+
+| CVAR | Default | Description |
+|------|---------|-------------|
+| `cg_delag` | 1 | Client-side delag (anti-lag compensation) |
+| `cg_pmblock` | 0 | Block incoming private messages |
+| `cg_autoRate` | 1 | Automatically adjust network rate |
 
 ---
 
