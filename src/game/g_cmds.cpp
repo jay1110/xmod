@@ -114,8 +114,11 @@ void G_SendScore( gentity_t *ent ) {
 
 			Q_strcat(buffer, 1024, entry);
 
-			// Send a maximum of 31 players in one packet
-			if( ++count >= 32 ) {
+			// MAX_STRING_TOKENS is 256. Each player entry uses 9 tokens.
+			// sc0 has 4 header tokens (cmd, teamScore1, teamScore2, count).
+			// sc1+ has 2 header tokens (cmd, count).
+			// Max players per packet: (256 - 4) / 9 = 28 for sc0.
+			if( ++count >= 28 ) {
 				// CHRUKER: b063 - Changed the line that decreased i, so it points to the next player
 				i++;
 				break;
