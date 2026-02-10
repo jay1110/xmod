@@ -2159,10 +2159,12 @@ static void CG_AddWeaponWithPowerups( refEntity_t *gun, int powerups, playerStat
 			// (at fadeStartTime) to invisible (at fadeEndTime).
 			// Duration is arbitrary (only the ratio matters for the fade
 			// position); 10000ms provides good integer precision.
+			// Also set shaderRGBA[3] for shaders that use alphaGen entity.
 			int duration = 10000;
 			int elapsed = (255 - alpha) * duration / 255;
 			gun->fadeStartTime = cg.time - elapsed;
 			gun->fadeEndTime = gun->fadeStartTime + duration;
+			gun->shaderRGBA[3] = (byte)alpha;
 		}
 	}
 
