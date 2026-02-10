@@ -32,11 +32,12 @@ Applies cg_hudAlpha as a multiplier to the alpha component.
 */
 static void CG_ParseHudColor( vec4_t out, const char *cvarString, const float *fallback ) {
 	float r, g, b, a;
-	if ( sscanf( cvarString, "%f %f %f %f", &r, &g, &b, &a ) >= 3 ) {
+	int numParsed = sscanf( cvarString, "%f %f %f %f", &r, &g, &b, &a );
+	if ( numParsed >= 3 ) {
 		out[0] = r;
 		out[1] = g;
 		out[2] = b;
-		if ( sscanf( cvarString, "%f %f %f %f", &r, &g, &b, &a ) < 4 ) {
+		if ( numParsed < 4 ) {
 			a = fallback[3];
 		}
 	} else {

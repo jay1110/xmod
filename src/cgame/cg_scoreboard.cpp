@@ -352,7 +352,9 @@ static void WM_DrawClientScore( int x, int y, score_t *score, float *color, floa
 		// Class not shown - extra space extends player name
 		playerWidth += INFO_CLASS_WIDTH;
 		maxchars += INFO_CLASS_WIDTH / SMALLCHAR_WIDTH;
-	}    // Icons - draw in order: special status icons first
+	}
+
+    // Icons - draw in order: special status icons first
 	if ( ci->team != TEAM_SPECTATOR ) {
         // Have the objective
 		if ( ci->powerups & ( (1 << PW_REDFLAG) | (1 << PW_BLUEFLAG) ) ) {
