@@ -2153,17 +2153,10 @@ static void CG_AddWeaponWithPowerups( refEntity_t *gun, int powerups, playerStat
 			gun->shaderRGBA[2] = drawGunColors[colorIndex][2];
 			gun->shaderRGBA[3] = (byte)alpha;
 		} else if (cg_drawGun.integer == 1 && alpha < 255) {
-			// cg_drawGun 1 (default) with alpha: use engine's entity fade
-			// mechanism to make the weapon transparent while preserving
-			// the original weapon textures. The renderer fades from opaque
-			// (at fadeStartTime) to invisible (at fadeEndTime).
-			// Duration is arbitrary (only the ratio matters for the fade
-			// position); 10000ms provides good integer precision.
-			// Also set shaderRGBA[3] for shaders that use alphaGen entity.
-			int duration = 10000;
-			int elapsed = (255 - alpha) * duration / 255;
-			gun->fadeStartTime = cg.time - elapsed;
-			gun->fadeEndTime = gun->fadeStartTime + duration;
+			// cg_drawGun 1 (default) with alpha: use lit transparent shader
+			// which preserves the model's lighting/shading while making it
+			// transparent. Uses rgbGen lightingDiffuse for proper 3D shading.
+			gun->customShader = cgs.media.transparentWeaponLitShader;
 			gun->shaderRGBA[3] = (byte)alpha;
 		}
 	}
