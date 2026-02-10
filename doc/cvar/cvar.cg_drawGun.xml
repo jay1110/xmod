@@ -70,8 +70,96 @@
             <entry>transparent white</entry>
         </row>
         <row>
-            <entry>10-32</entry>
-            <entry>additional transparent colors (orange, gray, teal, purple, etc.)</entry>
+            <entry>10</entry>
+            <entry>transparent orange</entry>
+        </row>
+        <row>
+            <entry>11</entry>
+            <entry>transparent gray</entry>
+        </row>
+        <row>
+            <entry>12</entry>
+            <entry>transparent light gray</entry>
+        </row>
+        <row>
+            <entry>13</entry>
+            <entry>transparent dark green</entry>
+        </row>
+        <row>
+            <entry>14</entry>
+            <entry>transparent olive</entry>
+        </row>
+        <row>
+            <entry>15</entry>
+            <entry>transparent dark blue</entry>
+        </row>
+        <row>
+            <entry>16</entry>
+            <entry>transparent dark red</entry>
+        </row>
+        <row>
+            <entry>17</entry>
+            <entry>transparent brown</entry>
+        </row>
+        <row>
+            <entry>18</entry>
+            <entry>transparent light orange</entry>
+        </row>
+        <row>
+            <entry>19</entry>
+            <entry>transparent teal</entry>
+        </row>
+        <row>
+            <entry>20</entry>
+            <entry>transparent purple</entry>
+        </row>
+        <row>
+            <entry>21</entry>
+            <entry>transparent sky blue</entry>
+        </row>
+        <row>
+            <entry>22</entry>
+            <entry>transparent violet</entry>
+        </row>
+        <row>
+            <entry>23</entry>
+            <entry>transparent steel blue</entry>
+        </row>
+        <row>
+            <entry>24</entry>
+            <entry>transparent light green</entry>
+        </row>
+        <row>
+            <entry>25</entry>
+            <entry>transparent forest green</entry>
+        </row>
+        <row>
+            <entry>26</entry>
+            <entry>transparent red-pink</entry>
+        </row>
+        <row>
+            <entry>27</entry>
+            <entry>transparent dark red</entry>
+        </row>
+        <row>
+            <entry>28</entry>
+            <entry>transparent brown</entry>
+        </row>
+        <row>
+            <entry>29</entry>
+            <entry>transparent tan</entry>
+        </row>
+        <row>
+            <entry>30</entry>
+            <entry>transparent olive</entry>
+        </row>
+        <row>
+            <entry>31</entry>
+            <entry>transparent light yellow</entry>
+        </row>
+        <row>
+            <entry>32</entry>
+            <entry>transparent yellow</entry>
         </row>
     </tbody>
 </tgroup>
