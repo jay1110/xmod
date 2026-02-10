@@ -1470,6 +1470,32 @@ void G_NcsProcessDirty( void ) {
     }
 }
 
+/*
+================
+G_ProcessDirtyPlayers
+----------------
+Called every server frame from G_RunFrame (before G_RpcsProcessQueues).
+Processes deferred CS_PLAYERS configstring updates. When many players
+update at once (e.g. warmup→match transition), calling trap_SetConfigstring
+for all 63 in one frame causes "Server command overflow" because the engine
+internally broadcasts a reliable command per client per configstring change.
+
+NitMod uses the same dirty-flag approach (DAT_0312b2a8) to batch configstring
+updates. We process at most RPCS_CMDS_PER_FRAME players per frame.
+================
+*/
+void G_ProcessDirtyPlayers( void ) {
+    int processed = 0;
+    for ( int i = 0; i < level.maxclients && processed < RPCS_CMDS_PER_FRAME; i++ ) {
+        if ( !level.csPlayersDirty[i] ) {
+            continue;
+        }
+        level.csPlayersDirty[i] = qfalse;
+        trap_SetConfigstring( CS_PLAYERS + i, level.csPlayersMinimal[i] );
+        processed++;
+    }
+}
+
 /*************************************************
 				Poison Syringes
 *************************************************/

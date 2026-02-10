@@ -4159,6 +4159,10 @@ void G_RunFrame( int levelTime ) {
 	// Process dirty NCS entries - queue changed model/sound/shader data for broadcast
 	G_NcsProcessDirty();
 
+	// Process dirty CS_PLAYERS entries - deferred configstring updates to prevent
+	// "Server command overflow" when many players update at once (warmup→match)
+	G_ProcessDirtyPlayers();
+
 	// Process deferred RPCS queue - sends queued commands gradually to prevent
 	// "msg overflowed" and "reliable command was cycled out" client errors
 	G_RpcsProcessQueues();

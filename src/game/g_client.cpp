@@ -2030,7 +2030,12 @@ void ClientUserinfoChanged( int clientNum ) {
         (void)len; // suppress unused variable warning
 
         trap_GetConfigstring( CS_PLAYERS + clientNum, oldname, sizeof( oldname ) );
-        trap_SetConfigstring( CS_PLAYERS + clientNum, minimalCS );
+
+        // NitMod-style deferred update: mark dirty instead of immediate trap_SetConfigstring.
+        // G_ProcessDirtyPlayers() will send a limited number per frame to prevent
+        // "Server command overflow" when all players update at once (warmup→match).
+        Q_strncpyz( level.csPlayersMinimal[clientNum], minimalCS, sizeof(level.csPlayersMinimal[clientNum]) );
+        level.csPlayersDirty[clientNum] = qtrue;
 
         // Store full player info for connecting clients and send via RPCS
         // Use deferred queue to prevent "Server command overflow" when many

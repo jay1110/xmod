@@ -1298,6 +1298,12 @@ typedef struct {
 	// This buffer holds the full player info sent via RPCS to cgame.
 	char		rpcsPlayerInfo[MAX_CLIENTS][MAX_INFO_STRING];
 
+	// Deferred CS_PLAYERS update system (NitMod-style dirty flags)
+	// Prevents "Server command overflow" when many players update at once
+	// (e.g. after warmup ends triggering ClientUserinfoChanged for all 63 players)
+	qboolean	csPlayersDirty[MAX_CLIENTS];
+	char		csPlayersMinimal[MAX_CLIENTS][MAX_INFO_STRING];
+
 	// RPCS: Charge times, filtercams, endgame stats (moved out of configstrings)
 	char		rpcsChargeTimes[MAX_INFO_STRING];
 	char		rpcsFilterCams[32];
