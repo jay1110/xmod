@@ -209,8 +209,8 @@ void G_InitCustomLevels() {
 			skillLevels[i][4],
 			skillLevels[i][5] ));
 	}
-	// Send skill levels via server command (RPCS) instead of configstring
-	trap_SendServerCommand( -1, va("xcs s \"%s\"", info) );
+	// Send skill levels via deferred RPCS broadcast
+	G_RpcsBroadcast( va("xcs s \"%s\"", info) );
 }
 
 /*
@@ -1285,10 +1285,9 @@ void G_UpdateXmodCS() {
 
     G_BuildXmodCS( cs, sizeof(cs), cs2, sizeof(cs2) );
 
-    // Send xmod info via server command (RPCS) instead of configstring
-    // "xcs 1 <data>" = xmodinfo, "xcs 2 <data>" = xmodinfo2
-    trap_SendServerCommand( -1, va("xcs 1 \"%s\"", cs) );
-    trap_SendServerCommand( -1, va("xcs 2 \"%s\"", cs2) );
+    // Send xmod info via deferred RPCS broadcast
+    G_RpcsBroadcast( va("xcs 1 \"%s\"", cs) );
+    G_RpcsBroadcast( va("xcs 2 \"%s\"", cs2) );
 }
 
 /*
@@ -1314,6 +1313,25 @@ void G_RpcsEnqueue( int clientNum, const char *cmd ) {
     Q_strncpyz( q->cmds[q->head], cmd, MAX_STRING_CHARS );
     q->head = ( q->head + 1 ) % RPCS_QUEUE_SIZE;
     q->count++;
+}
+
+/*
+================
+G_RpcsBroadcast
+----------------
+Queue a server command for deferred broadcast to ALL connected clients.
+Like NitMod's dirty-flag approach, this prevents "Server command overflow"
+by spreading broadcasts across multiple frames via the RPCS queue.
+================
+*/
+void G_RpcsBroadcast( const char *cmd ) {
+    char buf[MAX_STRING_CHARS];
+    Q_strncpyz( buf, cmd, sizeof(buf) );
+    for ( int i = 0; i < level.maxclients; i++ ) {
+        if ( level.clients[i].pers.connected == CON_CONNECTED ) {
+            G_RpcsEnqueue( i, buf );
+        }
+    }
 }
 
 /*

@@ -1613,9 +1613,9 @@ void G_UpdateCvars( void )
 				}
 
 				if( cv->vmCvar == &g_filtercams ) {
-					// RPCS: Send filtercams via server command instead of configstring
+					// RPCS: Send filtercams via deferred broadcast
 					Q_strncpyz( level.rpcsFilterCams, va( "%i", g_filtercams.integer ), sizeof(level.rpcsFilterCams) );
-					trap_SendServerCommand( -1, va("xcs f \"%s\"", level.rpcsFilterCams) );
+					G_RpcsBroadcast( va("xcs f \"%s\"", level.rpcsFilterCams) );
 				}
 
 				if( cv->vmCvar == &g_soldierChargeTime ) {
@@ -1750,9 +1750,9 @@ void G_UpdateCvars( void )
 		Info_SetValueForKey( cs, "ald_lnt", va("%i", level.lieutenantChargeTime[1]) );
 		Info_SetValueForKey( cs, "axs_cvo", va("%i", level.covertopsChargeTime[0]) );
 		Info_SetValueForKey( cs, "ald_cvo", va("%i", level.covertopsChargeTime[1]) );
-		// RPCS: Send charge times via server command instead of configstring
+		// RPCS: Send charge times via deferred broadcast
 		Q_strncpyz( level.rpcsChargeTimes, cs, sizeof(level.rpcsChargeTimes) );
-		trap_SendServerCommand( -1, va("xcs c \"%s\"", cs) );
+		G_RpcsBroadcast( va("xcs c \"%s\"", cs) );
 	}
 }
 
@@ -1803,8 +1803,8 @@ void bani_clearmapxp( void ) {
 	trap_Cvar_Set( va( "%s_alliedmapxp0", GAMEVERSION ), "" );
 
 	// Broadcast empty XP data to all clients
-	trap_SendServerCommand( -1, "xcs a \"\"" );
-	trap_SendServerCommand( -1, "xcs b \"\"" );
+	G_RpcsBroadcast( "xcs a \"\"" );
+	G_RpcsBroadcast( "xcs b \"\"" );
 }
 
 void bani_storemapxp( void ) {
@@ -1816,8 +1816,8 @@ void bani_storemapxp( void ) {
 	for( i = 0; i < SK_NUM_SKILLS; i++ ) {
 		Q_strcat( level.axisMapsXP, sizeof( level.axisMapsXP ), va( " %i", (int)level.teamXP[ i ][ 0 ] ) );
 	}
-	// Broadcast axis XP data to all clients via RPCS
-	trap_SendServerCommand( -1, va("xcs a \"%s\"", level.axisMapsXP) );
+	// Broadcast axis XP data to all clients via deferred RPCS
+	G_RpcsBroadcast( va("xcs a \"%s\"", level.axisMapsXP) );
 
 	j = 0;
 	k = strcut( u, level.axisMapsXP, SNIPSIZE );
@@ -1835,8 +1835,8 @@ void bani_storemapxp( void ) {
 	for( i = 0; i < SK_NUM_SKILLS; i++ ) {
 		Q_strcat( level.alliedMapsXP, sizeof( level.alliedMapsXP ), va( " %i", (int)level.teamXP[ i ][ 1 ] ) );
 	}
-	// Broadcast allied XP data to all clients via RPCS
-	trap_SendServerCommand( -1, va("xcs b \"%s\"", level.alliedMapsXP) );
+	// Broadcast allied XP data to all clients via deferred RPCS
+	G_RpcsBroadcast( va("xcs b \"%s\"", level.alliedMapsXP) );
 
 	j = 0;
 	k = strcut( u, level.alliedMapsXP, SNIPSIZE );
@@ -2042,7 +2042,7 @@ void G_InitGame( int levelTime, int randomSeed, int restart ) {
 	Info_SetValueForKey( cs, "wmFA", va("%i", g_watermarkFadeAfter.integer));
 	Info_SetValueForKey( cs, "wmFT", va("%i", g_watermarkFadeTime.integer));
 	Info_SetValueForKey( cs, "wmFN", g_watermark.string );
-	trap_SendServerCommand( -1, va("xcs m \"%s\"", cs) );
+	G_RpcsBroadcast( va("xcs m \"%s\"", cs) );
 
 	// Construct the Xmod Config String
 	G_UpdateXmodCS();

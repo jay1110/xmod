@@ -1316,11 +1316,13 @@ typedef struct {
 	qboolean	ncsDirty[NCS_MAX];		// dirty flags for deferred NCS broadcast
 
 	// RPCS deferred queue: spreads commands across frames to prevent
-	// "msg overflowed" and "reliable command was cycled out" errors.
+	// "msg overflowed", "reliable command was cycled out" and "Server command overflow".
 	// The ET engine can only buffer ~64 reliable commands per client.
+	// Combined budget: RPCS_CMDS_PER_FRAME + dirty players (same limit) must stay
+	// well under 64 to leave room for engine-internal cs updates.
 	// Queue must be large enough for NCS (up to 625) + player data (64) + other RPCS (~10)
 #define RPCS_QUEUE_SIZE		768		// max queued commands per client
-#define RPCS_CMDS_PER_FRAME	16		// max commands sent per client per frame
+#define RPCS_CMDS_PER_FRAME	8		// max commands sent per client per frame
 	struct {
 		char	cmds[RPCS_QUEUE_SIZE][MAX_STRING_CHARS];
 		int		head;		// next slot to write

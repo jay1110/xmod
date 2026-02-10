@@ -293,6 +293,7 @@ void     G_UpdateXmodCS        ( );
 void     G_SendXmodCS           ( int clientNum );
 void     G_RpcsProcessQueues    ( void );
 void     G_RpcsEnqueue          ( int clientNum, const char *cmd );
+void     G_RpcsBroadcast        ( const char *cmd );
 void     G_NcsSetConfigstring   ( int ncsIndex, const char *value );
 void     G_NcsProcessDirty      ( void );
 void     G_ProcessDirtyPlayers  ( void );
