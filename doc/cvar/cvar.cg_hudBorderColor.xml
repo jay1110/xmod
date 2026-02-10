@@ -1,0 +1,53 @@
+<refentry id="cvar.cg_hudBorderColor">
+
+<refmeta>
+    <refentrytitle>cg_hudBorderColor</refentrytitle>
+    <manvolnum>cvar</manvolnum>
+</refmeta>
+
+<refnamediv>
+    <refname>cg_hudBorderColor</refname>
+    <refpurpose>set HUD element border color</refpurpose>
+</refnamediv>
+
+<refsynopsisdiv>
+    <cmdsynopsis>
+        <command>cg_hudBorderColor</command>
+        <arg><replaceable>"R G B A"</replaceable></arg>
+    </cmdsynopsis>
+</refsynopsisdiv>
+
+<refsection>
+<title>Default</title>
+    <cmdsynopsis>
+        <command>cg_hudBorderColor</command>
+        <arg choice="plain"><literal>"0.5 0.5 0.5 0.5"</literal></arg>
+    </cmdsynopsis>
+</refsection>
+
+<refsection>
+<title>Description</title>
+<para>
+    <command>cg_hudBorderColor</command>
+    sets the border color for HUD elements as an RGBA string.
+    Each component (<replaceable>R</replaceable>, <replaceable>G</replaceable>,
+    <replaceable>B</replaceable>, <replaceable>A</replaceable>) is a float
+    between <literal>0.0</literal> and <literal>1.0</literal>.
+</para>
+<para>
+    The alpha component is further multiplied by <command>cg_hudAlpha</command>.
+</para>
+<para>
+    Affected HUD elements include the FPS counter, speed display, clock, timer,
+    fireteam overlay, and lagometer.
+</para>
+</refsection>
+
+<refsection>
+<title>See Also</title>
+<para>
+    <xref linkend="cvar.cg_hudAlpha"/>,
+    <xref linkend="cvar.cg_hudBackgroundColor"/>
+</para>
+</refsection>
+</refentry>

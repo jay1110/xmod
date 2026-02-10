@@ -2136,21 +2136,23 @@ CG_AddWeaponWithPowerups
 ========================
 */
 static void CG_AddWeaponWithPowerups( refEntity_t *gun, int powerups, playerState_t *ps, centity_t *cent ) {
-	// cg_drawGun transparent modes (2-32)
 	// Only apply to first-person weapon (when ps is not NULL and not rendering third person)
-	if (ps && !cg.renderingThirdPerson && cg_drawGun.integer >= DRAWGUN_COLOR_MIN && cg_drawGun.integer <= DRAWGUN_COLOR_MAX) {
-		int colorIndex = cg_drawGun.integer - DRAWGUN_COLOR_MIN;
+	if (ps && !cg.renderingThirdPerson) {
 		int alpha = cg_drawGunAlpha.integer;
-		
+
 		// Clamp alpha to valid range
 		if (alpha < 0) alpha = 0;
 		if (alpha > 255) alpha = 255;
-		
-		gun->customShader = cgs.media.transparentWeaponShader;
-		gun->shaderRGBA[0] = drawGunColors[colorIndex][0];
-		gun->shaderRGBA[1] = drawGunColors[colorIndex][1];
-		gun->shaderRGBA[2] = drawGunColors[colorIndex][2];
-		gun->shaderRGBA[3] = (byte)alpha;
+
+		if (cg_drawGun.integer >= DRAWGUN_COLOR_MIN && cg_drawGun.integer <= DRAWGUN_COLOR_MAX) {
+			// cg_drawGun transparent color modes (2-32)
+			int colorIndex = cg_drawGun.integer - DRAWGUN_COLOR_MIN;
+			gun->customShader = cgs.media.transparentWeaponShader;
+			gun->shaderRGBA[0] = drawGunColors[colorIndex][0];
+			gun->shaderRGBA[1] = drawGunColors[colorIndex][1];
+			gun->shaderRGBA[2] = drawGunColors[colorIndex][2];
+			gun->shaderRGBA[3] = (byte)alpha;
+		}
 	}
 
 	// add powerup effects

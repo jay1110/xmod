@@ -22,6 +22,47 @@ int activeFont;
 ///////////////////////
 ///////////////////////
 
+/*
+=================
+CG_ParseHudColor
+
+Parse a color cvar string "r g b a" into a vec4_t.
+Applies cg_hudAlpha as a multiplier to the alpha component.
+=================
+*/
+static void CG_ParseHudColor( vec4_t out, const char *cvarString, const float *fallback ) {
+	float r, g, b, a;
+	int numParsed = sscanf( cvarString, "%f %f %f %f", &r, &g, &b, &a );
+	if ( numParsed >= 3 ) {
+		out[0] = r;
+		out[1] = g;
+		out[2] = b;
+		if ( numParsed < 4 ) {
+			a = fallback[3];
+		}
+	} else {
+		out[0] = fallback[0];
+		out[1] = fallback[1];
+		out[2] = fallback[2];
+		a = fallback[3];
+	}
+	// Apply cg_hudAlpha as a multiplier
+	float hudAlpha = cg_hudAlpha.value;
+	if ( hudAlpha < 0.0f ) hudAlpha = 0.0f;
+	if ( hudAlpha > 1.0f ) hudAlpha = 1.0f;
+	out[3] = a * hudAlpha;
+}
+
+void CG_GetHudBackgroundColor( vec4_t out ) {
+	static const vec4_t defaultBg = { 0.16f, 0.2f, 0.17f, 0.8f };
+	CG_ParseHudColor( out, cg_hudBackgroundColor.string, defaultBg );
+}
+
+void CG_GetHudBorderColor( vec4_t out ) {
+	static const vec4_t defaultBorder = { 0.5f, 0.5f, 0.5f, 0.5f };
+	CG_ParseHudColor( out, cg_hudBorderColor.string, defaultBorder );
+}
+
 void CG_Text_SetActiveFont( int font ) {
 	activeFont = font;
 }
@@ -611,8 +652,10 @@ static float CG_DrawFPS( float y ) {
 	int		fps;
 	static	int	previous;
 	int		t, frameTime;
-	vec4_t		timerBackground =	{ 0.16f,	0.2f,	0.17f,	0.8f	};
-	vec4_t		timerBorder     =	{ 0.5f,		0.5f,	0.5f,	0.5f	};
+	vec4_t		timerBackground;
+	vec4_t		timerBorder;
+	CG_GetHudBackgroundColor( timerBackground );
+	CG_GetHudBorderColor( timerBorder );
 	vec4_t		tclr			=	{ 0.625f,	0.625f,	0.6f,	1.0f	};
 
 	// don't use serverTime, because that will be drifting to
@@ -659,8 +702,10 @@ static float CG_DrawSpeed( float y ) {
     char* s;
 
 	vec4_t		color =				{ 0.625f,	0.625f,	0.6f,	1.0f };
-	vec4_t		timerBackground =	{ 0.16f,	0.2f,	0.17f,	0.8f };
-	vec4_t		timerBorder     =	{ 0.5f,		0.5f,	0.5f,	0.5f };
+	vec4_t		timerBackground;
+	vec4_t		timerBorder;
+	CG_GetHudBackgroundColor( timerBackground );
+	CG_GetHudBorderColor( timerBorder );
 
     if (cg.time > cg.speedTime) {
         cg.lastSpeed = VectorLength(cg.predictedPlayerState.velocity);
@@ -701,8 +746,10 @@ static float CG_DrawClock( float y ) {
 	char s[12];
 	int w;
 	vec4_t		color =				{ 0.625f,	0.625f,	0.6f,	1.0f	};
-	vec4_t		timerBackground =	{ 0.16f,	0.2f,	0.17f,	0.8f	};
-	vec4_t		timerBorder     =	{ 0.5f,		0.5f,	0.5f,	0.5f	};
+	vec4_t		timerBackground;
+	vec4_t		timerBorder;
+	CG_GetHudBackgroundColor( timerBackground );
+	CG_GetHudBorderColor( timerBorder );
 
 	if (cg_drawClock.integer == 2)
 		strftime( s, sizeof( s ), "%H:%M:%S", timestamp_s );
@@ -735,8 +782,10 @@ static float CG_DrawTimer( float y ) {
 	int			msec;
 	const char*	rt;
 	vec4_t		color =				{ 0.625f,	0.625f,	0.6f,	1.0f	};
-	vec4_t		timerBackground =	{ 0.16f,	0.2f,	0.17f,	0.8f	};
-	vec4_t		timerBorder     =	{ 0.5f,		0.5f,	0.5f,	0.5f	};
+	vec4_t		timerBackground;
+	vec4_t		timerBorder;
+	CG_GetHudBackgroundColor( timerBackground );
+	CG_GetHudBorderColor( timerBorder );
 
 	// CHRUKER: b018 - Respawn timer shouldn't be shown in spectator mode
 	rt = (cgs.gametype != GT_WOLF_LMS && (cgs.clientinfo[cg.clientNum].team != TEAM_SPECTATOR || cg.snap->ps.pm_flags & PMF_FOLLOW) && cg_drawReinforcementTime.integer > 0) ?
@@ -1225,9 +1274,12 @@ static void CG_DrawLagometer( void ) {
 	float	ax, ay, aw, ah, mid, range;
 	int		color;
 	float	vscale;
-	vec4_t colorBG = { 0.16f, 0.2f, 0.17f, 0.4f };
-	vec4_t colorBD = { 0.5f, 0.5f, 0.5f, 0.5f };
+	vec4_t colorBG;
+	vec4_t colorBD;
     vec4_t colorAW = { 0, 0.5, 0, 0.5f};
+
+	CG_GetHudBackgroundColor( colorBG );
+	CG_GetHudBorderColor( colorBD );
 
 	if ( !cg_lagometer.integer || cgs.localServer ) {
 		CG_DrawDisconnect();

@@ -1591,7 +1591,7 @@ typedef struct {
 	//qhandle_t	genericConstructionShaderModel;
 	qhandle_t	alliedUniformShader;
 	qhandle_t	axisUniformShader;
-	qhandle_t	transparentWeaponShader;  // For cg_drawGun 2-5
+	qhandle_t	transparentWeaponShader;  // For cg_drawGun 2-32
 
 	sfxHandle_t	sfx_artilleryExp[3];
 	sfxHandle_t	sfx_artilleryDist;
@@ -2482,6 +2482,11 @@ extern	vmCvar_t		cg_optimizePrediction;
 // Country Flags
 extern	vmCvar_t		cg_countryflags;
 
+// HUD customization
+extern	vmCvar_t		cg_hudAlpha;
+extern	vmCvar_t		cg_hudBackgroundColor;
+extern	vmCvar_t		cg_hudBorderColor;
+
 //
 // cg_main.c
 //
@@ -2630,6 +2635,8 @@ void CG_BPrint( const char *str, int y, int charWidth );
 void CG_PriorityBPrint( const char *str, int y, int charWidth, int priority );		// NERVE - SMF
 void CG_ObjectivePrint( const char *str, int charWidth );						// NERVE - SMF
 void CG_DrawActive( stereoFrame_t stereoView );
+void CG_GetHudBackgroundColor( vec4_t out );
+void CG_GetHudBorderColor( vec4_t out );
 void CG_CheckForCursorHints( void );
 void CG_DrawTeamBackground( int x, int y, int w, int h, float alpha, int team );
 void CG_OwnerDraw(float x, float y, float w, float h, float text_x, float text_y, int ownerDraw, int ownerDrawFlags, int align, float special, float scale, vec4_t color, qhandle_t shader, int textStyle);

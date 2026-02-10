@@ -1,0 +1,51 @@
+<refentry id="cvar.cg_hudAlpha">
+
+<refmeta>
+    <refentrytitle>cg_hudAlpha</refentrytitle>
+    <manvolnum>cvar</manvolnum>
+</refmeta>
+
+<refnamediv>
+    <refname>cg_hudAlpha</refname>
+    <refpurpose>set global HUD element transparency</refpurpose>
+</refnamediv>
+
+<refsynopsisdiv>
+    <cmdsynopsis>
+        <command>cg_hudAlpha</command>
+        <arg><replaceable>alpha</replaceable></arg>
+    </cmdsynopsis>
+</refsynopsisdiv>
+
+<refsection>
+<title>Default</title>
+    <cmdsynopsis>
+        <command>cg_hudAlpha</command>
+        <arg choice="plain"><literal>1.0</literal></arg>
+    </cmdsynopsis>
+</refsection>
+
+<refsection>
+<title>Description</title>
+<para>
+    <command>cg_hudAlpha</command>
+    sets the global transparency for HUD element backgrounds.
+    <replaceable>alpha</replaceable> is a value between <literal>0.0</literal> (fully transparent)
+    and <literal>1.0</literal> (fully opaque).
+    This multiplies with the alpha component of <command>cg_hudBackgroundColor</command>
+    and <command>cg_hudBorderColor</command>.
+</para>
+<para>
+    Affected HUD elements include the FPS counter, speed display, clock, timer,
+    fireteam overlay, and lagometer.
+</para>
+</refsection>
+
+<refsection>
+<title>See Also</title>
+<para>
+    <xref linkend="cvar.cg_hudBackgroundColor"/>,
+    <xref linkend="cvar.cg_hudBorderColor"/>
+</para>
+</refsection>
+</refentry>

@@ -331,6 +331,11 @@ vmCvar_t	cg_optimizePrediction;
 // Country Flags
 vmCvar_t	cg_countryflags;
 
+// HUD customization
+vmCvar_t	cg_hudAlpha;
+vmCvar_t	cg_hudBackgroundColor;
+vmCvar_t	cg_hudBorderColor;
+
 typedef struct {
 	vmCvar_t	*vmCvar;
 	char		*cvarName;
@@ -582,6 +587,11 @@ cvarTable_t		cvarTable[] = {
 
 	// Country Flags
 	{ &cg_countryflags, "cg_countryflags", "1", CVAR_ARCHIVE },
+
+	// HUD customization
+	{ &cg_hudAlpha, "cg_hudAlpha", "1.0", CVAR_ARCHIVE },
+	{ &cg_hudBackgroundColor, "cg_hudBackgroundColor", "0.16 0.2 0.17 0.8", CVAR_ARCHIVE },
+	{ &cg_hudBorderColor, "cg_hudBorderColor", "0.5 0.5 0.5 0.5", CVAR_ARCHIVE },
 
 	//bani - demo recording cvars
 	{ &cl_demorecording, "cl_demorecording", "0", CVAR_ROM },

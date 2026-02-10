@@ -93,7 +93,7 @@ etpro/color_construction
 	}
 }
 
-// Simple transparent shader for transparent weapon rendering
+// Transparent shader for cg_drawGun 2-32 colored weapon rendering
 xmod/transparent_weapon
 {
 	cull none

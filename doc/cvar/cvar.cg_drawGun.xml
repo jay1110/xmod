@@ -1,0 +1,196 @@
+<refentry id="cvar.cg_drawGun">
+
+<refmeta>
+    <refentrytitle>cg_drawGun</refentrytitle>
+    <manvolnum>cvar</manvolnum>
+</refmeta>
+
+<refnamediv>
+    <refname>cg_drawGun</refname>
+    <refpurpose>set first-person weapon display mode</refpurpose>
+</refnamediv>
+
+<refsynopsisdiv>
+    <cmdsynopsis>
+        <command>cg_drawGun</command>
+        <arg><replaceable>mode</replaceable></arg>
+    </cmdsynopsis>
+
+<table id="cvar.cg_drawGun.modes" frame="all">
+<?dbfo table-width="50%"?>
+<title>cg_drawGun Modes</title>
+<tgroup cols="2" align="left" colsep="1" rowsep="1">
+    <colspec colnum="1" colwidth="9*" align="center"/>
+    <colspec colnum="2" colwidth="21*"/>
+    <thead>
+        <row>
+            <entry>VALUE</entry>
+            <entry>DESCRIPTION</entry>
+        </row>
+    </thead>
+    <tbody>
+        <row>
+            <entry>0</entry>
+            <entry>weapon hidden</entry>
+        </row>
+        <row>
+            <entry>1</entry>
+            <entry>normal weapon display (default)</entry>
+        </row>
+        <row>
+            <entry>2</entry>
+            <entry>transparent black</entry>
+        </row>
+        <row>
+            <entry>3</entry>
+            <entry>transparent red</entry>
+        </row>
+        <row>
+            <entry>4</entry>
+            <entry>transparent green</entry>
+        </row>
+        <row>
+            <entry>5</entry>
+            <entry>transparent yellow</entry>
+        </row>
+        <row>
+            <entry>6</entry>
+            <entry>transparent blue</entry>
+        </row>
+        <row>
+            <entry>7</entry>
+            <entry>transparent cyan</entry>
+        </row>
+        <row>
+            <entry>8</entry>
+            <entry>transparent magenta</entry>
+        </row>
+        <row>
+            <entry>9</entry>
+            <entry>transparent white</entry>
+        </row>
+        <row>
+            <entry>10</entry>
+            <entry>transparent orange</entry>
+        </row>
+        <row>
+            <entry>11</entry>
+            <entry>transparent gray</entry>
+        </row>
+        <row>
+            <entry>12</entry>
+            <entry>transparent light gray</entry>
+        </row>
+        <row>
+            <entry>13</entry>
+            <entry>transparent dark green</entry>
+        </row>
+        <row>
+            <entry>14</entry>
+            <entry>transparent olive</entry>
+        </row>
+        <row>
+            <entry>15</entry>
+            <entry>transparent dark blue</entry>
+        </row>
+        <row>
+            <entry>16</entry>
+            <entry>transparent dark red</entry>
+        </row>
+        <row>
+            <entry>17</entry>
+            <entry>transparent brown</entry>
+        </row>
+        <row>
+            <entry>18</entry>
+            <entry>transparent light orange</entry>
+        </row>
+        <row>
+            <entry>19</entry>
+            <entry>transparent teal</entry>
+        </row>
+        <row>
+            <entry>20</entry>
+            <entry>transparent purple</entry>
+        </row>
+        <row>
+            <entry>21</entry>
+            <entry>transparent sky blue</entry>
+        </row>
+        <row>
+            <entry>22</entry>
+            <entry>transparent violet</entry>
+        </row>
+        <row>
+            <entry>23</entry>
+            <entry>transparent steel blue</entry>
+        </row>
+        <row>
+            <entry>24</entry>
+            <entry>transparent light green</entry>
+        </row>
+        <row>
+            <entry>25</entry>
+            <entry>transparent forest green</entry>
+        </row>
+        <row>
+            <entry>26</entry>
+            <entry>transparent red-pink</entry>
+        </row>
+        <row>
+            <entry>27</entry>
+            <entry>transparent dark red</entry>
+        </row>
+        <row>
+            <entry>28</entry>
+            <entry>transparent brown</entry>
+        </row>
+        <row>
+            <entry>29</entry>
+            <entry>transparent tan</entry>
+        </row>
+        <row>
+            <entry>30</entry>
+            <entry>transparent olive</entry>
+        </row>
+        <row>
+            <entry>31</entry>
+            <entry>transparent light yellow</entry>
+        </row>
+        <row>
+            <entry>32</entry>
+            <entry>transparent yellow</entry>
+        </row>
+    </tbody>
+</tgroup>
+</table>
+</refsynopsisdiv>
+
+<refsection>
+<title>Default</title>
+    <cmdsynopsis>
+        <command>cg_drawGun</command>
+        <arg choice="plain"><literal>1</literal></arg>
+    </cmdsynopsis>
+</refsection>
+
+<refsection>
+<title>Description</title>
+<para>
+    <command>cg_drawGun</command>
+    sets the first-person weapon display mode.
+    Mode <literal>0</literal> hides the weapon entirely.
+    Mode <literal>1</literal> displays the weapon normally with its original textures.
+    Modes <literal>2</literal> through <literal>32</literal> display the weapon as a
+    transparent colored silhouette. The transparency of colored modes is controlled
+    by <command>cg_drawGunAlpha</command>.
+</para>
+</refsection>
+
+<refsection>
+<title>See Also</title>
+<para>
+    <xref linkend="cvar.cg_drawGunAlpha"/>
+</para>
+</refsection>
+</refentry>

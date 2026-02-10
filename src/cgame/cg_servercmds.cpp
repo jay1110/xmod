@@ -30,7 +30,7 @@ CG_ParseScores
 */
 // Gordon: NOTE: team doesnt actually signify team, think i was on drugs that day.....
 static void CG_ParseScore( team_t team ) {
-	int		i, j, powerups;
+	int		i, j, k, powerups;
 	int		numScores;
 	int		offset;
 
@@ -51,17 +51,30 @@ static void CG_ParseScore( team_t team ) {
 	for(j = 0; j < numScores; j++) {
 		i = cg.numScores;
 
-		cg.scores[i].client = atoi(			CG_Argv( offset + 0 + (j*9)));
+		int clientNum = atoi( CG_Argv( offset + 0 + (j*9)) );
+		if ( clientNum < 0 || clientNum >= MAX_CLIENTS ) {
+			clientNum = 0;
+		}
+
+		// Deduplicate: skip if this client is already in the scores list
+		qboolean duplicate = qfalse;
+		for ( k = 0; k < cg.numScores; k++ ) {
+			if ( cg.scores[k].client == clientNum ) {
+				duplicate = qtrue;
+				break;
+			}
+		}
+		if ( duplicate ) {
+			continue;
+		}
+
+		cg.scores[i].client = clientNum;
 		cg.scores[i].score = atoi(			CG_Argv( offset + 1 + (j*9)));
 		cg.scores[i].ping = atoi(			CG_Argv( offset + 2 + (j*9)));
 		cg.scores[i].time = atoi(			CG_Argv( offset + 3 + (j*9)));
 		powerups = atoi(					CG_Argv( offset + 4 + (j*9)));
 		cg.scores[i].playerClass = atoi(	CG_Argv( offset + 5 + (j*9)));
 		cg.scores[i].respawnsLeft = atoi(	CG_Argv( offset + 6 + (j*9)));
-
-		if ( cg.scores[i].client < 0 || cg.scores[i].client >= MAX_CLIENTS ) {
-			cg.scores[i].client = 0;
-		}
 
 		cgs.clientinfo[ cg.scores[i].client ].score = cg.scores[i].score;
 		cgs.clientinfo[ cg.scores[i].client ].powerups = powerups;
@@ -2437,7 +2450,7 @@ static void CG_ServerCommand( void ) {
 	if ( !strcmp( cmd, "sc0" ) ) {
 		CG_ParseScore(TEAM_AXIS);
 		return;
-	} else if ( !strcmp( cmd, "sc1" ) ) {
+	} else if ( !strncmp( cmd, "sc", 2 ) && cmd[2] >= '1' && cmd[2] <= '7' && cmd[3] == '\0' ) {
 		CG_ParseScore(TEAM_ALLIES);
 		return;
 	}

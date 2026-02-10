@@ -343,11 +343,16 @@ static void WM_DrawClientScore( int x, int y, score_t *score, float *color, floa
 		}
 	}
 	
+	int playerWidth = INFO_PLAYER_WIDTH;
+
 	if ( showClass ) {
 		CG_DrawClassIcon(tempx + 1, y + 1, fade, score->playerClass);
 		tempx += INFO_CLASS_WIDTH;
+	} else {
+		// Class not shown - extra space extends player name
+		playerWidth += INFO_CLASS_WIDTH;
+		maxchars += INFO_CLASS_WIDTH / SMALLCHAR_WIDTH;
 	}
-	// If class not shown, don't advance tempx - shift name left
 
     // Icons - draw in order: special status icons first
 	if ( ci->team != TEAM_SPECTATOR ) {
@@ -405,7 +410,7 @@ static void WM_DrawClientScore( int x, int y, score_t *score, float *color, floa
 	if (maxchars > 0)
 		CG_DrawStringExt( int(tempx + (BG_drawStrlen(ci->name) * SMALLCHAR_WIDTH + SMALLCHAR_WIDTH)), y, buf, hcolor, qfalse, qtrue, SMALLCHAR_WIDTH, SMALLCHAR_HEIGHT, maxchars );
 
-	tempx += INFO_PLAYER_WIDTH - offset;
+	tempx += playerWidth - offset;
 
 	if ( score->ping < 0 || (ci->team == TEAM_SPECTATOR && ci->shoutcaster)) {
         // Simpler box for connecting and shoutcasters
@@ -427,21 +432,24 @@ static void WM_DrawClientScore( int x, int y, score_t *score, float *color, floa
 		tempx += INFO_SCORE_WIDTH;
 	} else {
 		// K/D ratio with colored kills (green), white slash, deaths (red) - with shadow
+		// Slash is at a fixed position for alignment across all players
 		vec4_t killColor = { 0.2f, 0.8f, 0.2f, fade };
 		vec4_t slashColor = { 1.0f, 1.0f, 1.0f, fade };
 		vec4_t deathColor = { 0.9f, 0.2f, 0.2f, fade };
-		char killStr[16], slashStr[16], deathStr[16];
-		int killWidth, slashWidth;
+		char killStr[16], deathStr[16];
+		int killWidth;
+		int slashPos = int(tempx) + INFO_KD_WIDTH / 2 - SMALLCHAR_WIDTH / 2;
 
 		Com_sprintf(killStr, sizeof(killStr), "%i", ci->kills);
-		Com_sprintf(slashStr, sizeof(slashStr), "/");
 		Com_sprintf(deathStr, sizeof(deathStr), "%i", ci->deaths);
-		
-		CG_DrawStringExt( int(tempx), y, killStr, killColor, qfalse, qtrue, SMALLCHAR_WIDTH, SMALLCHAR_HEIGHT, 0 );
+
+		// Right-align kills before the slash
 		killWidth = CG_DrawStrlen(killStr) * SMALLCHAR_WIDTH;
-		CG_DrawStringExt( int(tempx + killWidth), y, slashStr, slashColor, qfalse, qtrue, SMALLCHAR_WIDTH, SMALLCHAR_HEIGHT, 0 );
-		slashWidth = CG_DrawStrlen(slashStr) * SMALLCHAR_WIDTH;
-		CG_DrawStringExt( int(tempx + killWidth + slashWidth), y, deathStr, deathColor, qfalse, qtrue, SMALLCHAR_WIDTH, SMALLCHAR_HEIGHT, 0 );
+		CG_DrawStringExt( slashPos - killWidth, y, killStr, killColor, qfalse, qtrue, SMALLCHAR_WIDTH, SMALLCHAR_HEIGHT, 0 );
+		// Slash at fixed position
+		CG_DrawStringExt( slashPos, y, "/", slashColor, qfalse, qtrue, SMALLCHAR_WIDTH, SMALLCHAR_HEIGHT, 0 );
+		// Left-align deaths after the slash
+		CG_DrawStringExt( slashPos + SMALLCHAR_WIDTH, y, deathStr, deathColor, qfalse, qtrue, SMALLCHAR_WIDTH, SMALLCHAR_HEIGHT, 0 );
 		tempx += INFO_KD_WIDTH;
 
 		// XP
@@ -538,11 +546,16 @@ static void WM_DrawClientScore_Small( int x, int y, score_t *score, float *color
 		}
 	}
 	
+	int playerWidth = INFO_PLAYER_WIDTH;
+
 	if ( showClass ) {
 		CG_DrawClassIcon(tempx + 1, y, fade, score->playerClass);
 		tempx += INFO_CLASS_WIDTH;
+	} else {
+		// Class not shown - extra space extends player name
+		playerWidth += INFO_CLASS_WIDTH;
+		maxchars += INFO_CLASS_WIDTH / MINICHAR_WIDTH;
 	}
-	// If class not shown, don't advance tempx - shift name left
 
 	if ( ci->team != TEAM_SPECTATOR ) {
         // Has the objective
@@ -606,8 +619,7 @@ static void WM_DrawClientScore_Small( int x, int y, score_t *score, float *color
 	// Jaybird
 	hcolor[0] = hcolor[1] = hcolor[2] = 1;
 
-	tempx += INFO_PLAYER_WIDTH - offset;
-	// dhm - nerve
+	tempx += playerWidth - offset;
 
 	if ( score->ping < 0 || (ci->team == TEAM_SPECTATOR && ci->shoutcaster)) {
 		const char *s;
@@ -630,21 +642,24 @@ static void WM_DrawClientScore_Small( int x, int y, score_t *score, float *color
 		tempx += INFO_SCORE_WIDTH;
 	} else {
 		// K/D ratio with colored kills (green), white slash, deaths (red) - with shadow
+		// Slash is at a fixed position for alignment across all players
 		vec4_t killColor = { 0.2f, 0.8f, 0.2f, fade };
 		vec4_t slashColor = { 1.0f, 1.0f, 1.0f, fade };
 		vec4_t deathColor = { 0.9f, 0.2f, 0.2f, fade };
-		char killStr[16], slashStr[16], deathStr[16];
-		int killWidth, slashWidth;
+		char killStr[16], deathStr[16];
+		int killWidth;
+		int slashPos = int(tempx) + INFO_KD_WIDTH / 2 - MINICHAR_WIDTH / 2;
 
 		Com_sprintf(killStr, sizeof(killStr), "%i", ci->kills);
-		Com_sprintf(slashStr, sizeof(slashStr), "/");
 		Com_sprintf(deathStr, sizeof(deathStr), "%i", ci->deaths);
-		
-		CG_DrawStringExt( int(tempx), y, killStr, killColor, qfalse, qtrue, MINICHAR_WIDTH, MINICHAR_HEIGHT, 0 );
+
+		// Right-align kills before the slash
 		killWidth = CG_DrawStrlen(killStr) * MINICHAR_WIDTH;
-		CG_DrawStringExt( int(tempx + killWidth), y, slashStr, slashColor, qfalse, qtrue, MINICHAR_WIDTH, MINICHAR_HEIGHT, 0 );
-		slashWidth = CG_DrawStrlen(slashStr) * MINICHAR_WIDTH;
-		CG_DrawStringExt( int(tempx + killWidth + slashWidth), y, deathStr, deathColor, qfalse, qtrue, MINICHAR_WIDTH, MINICHAR_HEIGHT, 0 );
+		CG_DrawStringExt( slashPos - killWidth, y, killStr, killColor, qfalse, qtrue, MINICHAR_WIDTH, MINICHAR_HEIGHT, 0 );
+		// Slash at fixed position
+		CG_DrawStringExt( slashPos, y, "/", slashColor, qfalse, qtrue, MINICHAR_WIDTH, MINICHAR_HEIGHT, 0 );
+		// Left-align deaths after the slash
+		CG_DrawStringExt( slashPos + MINICHAR_WIDTH, y, deathStr, deathColor, qfalse, qtrue, MINICHAR_WIDTH, MINICHAR_HEIGHT, 0 );
 		tempx += INFO_KD_WIDTH;
 
 		// XP (with shadow)
