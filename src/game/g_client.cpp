@@ -1750,6 +1750,7 @@ void ClientUserinfoChanged( int clientNum ) {
     char    *s;
     char    oldname[MAX_STRING_CHARS];
     char    userinfo[MAX_INFO_STRING];
+    char    csStr[MAX_INFO_STRING];
     gclient_t   *client;
     int     i;
     char    skillStr[16] = "";
@@ -1934,31 +1935,121 @@ void ClientUserinfoChanged( int clientNum ) {
 
     // send over a subset of the userinfo keys so other clients can
     // print scoreboards, display models, and play custom sounds
-    // "skill" key: 0 = human player, 1 = bot (value 1 used to identify bots, not actual skill)
-    // This allows clients to identify bots without needing server-side entity access.
-    // Used by CG_DrawDisconnect() to skip "Connection Interrupted" display when spectating bots.
-    int botSkillValue = (ent->r.svFlags & SVF_BOT) ? 1 : 0;
-    s = va( "n\\%s\\t\\%i\\c\\%i\\r\\%i\\m\\%s\\s\\%s\\dn\\%s\\dr\\%i\\w\\%i\\lw\\%i\\sw\\%i\\mu\\%i\\ref\\%i\\sc\\%i\\u\\%i\\skill\\%i",
-        client->pers.netname, 
-        client->sess.sessionTeam, 
-        client->sess.playerType, 
-        client->sess.rank, 
-        medalStr,
-        skillStr,
-        client->disguiseNetname,
-        client->disguiseRank,
-        client->sess.playerWeapon,
-        client->sess.latchPlayerWeapon,
-        client->sess.latchPlayerWeapon2,
-        ::xmod::isClientMuted(clientNum) ? 1 : 0,
-        client->sess.referee,
-        client->sess.shoutcaster,
-        client->sess.uci,
-        botSkillValue
-    );
+    // Compressed: only non-zero/non-default keys are included to reduce gamestate size
+    // and help against MAX_GAMESTATE_CHARS exceeded errors
+    {
+        // SK_NUM_SKILLS zeros - default medal/skill string when all skills/medals are 0
+        static const char defaultSkillMedalStr[] = "0000000";
+        int len, maxLen = (int)sizeof(csStr);
 
-    trap_GetConfigstring( CS_PLAYERS + clientNum, oldname, sizeof( oldname ) );
-    trap_SetConfigstring( CS_PLAYERS + clientNum, s );
+        // Always include: name, team, class, rank (required fields)
+        len = snprintf( csStr, maxLen, "n\\%s\\t\\%i\\c\\%i\\r\\%i",
+            client->pers.netname,
+            client->sess.sessionTeam,
+            client->sess.playerType,
+            client->sess.rank );
+        if (len >= maxLen) len = maxLen - 1;
+
+        // Medals: only include if not all zeros
+        if (Q_stricmp( medalStr, defaultSkillMedalStr )) {
+            len += snprintf( csStr + len, maxLen - len, "\\m\\%s", medalStr );
+            if (len >= maxLen) len = maxLen - 1;
+        }
+
+        // Skills: only include if not all zeros
+        if (Q_stricmp( skillStr, defaultSkillMedalStr )) {
+            len += snprintf( csStr + len, maxLen - len, "\\s\\%s", skillStr );
+            if (len >= maxLen) len = maxLen - 1;
+        }
+
+        // Disguise name: only include if not empty
+        if (client->disguiseNetname[0]) {
+            len += snprintf( csStr + len, maxLen - len, "\\dn\\%s", client->disguiseNetname );
+            if (len >= maxLen) len = maxLen - 1;
+        }
+
+        // Remaining fields: only include if non-zero
+        if (client->disguiseRank) {
+            len += snprintf( csStr + len, maxLen - len, "\\dr\\%i", client->disguiseRank );
+            if (len >= maxLen) len = maxLen - 1;
+        }
+        if (client->sess.playerWeapon) {
+            len += snprintf( csStr + len, maxLen - len, "\\w\\%i", client->sess.playerWeapon );
+            if (len >= maxLen) len = maxLen - 1;
+        }
+        if (client->sess.latchPlayerWeapon) {
+            len += snprintf( csStr + len, maxLen - len, "\\lw\\%i", client->sess.latchPlayerWeapon );
+            if (len >= maxLen) len = maxLen - 1;
+        }
+        if (client->sess.latchPlayerWeapon2) {
+            len += snprintf( csStr + len, maxLen - len, "\\sw\\%i", client->sess.latchPlayerWeapon2 );
+            if (len >= maxLen) len = maxLen - 1;
+        }
+        if (::xmod::isClientMuted(clientNum)) {
+            len += snprintf( csStr + len, maxLen - len, "\\mu\\1" );
+            if (len >= maxLen) len = maxLen - 1;
+        }
+        if (client->sess.referee) {
+            len += snprintf( csStr + len, maxLen - len, "\\ref\\%i", client->sess.referee );
+            if (len >= maxLen) len = maxLen - 1;
+        }
+        if (client->sess.shoutcaster) {
+            len += snprintf( csStr + len, maxLen - len, "\\sc\\%i", client->sess.shoutcaster );
+            if (len >= maxLen) len = maxLen - 1;
+        }
+        if (client->sess.uci) {
+            len += snprintf( csStr + len, maxLen - len, "\\u\\%i", client->sess.uci );
+            if (len >= maxLen) len = maxLen - 1;
+        }
+
+        // "skill" key: 1 = bot (allows clients to identify bots)
+        // Used by CG_DrawDisconnect() to skip "Connection Interrupted" display when spectating bots.
+        if (ent->r.svFlags & SVF_BOT) {
+            snprintf( csStr + len, maxLen - len, "\\skill\\1" );
+        }
+
+        s = csStr;
+    }
+
+    // RPCS: Set minimal configstring for UI module compatibility,
+    // and send full player data via RPCS to avoid MAX_GAMESTATE_CHARS exceeded.
+    // The UI module (limbo menu, fireteam menu) reads: n, t, mu, ref from CS_PLAYERS.
+    // The cgame module uses the RPCS buffer for the full data.
+    {
+        char minimalCS[MAX_INFO_STRING];
+        int len = snprintf( minimalCS, sizeof(minimalCS), "n\\%s\\t\\%i",
+            client->pers.netname,
+            client->sess.sessionTeam );
+        // Include mu and ref for UI module (limbo menu mute/referee display)
+        if (::xmod::isClientMuted(clientNum)) {
+            len += snprintf( minimalCS + len, sizeof(minimalCS) - len, "\\mu\\1" );
+        }
+        if (client->sess.referee) {
+            len += snprintf( minimalCS + len, sizeof(minimalCS) - len, "\\ref\\%i", client->sess.referee );
+        }
+        (void)len; // suppress unused variable warning
+
+        trap_GetConfigstring( CS_PLAYERS + clientNum, oldname, sizeof( oldname ) );
+
+        // NitMod-style deferred update: mark dirty instead of immediate trap_SetConfigstring.
+        // G_ProcessDirtyPlayers() will send a limited number per frame to prevent
+        // "Server command overflow" when all players update at once (warmup→match).
+        Q_strncpyz( level.csPlayersMinimal[clientNum], minimalCS, sizeof(level.csPlayersMinimal[clientNum]) );
+        level.csPlayersDirty[clientNum] = qtrue;
+
+        // Store full player info for connecting clients and send via RPCS
+        // Use deferred queue to prevent "Server command overflow" when many
+        // players update at once (e.g. after warmup ends, round restart)
+        Q_strncpyz( level.rpcsPlayerInfo[clientNum], s, sizeof(level.rpcsPlayerInfo[clientNum]) );
+        {
+            const char *cmd = va("xcs p %i \"%s\"", clientNum, s);
+            for (int i = 0; i < level.maxclients; i++) {
+                if (level.clients[i].pers.connected == CON_CONNECTED) {
+                    G_RpcsEnqueue( i, cmd );
+                }
+            }
+        }
+    }
 
     if (Q_stricmp( oldname, s )) {
         G_LogPrintf( "ClientUserinfoChanged: %i %s\n", clientNum, s );
@@ -2378,7 +2469,7 @@ ClientConnect( string& outmsg, int clientNum, qboolean firstTime, qboolean isBot
 
 	// don't do the "xxx connected" messages if they were carried over from previous level
 	//		TAT 12/10/2002 - Don't display connected messages in single player
-	if ( firstTime )
+	if ( firstTime && !isBot )
 	{
 		trap_SendServerCommand( -1, va("cpm \"%s" S_COLOR_WHITE " connected\n\"", client->pers.netname) );
 	}
@@ -2602,11 +2693,15 @@ void ClientBegin( int clientNum )
 		limbo(ent, qfalse);
 	}
 
-	if(client->sess.sessionTeam != TEAM_SPECTATOR) {
+	if(client->sess.sessionTeam != TEAM_SPECTATOR && !(ent->r.svFlags & SVF_BOT)) {
 		trap_SendServerCommand( -1, va("print \"[lof]%s" S_COLOR_WHITE " [lon]entered the game\n\"", client->pers.netname) );
 	}
 
 	G_LogPrintf( "ClientBegin: %i\n", clientNum );
+
+	// Send RPCS (xmod configstring) data to the connecting client
+	// This data is no longer in the gamestate to avoid MAX_GAMESTATE_CHARS exceeded
+	G_SendXmodCS( clientNum );
 
 	// Send guid_request to client for xmod authentication
 	// Skip for bots - they don't have the xmod client module to respond
@@ -3285,6 +3380,9 @@ void ClientDisconnect( int clientNum ) {
 	ent->active = qfalse;
 	ent->r.svFlags &= ~SVF_BOT;
 	trap_SetConfigstring( CS_PLAYERS + clientNum, "");
+	// Clear RPCS player data on disconnect
+	level.rpcsPlayerInfo[clientNum][0] = '\0';
+	trap_SendServerCommand( -1, va("xcs p %i \"\"", clientNum) );
 
 
 	CalculateRanks();

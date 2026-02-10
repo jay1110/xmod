@@ -2217,6 +2217,28 @@ typedef struct {
 	
 	// g_spectatorNames: Spectators can see player names like shoutcasters
 	int					spectatorNames;
+
+	// RPCS (Reliable Per-Client Server Commands) storage
+	// These hold mod-specific data sent via "xcs" server commands
+	// instead of configstrings to avoid MAX_GAMESTATE_CHARS exceeded
+	char				rpcsXmodinfo[MAX_INFO_STRING];
+	char				rpcsXmodinfo2[MAX_INFO_STRING];
+	char				rpcsSkillLevels[MAX_INFO_STRING];
+	char				rpcsWatermark[MAX_INFO_STRING];
+	char				rpcsAxisMapsXP[MAX_STRING_CHARS];
+	char				rpcsAlliedMapsXP[MAX_STRING_CHARS];
+	// NCS (NitMod ConfigStrings): private storage for models/sounds/shaders/skins/characters
+	// These are received via "ncs" server commands instead of being in the engine gamestate.
+	// CG_ConfigString() intercepts NCS-managed ranges to return data from these buffers.
+	int					ncsStringOffsets[NCS_MAX];
+	char				ncsStringData[32000];
+	int					ncsDataUsed;
+
+	char				rpcsPlayers[MAX_CLIENTS][MAX_INFO_STRING]; // Full player info via RPCS
+	qboolean			rpcsInitialLoadDone; // Set after initial RPCS data is received; suppresses skill/rank announcements
+	char				rpcsChargeTimes[MAX_INFO_STRING]; // Charge times via RPCS
+	char				rpcsFilterCams[32]; // Filtercams via RPCS
+	char				rpcsEndgameStats[MAX_INFO_STRING]; // Endgame stats via RPCS
 } cgs_t;
 
 //==============================================================================
@@ -2466,6 +2488,7 @@ extern	vmCvar_t		cg_countryflags;
 qboolean CG_Cvar_ClampInt( const char *name, vmCvar_t *vmCvar, int min, int max );
 void CG_ParseSkillLevels( void);
 const char *CG_ConfigString( int index );
+const char *CG_NcsConfigString( int ncsIndex );
 int CG_ConfigStringCopy( int index, char* buff, int buffsize );
 const char *CG_Argv( int arg );
 

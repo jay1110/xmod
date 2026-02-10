@@ -336,7 +336,7 @@ cvarTable_t		gameCvarTable[] = {
     { NULL, "g_xmod_repoLCRev",   XMOD_repoLCRev,   CVAR_ROM },
     { NULL, "g_xmod_repoUUID",    XMOD_repoUUID,    CVAR_ROM },
 
-    { &sv_uptime,      "sv_uptime",      ""  , CVAR_ROM | CVAR_SERVERINFO_NOUPDATE },
+    { &sv_uptime,      "sv_uptime",      ""  , CVAR_ROM },
     { &sv_uptimeStamp, "sv_uptimeStamp", "-1", CVAR_ROM },
 
 	{ &g_moverScale,		"g_moverScale",			"1.0",		CVAR_ARCHIVE },
@@ -389,9 +389,9 @@ cvarTable_t		gameCvarTable[] = {
 	{ &g_userConfig,		"g_userConfig",			"xmod.db",	CVAR_ARCHIVE },
     { &g_muteTime,          "g_muteTime",           "0",        0 },
     { &g_antiwarp,          "g_antiwarp",           "1",        0 },
-    { &g_countryflags,      "g_countryflags",       "1",        CVAR_ARCHIVE | CVAR_SERVERINFO },
+    { &g_countryflags,      "g_countryflags",       "1",        CVAR_ARCHIVE },
 
-    { &sv_maxRate,          "sv_maxRate",           "25000",    CVAR_SYSTEMINFO | CVAR_ARCHIVE },
+    { &sv_maxRate,          "sv_maxRate",           "90000",    CVAR_SYSTEMINFO | CVAR_ARCHIVE },
 
 	// Class specific
 	{ &g_engineers,			"g_engineers",			"0",		CVAR_ARCHIVE },
@@ -447,7 +447,7 @@ cvarTable_t		gameCvarTable[] = {
     // g_noReload/g_noCharge synced via XMODINFO in static.cpp, no SERVERINFO needed
     { &g_noReload,          "g_noReload",           "0",        CVAR_ARCHIVE },
     { &g_noCharge,          "g_noCharge",           "0",        CVAR_ARCHIVE },
-    { &g_instantSpawn,      "g_instantSpawn",       "0",        CVAR_ARCHIVE | CVAR_SERVERINFO },
+    { &g_instantSpawn,      "g_instantSpawn",       "0",        CVAR_ARCHIVE },
     { &g_spawnInvulNoClip,  "g_spawnInvulNoClip",   "0",        CVAR_ARCHIVE | CVAR_XMODINFO },
 
     // Kill Assistance
@@ -461,7 +461,7 @@ cvarTable_t		gameCvarTable[] = {
     { &g_adminChat,         "g_adminChat",          "1",        CVAR_ARCHIVE },
 
     // Some useful mod-info cvars.
-    { NULL, "mod_binary",  XMOD_buildTarget, CVAR_SERVERINFO | CVAR_ROM },
+    { NULL, "mod_binary",  XMOD_buildTarget, CVAR_ROM },
     { NULL, "mod_url",     XMOD_website,     CVAR_SERVERINFO | CVAR_ROM },
     { NULL, "mod_version", XMOD_version,     CVAR_SERVERINFO | CVAR_ROM },
 
@@ -565,8 +565,9 @@ cvarTable_t		gameCvarTable[] = {
 
 	{ &g_antilag, "g_antilag", "1", CVAR_ROM | CVAR_SERVERINFO, 0, qfalse },
 
-	//bani - #184
-	{ NULL, "P", "", CVAR_SERVERINFO_NOUPDATE, 0, qfalse, qfalse },
+	//bani - #184 -- removed from SERVERINFO to save gamestate space
+	// P is only used by server browsers, not by cgame/UI
+	{ NULL, "P", "", CVAR_ROM, 0, qfalse, qfalse },
 
 	{ &refereePassword, "refereePassword", "none", 0, 0, qfalse},
 	{ &g_spectatorInactivity, "g_spectatorInactivity", "0", 0, 0, qfalse, qfalse },
@@ -656,8 +657,8 @@ cvarTable_t		gameCvarTable[] = {
 	
 	// Omni-bot user defined path to load bot library from.
 	{ &g_OmniBotPath, "omnibot_path", "", CVAR_ARCHIVE | CVAR_NORESTART, 0, qfalse },
-	{ &g_OmniBotEnable, "omnibot_enable", "1", CVAR_ARCHIVE | CVAR_SERVERINFO_NOUPDATE | CVAR_NORESTART, 0, qfalse },
-	{ &g_OmniBotPlaying, "omnibot_playing", "0", CVAR_SERVERINFO_NOUPDATE | CVAR_ROM, 0, qfalse },	
+	{ &g_OmniBotEnable, "omnibot_enable", "1", CVAR_ARCHIVE | CVAR_NORESTART, 0, qfalse },
+	{ &g_OmniBotPlaying, "omnibot_playing", "0", CVAR_ROM, 0, qfalse },	
 	{ &g_OmniBotFlags, "omnibot_flags", "0", CVAR_ARCHIVE | CVAR_NORESTART, 0, qfalse },
 };
 
@@ -1612,7 +1613,9 @@ void G_UpdateCvars( void )
 				}
 
 				if( cv->vmCvar == &g_filtercams ) {
-					trap_SetConfigstring( CS_FILTERCAMS, va( "%i", g_filtercams.integer ) );
+					// RPCS: Send filtercams via deferred broadcast
+					Q_strncpyz( level.rpcsFilterCams, va( "%i", g_filtercams.integer ), sizeof(level.rpcsFilterCams) );
+					G_RpcsBroadcast( va("xcs f \"%s\"", level.rpcsFilterCams) );
 				}
 
 				if( cv->vmCvar == &g_soldierChargeTime ) {
@@ -1747,7 +1750,9 @@ void G_UpdateCvars( void )
 		Info_SetValueForKey( cs, "ald_lnt", va("%i", level.lieutenantChargeTime[1]) );
 		Info_SetValueForKey( cs, "axs_cvo", va("%i", level.covertopsChargeTime[0]) );
 		Info_SetValueForKey( cs, "ald_cvo", va("%i", level.covertopsChargeTime[1]) );
-		trap_SetConfigstring( CS_CHARGETIMES, cs );
+		// RPCS: Send charge times via deferred broadcast
+		Q_strncpyz( level.rpcsChargeTimes, cs, sizeof(level.rpcsChargeTimes) );
+		G_RpcsBroadcast( va("xcs c \"%s\"", cs) );
 	}
 }
 
@@ -1791,28 +1796,31 @@ char *strcut( char *dest, char *src, int num ) {
 
 //g_{axies,allies}mapxp overflows and crashes the server
 void bani_clearmapxp( void ) {
-	trap_SetConfigstring( CS_AXIS_MAPS_XP, "" );
-	trap_SetConfigstring( CS_ALLIED_MAPS_XP, "" );
+	level.axisMapsXP[0] = '\0';
+	level.alliedMapsXP[0] = '\0';
 
 	trap_Cvar_Set( va( "%s_axismapxp0", GAMEVERSION ), "" );
 	trap_Cvar_Set( va( "%s_alliedmapxp0", GAMEVERSION ), "" );
+
+	// Broadcast empty XP data to all clients
+	G_RpcsBroadcast( "xcs a \"\"" );
+	G_RpcsBroadcast( "xcs b \"\"" );
 }
 
 void bani_storemapxp( void ) {
-	char cs[MAX_STRING_CHARS];
 	char u[MAX_STRING_CHARS];
 	char *k;
 	int i, j;
 
 	//axis
-	trap_GetConfigstring( CS_AXIS_MAPS_XP, cs, sizeof(cs) );
 	for( i = 0; i < SK_NUM_SKILLS; i++ ) {
-		Q_strcat( cs, sizeof( cs ), va( " %i", (int)level.teamXP[ i ][ 0 ] ) );
+		Q_strcat( level.axisMapsXP, sizeof( level.axisMapsXP ), va( " %i", (int)level.teamXP[ i ][ 0 ] ) );
 	}
-	trap_SetConfigstring( CS_AXIS_MAPS_XP, cs );
+	// Broadcast axis XP data to all clients via deferred RPCS
+	G_RpcsBroadcast( va("xcs a \"%s\"", level.axisMapsXP) );
 
 	j = 0;
-	k = strcut( u, cs, SNIPSIZE );
+	k = strcut( u, level.axisMapsXP, SNIPSIZE );
 	while( strlen( u ) ) {
 		//"to be continued..."
 		if( strlen( u ) == SNIPSIZE ) {
@@ -1824,14 +1832,14 @@ void bani_storemapxp( void ) {
 	}
 
 	//allies
-	trap_GetConfigstring( CS_ALLIED_MAPS_XP, cs, sizeof(cs) );
 	for( i = 0; i < SK_NUM_SKILLS; i++ ) {
-		Q_strcat( cs, sizeof( cs ), va( " %i", (int)level.teamXP[ i ][ 1 ] ) );
+		Q_strcat( level.alliedMapsXP, sizeof( level.alliedMapsXP ), va( " %i", (int)level.teamXP[ i ][ 1 ] ) );
 	}
-	trap_SetConfigstring( CS_ALLIED_MAPS_XP, cs );
+	// Broadcast allied XP data to all clients via deferred RPCS
+	G_RpcsBroadcast( va("xcs b \"%s\"", level.alliedMapsXP) );
 
 	j = 0;
-	k = strcut( u, cs, SNIPSIZE );
+	k = strcut( u, level.alliedMapsXP, SNIPSIZE );
 	while( strlen( u ) ) {
 		//"to be continued..."
 		if( strlen( u ) == SNIPSIZE ) {
@@ -1857,7 +1865,7 @@ void bani_getmapxp( void ) {
 		trap_Cvar_VariableStringBuffer( va( "%s_axismapxp%i", GAMEVERSION, j ), t, sizeof(t) );
 		strcat( s, t );
 	}
-	trap_SetConfigstring( CS_AXIS_MAPS_XP, s );
+	Q_strncpyz( level.axisMapsXP, s, sizeof(level.axisMapsXP) );
 
 	j = 0;
 	trap_Cvar_VariableStringBuffer( va( "%s_alliedmapxp%i", GAMEVERSION, j ), s, sizeof(s) );
@@ -1868,7 +1876,7 @@ void bani_getmapxp( void ) {
 		trap_Cvar_VariableStringBuffer( va( "%s_alliedmapxp%i", GAMEVERSION, j ), t, sizeof(t) );
 		strcat( s, t );
 	}
-	trap_SetConfigstring( CS_ALLIED_MAPS_XP, s );
+	Q_strncpyz( level.alliedMapsXP, s, sizeof(level.alliedMapsXP) );
 }
 
 /*
@@ -2023,15 +2031,18 @@ void G_InitGame( int levelTime, int randomSeed, int restart ) {
 	Info_SetValueForKey( cs, "ald_lnt", va("%i", level.lieutenantChargeTime[1]) );
 	Info_SetValueForKey( cs, "axs_cvo", va("%i", level.covertopsChargeTime[0]) );
 	Info_SetValueForKey( cs, "ald_cvo", va("%i", level.covertopsChargeTime[1]) );
-	trap_SetConfigstring( CS_CHARGETIMES, cs );
-	trap_SetConfigstring( CS_FILTERCAMS, va( "%i", g_filtercams.integer ) );
+	// RPCS: Store charge times for connecting clients (sent in G_SendXmodCS)
+	Q_strncpyz( level.rpcsChargeTimes, cs, sizeof(level.rpcsChargeTimes) );
 
-	// Xmod - Watermarking features.
+	// RPCS: Store filtercams for connecting clients (sent in G_SendXmodCS)
+	Q_strncpyz( level.rpcsFilterCams, va( "%i", g_filtercams.integer ), sizeof(level.rpcsFilterCams) );
+
+	// Xmod - Watermarking features (sent via server command to avoid gamestate overflow)
 	cs[0] = '\0';
 	Info_SetValueForKey( cs, "wmFA", va("%i", g_watermarkFadeAfter.integer));
 	Info_SetValueForKey( cs, "wmFT", va("%i", g_watermarkFadeTime.integer));
 	Info_SetValueForKey( cs, "wmFN", g_watermark.string );
-	trap_SetConfigstring( CS_WATERMARKINFO, cs );
+	G_RpcsBroadcast( va("xcs m \"%s\"", cs) );
 
 	// Construct the Xmod Config String
 	G_UpdateXmodCS();
@@ -2952,7 +2963,7 @@ Print to the logfile with a time stamp if it is open
 */
 void QDECL G_LogPrintf( const char *fmt, ... ) {
 	va_list		argptr;
-	char		string[1024];
+	char		string[4096];
 	int			min, tens, sec, l;
 
 	sec = level.time / 1000;
@@ -4144,6 +4155,17 @@ void G_RunFrame( int levelTime ) {
 	G_BinocWar(qfalse);
     cmd::CrazyGravity::run();
 	G_Update_CS_Airstrikes();
+
+	// Process dirty NCS entries - queue changed model/sound/shader data for broadcast
+	G_NcsProcessDirty();
+
+	// Process dirty CS_PLAYERS entries - deferred configstring updates to prevent
+	// "Server command overflow" when many players update at once (warmup→match)
+	G_ProcessDirtyPlayers();
+
+	// Process deferred RPCS queue - sends queued commands gradually to prevent
+	// "msg overflowed" and "reliable command was cycled out" client errors
+	G_RpcsProcessQueues();
 
 	// Call Lua et_RunFrame callback
 	G_LuaHook_RunFrame(levelTime);

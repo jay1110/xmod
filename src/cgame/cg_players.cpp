@@ -102,7 +102,8 @@ static void CG_LoadClientInfo( int clientNum ) {
 
 void CG_ParseTeamXPs( int n ) {
 	int i, j;
-	char* cs = (char*)CG_ConfigString( CS_AXIS_MAPS_XP + n );
+	// Use a local parsing pointer - COM_ParseExt advances it through the buffer
+	char* cs = (n == 0) ? cgs.rpcsAxisMapsXP : cgs.rpcsAlliedMapsXP;
 	const char* token;
 
 	for( i = 0; i < MAX_MAPS_PER_CAMPAIGN; i++ ) {
@@ -255,11 +256,16 @@ void CG_NewClientInfo( int clientNum ) {
 			}
 		}
 
-		if( newInfo.rank > cgs.clientinfo[ cg.clientNum ].rank ) {
+		// Only announce rank/skill changes after initial RPCS data has been received.
+		// During initial connect, skills go from 0 -> restored values which would
+		// incorrectly trigger all skill upgrade announcements.
+		if( cgs.rpcsInitialLoadDone ) {
+			if( newInfo.rank > cgs.clientinfo[ cg.clientNum ].rank ) {
 
-			CG_SoundPlaySoundScript( cgs.clientinfo[cg.clientNum].team == TEAM_ALLIES ? rankSoundNames_Allies[ newInfo.rank ] : rankSoundNames_Axis[ newInfo.rank ], NULL, -1, qtrue );
+				CG_SoundPlaySoundScript( cgs.clientinfo[cg.clientNum].team == TEAM_ALLIES ? rankSoundNames_Allies[ newInfo.rank ] : rankSoundNames_Axis[ newInfo.rank ], NULL, -1, qtrue );
 
-			CG_AddPMItemBig( PM_RANK, va("Promoted to rank %s!", cgs.clientinfo[ cg.clientNum ].team == TEAM_AXIS ? rankNames_Axis[newInfo.rank] : rankNames_Allies[newInfo.rank] ), rankicons[ newInfo.rank ][ 0 ].shader );
+				CG_AddPMItemBig( PM_RANK, va("Promoted to rank %s!", cgs.clientinfo[ cg.clientNum ].team == TEAM_AXIS ? rankNames_Axis[newInfo.rank] : rankNames_Allies[newInfo.rank] ), rankicons[ newInfo.rank ][ 0 ].shader );
+			}
 		}
 
 		// CHRUKER: b020 - Make sure player class and primary weapons are correct for
@@ -292,9 +298,12 @@ void CG_NewClientInfo( int clientNum ) {
 					}					
 				}
 
-				CG_AddPMItemBig( PM_SKILL, va("Increased %s skill to level %i!", skillNames[i], newInfo.skill[i] ), cgs.media.skillPics[ i ] );
+				// Only show skill upgrade messages after initial load
+				if( cgs.rpcsInitialLoadDone ) {
+					CG_AddPMItemBig( PM_SKILL, va("Increased %s skill to level %i!", skillNames[i], newInfo.skill[i] ), cgs.media.skillPics[ i ] );
 
-				CG_PriorityCenterPrint( va( "You have been rewarded with %s", cg_skillRewards[ i ][ newInfo.skill[i]-1 ]), int(SCREEN_HEIGHT - (SCREEN_HEIGHT * 0.20f)), SMALLCHAR_WIDTH, 99999 );
+					CG_PriorityCenterPrint( va( "You have been rewarded with %s", cg_skillRewards[ i ][ newInfo.skill[i]-1 ]), int(SCREEN_HEIGHT - (SCREEN_HEIGHT * 0.20f)), SMALLCHAR_WIDTH, 99999 );
+				}
 			}
 		}
 

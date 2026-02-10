@@ -372,33 +372,49 @@ extern const unsigned int aReinfSeeds[MAX_REINFSEEDS];
 #define CS_REINFSEEDS					31		// Reinforcement seeds
 #define CS_SERVERTOGGLES				32  	// Shows current enable/disabled settings (for voting UI)
 #define CS_GLOBALFOGVARS				33
-#define CS_AXIS_MAPS_XP					34
-#define CS_ALLIED_MAPS_XP				35
+// CS_AXIS_MAPS_XP and CS_ALLIED_MAPS_XP moved to RPCS ("xcs a/b")
+// Indices 34-35 unused
 #define CS_INTERMISSION_START_TIME		36		//
-#define CS_ENDGAME_STATS				37
-#define CS_CHARGETIMES					38
-#define CS_FILTERCAMS					39
-#define CS_XMODINFO					40
-#define CS_WATERMARKINFO				41
-#define CS_XMODINFO2				42		// Second XMODINFO for class/weapon restrictions (overflow from CS_XMODINFO)
+// CS_ENDGAME_STATS, CS_CHARGETIMES, CS_FILTERCAMS moved to RPCS ("xcs e/c/f")
+// Indices 37-39 unused
 
-#define CS_AVAILABLESTRIKES				43
-#define CS_SKILLLEVELS					44
+#define CS_AVAILABLESTRIKES				40
 
-// Weapon script configstrings - stores custom name, killMessage, killMessage2, selfKillMessage per weapon
-// Format: "n\<name>\k\<killMessage>\l\<killMessage2>\s\<selfKillMessage>"
-// Keys: n=name, k=killMessage1, l=killMessage2, s=selfKillMessage
-#define CS_WEAPONSCRIPTS				45
-#define CS_WEAPONSCRIPTS_COUNT			WP_NUM_WEAPONS
+// RPCS (Reliable Per-Client Server Commands) for mod-specific data:
+// CS_XMODINFO, CS_XMODINFO2, CS_WEAPONSCRIPTS, CS_SKILLLEVELS, CS_WATERMARKINFO,
+// CS_AXIS_MAPS_XP, CS_ALLIED_MAPS_XP, CS_PLAYERS (full data), CS_CHARGETIMES,
+// CS_FILTERCAMS, CS_ENDGAME_STATS are sent via server commands ("xcs").
+// CS_PLAYERS still contains minimal data (name+team+mu+ref) for UI module compatibility.
+//
+// NCS (NitMod ConfigStrings): CS_MODELS, CS_SOUNDS, CS_SHADERS, CS_SHADERSTATE,
+// CS_SKINS, CS_CHARACTERS are stored in private mod-side buffers and synced to
+// clients via "ncs" server commands instead of engine configstrings.
+// This completely eliminates gamestate overflow from map resources.
 
-// CS_MODELS starts after CS_WEAPONSCRIPTS range ends (44 + WP_NUM_WEAPONS)
-#define	CS_MODELS						( CS_WEAPONSCRIPTS + CS_WEAPONSCRIPTS_COUNT )
+// NCS indices (private mod-side storage, not in engine gamestate)
+#define NCS_MODELS						0
+#define NCS_SOUNDS						( NCS_MODELS +				MAX_MODELS					)
+#define NCS_SHADERS						( NCS_SOUNDS +				MAX_SOUNDS					)
+#define NCS_SHADERSTATE					( NCS_SHADERS +				MAX_CS_SHADERS				)
+#define NCS_SKINS						( NCS_SHADERSTATE +			1							)
+#define NCS_CHARACTERS					( NCS_SKINS +				MAX_CS_SKINS				)
+#define NCS_MAX							( NCS_CHARACTERS +			MAX_CHARACTERS				)
+#define NCS_STRING_SIZE					1024	// max string size per NCS entry
+
+// CS_MODELS etc. are kept as defines for code compatibility but are NCS-managed.
+// They use high index values (700+) that do NOT overlap with actual engine
+// configstrings (CS_PLAYERS starts at 41). These indices are NEVER stored in the
+// engine gamestate - they're only used as identifiers for G_FindConfigstringIndex
+// and CG_ConfigString to route to the NCS system.
+#define	CS_MODELS						700
 #define	CS_SOUNDS						( CS_MODELS +				MAX_MODELS					)
 #define CS_SHADERS						( CS_SOUNDS +				MAX_SOUNDS					)
-#define CS_SHADERSTATE					( CS_SHADERS +				MAX_CS_SHADERS				) // Gordon: this MUST be after CS_SHADERS
+#define CS_SHADERSTATE					( CS_SHADERS +				MAX_CS_SHADERS				)
 #define CS_SKINS						( CS_SHADERSTATE +			1							)
 #define CS_CHARACTERS					( CS_SKINS +				MAX_CS_SKINS				)
-#define	CS_PLAYERS						( CS_CHARACTERS +			MAX_CHARACTERS				)
+
+// These configstrings remain in the engine gamestate (not NCS-managed)
+#define	CS_PLAYERS						41
 #define CS_MULTI_SPAWNTARGETS			( CS_PLAYERS +				MAX_CLIENTS					)
 #define CS_OID_TRIGGERS					( CS_MULTI_SPAWNTARGETS +	MAX_MULTI_SPAWNTARGETS		)
 #define CS_OID_DATA						( CS_OID_TRIGGERS +			MAX_OID_TRIGGERS			)
@@ -409,6 +425,9 @@ extern const unsigned int aReinfSeeds[MAX_REINFSEEDS];
 #define CS_CUSTMOTD						( CS_FIRETEAMS +			MAX_FIRETEAMS				)
 #define CS_STRINGS						( CS_CUSTMOTD +				MAX_MOTDLINES				)
 #define CS_MAX							( CS_STRINGS +				MAX_CSSTRINGS				)
+
+// With NCS, models/sounds/shaders/skins/characters are NOT in the engine gamestate.
+// Only CS_PLAYERS through CS_STRINGS remain, drastically reducing gamestate usage.
 
 #if (CS_MAX) > MAX_CONFIGSTRINGS
 #error overflow: (CS_MAX) > MAX_CONFIGSTRINGS
@@ -1682,11 +1701,11 @@ qboolean	BG_AddMagicAmmo ( playerState_t *ps, int *skill, int teamNum, int numOf
 void PM_ClipVelocity( vec3_t in, vec3_t normal, vec3_t out, float overbounce );
 
 //#define ARENAS_PER_TIER		4
-#define MAX_ARENAS			64
-#define	MAX_ARENAS_TEXT		8192
+#define MAX_ARENAS			1024
+#define	MAX_ARENAS_TEXT		65536
 
-#define MAX_BOTS			64
-#define MAX_BOTS_TEXT		8192
+#define MAX_BOTS			1024
+#define MAX_BOTS_TEXT		65536
 
 #define MAX_CAMPAIGNS_TEXT	8192
 

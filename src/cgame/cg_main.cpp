@@ -1696,11 +1696,11 @@ static void CG_RegisterGraphics( void ) {
 	cgs.media.gibModels[8]   = trap_R_RegisterModel   ( "models/gibs/skull.md3" );
 	cgs.media.gibModels[9]   = trap_R_RegisterModel   ( "models/gibs/abdomen.md3" ); 
 
-	// Jaybird - Watermark
-	info = CG_ConfigString(CS_WATERMARKINFO);
-	cgs.media.watermark				= trap_R_RegisterShader( va( "watermark/%s", Info_ValueForKey( info, "wmFN" )));
-	cgs.media.watermarkFadeAfter	= atoi( Info_ValueForKey( info, "wmFA" ));
-	cgs.media.watermarkFadeTime		= atoi( Info_ValueForKey( info, "wmFT" ));
+	// Jaybird - Watermark (loaded when "xcs m" server command arrives)
+	// Watermark data is sent via RPCS to avoid gamestate overflow
+	cgs.media.watermark			= 0;
+	cgs.media.watermarkFadeAfter	= 0;
+	cgs.media.watermarkFadeTime		= 0;
 
 	// Rafael
 	cgs.media.smallgunBrassModel = trap_R_RegisterModel ( "models/weapons2/shells/sm_shell.md3" );
@@ -2223,10 +2223,64 @@ CG_ConfigString
 =================
 */
 
+/*
+=================
+CG_NcsConfigString
+Returns NCS string data for a given NCS index, or empty string if not set.
+=================
+*/
+const char *CG_NcsConfigString( int ncsIndex ) {
+	static const char empty[] = "";
+	if ( ncsIndex < 0 || ncsIndex >= NCS_MAX ) {
+		return empty;
+	}
+	int offset = cgs.ncsStringOffsets[ncsIndex];
+	if ( offset < 0 ) {
+		return empty;
+	}
+	return cgs.ncsStringData + offset;
+}
+
+/*
+=================
+CG_ConfigString
+=================
+*/
 const char *CG_ConfigString( int index ) {
+	// NCS: models, sounds, shaders, shaderstate, skins, characters
+	// use virtual indices (700+) not in engine gamestate. Check these first.
+	if ( index >= CS_MODELS && index < CS_MODELS + MAX_MODELS ) {
+		return CG_NcsConfigString( NCS_MODELS + (index - CS_MODELS) );
+	}
+	if ( index >= CS_SOUNDS && index < CS_SOUNDS + MAX_SOUNDS ) {
+		return CG_NcsConfigString( NCS_SOUNDS + (index - CS_SOUNDS) );
+	}
+	if ( index >= CS_SHADERS && index < CS_SHADERS + MAX_CS_SHADERS ) {
+		return CG_NcsConfigString( NCS_SHADERS + (index - CS_SHADERS) );
+	}
+	if ( index == CS_SHADERSTATE ) {
+		return CG_NcsConfigString( NCS_SHADERSTATE );
+	}
+	if ( index >= CS_SKINS && index < CS_SKINS + MAX_CS_SKINS ) {
+		return CG_NcsConfigString( NCS_SKINS + (index - CS_SKINS) );
+	}
+	if ( index >= CS_CHARACTERS && index < CS_CHARACTERS + MAX_CHARACTERS ) {
+		return CG_NcsConfigString( NCS_CHARACTERS + (index - CS_CHARACTERS) );
+	}
+
+	// Engine configstrings
 	if ( index < 0 || index >= MAX_CONFIGSTRINGS ) {
 		CG_Error( "CG_ConfigString: bad index: %i", index );
 	}
+
+	// RPCS: return full player info from RPCS buffer instead of gamestate
+	if ( index >= CS_PLAYERS && index < CS_PLAYERS + MAX_CLIENTS ) {
+		int clientNum = index - CS_PLAYERS;
+		if ( cgs.rpcsPlayers[clientNum][0] ) {
+			return cgs.rpcsPlayers[clientNum];
+		}
+	}
+
 	return cgs.gameState.stringData + cgs.gameState.stringOffsets[ index ];
 }
 
@@ -2869,6 +2923,10 @@ void CG_Init( int serverMessageNum, int serverCommandSequence, int clientNum, qb
 
 	cgs.initing = qtrue;
 
+	// Initialize NCS offsets to -1 (not set)
+	memset( cgs.ncsStringOffsets, -1, sizeof(cgs.ncsStringOffsets) );
+	cgs.ncsDataUsed = 0;
+
 	for( i = 0; i < MAX_CLIENTS; i++ ) {
 		cg.artilleryRequestTime[i] = -99999;
 	}
@@ -2975,11 +3033,8 @@ void CG_Init( int serverMessageNum, int serverCommandSequence, int clientNum, qb
 	}
 	trap_Cvar_Set( "cg_etVersion", GAME_VERSION_DATED );	// So server can check
 
-    // Check Xmod version.
-    s = Info_ValueForKey( CG_ConfigString( CS_XMODINFO ), "jver" );
-    if ( !*s || Q_stricmp( s, XMOD_title )) {
-		CG_Error( XMOD_namex " ^3Version Mismatch\n^xClient: ^1%s\n^xServer: ^2%s\n\n^3Usually ^3shutting ^3down ^3and ^3restarting ^3your ^3game ^3will ^3fix ^3this ^3problem. ^3If ^3it ^3persists, ^3contact ^3the ^3server ^3administrator ^3regarding ^3a ^3possible ^3server ^3misconfiguration.", XMOD_title, *s ? s : "[MISSING INFO]" );
-    }
+    // Version check is now deferred to when "xcs 1" server command is received
+    // (CG_ParseXmodinfo validates the version)
 
 	s = CG_ConfigString( CS_LEVEL_START_TIME );
 	cgs.levelStartTime = atoi( s );
@@ -3064,7 +3119,7 @@ void CG_Init( int serverMessageNum, int serverCommandSequence, int clientNum, qb
 
 	CG_ShaderStateChanged();
 
-	CG_ChargeTimesChanged();
+	// CG_ChargeTimesChanged() - now handled via RPCS "xcs c" (sent in G_SendXmodCS)
 
 	trap_S_ClearLoopingSounds();
 	trap_S_ClearSounds( qfalse );
@@ -3072,7 +3127,7 @@ void CG_Init( int serverMessageNum, int serverCommandSequence, int clientNum, qb
 	cg.teamWonRounds[1] = atoi( CG_ConfigString( CS_ROUNDSCORES1 ) );
 	cg.teamWonRounds[0] = atoi( CG_ConfigString( CS_ROUNDSCORES2 ) );
 
-	cg.filtercams = atoi( CG_ConfigString( CS_FILTERCAMS ) ) ? qtrue : qfalse;
+	// cg.filtercams - now handled via RPCS "xcs f" (sent in G_SendXmodCS)
 
 	CG_ParseFireteams();
 
@@ -3097,9 +3152,8 @@ void CG_Init( int serverMessageNum, int serverCommandSequence, int clientNum, qb
 	// Jaybird
     CG_InitMapEntities();
 	cg.dynamiteTime = 30000;
-	CG_ParseXmodinfo();
-	CG_ParseXmodinfo2();
-	CG_ParseSkillLevels();
+	// CG_ParseXmodinfo/2 and CG_ParseSkillLevels are now triggered by "xcs" server commands
+	// Data arrives via RPCS (Reliable Per-Client Server Commands) in ClientBegin
 	CG_SetJayFlags();
 	CG_SetMACAddress();
 

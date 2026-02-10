@@ -135,13 +135,36 @@ static int _et_ConcatArgs(lua_State* L)
     return 1;
 }
 
+// Helper: convert a CS_ index to NCS index, returns -1 if not NCS-managed
+static int G_CsToNcsIndex(int csIndex) {
+    if (csIndex >= CS_MODELS && csIndex < CS_MODELS + MAX_MODELS)
+        return NCS_MODELS + (csIndex - CS_MODELS);
+    if (csIndex >= CS_SOUNDS && csIndex < CS_SOUNDS + MAX_SOUNDS)
+        return NCS_SOUNDS + (csIndex - CS_SOUNDS);
+    if (csIndex >= CS_SHADERS && csIndex < CS_SHADERS + MAX_CS_SHADERS)
+        return NCS_SHADERS + (csIndex - CS_SHADERS);
+    if (csIndex == CS_SHADERSTATE)
+        return NCS_SHADERSTATE;
+    if (csIndex >= CS_SKINS && csIndex < CS_SKINS + MAX_CS_SKINS)
+        return NCS_SKINS + (csIndex - CS_SKINS);
+    if (csIndex >= CS_CHARACTERS && csIndex < CS_CHARACTERS + MAX_CHARACTERS)
+        return NCS_CHARACTERS + (csIndex - CS_CHARACTERS);
+    return -1;
+}
+
 // et.trap_GetConfigstring(index) - Get a configstring value
 static int _et_trap_GetConfigstring(lua_State* L)
 {
     char buff[MAX_STRING_CHARS];
     int index = (int)luaL_checkinteger(L, 1);
-    trap_GetConfigstring(index, buff, sizeof(buff));
-    lua_pushstring(L, buff);
+    // NCS: intercept NCS-managed ranges
+    int ncsIdx = G_CsToNcsIndex(index);
+    if (ncsIdx >= 0) {
+        lua_pushstring(L, level.ncs[ncsIdx]);
+    } else {
+        trap_GetConfigstring(index, buff, sizeof(buff));
+        lua_pushstring(L, buff);
+    }
     return 1;
 }
 
@@ -150,7 +173,13 @@ static int _et_trap_SetConfigstring(lua_State* L)
 {
     int index = (int)luaL_checkinteger(L, 1);
     const char* csv = luaL_checkstring(L, 2);
-    trap_SetConfigstring(index, csv);
+    // NCS: intercept NCS-managed ranges
+    int ncsIdx = G_CsToNcsIndex(index);
+    if (ncsIdx >= 0) {
+        G_NcsSetConfigstring(ncsIdx, csv);
+    } else {
+        trap_SetConfigstring(index, csv);
+    }
     return 0;
 }
 
@@ -1269,7 +1298,7 @@ static int _et_G_ShaderRemap(lua_State* L)
 // et.G_ShaderRemapFlush() - Flush shader remaps
 static int _et_G_ShaderRemapFlush(lua_State* L)
 {
-    trap_SetConfigstring(CS_SHADERSTATE, BuildShaderStateConfig());
+    G_NcsSetConfigstring(NCS_SHADERSTATE, BuildShaderStateConfig());
     return 0;
 }
 
@@ -4112,12 +4141,9 @@ static void G_LuaRegisterConstants(lua_State* L)
     lua_regconstinteger(L, CS_REINFSEEDS);
     lua_regconstinteger(L, CS_SERVERTOGGLES);
     lua_regconstinteger(L, CS_GLOBALFOGVARS);
-    lua_regconstinteger(L, CS_AXIS_MAPS_XP);
-    lua_regconstinteger(L, CS_ALLIED_MAPS_XP);
+    // CS_AXIS_MAPS_XP, CS_ALLIED_MAPS_XP, CS_ENDGAME_STATS, CS_CHARGETIMES,
+    // CS_FILTERCAMS moved to RPCS
     lua_regconstinteger(L, CS_INTERMISSION_START_TIME);
-    lua_regconstinteger(L, CS_ENDGAME_STATS);
-    lua_regconstinteger(L, CS_CHARGETIMES);
-    lua_regconstinteger(L, CS_FILTERCAMS);
     lua_regconstinteger(L, CS_MODELS);
     lua_regconstinteger(L, CS_SOUNDS);
     lua_regconstinteger(L, CS_SHADERS);

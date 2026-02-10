@@ -658,27 +658,69 @@ void G_BroadcastWeaponScripts( void )
     for ( i = 0; i < WP_NUM_WEAPONS; i++ ) {
         script = &weaponScripts[i];
         
-        // Clear the configstring
-        cs[0] = '\0';
-        
-        if ( script->hasScript ) {
-            // Build configstring with weapon script data
-            // Format: n\<name>\k\<killMessage>\l\<killMessage2>\s\<selfKillMessage>
-            if ( script->name[0] ) {
-                Info_SetValueForKey( cs, "n", script->name );
-            }
-            if ( script->killMessage[0] ) {
-                Info_SetValueForKey( cs, "k", script->killMessage );
-            }
-            if ( script->killMessage2[0] ) {
-                Info_SetValueForKey( cs, "l", script->killMessage2 );
-            }
-            if ( script->selfKillMessage[0] ) {
-                Info_SetValueForKey( cs, "s", script->selfKillMessage );
-            }
+        // Only broadcast weapons that have scripts
+        if ( !script->hasScript ) {
+            continue;
         }
         
-        // Set the configstring for this weapon
-        trap_SetConfigstring( CS_WEAPONSCRIPTS + i, cs );
+        // Build data with weapon script info
+        cs[0] = '\0';
+        
+        if ( script->name[0] ) {
+            Info_SetValueForKey( cs, "n", script->name );
+        }
+        if ( script->killMessage[0] ) {
+            Info_SetValueForKey( cs, "k", script->killMessage );
+        }
+        if ( script->killMessage2[0] ) {
+            Info_SetValueForKey( cs, "l", script->killMessage2 );
+        }
+        if ( script->selfKillMessage[0] ) {
+            Info_SetValueForKey( cs, "s", script->selfKillMessage );
+        }
+        
+        // Send weapon script via server command (RPCS) instead of configstring
+        // "xcs w <weapon_index> <data>"
+        trap_SendServerCommand( -1, va("xcs w %i \"%s\"", i, cs) );
+    }
+}
+
+/*
+==============
+G_SendWeaponScripts
+Send weapon scripts to a specific client via server commands (RPCS).
+Called during ClientBegin for newly connecting clients.
+==============
+*/
+void G_SendWeaponScripts( int clientNum )
+{
+    char cs[MAX_INFO_STRING];
+    int i;
+    weaponScriptDef_t* script;
+    
+    for ( i = 0; i < WP_NUM_WEAPONS; i++ ) {
+        script = &weaponScripts[i];
+        
+        // Only send weapons that have scripts
+        if ( !script->hasScript ) {
+            continue;
+        }
+        
+        cs[0] = '\0';
+        
+        if ( script->name[0] ) {
+            Info_SetValueForKey( cs, "n", script->name );
+        }
+        if ( script->killMessage[0] ) {
+            Info_SetValueForKey( cs, "k", script->killMessage );
+        }
+        if ( script->killMessage2[0] ) {
+            Info_SetValueForKey( cs, "l", script->killMessage2 );
+        }
+        if ( script->selfKillMessage[0] ) {
+            Info_SetValueForKey( cs, "s", script->selfKillMessage );
+        }
+        
+        trap_SendServerCommand( clientNum, va("xcs w %i \"%s\"", i, cs) );
     }
 }

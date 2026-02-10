@@ -248,7 +248,13 @@ Jaybird
 ==================
 */
 void CG_ParseXmodinfo( void) {
-    const char* const info = CG_ConfigString( CS_XMODINFO );
+    const char* const info = cgs.rpcsXmodinfo;
+
+    // Version check (deferred from init since data arrives via RPCS)
+    const char* jver = Info_ValueForKey( info, "jver" );
+    if ( *jver && Q_stricmp( jver, XMOD_title )) {
+        CG_Error( XMOD_namex " ^3Version Mismatch\n^xClient: ^1%s\n^xServer: ^2%s\n\n^3Usually ^3shutting ^3down ^3and ^3restarting ^3your ^3game ^3will ^3fix ^3this ^3problem. ^3If ^3it ^3persists, ^3contact ^3the ^3server ^3administrator ^3regarding ^3a ^3possible ^3server ^3misconfiguration.", XMOD_title, jver );
+    }
 
     cvars::bg_bulletmode.set ( Info_ValueForKey( info, "0" ));
     cvars::bg_hitmode.set    ( Info_ValueForKey( info, "1" ));
@@ -312,7 +318,7 @@ Parse newer CVARs from CS_XMODINFO2 (overflow from CS_XMODINFO)
 ==================
 */
 void CG_ParseXmodinfo2( void) {
-    const char* const info = CG_ConfigString( CS_XMODINFO2 );
+    const char* const info = cgs.rpcsXmodinfo2;
 
     cvars::bg_doubleJump.set      ( Info_ValueForKey( info, "A" ));
     cvars::bg_djHeight.set        ( Info_ValueForKey( info, "B" ));
@@ -337,11 +343,10 @@ void CG_ParseXmodinfo2( void) {
 /*
 ==================
 CG_ParseWeaponScript
-Parse weapon script data from a configstring
+Parse weapon script data from an info string (received via RPCS server command)
 ==================
 */
-static void CG_ParseWeaponScript( int weapon ) {
-    const char* const info = CG_ConfigString( CS_WEAPONSCRIPTS + weapon );
+static void CG_ParseWeaponScript( int weapon, const char* info ) {
     const char* val;
 
     if ( weapon < 0 || weapon >= WP_NUM_WEAPONS ) {
@@ -384,13 +389,17 @@ static void CG_ParseWeaponScript( int weapon ) {
 /*
 ==================
 CG_ParseWeaponScripts
-Parse all weapon script configstrings at init time
+Initialize weapon scripts (actual data arrives via "xcs w" server commands)
 ==================
 */
 void CG_ParseWeaponScripts( void ) {
     int i;
     for ( i = 0; i < WP_NUM_WEAPONS; i++ ) {
-        CG_ParseWeaponScript( i );
+        // Clear weapon script data - will be populated by "xcs w" server commands
+        cgs.weaponScripts[i].name[0] = '\0';
+        cgs.weaponScripts[i].killMessage[0] = '\0';
+        cgs.weaponScripts[i].killMessage2[0] = '\0';
+        cgs.weaponScripts[i].selfKillMessage[0] = '\0';
     }
 }
 
@@ -405,7 +414,7 @@ void CG_ParseSkillLevels( void ) {
 	char *str;
 	int i;
 
-	info = CG_ConfigString( CS_SKILLLEVELS );
+	info = cgs.rpcsSkillLevels;
 	if (!*info)
 		return;
 
@@ -660,6 +669,61 @@ void CG_SetConfigValues( void ) {
 
 /*
 =====================
+CG_NcsResourceRegister
+Register a model/sound/shader/skin/character from NCS data.
+Called when an NCS entry is updated via server command.
+=====================
+*/
+static void CG_NcsResourceRegister( int ncsIndex ) {
+	const char *data = CG_NcsConfigString( ncsIndex );
+	if ( !data[0] ) {
+		return;
+	}
+
+	if ( ncsIndex >= NCS_MODELS && ncsIndex < NCS_MODELS + MAX_MODELS ) {
+		cgs.gameModels[ ncsIndex - NCS_MODELS ] = trap_R_RegisterModel( data );
+		return;
+	}
+	if ( ncsIndex >= NCS_SOUNDS && ncsIndex < NCS_SOUNDS + MAX_SOUNDS ) {
+		if ( data[0] != '*' ) {
+			if ( !strstr( data, ".wav" ) )
+				CG_SoundScriptPrecache( data );
+			else
+				cgs.gameSounds[ ncsIndex - NCS_SOUNDS ] = trap_S_RegisterSound( data, qfalse );
+		}
+		return;
+	}
+	if ( ncsIndex >= NCS_SHADERS && ncsIndex < NCS_SHADERS + MAX_CS_SHADERS ) {
+		int si = ncsIndex - NCS_SHADERS;
+		cgs.gameShaders[si] = (data[0] == '*')
+			? trap_R_RegisterShader( data + 1 )
+			: trap_R_RegisterShaderNoMip( data );
+		Q_strncpyz( cgs.gameShaderNames[si], data[0] == '*' ? data + 1 : data, MAX_QPATH );
+		return;
+	}
+	if ( ncsIndex == NCS_SHADERSTATE ) {
+		CG_ShaderStateChanged();
+		return;
+	}
+	if ( ncsIndex >= NCS_SKINS && ncsIndex < NCS_SKINS + MAX_CS_SKINS ) {
+		cgs.gameModelSkins[ ncsIndex - NCS_SKINS ] = trap_R_RegisterSkin( data );
+		return;
+	}
+	if ( ncsIndex >= NCS_CHARACTERS && ncsIndex < NCS_CHARACTERS + MAX_CHARACTERS ) {
+		if ( !BG_FindCharacter( data ) ) {
+			int ci = ncsIndex - NCS_CHARACTERS;
+			cgs.gameCharacters[ci] = BG_FindFreeCharacter( data );
+			Q_strncpyz( cgs.gameCharacters[ci]->characterFile, data, sizeof(cgs.gameCharacters[ci]->characterFile) );
+			if ( !CG_RegisterCharacter( data, cgs.gameCharacters[ci] ) ) {
+				CG_Printf( "^1ERROR: CG_NcsResourceRegister: failed to load character '%s'\n", data );
+			}
+		}
+		return;
+	}
+}
+
+/*
+=====================
 CG_ShaderStateChanged
 =====================
 */
@@ -709,7 +773,8 @@ CG_ChargeTimesChanged
 void CG_ChargeTimesChanged( void ) {
 	const char *info;
 
-	info = CG_ConfigString( CS_CHARGETIMES );
+	// RPCS: Read charge times from RPCS buffer instead of configstring
+	info = cgs.rpcsChargeTimes;
 
 	cg.soldierChargeTime[0] = atoi(Info_ValueForKey( info, "axs_sld" ));
 	cg.soldierChargeTime[1] = atoi(Info_ValueForKey( info, "ald_sld" ));
@@ -781,18 +846,6 @@ void CG_ConfigStringModified( void )
             CG_ParseServerVersionInfo( csval ); // OSP - set versioning info for older demo playback
             return;
 
-        case CS_XMODINFO:
-            CG_ParseXmodinfo();
-            return;
-
-        case CS_XMODINFO2:
-            CG_ParseXmodinfo2();
-            return;
-
-        case CS_SKILLLEVELS:
-            CG_ParseSkillLevels();
-            return;
-
         case CS_REINFSEEDS:
             CG_ParseReinforcementTimes( csval ); // OSP - set reinforcement times for each team
             return;
@@ -844,30 +897,15 @@ void CG_ConfigStringModified( void )
             CG_ParseGlobalFog();
             return;
 
-        case CS_SHADERSTATE:
-            CG_ShaderStateChanged();
-            return;
-
-        case CS_CHARGETIMES:
-            CG_ChargeTimesChanged();
-            return;
+        // CS_SHADERSTATE is NCS-managed (sent via "ncs" commands)
+        // CS_CHARGETIMES and CS_FILTERCAMS moved to RPCS ("xcs c" and "xcs f")
 
         case CS_SKYBOXORG:
             CG_ParseSkyBox();
             return;
 
-        case CS_FILTERCAMS:
-            cg.filtercams = atoi( csval ) ? qtrue : qfalse;
-            return;
-
         default:
             break;
-    }
-
-    // Handle weapon script configstrings
-    if (index >= CS_WEAPONSCRIPTS && index < CS_WEAPONSCRIPTS + WP_NUM_WEAPONS) {
-        CG_ParseWeaponScript( index - CS_WEAPONSCRIPTS );
-        return;
     }
 
     if (index >= CS_MULTI_SPAWNTARGETS && index < CS_MULTI_SPAWNTARGETS + MAX_MULTI_SPAWNTARGETS) {
@@ -875,49 +913,16 @@ void CG_ConfigStringModified( void )
         return;
     }
 
-    if (index >= CS_MODELS && index < CS_MODELS+MAX_MODELS) {
-        cgs.gameModels[ index-CS_MODELS ] = trap_R_RegisterModel( csval );
-        return;
-    }
-
-    if (index >= CS_SOUNDS && index < CS_SOUNDS+MAX_SOUNDS ) {
-        if (csval[0] != '*') {  // player specific sounds don't register here
-            // Ridah, register sound scripts seperately
-            if (!strstr( csval, ".wav" ))
-                CG_SoundScriptPrecache( csval );
-            else
-                cgs.gameSounds[ index-CS_SOUNDS] = trap_S_RegisterSound( csval, qfalse ); //FIXME: add a compress flag? 
-        }
-        return;
-    }
-
-    if (index >= CS_SHADERS && index < CS_SHADERS + MAX_CS_SHADERS) {
-        cgs.gameShaders[ index - CS_SHADERS ] = (csval[0] == '*')
-            ? trap_R_RegisterShader( csval + 1 )
-            : trap_R_RegisterShaderNoMip( csval );
-        Q_strncpyz( cgs.gameShaderNames[index - CS_SHADERS], csval[0] == '*' ? csval + 1 : csval, MAX_QPATH );
-        return;
-    }
-
-    if (index >= CS_SKINS && index < CS_SKINS+MAX_CS_SKINS) {
-        cgs.gameModelSkins[ index-CS_SKINS ] = trap_R_RegisterSkin( csval );
-        return;
-    }
-
-    if (index >= CS_CHARACTERS && index < CS_CHARACTERS+MAX_CHARACTERS) {
-        if (!BG_FindCharacter( csval )) {
-            cgs.gameCharacters[ index - CS_CHARACTERS ] = BG_FindFreeCharacter( csval );
-
-            Q_strncpyz( cgs.gameCharacters[ index - CS_CHARACTERS ]->characterFile, csval, sizeof(cgs.gameCharacters[ index - CS_CHARACTERS ]->characterFile) );
-
-            if (!CG_RegisterCharacter( csval, cgs.gameCharacters[ index - CS_CHARACTERS ] ))
-                CG_Error( "ERROR: CG_ConfigStringModified: failed to load character file '%s'\n", csval );
-        }
-        return;
-    }
+    // CS_MODELS, CS_SOUNDS, CS_SHADERS, CS_SHADERSTATE, CS_SKINS, CS_CHARACTERS
+    // are NCS-managed (sent via "ncs" commands, not engine configstrings)
 
     if (index >= CS_PLAYERS && index < CS_PLAYERS+MAX_CLIENTS) {
-        CG_NewClientInfo( index - CS_PLAYERS );
+        int clientNum = index - CS_PLAYERS;
+        // If configstring is empty (disconnect), clear RPCS buffer too
+        if ( !csval[0] ) {
+            cgs.rpcsPlayers[clientNum][0] = '\0';
+        }
+        CG_NewClientInfo( clientNum );
         return;
     }
 
@@ -936,10 +941,7 @@ void CG_ConfigStringModified( void )
         return;
     }
 
-    if (index == CS_ALLIED_MAPS_XP || index == CS_AXIS_MAPS_XP) {
-        CG_ParseTeamXPs( index - CS_AXIS_MAPS_XP );
-        return;
-    }
+    // CS_AXIS_MAPS_XP and CS_ALLIED_MAPS_XP moved to RPCS ("xcs a/b")
 
     if (index >= CS_OID_DATA && index < CS_OID_DATA + MAX_OID_TRIGGERS) {
         CG_ParseOIDInfo( index );
@@ -1260,7 +1262,7 @@ static void CG_MapRestart( void ) {
 	cg.v_noFireTime = 0;
 	cg.v_fireTime = 0;
 
-	cg.filtercams = atoi( CG_ConfigString( CS_FILTERCAMS ) ) ? qtrue : qfalse;
+	cg.filtercams = atoi( cgs.rpcsFilterCams ) ? qtrue : qfalse;
 
 	CG_ChargeTimesChanged();
 
@@ -2574,6 +2576,120 @@ static void CG_ServerCommand( void ) {
 
 	if( !Q_stricmp( cmd, "sdbg" ) ) {
 		CG_StatsDebugAddText( CG_Argv(1) );
+		return;
+	}
+
+	// RPCS: xmod configstring data sent via server command instead of configstrings
+	// Format: "xcs <type> [index] <data>"
+	// Types: 1=xmodinfo, 2=xmodinfo2, s=skilllevels, m=watermark, w=weaponscript,
+	//        a=axisMapsXP, b=alliedMapsXP, p=playerinfo, c=chargetimes, f=filtercams,
+	//        e=endgamestats
+	if ( !Q_stricmp( cmd, "xcs" ) ) {
+		const char* type = CG_Argv(1);
+		if ( !Q_stricmp( type, "1" ) ) {
+			Q_strncpyz( cgs.rpcsXmodinfo, CG_Argv(2), sizeof(cgs.rpcsXmodinfo) );
+			CG_ParseXmodinfo();
+		} else if ( !Q_stricmp( type, "2" ) ) {
+			Q_strncpyz( cgs.rpcsXmodinfo2, CG_Argv(2), sizeof(cgs.rpcsXmodinfo2) );
+			CG_ParseXmodinfo2();
+		} else if ( !Q_stricmp( type, "s" ) ) {
+			Q_strncpyz( cgs.rpcsSkillLevels, CG_Argv(2), sizeof(cgs.rpcsSkillLevels) );
+			CG_ParseSkillLevels();
+		} else if ( !Q_stricmp( type, "m" ) ) {
+			Q_strncpyz( cgs.rpcsWatermark, CG_Argv(2), sizeof(cgs.rpcsWatermark) );
+			// Load watermark when RPCS data arrives
+			const char* wmInfo = cgs.rpcsWatermark;
+			const char* wmFN = Info_ValueForKey( wmInfo, "wmFN" );
+			if ( wmFN[0] ) {
+				cgs.media.watermark = trap_R_RegisterShader( va( "watermark/%s", wmFN ) );
+			}
+			cgs.media.watermarkFadeAfter = atoi( Info_ValueForKey( wmInfo, "wmFA" ) );
+			cgs.media.watermarkFadeTime = atoi( Info_ValueForKey( wmInfo, "wmFT" ) );
+		} else if ( !Q_stricmp( type, "w" ) ) {
+			int weapon = atoi( CG_Argv(2) );
+			const char* data = CG_Argv(3);
+			CG_ParseWeaponScript( weapon, data );
+		} else if ( !Q_stricmp( type, "a" ) ) {
+			Q_strncpyz( cgs.rpcsAxisMapsXP, CG_Argv(2), sizeof(cgs.rpcsAxisMapsXP) );
+			CG_ParseTeamXPs( 0 );
+		} else if ( !Q_stricmp( type, "b" ) ) {
+			Q_strncpyz( cgs.rpcsAlliedMapsXP, CG_Argv(2), sizeof(cgs.rpcsAlliedMapsXP) );
+			CG_ParseTeamXPs( 1 );
+		} else if ( !Q_stricmp( type, "p" ) ) {
+			// Player info via RPCS: "xcs p <clientNum> <data>"
+			int clientNum = atoi( CG_Argv(2) );
+			if ( clientNum >= 0 && clientNum < MAX_CLIENTS ) {
+				Q_strncpyz( cgs.rpcsPlayers[clientNum], CG_Argv(3), sizeof(cgs.rpcsPlayers[clientNum]) );
+				CG_NewClientInfo( clientNum );
+				// After receiving our own player data, mark initial load as done
+				// so that subsequent skill changes are properly announced
+				if ( clientNum == cg.clientNum && !cgs.rpcsInitialLoadDone ) {
+					cgs.rpcsInitialLoadDone = qtrue;
+				}
+			}
+		} else if ( !Q_stricmp( type, "c" ) ) {
+			// Charge times via RPCS
+			Q_strncpyz( cgs.rpcsChargeTimes, CG_Argv(2), sizeof(cgs.rpcsChargeTimes) );
+			CG_ChargeTimesChanged();
+		} else if ( !Q_stricmp( type, "f" ) ) {
+			// Filtercams via RPCS
+			Q_strncpyz( cgs.rpcsFilterCams, CG_Argv(2), sizeof(cgs.rpcsFilterCams) );
+			cg.filtercams = atoi( cgs.rpcsFilterCams ) ? qtrue : qfalse;
+		} else if ( !Q_stricmp( type, "e" ) ) {
+			// Endgame stats via RPCS
+			Q_strncpyz( cgs.rpcsEndgameStats, CG_Argv(2), sizeof(cgs.rpcsEndgameStats) );
+		}
+		return;
+	}
+
+	// NCS (NitMod ConfigStrings): handle model/sound/shader/skin/character data
+	// Format: "ncs <ncsIndex> "<data>""
+	if ( !Q_stricmp( cmd, "ncs" ) ) {
+		int ncsIndex = atoi( CG_Argv(1) );
+		const char *data = CG_Argv(2);
+
+		if ( ncsIndex < 0 || ncsIndex >= NCS_MAX ) {
+			CG_Printf( "^3WARNING: ncs index %d out of range\n", ncsIndex );
+			return;
+		}
+
+		// Store in NCS buffer (rebuild like NitMod does)
+		const char *oldData = CG_NcsConfigString( ncsIndex );
+		if ( strcmp( oldData, data ) != 0 ) {
+			// Rebuild NCS string data (like NitMod's nitrox_ConfigStringModified)
+			int oldOffsets[NCS_MAX];
+			memcpy( oldOffsets, cgs.ncsStringOffsets, sizeof(oldOffsets) );
+			char oldStringData[32000];
+			memcpy( oldStringData, cgs.ncsStringData, sizeof(oldStringData) );
+
+			memset( cgs.ncsStringOffsets, -1, sizeof(cgs.ncsStringOffsets) );
+			cgs.ncsDataUsed = 0;
+
+			for ( int i = 0; i < NCS_MAX; i++ ) {
+				const char *src;
+				if ( i == ncsIndex ) {
+					src = data;
+				} else if ( oldOffsets[i] >= 0 ) {
+					src = oldStringData + oldOffsets[i];
+				} else {
+					continue;
+				}
+				if ( !src[0] ) {
+					continue;
+				}
+				int len = strlen( src ) + 1;
+				if ( cgs.ncsDataUsed + len > (int)sizeof(cgs.ncsStringData) ) {
+					CG_Printf( "^1ERROR: NCS string data overflow\n" );
+					break;
+				}
+				cgs.ncsStringOffsets[i] = cgs.ncsDataUsed;
+				memcpy( cgs.ncsStringData + cgs.ncsDataUsed, src, len );
+				cgs.ncsDataUsed += len;
+			}
+
+			// Register the resource
+			CG_NcsResourceRegister( ncsIndex );
+		}
 		return;
 	}
 

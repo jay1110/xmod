@@ -184,7 +184,7 @@ qboolean G_ScriptAction_ShaderRemap( gentity_t* ent, char *params ) {
 }
 
 qboolean G_ScriptAction_ShaderRemapFlush( gentity_t* ent, char *params ) {
-	trap_SetConfigstring(CS_SHADERSTATE, BuildShaderStateConfig());
+	G_NcsSetConfigstring(NCS_SHADERSTATE, BuildShaderStateConfig());
 	return qtrue;
 }
 
@@ -824,7 +824,9 @@ qboolean G_ScriptAction_SetChargeTimeFactor( gentity_t* ent, char *params ) {
 		Info_SetValueForKey( cs, "ald_lnt", va("%i", level.lieutenantChargeTime[1]) );
 		Info_SetValueForKey( cs, "axs_cvo", va("%i", level.covertopsChargeTime[0]) );
 		Info_SetValueForKey( cs, "ald_cvo", va("%i", level.covertopsChargeTime[1]) );
-		trap_SetConfigstring( CS_CHARGETIMES, cs );
+		// RPCS: Send charge times via deferred broadcast
+		Q_strncpyz( level.rpcsChargeTimes, cs, sizeof(level.rpcsChargeTimes) );
+		G_RpcsBroadcast( va("xcs c \"%s\"", cs) );
 	}
 
 	return qtrue;

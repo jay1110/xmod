@@ -1,6 +1,7 @@
 #include <bgame/impl.h>
 #include <game/xmod_database.h>
 #include <game/xmod_globals.h>
+#include <game/g_weaponscripts.h>
 
 /*
 ====================
@@ -208,7 +209,8 @@ void G_InitCustomLevels() {
 			skillLevels[i][4],
 			skillLevels[i][5] ));
 	}
-	trap_SetConfigstring( CS_SKILLLEVELS, info );
+	// Send skill levels via deferred RPCS broadcast
+	G_RpcsBroadcast( va("xcs s \"%s\"", info) );
 }
 
 /*
@@ -1168,15 +1170,25 @@ void G_FallDamage( gentity_t *ent, int event ) {
 G_UpdateXmodCS
 ----------------
 Jaybird
-Updates the ConfigString for Xmod's client side stuff.
+Sends Xmod's client side data via server commands (RPCS approach).
+This avoids counting towards the 16000 byte MAX_GAMESTATE_CHARS limit.
+Data is sent via "xcs" server command instead of configstrings.
 If a cvar is here and is a game-tunable it should probably be flagged with CVAR_XMODINFO.
 ================
 */
-void G_UpdateXmodCS() {
-    char cs[MAX_INFO_STRING] = { '\0' };
-    char cs2[MAX_INFO_STRING] = { '\0' };
 
-    // CS_XMODINFO - Original CVARs (keep unchanged to avoid breaking existing clients)
+/*
+================
+G_BuildXmodCS
+Build the xmod configstring data into the provided buffers.
+Used by both G_UpdateXmodCS (broadcast) and G_SendXmodCS (per-client).
+================
+*/
+static void G_BuildXmodCS( char* cs, int csSize, char* cs2, int cs2Size ) {
+    cs[0] = '\0';
+    cs2[0] = '\0';
+
+    // XMODINFO - Original CVARs
     Info_SetValueForKey( cs, "jver", XMOD_title );
 
     // CVARS
@@ -1246,9 +1258,7 @@ void G_UpdateXmodCS() {
 
     Info_SetValueForKey( cs, "z", cvars::bg_proneDelay.svalue );
 
-    trap_SetConfigstring( CS_XMODINFO, cs );
-
-    // CS_XMODINFO2 - Newer CVARs that caused overflow
+    // XMODINFO2 - Newer CVARs
     Info_SetValueForKey( cs2, "A", cvars::bg_doubleJump.svalue );
     Info_SetValueForKey( cs2, "B", cvars::bg_djHeight.svalue );
     Info_SetValueForKey( cs2, "C", cvars::bg_weaponsenable.svalue );
@@ -1267,8 +1277,239 @@ void G_UpdateXmodCS() {
     Info_SetValueForKey( cs2, "H", cvars::g_jxacModuleScan.svalue );      // Module scan enabled
     Info_SetValueForKey( cs2, "I", cvars::g_jxacAntiTamper.svalue );      // Anti-tamper enabled
     Info_SetValueForKey( cs2, "J", cvars::g_jxacCheckSpeedhack.svalue );  // Speedhack check enabled
+}
 
-    trap_SetConfigstring( CS_XMODINFO2, cs2 );
+void G_UpdateXmodCS() {
+    char cs[MAX_INFO_STRING];
+    char cs2[MAX_INFO_STRING];
+
+    G_BuildXmodCS( cs, sizeof(cs), cs2, sizeof(cs2) );
+
+    // Send xmod info via deferred RPCS broadcast
+    G_RpcsBroadcast( va("xcs 1 \"%s\"", cs) );
+    G_RpcsBroadcast( va("xcs 2 \"%s\"", cs2) );
+}
+
+/*
+================
+G_RpcsEnqueue
+----------------
+Queue a server command for deferred sending to a specific client.
+Commands are drained gradually in G_RpcsProcessQueues() during RunFrame
+to prevent "msg overflowed" and "reliable command was cycled out" errors.
+================
+*/
+void G_RpcsEnqueue( int clientNum, const char *cmd ) {
+    if ( clientNum < 0 || clientNum >= MAX_CLIENTS ) {
+        return;
+    }
+
+    auto *q = &level.rpcsQueue[clientNum];
+    if ( q->count >= RPCS_QUEUE_SIZE ) {
+        G_LogPrintf( "WARNING: RPCS queue full for client %d, dropping command\n", clientNum );
+        return;
+    }
+
+    Q_strncpyz( q->cmds[q->head], cmd, MAX_STRING_CHARS );
+    q->head = ( q->head + 1 ) % RPCS_QUEUE_SIZE;
+    q->count++;
+}
+
+/*
+================
+G_RpcsBroadcast
+----------------
+Queue a server command for deferred broadcast to ALL connected clients.
+Like NitMod's dirty-flag approach, this prevents "Server command overflow"
+by spreading broadcasts across multiple frames via the RPCS queue.
+================
+*/
+void G_RpcsBroadcast( const char *cmd ) {
+    for ( int i = 0; i < level.maxclients; i++ ) {
+        if ( level.clients[i].pers.connected == CON_CONNECTED ) {
+            G_RpcsEnqueue( i, cmd );
+        }
+    }
+}
+
+/*
+================
+G_RpcsProcessQueues
+----------------
+Called every server frame from G_RunFrame.
+Drains up to RPCS_CMDS_PER_FRAME commands per client per frame.
+================
+*/
+void G_RpcsProcessQueues( void ) {
+    for ( int i = 0; i < level.maxclients; i++ ) {
+        auto *q = &level.rpcsQueue[i];
+        if ( q->count <= 0 ) {
+            continue;
+        }
+
+        // Only send to connected clients
+        if ( level.clients[i].pers.connected != CON_CONNECTED ) {
+            // Client disconnected, flush their queue
+            q->head = 0;
+            q->tail = 0;
+            q->count = 0;
+            continue;
+        }
+
+        int sent = 0;
+        while ( q->count > 0 && sent < RPCS_CMDS_PER_FRAME ) {
+            trap_SendServerCommand( i, q->cmds[q->tail] );
+            q->tail = ( q->tail + 1 ) % RPCS_QUEUE_SIZE;
+            q->count--;
+            sent++;
+        }
+    }
+}
+
+/*
+================
+G_SendXmodCS
+----------------
+Queues all RPCS (xmod configstring) data for deferred sending to a client.
+Called during ClientBegin. Commands are sent gradually across frames by
+G_RpcsProcessQueues() to prevent reliable command buffer overflow.
+================
+*/
+void G_SendXmodCS( int clientNum ) {
+    char cs[MAX_INFO_STRING];
+    char cs2[MAX_INFO_STRING];
+
+    G_BuildXmodCS( cs, sizeof(cs), cs2, sizeof(cs2) );
+
+    G_RpcsEnqueue( clientNum, va("xcs 1 \"%s\"", cs) );
+    G_RpcsEnqueue( clientNum, va("xcs 2 \"%s\"", cs2) );
+
+    // Skill levels
+    {
+        char info[MAX_INFO_STRING] = { '\0' };
+        for (int i = 0; i < SK_NUM_SKILLS; i++) {
+            Info_SetValueForKey(info, va("skill_%i",i), va("%i %i %i %i %i",
+                skillLevels[i][1], skillLevels[i][2], skillLevels[i][3],
+                skillLevels[i][4], skillLevels[i][5]));
+        }
+        G_RpcsEnqueue( clientNum, va("xcs s \"%s\"", info) );
+    }
+
+    // Watermark info
+    {
+        char wm[MAX_INFO_STRING] = { '\0' };
+        Info_SetValueForKey( wm, "wmFA", va("%i", g_watermarkFadeAfter.integer));
+        Info_SetValueForKey( wm, "wmFT", va("%i", g_watermarkFadeTime.integer));
+        Info_SetValueForKey( wm, "wmFN", g_watermark.string );
+        G_RpcsEnqueue( clientNum, va("xcs m \"%s\"", wm) );
+    }
+
+    // Weapon scripts (only send weapons that actually have scripts)
+    for ( int i = 0; i < WP_NUM_WEAPONS; i++ ) {
+        weaponScriptDef_t *script = G_GetWeaponScript( i );
+        if ( script && script->hasScript ) {
+            char wcs[MAX_INFO_STRING];
+            wcs[0] = '\0';
+            if ( script->name[0] ) {
+                Info_SetValueForKey( wcs, "n", script->name );
+            }
+            if ( script->killMessage[0] ) {
+                Info_SetValueForKey( wcs, "k", script->killMessage );
+            }
+            if ( script->killMessage2[0] ) {
+                Info_SetValueForKey( wcs, "l", script->killMessage2 );
+            }
+            if ( script->selfKillMessage[0] ) {
+                Info_SetValueForKey( wcs, "s", script->selfKillMessage );
+            }
+            G_RpcsEnqueue( clientNum, va("xcs w %i \"%s\"", i, wcs) );
+        }
+    }
+
+    // Map XP data (RPCS: moved out of configstrings)
+    if ( level.axisMapsXP[0] ) {
+        G_RpcsEnqueue( clientNum, va("xcs a \"%s\"", level.axisMapsXP) );
+    }
+    if ( level.alliedMapsXP[0] ) {
+        G_RpcsEnqueue( clientNum, va("xcs b \"%s\"", level.alliedMapsXP) );
+    }
+
+    // Charge times, filtercams, endgame stats (RPCS: moved out of configstrings)
+    if ( level.rpcsChargeTimes[0] ) {
+        G_RpcsEnqueue( clientNum, va("xcs c \"%s\"", level.rpcsChargeTimes) );
+    }
+    if ( level.rpcsFilterCams[0] ) {
+        G_RpcsEnqueue( clientNum, va("xcs f \"%s\"", level.rpcsFilterCams) );
+    }
+    if ( level.rpcsEndgameStats[0] ) {
+        G_RpcsEnqueue( clientNum, va("xcs e \"%s\"", level.rpcsEndgameStats) );
+    }
+
+    // Player info (RPCS: full player data, CS_PLAYERS only has minimal name+team)
+    for ( int i = 0; i < level.maxclients; i++ ) {
+        if ( level.rpcsPlayerInfo[i][0] ) {
+            G_RpcsEnqueue( clientNum, va("xcs p %i \"%s\"", i, level.rpcsPlayerInfo[i]) );
+        }
+    }
+
+    // NCS (NitMod ConfigStrings): send all non-empty entries for models/sounds/shaders/skins/characters
+    for ( int i = 0; i < NCS_MAX; i++ ) {
+        if ( level.ncs[i][0] ) {
+            G_RpcsEnqueue( clientNum, va("ncs %i \"%s\"", i, level.ncs[i]) );
+        }
+    }
+}
+
+/*
+================
+G_NcsProcessDirty
+----------------
+Called every server frame from G_RunFrame (before G_RpcsProcessQueues).
+Queues dirty NCS entries into the RPCS queue for all connected clients.
+This defers NCS broadcasts to prevent "reliable command was cycled out"
+errors when many models/sounds are registered in a single frame.
+================
+*/
+void G_NcsProcessDirty( void ) {
+    for ( int i = 0; i < NCS_MAX; i++ ) {
+        if ( !level.ncsDirty[i] ) {
+            continue;
+        }
+        level.ncsDirty[i] = qfalse;
+
+        const char *cmd = va( "ncs %i \"%s\"", i, level.ncs[i] );
+        for ( int c = 0; c < level.maxclients; c++ ) {
+            if ( level.clients[c].pers.connected == CON_CONNECTED ) {
+                G_RpcsEnqueue( c, cmd );
+            }
+        }
+    }
+}
+
+/*
+================
+G_ProcessDirtyPlayers
+----------------
+Called every server frame from G_RunFrame (before G_RpcsProcessQueues).
+Processes deferred CS_PLAYERS configstring updates. When many players
+update at once (e.g. warmup→match transition), calling trap_SetConfigstring
+for all 63 in one frame causes "Server command overflow" because the engine
+internally broadcasts a reliable command per client per configstring change.
+
+NitMod uses the same dirty-flag approach (DAT_0312b2a8) to batch configstring
+updates. We process at most RPCS_CMDS_PER_FRAME players per frame.
+================
+*/
+void G_ProcessDirtyPlayers( void ) {
+    int processed = 0;
+    for ( int i = 0; i < level.maxclients && processed < RPCS_CMDS_PER_FRAME; i++ ) {
+        if ( !level.csPlayersDirty[i] ) {
+            continue;
+        }
+        level.csPlayersDirty[i] = qfalse;
+        trap_SetConfigstring( CS_PLAYERS + i, level.csPlayersMinimal[i] );
+        processed++;
+    }
 }
 
 /*************************************************

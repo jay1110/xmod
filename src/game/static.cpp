@@ -30,7 +30,7 @@ namespace cvar {
 ///////////////////////////////////////////////////////////////////////////////
 
 namespace objects {
-    Cvar bg_cpu ( "sv_cpu", "", CVAR_ROM | CVAR_SERVERINFO_NOUPDATE );
+    Cvar bg_cpu ( "sv_cpu", "", CVAR_ROM );
 
     Cvar bg_dynamiteTime    ( "g_dynamiteTime",   "30", CVAR_XMODINFO );
     Cvar bg_glow            ( "g_glow",           "0",  CVAR_XMODINFO );
