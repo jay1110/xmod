@@ -21,7 +21,7 @@ static jxacTcpClientConn_t  clients[JXAC_TCP_MAX_CLIENTS];
 
 qboolean TcpServer::start(int port) {
     if (tcpInitialized) {
-        Com_Printf("JXAC TCP: Server already running on port %d\n", serverPort);
+        // Already running, no need to log
         return qtrue;
     }
     
@@ -78,7 +78,7 @@ qboolean TcpServer::start(int port) {
     serverPort = port;
     tcpInitialized = qtrue;
     
-    Com_Printf("JXAC TCP: Server started on port %d\n", port);
+    // Server started successfully
     return qtrue;
 }
 
@@ -106,7 +106,7 @@ void TcpServer::stop() {
     tcpInitialized = qfalse;
     serverPort = 0;
     
-    Com_Printf("JXAC TCP: Server stopped\n");
+    // Server stopped
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -199,7 +199,7 @@ void TcpServer::acceptConnections() {
     jxac_socket_setnonblocking(clientSocket);
     jxac_socket_setnodelay(clientSocket);
     
-    Com_Printf("JXAC TCP: Client connected from %s:%d\n", conn->clientIP, conn->clientPort);
+    // Client connected successfully
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -227,7 +227,7 @@ void TcpServer::processClients() {
         }
         else if (recvLen == 0) {
             // Connection closed by client
-            Com_Printf("JXAC TCP: Client %s:%d disconnected\n", conn->clientIP, conn->clientPort);
+            // Client disconnected normally
             closeClient(conn);
         }
         else {
@@ -280,7 +280,7 @@ void TcpServer::processClientData(jxacTcpClientConn_t* conn) {
                 break;
                 
             case JXAC_TCP_MSG_DISCONNECT:
-                Com_Printf("JXAC TCP: Client %s:%d sent disconnect\n", conn->clientIP, conn->clientPort);
+                // Client sent disconnect
                 closeClient(conn);
                 return;  // Connection closed
                 
@@ -313,8 +313,7 @@ void TcpServer::handleHandshake(jxacTcpClientConn_t* conn, const jxacTcpHandshak
     conn->clientNum = handshake->clientNum;
     conn->state = JXAC_TCP_STATE_READY;
     
-    Com_Printf("JXAC TCP: Handshake from client %d (%s:%d)\n", 
-              conn->clientNum, conn->clientIP, conn->clientPort);
+    // Handshake completed successfully
     
     // Send acknowledgement
     sendAck(conn);
@@ -351,8 +350,7 @@ void TcpServer::handleScreenshotStart(jxacTcpClientConn_t* conn, const jxacTcpSs
     conn->ssQuality = ssStart->quality;
     conn->state = JXAC_TCP_STATE_TRANSFERRING;
     
-    Com_Printf("JXAC TCP: Screenshot transfer started from client %d (%u bytes)\n", 
-              conn->clientNum, ssStart->totalSize);
+    // Screenshot transfer started
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -392,8 +390,7 @@ void TcpServer::handleScreenshotEnd(jxacTcpClientConn_t* conn) {
         return;
     }
     
-    Com_Printf("JXAC TCP: Screenshot received from client %d (%u bytes)\n",
-              conn->clientNum, conn->ssSize);
+    // Screenshot received successfully
     
     // Pass screenshot to JXAC server for processing
     if (conn->clientNum >= 0 && conn->clientNum < MAX_CLIENTS) {
@@ -458,7 +455,7 @@ void TcpServer::checkTimeouts() {
         
         // Check for timeout
         if (currentTime - conn->lastActivityTime > JXAC_TCP_TIMEOUT) {
-            Com_Printf("JXAC TCP: Client %s:%d timed out\n", conn->clientIP, conn->clientPort);
+            // Client timed out
             closeClient(conn);
         }
     }

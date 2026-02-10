@@ -444,9 +444,9 @@ cvarTable_t		gameCvarTable[] = {
     { &g_spectatorNames,    "g_spectatorNames",     "1",        CVAR_ARCHIVE | CVAR_SERVERINFO },
     { &g_teamChangeDelay,   "g_teamChangeDelay",    "0",        CVAR_ARCHIVE },
     { &g_revenge,           "g_revenge",            "0",        CVAR_ARCHIVE },
-    // g_noReload/g_noCharge synced via XMODINFO in static.cpp, no SERVERINFO needed
-    { &g_noReload,          "g_noReload",           "0",        CVAR_ARCHIVE },
-    { &g_noCharge,          "g_noCharge",           "0",        CVAR_ARCHIVE },
+    // g_noReload/g_noCharge synced via XMODINFO - both gameCvarTable and static.cpp need CVAR_XMODINFO
+    { &g_noReload,          "g_noReload",           "0",        CVAR_ARCHIVE | CVAR_XMODINFO },
+    { &g_noCharge,          "g_noCharge",           "0",        CVAR_ARCHIVE | CVAR_XMODINFO },
     { &g_instantSpawn,      "g_instantSpawn",       "0",        CVAR_ARCHIVE },
     { &g_spawnInvulNoClip,  "g_spawnInvulNoClip",   "0",        CVAR_ARCHIVE | CVAR_XMODINFO },
 
@@ -1733,7 +1733,6 @@ void G_UpdateCvars( void )
 
 	if( xmodChanged ) {
         ammoTableNeedsUpdate = true;
-        G_Printf("^3[XMOD DEBUG] xmodChanged=true, calling G_UpdateXmodCS\n");
 		G_UpdateXmodCS();
 	}
 
