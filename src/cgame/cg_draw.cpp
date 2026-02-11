@@ -616,9 +616,8 @@ void CG_DrawTeamBackground( int x, int y, int w, int h, float alpha, int team )
 ===========================================================================================
 */
 
-// Right-aligned elements: use 640-based coordinate expanded for widescreen
-// This compensates for the r43da scaling in CG_AdjustFrom640
-#define UPPERRIGHT_X Ccg_WideX(640 - 6)
+// Right-aligned elements: use dynamic SCREEN_WIDTH for correct widescreen placement
+#define UPPERRIGHT_X (SCREEN_WIDTH - 6)
 /*
 ==================
 CG_DrawSnapshot
