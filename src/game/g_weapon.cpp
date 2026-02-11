@@ -365,7 +365,12 @@ void G_PlaceTripmine(gentity_t* ent) {
 	trap_Trace(&oppositeTrace, start, NULL, NULL, oppositeEnd, ent->s.number, MASK_SHOT);
 
 	// Check if there's an opposing wall within max distance
-	if (oppositeTrace.fraction == 1.0f) {
+	// Must be world geometry - movers (doors, trucks, tanks) don't count
+	if (oppositeTrace.fraction == 1.0f || (oppositeTrace.entityNum != ENTITYNUM_WORLD &&
+		oppositeTrace.entityNum < ENTITYNUM_NONE &&
+		(g_entities[oppositeTrace.entityNum].s.eType == ET_MOVER ||
+		 g_entities[oppositeTrace.entityNum].s.eType == ET_MOVERSCALED ||
+		 g_entities[oppositeTrace.entityNum].s.eType == ET_CONSTRUCTIBLE))) {
 		trap_SendServerCommand(ent-g_entities, "cp \"Tripmine must be placed between walls (no opposing wall found)\" 1");
 		// Give ammo back
 		ent->client->ps.ammoclip[BG_FindClipForWeapon(WP_TRIPMINE)] += 1;

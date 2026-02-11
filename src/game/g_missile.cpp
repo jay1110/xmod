@@ -1782,67 +1782,47 @@ G_TripMineThink
 
 void G_TripMineThink(gentity_t* ent) {
 	trace_t trace;
-	vec3_t start, end, beamEnd;
+	vec3_t start, end;
 	gentity_t* traceEnt;
-	int i;
 
 	VectorMA(ent->r.currentOrigin, 2, ent->s.origin2, start);
 	VectorMA(start, 2048, ent->s.origin2, end);
 
 	ent->nextthink = level.time + FRAMETIME;
 
-	// First trace: ignore movers so the beam goes straight to the wall
-	for(i = MAX_CLIENTS; i < level.num_entities; i++) {
-		if(g_entities[i].r.linked &&
-		   (g_entities[i].s.eType == ET_MOVER || g_entities[i].s.eType == ET_MOVERSCALED || g_entities[i].s.eType == ET_CONSTRUCTIBLE)) {
-			G_TempTraceIgnoreEntity(&g_entities[i]);
-		}
-	}
-
 	trap_Trace(&trace, start, NULL, NULL, end, ent->s.number, MASK_SHOT);
 
-	G_ResetTempTraceIgnoreEnts();
-
-	VectorCopy(trace.endpos, beamEnd);
-
-	// Check if a player is in the beam (from the trace that ignores movers)
-	if(trace.fraction < 1.f && trace.entityNum < ENTITYNUM_NONE) {
-		traceEnt = &g_entities[trace.entityNum];
-
-		if(traceEnt->client) {
-			qboolean skip = qfalse;
-
-			if ((g_engineers.integer & ENGI_TRIPMINE_NO_SELF) && ent->parent == traceEnt) {
-				skip = qtrue;
-			}
-
-			if (!skip && (g_engineers.integer & ENGI_TRIPMINE_NO_ACTIVATE)) {
-				team_t mineTeam = G_LandmineTeam(ent);
-				team_t playerTeam = traceEnt->client->sess.sessionTeam;
-				
-				if (mineTeam == playerTeam && ent->parent != traceEnt) {
-					skip = qtrue;
-				}
-			}
-
-			if (!skip) {
-				ent->think = G_ExplodeMissile;
-				return;
-			}
-		}
+	if(trace.fraction == 1.f) {
+		return;
 	}
 
-	// Second trace: with movers, to detect if a mover has entered the beam path
-	trap_Trace(&trace, start, NULL, NULL, beamEnd, ent->s.number, MASK_SHOT);
+	if(trace.entityNum >= ENTITYNUM_NONE) {
+		return;
+	}
+	
+	traceEnt = &g_entities[trace.entityNum];
 
-	if(trace.fraction < 1.f && trace.entityNum < ENTITYNUM_NONE) {
-		traceEnt = &g_entities[trace.entityNum];
+	if(traceEnt->client) {
+		// Player triggered the beam
+		qboolean skip = qfalse;
 
-		if(traceEnt->s.eType == ET_MOVER || traceEnt->s.eType == ET_MOVERSCALED || traceEnt->s.eType == ET_CONSTRUCTIBLE) {
-			// Explode only if this is a NEW mover (wasn't there when armed)
-			if(ent->count != trace.entityNum) {
-				ent->think = G_ExplodeMissile;
+		// ENGI_TRIPMINE_NO_SELF: Players don't trigger their own tripmines
+		if ((g_engineers.integer & ENGI_TRIPMINE_NO_SELF) && ent->parent == traceEnt) {
+			skip = qtrue;
+		}
+
+		// ENGI_TRIPMINE_NO_ACTIVATE: Teammates don't activate tripmines
+		if (!skip && (g_engineers.integer & ENGI_TRIPMINE_NO_ACTIVATE)) {
+			team_t mineTeam = G_LandmineTeam(ent);
+			team_t playerTeam = traceEnt->client->sess.sessionTeam;
+			
+			if (mineTeam == playerTeam && ent->parent != traceEnt) {
+				skip = qtrue;
 			}
+		}
+
+		if (!skip) {
+			ent->think = G_ExplodeMissile;
 		}
 	}
 }
@@ -1854,38 +1834,6 @@ G_TripMinePrime
 */
 
 void G_TripMinePrime(gentity_t* ent) {
-	trace_t trace;
-	vec3_t start, end, beamEnd;
-	int i;
-
-	// ent->count = entity number of mover in beam at arming time (-1 = none)
-	ent->count = -1;
-	VectorMA(ent->r.currentOrigin, 2, ent->s.origin2, start);
-	VectorMA(start, 2048, ent->s.origin2, end);
-
-	for(i = MAX_CLIENTS; i < level.num_entities; i++) {
-		if(g_entities[i].r.linked &&
-		   (g_entities[i].s.eType == ET_MOVER || g_entities[i].s.eType == ET_MOVERSCALED || g_entities[i].s.eType == ET_CONSTRUCTIBLE)) {
-			G_TempTraceIgnoreEntity(&g_entities[i]);
-		}
-	}
-
-	trap_Trace(&trace, start, NULL, NULL, end, ent->s.number, MASK_SHOT);
-
-	G_ResetTempTraceIgnoreEnts();
-
-	VectorCopy(trace.endpos, beamEnd);
-
-	// Check if a mover is already in the beam path at arming time
-	trap_Trace(&trace, start, NULL, NULL, beamEnd, ent->s.number, MASK_SHOT);
-
-	if(trace.fraction < 1.f && trace.entityNum < ENTITYNUM_NONE) {
-		gentity_t* traceEnt = &g_entities[trace.entityNum];
-		if(traceEnt->s.eType == ET_MOVER || traceEnt->s.eType == ET_MOVERSCALED || traceEnt->s.eType == ET_CONSTRUCTIBLE) {
-			ent->count = trace.entityNum;
-		}
-	}
-
 	ent->think = G_TripMineThink;
 	ent->nextthink = level.time + 500;
 }
