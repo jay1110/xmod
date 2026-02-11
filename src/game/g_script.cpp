@@ -1329,6 +1329,8 @@ void SP_script_multiplayer(gentity_t *ent) {
 	level.gameManager = ent;
 	level.gameManager->s.otherEntityNum = MAX_TEAM_LANDMINES;	// axis landmine count
 	level.gameManager->s.otherEntityNum2 = MAX_TEAM_LANDMINES;	// allies landmine count
+	level.gameManager->s.effect1Time = MAX_TEAM_TRIPMINES;	// axis tripmine count
+	level.gameManager->s.effect2Time = MAX_TEAM_TRIPMINES;	// allies tripmine count
 	level.gameManager->s.modelindex = qfalse;	// axis HQ doesn't exist
 	level.gameManager->s.modelindex2 = qfalse;	// allied HQ doesn't exist
 
