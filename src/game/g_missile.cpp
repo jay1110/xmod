@@ -1516,7 +1516,7 @@ int G_CountTeamTripmines ( team_t team ) {
 			continue;
 		}
 
-		if ( e->s.eType != ET_MISSILE) {
+		if ( e->s.eType != ET_BOMB) {
 			continue;
 		}
 
@@ -1524,7 +1524,8 @@ int G_CountTeamTripmines ( team_t team ) {
 			continue;
 		}
 
-		if ( e->s.teamNum % 4 == team && e->s.teamNum < 4) {
+		// Count both armed (teamNum < 4) and unarmed (teamNum >= 4) tripmines
+		if ( e->s.teamNum % 4 == team ) {
 			cnt++;
 		}
 	}

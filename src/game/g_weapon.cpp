@@ -340,6 +340,13 @@ void G_PlaceTripmine(gentity_t* ent) {
 	vec3_t forward;
 	vec3_t oppositeEnd;
 
+	// Check team limit before placing
+	if (G_CountTeamTripmines(ent->client->sess.sessionTeam) >= MAX_TEAM_TRIPMINES) {
+		trap_SendServerCommand(ent-g_entities, "cp \"Your team has too many tripmines placed\" 1");
+		ent->client->ps.ammoclip[BG_FindClipForWeapon(WP_TRIPMINE)] += 1;
+		return;
+	}
+
 	VectorCopy( ent->client->ps.origin, start );
 	start[2] += ent->client->ps.viewheight;
 
