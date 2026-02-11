@@ -836,8 +836,10 @@ void Touch_Item_Auto( gentity_t *ent, gentity_t *other, trace_t *trace )
 				allowAutoPickup = qtrue;
 			} else if (ent->item->giTag == WP_BINOCULARS) {
 				allowAutoPickup = qtrue;
-			} else if ((ent->item->giTag == WP_MP40 || ent->item->giTag == WP_THOMPSON) && G_CanHaveDualSMG(other)) {
-				// Allow auto-pickup of SMG for dual SMG feature
+			} else if ((ent->item->giTag == WP_MP40 || ent->item->giTag == WP_THOMPSON) && G_CanHaveDualSMG(other) &&
+				((ent->item->giTag == WP_MP40 && COM_BitCheck(other->client->ps.weapons, WP_THOMPSON)) ||
+				 (ent->item->giTag == WP_THOMPSON && COM_BitCheck(other->client->ps.weapons, WP_MP40)))) {
+				// Allow auto-pickup of second SMG for dual SMG feature
 				allowAutoPickup = qtrue;
 			}
 			
