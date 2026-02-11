@@ -1759,6 +1759,23 @@ void LandMinePostTrigger(gentity_t* self) {
 
 /*
 ==========
+G_TripMineTimeout
+
+Unarmed tripmines auto-remove after 30 seconds and refill owner ammo
+==========
+*/
+
+void G_TripMineTimeout(gentity_t* ent) {
+	// Refill owner's tripmine ammo
+	if (ent->parent && ent->parent->client) {
+		Add_Ammo(ent->parent, WP_TRIPMINE, 1, qfalse);
+	}
+
+	G_FreeEntity(ent);
+}
+
+/*
+==========
 G_TripMineThink
 ==========
 */
@@ -1775,10 +1792,7 @@ void G_TripMineThink(gentity_t* ent) {
 
 	ent->nextthink = level.time + FRAMETIME;
 
-	if(trace.fraction == 1.f) { // Gordon: shouldnt really happen once we do a proper range check on placing
-/*		ent->nextthink = level.time;
-		ent->think = DynaSink;
-		ent->timestamp = level.time + 1500;*/
+	if(trace.fraction == 1.f) {
 		return;
 	}
 
@@ -1788,16 +1802,18 @@ void G_TripMineThink(gentity_t* ent) {
 	
 	traceEnt = &g_entities[trace.entityNum];
 
-	if(!Q_stricmp(traceEnt->classname, "player")) {
+	if(traceEnt->client) {
+		// Player triggered the beam
+
 		// ENGI_TRIPMINE_NO_SELF: Players don't trigger their own tripmines
-		if ((g_engineers.integer & ENGI_TRIPMINE_NO_SELF) && traceEnt->client) {
+		if ((g_engineers.integer & ENGI_TRIPMINE_NO_SELF)) {
 			if (ent->parent == traceEnt) {
 				return;  // Don't explode if owner crosses their own tripmine beam
 			}
 		}
 
 		// ENGI_TRIPMINE_NO_ACTIVATE: Teammates don't activate tripmines
-		if ((g_engineers.integer & ENGI_TRIPMINE_NO_ACTIVATE) && traceEnt->client) {
+		if ((g_engineers.integer & ENGI_TRIPMINE_NO_ACTIVATE)) {
 			team_t mineTeam = G_LandmineTeam(ent);
 			team_t playerTeam = traceEnt->client->sess.sessionTeam;
 			
@@ -1807,7 +1823,9 @@ void G_TripMineThink(gentity_t* ent) {
 		}
 
 		ent->think = G_ExplodeMissile;
-//		return;
+	} else if(traceEnt->s.eType == ET_MOVER || traceEnt->s.eType == ET_MOVERSCALED || traceEnt->s.eType == ET_CONSTRUCTIBLE) {
+		// Moveable entities (doors, trucks, tanks, command posts) trigger tripmines
+		ent->think = G_ExplodeMissile;
 	}
 }
 

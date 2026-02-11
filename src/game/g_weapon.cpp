@@ -378,9 +378,9 @@ void G_PlaceTripmine(gentity_t* ent) {
 	bomb->s.eFlags = 0;
 	bomb->s.weapon = WP_TRIPMINE;
 	bomb->parent = ent;
-	// Don't auto-prime - tripmine requires pliers to arm
-	bomb->think = NULL;
-	bomb->nextthink = 0;
+	// Unarmed tripmine auto-removes after 30 seconds
+	bomb->think = G_TripMineTimeout;
+	bomb->nextthink = level.time + 30000;
 	bomb->splashDamage = 300;
 	bomb->splashRadius = 300;
 	bomb->methodOfDeath = MOD_TRIPMINE;
