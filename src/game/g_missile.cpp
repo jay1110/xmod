@@ -1784,13 +1784,24 @@ void G_TripMineThink(gentity_t* ent) {
 	trace_t trace;
 	vec3_t start, end;
 	gentity_t* traceEnt;
+	int i;
 
 	VectorMA(ent->r.currentOrigin, 2, ent->s.origin2, start);
 	VectorMA(start, 2048, ent->s.origin2, end);
 
+	ent->nextthink = level.time + FRAMETIME;
+
+	// Temporarily unlink movers and constructibles so the beam passes through them
+	for(i = MAX_CLIENTS; i < level.num_entities; i++) {
+		if(g_entities[i].r.linked &&
+		   (g_entities[i].s.eType == ET_MOVER || g_entities[i].s.eType == ET_MOVERSCALED || g_entities[i].s.eType == ET_CONSTRUCTIBLE)) {
+			G_TempTraceIgnoreEntity(&g_entities[i]);
+		}
+	}
+
 	trap_Trace(&trace, start, NULL, NULL, end, ent->s.number, MASK_SHOT);
 
-	ent->nextthink = level.time + FRAMETIME;
+	G_ResetTempTraceIgnoreEnts();
 
 	if(trace.fraction == 1.f) {
 		return;
@@ -1824,7 +1835,6 @@ void G_TripMineThink(gentity_t* ent) {
 
 		ent->think = G_ExplodeMissile;
 	}
-	// Moveable entities (doors, trucks, tanks) block the beam but do not trigger explosion
 }
 
 /*
