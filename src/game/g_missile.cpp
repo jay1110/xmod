@@ -1782,7 +1782,7 @@ G_TripMineThink
 
 void G_TripMineThink(gentity_t* ent) {
 	trace_t trace;
-	vec3_t start, end;
+	vec3_t start, end, beamEnd;
 	gentity_t* traceEnt;
 	int i;
 
@@ -1791,7 +1791,7 @@ void G_TripMineThink(gentity_t* ent) {
 
 	ent->nextthink = level.time + FRAMETIME;
 
-	// Temporarily unlink movers and constructibles so the beam passes through them
+	// First trace: ignore movers to find the beam endpoint (beam passes through movers)
 	for(i = MAX_CLIENTS; i < level.num_entities; i++) {
 		if(g_entities[i].r.linked &&
 		   (g_entities[i].s.eType == ET_MOVER || g_entities[i].s.eType == ET_MOVERSCALED || g_entities[i].s.eType == ET_CONSTRUCTIBLE)) {
@@ -1803,37 +1803,47 @@ void G_TripMineThink(gentity_t* ent) {
 
 	G_ResetTempTraceIgnoreEnts();
 
-	if(trace.fraction == 1.f) {
-		return;
-	}
+	// Save the beam endpoint (where it hits the wall)
+	VectorCopy(trace.endpos, beamEnd);
 
-	if(trace.entityNum >= ENTITYNUM_NONE) {
-		return;
-	}
-	
-	traceEnt = &g_entities[trace.entityNum];
+	// Check for players in the beam path (from the first trace that ignores movers)
+	if(trace.fraction < 1.f && trace.entityNum < ENTITYNUM_NONE) {
+		traceEnt = &g_entities[trace.entityNum];
 
-	if(traceEnt->client) {
-		// Player triggered the beam
+		if(traceEnt->client) {
+			qboolean skip = qfalse;
 
-		// ENGI_TRIPMINE_NO_SELF: Players don't trigger their own tripmines
-		if ((g_engineers.integer & ENGI_TRIPMINE_NO_SELF)) {
-			if (ent->parent == traceEnt) {
-				return;  // Don't explode if owner crosses their own tripmine beam
+			// ENGI_TRIPMINE_NO_SELF: Players don't trigger their own tripmines
+			if ((g_engineers.integer & ENGI_TRIPMINE_NO_SELF) && ent->parent == traceEnt) {
+				skip = qtrue;
+			}
+
+			// ENGI_TRIPMINE_NO_ACTIVATE: Teammates don't activate tripmines
+			if (!skip && (g_engineers.integer & ENGI_TRIPMINE_NO_ACTIVATE)) {
+				team_t mineTeam = G_LandmineTeam(ent);
+				team_t playerTeam = traceEnt->client->sess.sessionTeam;
+				
+				if (mineTeam == playerTeam && ent->parent != traceEnt) {
+					skip = qtrue;
+				}
+			}
+
+			if (!skip) {
+				ent->think = G_ExplodeMissile;
+				return;
 			}
 		}
+	}
 
-		// ENGI_TRIPMINE_NO_ACTIVATE: Teammates don't activate tripmines
-		if ((g_engineers.integer & ENGI_TRIPMINE_NO_ACTIVATE)) {
-			team_t mineTeam = G_LandmineTeam(ent);
-			team_t playerTeam = traceEnt->client->sess.sessionTeam;
-			
-			if (mineTeam == playerTeam && ent->parent != traceEnt) {
-				return;  // Don't explode if teammate crosses beam (unless it's their own tripmine)
-			}
+	// Second trace: with movers, to detect if a mover has entered the beam path
+	trap_Trace(&trace, start, NULL, NULL, beamEnd, ent->s.number, MASK_SHOT);
+
+	if(trace.fraction < 1.f && trace.entityNum < ENTITYNUM_NONE) {
+		traceEnt = &g_entities[trace.entityNum];
+
+		if(traceEnt->s.eType == ET_MOVER || traceEnt->s.eType == ET_MOVERSCALED || traceEnt->s.eType == ET_CONSTRUCTIBLE) {
+			ent->think = G_ExplodeMissile;
 		}
-
-		ent->think = G_ExplodeMissile;
 	}
 }
 
