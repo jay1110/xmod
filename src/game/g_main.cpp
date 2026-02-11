@@ -2166,7 +2166,7 @@ void G_InitGame( int levelTime, int randomSeed, int restart ) {
 	trap_SetConfigstring( CS_MULTI_INFO, cs );
 
 	for ( i=CS_MULTI_SPAWNTARGETS; i<CS_MULTI_SPAWNTARGETS + MAX_MULTI_SPAWNTARGETS; i++ ) {
-		trap_SetConfigstring( i, "" );
+		G_XSetConfigstring( i, "" );
 	}
 
 	G_ResetTeamMapData();

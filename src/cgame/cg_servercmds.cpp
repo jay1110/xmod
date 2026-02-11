@@ -733,6 +733,18 @@ static void CG_NcsResourceRegister( int ncsIndex ) {
 		}
 		return;
 	}
+	if ( ncsIndex >= NCS_MULTI_SPAWNTARGETS && ncsIndex < NCS_MULTI_SPAWNTARGETS + MAX_MULTI_SPAWNTARGETS ) {
+		CG_ParseSpawns();
+		return;
+	}
+	if ( ncsIndex >= NCS_OID_DATA && ncsIndex < NCS_OID_DATA + MAX_OID_TRIGGERS ) {
+		CG_ParseOIDInfo( CS_OID_DATA + (ncsIndex - NCS_OID_DATA) );
+		return;
+	}
+	if ( ncsIndex >= NCS_FIRETEAMS && ncsIndex < NCS_FIRETEAMS + MAX_FIRETEAMS ) {
+		CG_ParseFireteams();
+		return;
+	}
 }
 
 /*
@@ -921,10 +933,8 @@ void CG_ConfigStringModified( void )
             break;
     }
 
-    if (index >= CS_MULTI_SPAWNTARGETS && index < CS_MULTI_SPAWNTARGETS + MAX_MULTI_SPAWNTARGETS) {
-        CG_ParseSpawns();
-        return;
-    }
+    // CS_MULTI_SPAWNTARGETS, CS_OID_DATA, CS_FIRETEAMS are NCS-managed
+    // (sent via "ncs" commands, handled in CG_NcsResourceRegister)
 
     // CS_MODELS, CS_SOUNDS, CS_SHADERS, CS_SHADERSTATE, CS_SKINS, CS_CHARACTERS
     // are NCS-managed (sent via "ncs" commands, not engine configstrings)
@@ -944,22 +954,12 @@ void CG_ConfigStringModified( void )
         return;
     }
 
-    if (index >= CS_FIRETEAMS && index < CS_FIRETEAMS+MAX_FIRETEAMS) {
-        CG_ParseFireteams();
-        return;
-    }
-
     if (index >= CS_TAGCONNECTS && index < CS_TAGCONNECTS + MAX_TAGCONNECTS) {
         CG_ParseTagConnect( index );
         return;
     }
 
     // CS_AXIS_MAPS_XP and CS_ALLIED_MAPS_XP moved to RPCS ("xcs a/b")
-
-    if (index >= CS_OID_DATA && index < CS_OID_DATA + MAX_OID_TRIGGERS) {
-        CG_ParseOIDInfo( index );
-        return;
-    }
 }
 
 // Jaybird - icons support

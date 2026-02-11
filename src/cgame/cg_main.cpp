@@ -2279,6 +2279,19 @@ const char *CG_ConfigString( int index ) {
 	if ( index >= CS_CHARACTERS && index < CS_CHARACTERS + MAX_CHARACTERS ) {
 		return CG_NcsConfigString( NCS_CHARACTERS + (index - CS_CHARACTERS) );
 	}
+	// NCS: spawntargets, OID triggers/data, fireteams (virtual indices 1500+)
+	if ( index >= CS_MULTI_SPAWNTARGETS && index < CS_MULTI_SPAWNTARGETS + MAX_MULTI_SPAWNTARGETS ) {
+		return CG_NcsConfigString( NCS_MULTI_SPAWNTARGETS + (index - CS_MULTI_SPAWNTARGETS) );
+	}
+	if ( index >= CS_OID_TRIGGERS && index < CS_OID_TRIGGERS + MAX_OID_TRIGGERS ) {
+		return CG_NcsConfigString( NCS_OID_TRIGGERS + (index - CS_OID_TRIGGERS) );
+	}
+	if ( index >= CS_OID_DATA && index < CS_OID_DATA + MAX_OID_TRIGGERS ) {
+		return CG_NcsConfigString( NCS_OID_DATA + (index - CS_OID_DATA) );
+	}
+	if ( index >= CS_FIRETEAMS && index < CS_FIRETEAMS + MAX_FIRETEAMS ) {
+		return CG_NcsConfigString( NCS_FIRETEAMS + (index - CS_FIRETEAMS) );
+	}
 
 	// Engine configstrings
 	if ( index < 0 || index >= MAX_CONFIGSTRINGS ) {

@@ -3097,7 +3097,7 @@ void G_UpdateSpawnCounts( void ) {
 	int		current, count, team;
 
 	for( i = 0; i < level.numspawntargets; i++ ) {
-		trap_GetConfigstring( CS_MULTI_SPAWNTARGETS + i, cs, sizeof(cs) );
+		G_XGetConfigstring( CS_MULTI_SPAWNTARGETS + i, cs, sizeof(cs) );
 
 		current = atoi(Info_ValueForKey( cs, "c" ));
 		team = atoi(Info_ValueForKey( cs, "t" )) & ~256;
@@ -3135,7 +3135,7 @@ void G_UpdateSpawnCounts( void ) {
 		}
 
 		Info_SetValueForKey( cs, "c", va("%i", count));
-		trap_SetConfigstring( CS_MULTI_SPAWNTARGETS + i, cs );
+		G_XSetConfigstring( CS_MULTI_SPAWNTARGETS + i, cs );
 	}
 }
 

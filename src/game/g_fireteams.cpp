@@ -105,7 +105,7 @@ void G_UpdateFireteamConfigString( fireteamData_t* ft ) {
 //		G_Printf(va("%s\n", buffer));
 	}
 
-	trap_SetConfigstring(CS_FIRETEAMS + (ft-level.fireTeams), buffer);
+	G_XSetConfigstring(CS_FIRETEAMS + (ft-level.fireTeams), buffer);
 }
 
 qboolean G_IsOnFireteam(int entityNum, fireteamData_t** teamNum) {

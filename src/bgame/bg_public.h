@@ -398,7 +398,11 @@ extern const unsigned int aReinfSeeds[MAX_REINFSEEDS];
 #define NCS_SHADERSTATE					( NCS_SHADERS +				MAX_CS_SHADERS				)
 #define NCS_SKINS						( NCS_SHADERSTATE +			1							)
 #define NCS_CHARACTERS					( NCS_SKINS +				MAX_CS_SKINS				)
-#define NCS_MAX							( NCS_CHARACTERS +			MAX_CHARACTERS				)
+#define NCS_MULTI_SPAWNTARGETS			( NCS_CHARACTERS +			MAX_CHARACTERS				)
+#define NCS_OID_TRIGGERS				( NCS_MULTI_SPAWNTARGETS +	MAX_MULTI_SPAWNTARGETS		)
+#define NCS_OID_DATA					( NCS_OID_TRIGGERS +		MAX_OID_TRIGGERS			)
+#define NCS_FIRETEAMS					( NCS_OID_DATA +			MAX_OID_TRIGGERS			)
+#define NCS_MAX							( NCS_FIRETEAMS +			MAX_FIRETEAMS				)
 #define NCS_STRING_SIZE					1024	// max string size per NCS entry
 
 // CS_MODELS etc. are kept as defines for code compatibility but are NCS-managed.
@@ -413,21 +417,24 @@ extern const unsigned int aReinfSeeds[MAX_REINFSEEDS];
 #define CS_SKINS						( CS_SHADERSTATE +			1							)
 #define CS_CHARACTERS					( CS_SKINS +				MAX_CS_SKINS				)
 
-// These configstrings remain in the engine gamestate (not NCS-managed)
-#define	CS_PLAYERS						41
-#define CS_MULTI_SPAWNTARGETS			( CS_PLAYERS +				MAX_CLIENTS					)
+// These configstrings are also NCS-managed (virtual indices for code compatibility).
+// They use high index values (1500+) to avoid overlap with engine or other NCS indices.
+#define CS_MULTI_SPAWNTARGETS			1500
 #define CS_OID_TRIGGERS					( CS_MULTI_SPAWNTARGETS +	MAX_MULTI_SPAWNTARGETS		)
 #define CS_OID_DATA						( CS_OID_TRIGGERS +			MAX_OID_TRIGGERS			)
-#define CS_DLIGHTS						( CS_OID_DATA +				MAX_OID_TRIGGERS			)
+#define CS_FIRETEAMS					( CS_OID_DATA +				MAX_OID_TRIGGERS			)
+
+// These configstrings remain in the engine gamestate (not NCS-managed)
+#define	CS_PLAYERS						41
+#define CS_DLIGHTS						( CS_PLAYERS +				MAX_CLIENTS					)
 #define CS_SPLINES						( CS_DLIGHTS +				MAX_DLIGHT_CONFIGSTRINGS	)
 #define	CS_TAGCONNECTS					( CS_SPLINES +				MAX_SPLINE_CONFIGSTRINGS	)
-#define CS_FIRETEAMS					( CS_TAGCONNECTS +			MAX_TAGCONNECTS				)
-#define CS_CUSTMOTD						( CS_FIRETEAMS +			MAX_FIRETEAMS				)
+#define CS_CUSTMOTD						( CS_TAGCONNECTS +			MAX_TAGCONNECTS				)
 #define CS_STRINGS						( CS_CUSTMOTD +				MAX_MOTDLINES				)
 #define CS_MAX							( CS_STRINGS +				MAX_CSSTRINGS				)
 
-// With NCS, models/sounds/shaders/skins/characters are NOT in the engine gamestate.
-// Only CS_PLAYERS through CS_STRINGS remain, drastically reducing gamestate usage.
+// With NCS, models/sounds/shaders/skins/characters/spawntargets/OID/fireteams
+// are NOT in the engine gamestate, drastically reducing gamestate usage.
 
 #if (CS_MAX) > MAX_CONFIGSTRINGS
 #error overflow: (CS_MAX) > MAX_CONFIGSTRINGS
