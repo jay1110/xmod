@@ -1824,6 +1824,9 @@ void G_TripMineThink(gentity_t* ent) {
 		if (!skip) {
 			ent->think = G_ExplodeMissile;
 		}
+	} else if(traceEnt->s.eType == ET_MOVER || traceEnt->s.eType == ET_MOVERSCALED || traceEnt->s.eType == ET_CONSTRUCTIBLE) {
+		// Mover (door, truck, tank) entered the beam - explode
+		ent->think = G_ExplodeMissile;
 	}
 }
 
