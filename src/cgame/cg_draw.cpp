@@ -702,7 +702,7 @@ static float CG_DrawPing( float y ) {
 	CG_GetHudBorderColor( timerBorder );
 	vec4_t		tclr			=	{ 0.625f,	0.625f,	0.6f,	1.0f	};
 
-	s = va( "%i PING", cg.snap->ping );
+	s = va( "%i ms", cg.snap->ping );
 	w = CG_Text_Width_Ext( s, 0.19f, 0, &cgs.media.limboFont1 );
 
 	CG_FillRect( UPPERRIGHT_X - w - 2, y, w + 5, 12 + 2, timerBackground );
@@ -906,8 +906,7 @@ static void CG_DrawUpperRight( void ) {
 		y = CG_DrawClock( y );
 	}
 
-    int team = cg.predictedPlayerState.teamNum;
-    if ( cg_drawSpeed.integer && team != TEAM_SPECTATOR && team != TEAM_FREE) {
+    if ( cg_drawSpeed.integer ) {
         y = CG_DrawSpeed( y );
     }
 
