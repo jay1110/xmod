@@ -206,7 +206,7 @@ void G_XGetConfigstring( int csIndex, char *buffer, int bufferSize ) {
 ================
 G_FindConfigstringIndex
 
-Uses NCS (private mod storage) for models/sounds/shaders/skins/characters/OID/fireteams/spawntargets.
+Uses NCS (private mod storage) for models/sounds/shaders/skins/characters/spawntargets/OID/fireteams.
 Uses engine configstrings for all other ranges.
 ================
 */
