@@ -2532,7 +2532,8 @@ static void PM_BeginWeaponReload( int weapon ) {
 		return;*/
 
 	// no reload when leaning (this includes manual and auto reloads)
-	if(pm->ps->leanf)
+	// SBW_FIRE_LEAN - Allow reload while leaning if firing while leaning is enabled
+	if(pm->ps->leanf && !(cvars::bg_weapons.ivalue & SBW_FIRE_LEAN))
 		return;
 
 	if (weapon == WP_M97) {
