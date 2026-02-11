@@ -336,7 +336,7 @@ cvarTable_t		gameCvarTable[] = {
     { NULL, "g_xmod_repoLCRev",   XMOD_repoLCRev,   CVAR_ROM },
     { NULL, "g_xmod_repoUUID",    XMOD_repoUUID,    CVAR_ROM },
 
-    { &sv_uptime,      "sv_uptime",      ""  , CVAR_ROM | CVAR_SERVERINFO_NOUPDATE },
+    { &sv_uptime,      "sv_uptime",      ""  , CVAR_ROM },
     { &sv_uptimeStamp, "sv_uptimeStamp", "-1", CVAR_ROM },
 
 	{ &g_moverScale,		"g_moverScale",			"1.0",		CVAR_ARCHIVE },
@@ -389,7 +389,7 @@ cvarTable_t		gameCvarTable[] = {
 	{ &g_userConfig,		"g_userConfig",			"xmod.db",	CVAR_ARCHIVE },
     { &g_muteTime,          "g_muteTime",           "0",        0 },
     { &g_antiwarp,          "g_antiwarp",           "1",        0 },
-    { &g_countryflags,      "g_countryflags",       "1",        CVAR_ARCHIVE | CVAR_SERVERINFO },
+    { &g_countryflags,      "g_countryflags",       "1",        CVAR_ARCHIVE },
 
     { &sv_maxRate,          "sv_maxRate",           "90000",    CVAR_SYSTEMINFO | CVAR_ARCHIVE },
 
@@ -447,7 +447,7 @@ cvarTable_t		gameCvarTable[] = {
     // g_noReload/g_noCharge synced via XMODINFO - both gameCvarTable and static.cpp need CVAR_XMODINFO
     { &g_noReload,          "g_noReload",           "0",        CVAR_ARCHIVE | CVAR_XMODINFO },
     { &g_noCharge,          "g_noCharge",           "0",        CVAR_ARCHIVE | CVAR_XMODINFO },
-    { &g_instantSpawn,      "g_instantSpawn",       "0",        CVAR_ARCHIVE | CVAR_SERVERINFO },
+    { &g_instantSpawn,      "g_instantSpawn",       "0",        CVAR_ARCHIVE },
     { &g_spawnInvulNoClip,  "g_spawnInvulNoClip",   "0",        CVAR_ARCHIVE | CVAR_XMODINFO },
 
     // Kill Assistance
