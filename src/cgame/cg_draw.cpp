@@ -691,6 +691,31 @@ static float CG_DrawFPS( float y ) {
 
 /*
 ==================
+CG_DrawPing
+==================
+*/
+static float CG_DrawPing( float y ) {
+	char		*s;
+	int			w;
+	vec4_t		timerBackground;
+	vec4_t		timerBorder;
+	CG_GetHudBackgroundColor( timerBackground );
+	CG_GetHudBorderColor( timerBorder );
+	vec4_t		tclr			=	{ 0.625f,	0.625f,	0.6f,	1.0f	};
+
+	s = va( "%i PING", cg.snap->ping );
+	w = CG_Text_Width_Ext( s, 0.19f, 0, &cgs.media.limboFont1 );
+
+	CG_FillRect( UPPERRIGHT_X - w - 2, y, w + 5, 12 + 2, timerBackground );
+	CG_DrawRect_FixedBorder( UPPERRIGHT_X - w - 2, y, w + 5, 12 + 2, 1, timerBorder );
+
+	CG_Text_Paint_Ext( UPPERRIGHT_X - w, y + 11, 0.19f, 0.19f, tclr, s, 0, 0, 0, &cgs.media.limboFont1 );
+
+	return y + 12 + 4;
+}
+
+/*
+==================
 CG_DrawSpeed
 ==================
 */
@@ -889,6 +914,10 @@ static void CG_DrawUpperRight( void ) {
 
 	if ( cg_drawFPS.integer ) {
 		y = CG_DrawFPS( y );
+	}
+
+	if ( cg_drawPing.integer ) {
+		y = CG_DrawPing( y );
 	}
 
 	if ( cg_drawSnapshot.integer ) {
