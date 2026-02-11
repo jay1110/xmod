@@ -343,7 +343,6 @@ void G_PlaceTripmine(gentity_t* ent) {
 	// Check team limit before placing
 	if (G_CountTeamTripmines(ent->client->sess.sessionTeam) >= MAX_TEAM_TRIPMINES) {
 		trap_SendServerCommand(ent-g_entities, "cp \"Your team has too many tripmines placed\" 1");
-		ent->client->ps.ammoclip[BG_FindClipForWeapon(WP_TRIPMINE)] += 1;
 		return;
 	}
 
@@ -359,8 +358,6 @@ void G_PlaceTripmine(gentity_t* ent) {
 	// Check if we hit a wall
 	if (trace.fraction == 1.0f || trace.entityNum != ENTITYNUM_WORLD) {
 		trap_SendServerCommand(ent-g_entities, "cp \"Tripmine must be placed on a wall\" 1");
-		// Give ammo back
-		ent->client->ps.ammoclip[BG_FindClipForWeapon(WP_TRIPMINE)] += 1;
 		return;
 	}
 
@@ -379,8 +376,6 @@ void G_PlaceTripmine(gentity_t* ent) {
 		 g_entities[oppositeTrace.entityNum].s.eType == ET_MOVERSCALED ||
 		 g_entities[oppositeTrace.entityNum].s.eType == ET_CONSTRUCTIBLE))) {
 		trap_SendServerCommand(ent-g_entities, "cp \"Tripmine must be placed between walls (no opposing wall found)\" 1");
-		// Give ammo back
-		ent->client->ps.ammoclip[BG_FindClipForWeapon(WP_TRIPMINE)] += 1;
 		return;
 	}
 
@@ -2039,8 +2034,6 @@ evilbanigoto:
 
 					G_FreeEntity( traceEnt );
 
-					Add_Ammo(ent, WP_TRIPMINE, 1, qfalse);
-
 					// Give back the correct charge amount
 					if (ent->client->sess.skill[SK_EXPLOSIVES_AND_CONSTRUCTION] >= 5 && (cvars::bg_sk5_eng.ivalue & SK5_ENG_CHARGE))
 						ent->client->ps.classWeaponTime -= int( .33f * level.engineerChargeTime[ent->client->sess.sessionTeam-1] * SK5G_CHARGE_FACTOR );
@@ -2123,8 +2116,6 @@ evilbanigoto:
 
 				if ( traceEnt->health >= 250 ) {
 					trap_SendServerCommand(ent-g_entities, "cp \"Tripmine defused...\" 1");
-
-					Add_Ammo(ent, WP_TRIPMINE, 1, qfalse);
 
 					if( G_LandmineTeam( traceEnt ) != ent->client->sess.sessionTeam ) {
 						G_AddSkillPoints( ent, SK_EXPLOSIVES_AND_CONSTRUCTION, 4.f );

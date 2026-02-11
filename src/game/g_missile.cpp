@@ -480,10 +480,6 @@ void G_ExplodeMissile( gentity_t *ent ) {
 			}
 
 			case WP_TRIPMINE:
-				// Refill tripmine ammo when it explodes
-				if (ent->parent && ent->parent->client) {
-					Add_Ammo(ent->parent, WP_TRIPMINE, 1, qfalse);
-				}
 				break;
 
 			case WP_DYNAMITE:
@@ -1767,11 +1763,6 @@ Unarmed tripmines auto-remove after 30 seconds and refill owner ammo
 */
 
 void G_TripMineTimeout(gentity_t* ent) {
-	// Refill owner's tripmine ammo
-	if (ent->parent && ent->parent->client) {
-		Add_Ammo(ent->parent, WP_TRIPMINE, 1, qfalse);
-	}
-
 	G_FreeEntity(ent);
 }
 

@@ -954,7 +954,7 @@ void G_AddClassSpecificTools(gclient_t *client)
 			    AddWeaponToPlayer(client, WP_MOLOTOV, GetAmmoTableData(WP_MOLOTOV)->defaultStartingAmmo, GetAmmoTableData(WP_MOLOTOV)->defaultStartingClip, qfalse);
 
             if ((cvars::bg_weaponsenable.ivalue & WPEN_TRIPMINE) && client->sess.skill[SK_EXPLOSIVES_AND_CONSTRUCTION] >= 3)
-                AddWeaponToPlayer(client, WP_TRIPMINE, GetAmmoTableData(WP_TRIPMINE)->defaultStartingAmmo, GetAmmoTableData(WP_TRIPMINE)->defaultStartingClip, qfalse);
+                AddWeaponToPlayer(client, WP_TRIPMINE, GetAmmoTableData(WP_TRIPMINE)->defaultStartingAmmo, G_TeamMaxTripmines(), qfalse);
 
 			if (client->sess.skill[SK_EXPLOSIVES_AND_CONSTRUCTION] >= 5) {
 				if (cvars::bg_sk5_eng.ivalue & SK5_ENG_LM_BBETTY)
