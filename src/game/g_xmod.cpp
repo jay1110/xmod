@@ -1496,20 +1496,54 @@ update at once (e.g. warmup→match transition), calling trap_SetConfigstring
 for all 63 in one frame causes "Server command overflow" because the engine
 internally broadcasts a reliable command per client per configstring change.
 
-NitMod uses the same dirty-flag approach (DAT_0312b2a8) to batch configstring
-updates. We process at most RPCS_CMDS_PER_FRAME players per frame.
+Uses round-robin starting from csPlayersDirtyNext to ensure fair processing
+when many players are dirty simultaneously (prevents starvation of higher indices).
 ================
 */
 void G_ProcessDirtyPlayers( void ) {
     int processed = 0;
-    for ( int i = 0; i < level.maxclients && processed < RPCS_CMDS_PER_FRAME; i++ ) {
-        if ( !level.csPlayersDirty[i] ) {
-            continue;
+    int idx = level.csPlayersDirtyNext;
+    for ( int count = 0; count < level.maxclients && processed < RPCS_CMDS_PER_FRAME; count++ ) {
+        if ( level.csPlayersDirty[idx] ) {
+            level.csPlayersDirty[idx] = qfalse;
+            trap_SetConfigstring( CS_PLAYERS + idx, level.csPlayersMinimal[idx] );
+            processed++;
         }
-        level.csPlayersDirty[i] = qfalse;
-        trap_SetConfigstring( CS_PLAYERS + i, level.csPlayersMinimal[i] );
-        processed++;
+        idx = ( idx + 1 ) % level.maxclients;
     }
+    level.csPlayersDirtyNext = idx;
+}
+
+/*
+================
+G_ProcessDirtyRpcsPlayers
+----------------
+Called every server frame from G_RunFrame (before G_RpcsProcessQueues).
+Broadcasts dirty RPCS player info ("xcs p") to all connected clients.
+Uses the RPCS deferred queue so commands are drained gradually.
+
+Uses round-robin starting from rpcsPlayerInfoNext to ensure fair processing.
+We process at most RPCS_CMDS_PER_FRAME players per frame to prevent
+"Server command overflow" when many players update at once (warmup→match).
+================
+*/
+void G_ProcessDirtyRpcsPlayers( void ) {
+    int processed = 0;
+    int idx = level.rpcsPlayerInfoNext;
+    for ( int count = 0; count < level.maxclients && processed < RPCS_CMDS_PER_FRAME; count++ ) {
+        if ( level.rpcsPlayerInfoDirty[idx] ) {
+            level.rpcsPlayerInfoDirty[idx] = qfalse;
+            const char *cmd = va( "xcs p %i \"%s\"", idx, level.rpcsPlayerInfo[idx] );
+            for ( int c = 0; c < level.maxclients; c++ ) {
+                if ( level.clients[c].pers.connected == CON_CONNECTED ) {
+                    G_RpcsEnqueue( c, cmd );
+                }
+            }
+            processed++;
+        }
+        idx = ( idx + 1 ) % level.maxclients;
+    }
+    level.rpcsPlayerInfoNext = idx;
 }
 
 /*************************************************

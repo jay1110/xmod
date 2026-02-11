@@ -2037,18 +2037,11 @@ void ClientUserinfoChanged( int clientNum ) {
         Q_strncpyz( level.csPlayersMinimal[clientNum], minimalCS, sizeof(level.csPlayersMinimal[clientNum]) );
         level.csPlayersDirty[clientNum] = qtrue;
 
-        // Store full player info for connecting clients and send via RPCS
-        // Use deferred queue to prevent "Server command overflow" when many
-        // players update at once (e.g. after warmup ends, round restart)
+        // Store full player info and mark dirty for deferred RPCS broadcast.
+        // G_ProcessDirtyRpcsPlayers() will broadcast a limited number per frame to prevent
+        // "Server command overflow" when many players update at once (warmup→match).
         Q_strncpyz( level.rpcsPlayerInfo[clientNum], s, sizeof(level.rpcsPlayerInfo[clientNum]) );
-        {
-            const char *cmd = va("xcs p %i \"%s\"", clientNum, s);
-            for (int i = 0; i < level.maxclients; i++) {
-                if (level.clients[i].pers.connected == CON_CONNECTED) {
-                    G_RpcsEnqueue( i, cmd );
-                }
-            }
-        }
+        level.rpcsPlayerInfoDirty[clientNum] = qtrue;
     }
 
     if (Q_stricmp( oldname, s )) {

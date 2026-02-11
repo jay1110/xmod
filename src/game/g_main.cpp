@@ -4162,6 +4162,10 @@ void G_RunFrame( int levelTime ) {
 	// "Server command overflow" when many players update at once (warmup→match)
 	G_ProcessDirtyPlayers();
 
+	// Process dirty RPCS player info - deferred broadcast of full player data
+	// to prevent "Server command overflow" during warmup→match transitions
+	G_ProcessDirtyRpcsPlayers();
+
 	// Process deferred RPCS queue - sends queued commands gradually to prevent
 	// "msg overflowed" and "reliable command was cycled out" client errors
 	G_RpcsProcessQueues();

@@ -297,6 +297,7 @@ void     G_RpcsBroadcast        ( const char *cmd );
 void     G_NcsSetConfigstring   ( int ncsIndex, const char *value );
 void     G_NcsProcessDirty      ( void );
 void     G_ProcessDirtyPlayers  ( void );
+void     G_ProcessDirtyRpcsPlayers ( void );
 void     G_UpdateUptime          ( );
 qboolean IsReflectable           ( int );
 bool     G_MutePlayer            ( gentity_t*, string, string = "" );
