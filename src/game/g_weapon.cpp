@@ -330,7 +330,7 @@ void Weapon_Medic( gentity_t *ent ) {
 G_PlaceTripmine
 ==========
 */
-#define TRIPMINE_MAX_DISTANCE 1024  // Maximum distance between walls for tripmine placement
+#define TRIPMINE_MAX_DISTANCE 512  // Maximum distance between walls for tripmine placement
 #define TRIPMINE_UNARMED_TEAM_OFFSET 4  // Offset added to team for unarmed state (matches landmine behavior)
 
 void G_PlaceTripmine(gentity_t* ent) {
