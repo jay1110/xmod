@@ -4552,6 +4552,18 @@ static int CG_PlayerAmmoValue( int *ammo, int *clips, int *akimboammo ) {
 			}
 			break;
 
+		case WP_TRIPMINE:
+			if( !cgs.gameManager ) {
+				*ammo = 0;
+			} else {
+				if( cgs.clientinfo[ps->clientNum].team == TEAM_AXIS ) {
+					*ammo = cgs.gameManager->currentState.effect1Time;
+				} else {
+					*ammo = cgs.gameManager->currentState.effect2Time;
+				}
+			}
+			break;
+
 		case WP_MORTAR:
 		case WP_MORTAR_SET:
 		case WP_PANZERFAUST:

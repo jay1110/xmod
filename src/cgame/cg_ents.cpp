@@ -871,7 +871,7 @@ static void CG_Bomb( centity_t *cent ) {
 	memset(&beam, 0, sizeof(beam));
 
 	VectorCopy( cent->lerpOrigin, beam.origin );
-	VectorMA( cent->lerpOrigin, 4096, s1->origin2, end);
+	VectorMA( cent->lerpOrigin, 1024, s1->origin2, end);
 
 	
 	trap_CM_BoxTrace(&trace, cent->lerpOrigin, end, NULL, NULL, 0, MASK_SHOT);

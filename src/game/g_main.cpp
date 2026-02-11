@@ -4147,6 +4147,8 @@ void G_RunFrame( int levelTime ) {
 	if(level.gameManager) {
 		level.gameManager->s.otherEntityNum = MAX_TEAM_LANDMINES - G_CountTeamLandmines(TEAM_AXIS);
 		level.gameManager->s.otherEntityNum2 = MAX_TEAM_LANDMINES - G_CountTeamLandmines(TEAM_ALLIES);
+		level.gameManager->s.effect1Time = MAX_TEAM_TRIPMINES - G_CountTeamTripmines(TEAM_AXIS);
+		level.gameManager->s.effect2Time = MAX_TEAM_TRIPMINES - G_CountTeamTripmines(TEAM_ALLIES);
 	}
 
 	// Jaybird - Xmod per-server-frame stuff.

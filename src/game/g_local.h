@@ -1508,6 +1508,7 @@ void G_killSpreeSounds(char * sound);
 void G_RunMissile( gentity_t *ent );
 void G_RunBomb( gentity_t *ent );
 int G_PredictMissile( gentity_t *ent, int duration, vec3_t endPos, qboolean allowBounce );
+void G_TripMineTimeout(gentity_t* ent);
 void G_TripMinePrime(gentity_t* ent);
 qboolean G_HasDroppedItem(gentity_t* ent, int modType);
 

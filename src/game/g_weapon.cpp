@@ -330,7 +330,7 @@ void Weapon_Medic( gentity_t *ent ) {
 G_PlaceTripmine
 ==========
 */
-#define TRIPMINE_MAX_DISTANCE 1024  // Maximum distance between walls for tripmine placement
+#define TRIPMINE_MAX_DISTANCE 512  // Maximum distance between walls for tripmine placement
 #define TRIPMINE_UNARMED_TEAM_OFFSET 4  // Offset added to team for unarmed state (matches landmine behavior)
 
 void G_PlaceTripmine(gentity_t* ent) {
@@ -339,6 +339,12 @@ void G_PlaceTripmine(gentity_t* ent) {
 	gentity_t* bomb;
 	vec3_t forward;
 	vec3_t oppositeEnd;
+
+	// Check team limit before placing
+	if (G_CountTeamTripmines(ent->client->sess.sessionTeam) >= MAX_TEAM_TRIPMINES) {
+		trap_SendServerCommand(ent-g_entities, "cp \"Your team has too many tripmines placed\" 1");
+		return;
+	}
 
 	VectorCopy( ent->client->ps.origin, start );
 	start[2] += ent->client->ps.viewheight;
@@ -352,8 +358,6 @@ void G_PlaceTripmine(gentity_t* ent) {
 	// Check if we hit a wall
 	if (trace.fraction == 1.0f || trace.entityNum != ENTITYNUM_WORLD) {
 		trap_SendServerCommand(ent-g_entities, "cp \"Tripmine must be placed on a wall\" 1");
-		// Give ammo back
-		ent->client->ps.ammoclip[BG_FindClipForWeapon(WP_TRIPMINE)] += 1;
 		return;
 	}
 
@@ -365,10 +369,13 @@ void G_PlaceTripmine(gentity_t* ent) {
 	trap_Trace(&oppositeTrace, start, NULL, NULL, oppositeEnd, ent->s.number, MASK_SHOT);
 
 	// Check if there's an opposing wall within max distance
-	if (oppositeTrace.fraction == 1.0f) {
+	// Must be world geometry - movers (doors, trucks, tanks) don't count
+	if (oppositeTrace.fraction == 1.0f || (oppositeTrace.entityNum != ENTITYNUM_WORLD &&
+		oppositeTrace.entityNum < ENTITYNUM_NONE &&
+		(g_entities[oppositeTrace.entityNum].s.eType == ET_MOVER ||
+		 g_entities[oppositeTrace.entityNum].s.eType == ET_MOVERSCALED ||
+		 g_entities[oppositeTrace.entityNum].s.eType == ET_CONSTRUCTIBLE))) {
 		trap_SendServerCommand(ent-g_entities, "cp \"Tripmine must be placed between walls (no opposing wall found)\" 1");
-		// Give ammo back
-		ent->client->ps.ammoclip[BG_FindClipForWeapon(WP_TRIPMINE)] += 1;
 		return;
 	}
 
@@ -378,9 +385,9 @@ void G_PlaceTripmine(gentity_t* ent) {
 	bomb->s.eFlags = 0;
 	bomb->s.weapon = WP_TRIPMINE;
 	bomb->parent = ent;
-	// Don't auto-prime - tripmine requires pliers to arm
-	bomb->think = NULL;
-	bomb->nextthink = 0;
+	// Unarmed tripmine auto-removes after 30 seconds
+	bomb->think = G_TripMineTimeout;
+	bomb->nextthink = level.time + 30000;
 	bomb->splashDamage = 300;
 	bomb->splashRadius = 300;
 	bomb->methodOfDeath = MOD_TRIPMINE;
