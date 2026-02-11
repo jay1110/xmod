@@ -336,7 +336,7 @@ cvarTable_t		gameCvarTable[] = {
     { NULL, "g_xmod_repoLCRev",   XMOD_repoLCRev,   CVAR_ROM },
     { NULL, "g_xmod_repoUUID",    XMOD_repoUUID,    CVAR_ROM },
 
-    { &sv_uptime,      "sv_uptime",      ""  , CVAR_ROM },
+    { &sv_uptime,      "sv_uptime",      ""  , CVAR_ROM | CVAR_SERVERINFO_NOUPDATE },
     { &sv_uptimeStamp, "sv_uptimeStamp", "-1", CVAR_ROM },
 
 	{ &g_moverScale,		"g_moverScale",			"1.0",		CVAR_ARCHIVE },
@@ -389,7 +389,7 @@ cvarTable_t		gameCvarTable[] = {
 	{ &g_userConfig,		"g_userConfig",			"xmod.db",	CVAR_ARCHIVE },
     { &g_muteTime,          "g_muteTime",           "0",        0 },
     { &g_antiwarp,          "g_antiwarp",           "1",        0 },
-    { &g_countryflags,      "g_countryflags",       "1",        CVAR_ARCHIVE },
+    { &g_countryflags,      "g_countryflags",       "1",        CVAR_ARCHIVE | CVAR_SERVERINFO },
 
     { &sv_maxRate,          "sv_maxRate",           "90000",    CVAR_SYSTEMINFO | CVAR_ARCHIVE },
 
@@ -447,7 +447,7 @@ cvarTable_t		gameCvarTable[] = {
     // g_noReload/g_noCharge synced via XMODINFO - both gameCvarTable and static.cpp need CVAR_XMODINFO
     { &g_noReload,          "g_noReload",           "0",        CVAR_ARCHIVE | CVAR_XMODINFO },
     { &g_noCharge,          "g_noCharge",           "0",        CVAR_ARCHIVE | CVAR_XMODINFO },
-    { &g_instantSpawn,      "g_instantSpawn",       "0",        CVAR_ARCHIVE },
+    { &g_instantSpawn,      "g_instantSpawn",       "0",        CVAR_ARCHIVE | CVAR_SERVERINFO },
     { &g_spawnInvulNoClip,  "g_spawnInvulNoClip",   "0",        CVAR_ARCHIVE | CVAR_XMODINFO },
 
     // Kill Assistance
@@ -461,7 +461,7 @@ cvarTable_t		gameCvarTable[] = {
     { &g_adminChat,         "g_adminChat",          "1",        CVAR_ARCHIVE },
 
     // Some useful mod-info cvars.
-    { NULL, "mod_binary",  XMOD_buildTarget, CVAR_ROM },
+    { NULL, "mod_binary",  XMOD_buildTarget, CVAR_SERVERINFO | CVAR_ROM },
     { NULL, "mod_url",     XMOD_website,     CVAR_SERVERINFO | CVAR_ROM },
     { NULL, "mod_version", XMOD_version,     CVAR_SERVERINFO | CVAR_ROM },
 
@@ -565,9 +565,7 @@ cvarTable_t		gameCvarTable[] = {
 
 	{ &g_antilag, "g_antilag", "1", CVAR_ROM | CVAR_SERVERINFO, 0, qfalse },
 
-	//bani - #184 -- removed from SERVERINFO to save gamestate space
-	// P is only used by server browsers, not by cgame/UI
-	{ NULL, "P", "", CVAR_ROM, 0, qfalse, qfalse },
+	{ NULL, "P", "", CVAR_SERVERINFO_NOUPDATE, 0, qfalse, qfalse },
 
 	{ &refereePassword, "refereePassword", "none", 0, 0, qfalse},
 	{ &g_spectatorInactivity, "g_spectatorInactivity", "0", 0, 0, qfalse, qfalse },
@@ -657,8 +655,8 @@ cvarTable_t		gameCvarTable[] = {
 	
 	// Omni-bot user defined path to load bot library from.
 	{ &g_OmniBotPath, "omnibot_path", "", CVAR_ARCHIVE | CVAR_NORESTART, 0, qfalse },
-	{ &g_OmniBotEnable, "omnibot_enable", "1", CVAR_ARCHIVE | CVAR_NORESTART, 0, qfalse },
-	{ &g_OmniBotPlaying, "omnibot_playing", "0", CVAR_ROM, 0, qfalse },	
+	{ &g_OmniBotEnable, "omnibot_enable", "1", CVAR_ARCHIVE | CVAR_SERVERINFO_NOUPDATE | CVAR_NORESTART, 0, qfalse },
+	{ &g_OmniBotPlaying, "omnibot_playing", "0", CVAR_SERVERINFO_NOUPDATE | CVAR_ROM, 0, qfalse },	
 	{ &g_OmniBotFlags, "omnibot_flags", "0", CVAR_ARCHIVE | CVAR_NORESTART, 0, qfalse },
 };
 

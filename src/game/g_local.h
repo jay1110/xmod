@@ -1320,8 +1320,9 @@ typedef struct {
 	// The ET engine can only buffer ~64 reliable commands per client.
 	// Combined budget: RPCS_CMDS_PER_FRAME + dirty players (same limit) must stay
 	// well under 64 to leave room for engine-internal cs updates.
-	// Queue must be large enough for NCS (up to 625) + player data (64) + other RPCS (~10)
-#define RPCS_QUEUE_SIZE		768		// max queued commands per client
+	// Queue must be large enough for initial connect data: NCS (~200 used) + player data (64) + other (~20).
+	// Kept at 384 to reduce BSS size for 32-bit server builds (was 768 = ~50MB, now ~25MB).
+#define RPCS_QUEUE_SIZE		384		// max queued commands per client
 #define RPCS_CMDS_PER_FRAME	8		// max commands sent per client per frame
 	struct {
 		char	cmds[RPCS_QUEUE_SIZE][MAX_STRING_CHARS];
