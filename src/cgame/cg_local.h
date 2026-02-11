@@ -2263,6 +2263,7 @@ extern	vmCvar_t		cg_shadows;
 extern	vmCvar_t		cg_gibs;
 extern	vmCvar_t		cg_draw2D;
 extern	vmCvar_t		cg_drawFPS;
+extern	vmCvar_t		cg_drawPing;
 extern	vmCvar_t		cg_drawSnapshot;
 extern	vmCvar_t		cg_drawCrosshair;
 extern	vmCvar_t		cg_drawCrosshairNames;

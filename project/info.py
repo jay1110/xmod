@@ -238,7 +238,7 @@ class Project:
             this.versionMinor,
             this.versionPoint )
 
-        this.titlex = "%s ^f%s%d.%d.%d" % (
+        this.titlex = "%s ^o%s%d.%d.%d" % (
             this.namex,
             this.nightly,
             this.versionMajor,
@@ -251,7 +251,7 @@ class Project:
             this.versionMinor,
             this.versionPoint )
 
-        this.versionx = "^f%s%d.%d.%d" % (
+        this.versionx = "^o%s%d.%d.%d" % (
             this.nightly,
             this.versionMajor,
             this.versionMinor,
