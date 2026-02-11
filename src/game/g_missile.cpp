@@ -479,6 +479,13 @@ void G_ExplodeMissile( gentity_t *ent ) {
 				break;
 			}
 
+			case WP_TRIPMINE:
+				// Refill tripmine ammo when it explodes
+				if (ent->parent && ent->parent->client) {
+					Add_Ammo(ent->parent, WP_TRIPMINE, 1, qfalse);
+				}
+				break;
+
 			case WP_DYNAMITE:
  				//bani - #238
 				if (ent->etpro_misc_1 & 1) { // do some scoring
