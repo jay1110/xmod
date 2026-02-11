@@ -1823,10 +1823,8 @@ void G_TripMineThink(gentity_t* ent) {
 		}
 
 		ent->think = G_ExplodeMissile;
-	} else if(traceEnt->s.eType == ET_MOVER || traceEnt->s.eType == ET_MOVERSCALED || traceEnt->s.eType == ET_CONSTRUCTIBLE) {
-		// Moveable entities (doors, trucks, tanks, command posts) trigger tripmines
-		ent->think = G_ExplodeMissile;
 	}
+	// Moveable entities (doors, trucks, tanks) block the beam but do not trigger explosion
 }
 
 /*
