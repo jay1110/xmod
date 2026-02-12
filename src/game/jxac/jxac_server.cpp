@@ -118,6 +118,10 @@ static const jxacCvarCheck_t protectedCvars[] = {
 // Current batch index per client for rotating checks
 static int currentCvarBatch[MAX_CLIENTS];
 
+// Per-client batch offset for forced CVAR checks (rotates through forcedCvars vector)
+#define FORCED_CVAR_BATCH_SIZE 8
+static int currentForcedCvarOffset[MAX_CLIENTS];
+
 // Security: Rate limiting for screenshots (prevent disk fill attacks)
 #define JXAC_SS_MIN_INTERVAL    5000    // Minimum 5 seconds between screenshots per client (for testing)
 #define JXAC_SS_MAX_PER_HOUR    120     // Maximum 120 screenshots per client per hour (for testing)
@@ -202,6 +206,7 @@ void Server::init() {
     
     // Initialize CVAR batch indexes
     memset( currentCvarBatch, 0, sizeof( currentCvarBatch ) );
+    memset( currentForcedCvarOffset, 0, sizeof( currentForcedCvarOffset ) );
     
     // Initialize rate limiting arrays (security: prevent disk fill attacks)
     memset( lastScreenshotTime, 0, sizeof( lastScreenshotTime ) );
@@ -356,6 +361,10 @@ void Server::clientConnect( int clientNum ) {
     pd->violations = 0;
     pd->screenshotPending = qfalse;
     pd->ssBuffer = NULL;
+    
+    // Reset CVAR check batch indexes for this client
+    currentCvarBatch[clientNum] = 0;
+    currentForcedCvarOffset[clientNum] = 0;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -638,6 +647,22 @@ void Server::requestCvarCheck( int clientNum ) {
     
     // Rotate to next batch
     currentCvarBatch[clientNum] = (batch + 1) % 4;
+
+    // Also request forced CVARs (from forcecvar config) in batches
+    int numForced = (int)forcedCvars.size();
+    if ( numForced > 0 ) {
+        int offset = currentForcedCvarOffset[clientNum];
+        if ( offset >= numForced ) {
+            offset = 0;
+        }
+        int sent = 0;
+        while ( sent < FORCED_CVAR_BATCH_SIZE && offset < numForced ) {
+            trap_SendServerCommand( clientNum, va("jxac_cvar_req %s", forcedCvars[offset].name) );
+            offset++;
+            sent++;
+        }
+        currentForcedCvarOffset[clientNum] = ( offset >= numForced ) ? 0 : offset;
+    }
 }
 
 ///////////////////////////////////////////////////////////////////////////////
