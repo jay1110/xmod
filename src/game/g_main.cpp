@@ -2323,6 +2323,12 @@ void G_InitGame( int levelTime, int randomSeed, int restart ) {
 
 	// Initialize xmod SQLite database and sessions
 	xmod::initXmod();
+
+	// Clear NCS dirty flags from init-time model/sound/shader registration.
+	// Each connecting client receives full NCS data via G_SendXmodCS in ClientBegin.
+	// Without this, G_NcsProcessDirty in the first G_RunFrame would re-send all
+	// init-time NCS entries to all clients that connected during this init cycle.
+	memset( level.ncsDirty, 0, sizeof(level.ncsDirty) );
 }
 
 
