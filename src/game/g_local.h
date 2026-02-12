@@ -1311,6 +1311,7 @@ typedef struct {
 	// Instead, they're synced to clients via "ncs" server commands.
 	char		ncs[NCS_MAX][NCS_STRING_SIZE];
 	qboolean	ncsDirty[NCS_MAX];		// dirty flags for deferred NCS broadcast
+	int			ncsDirtyNext;			// round-robin index for G_NcsProcessDirty
 
 	// RPCS deferred queue: spreads commands across frames to prevent
 	// "msg overflowed", "reliable command was cycled out" and "Server command overflow".

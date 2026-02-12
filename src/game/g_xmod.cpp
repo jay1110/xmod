@@ -1462,24 +1462,27 @@ G_NcsProcessDirty
 ----------------
 Called every server frame from G_RunFrame (before G_RpcsProcessQueues).
 Queues dirty NCS entries into the RPCS queue for all connected clients.
-This defers NCS broadcasts to prevent "reliable command was cycled out"
-errors when many models/sounds are registered in a single frame.
+Throttled to RPCS_CMDS_PER_FRAME entries per frame with round-robin
+to prevent RPCS queue overflow when many entries change at once.
 ================
 */
 void G_NcsProcessDirty( void ) {
-    for ( int i = 0; i < NCS_MAX; i++ ) {
-        if ( !level.ncsDirty[i] ) {
-            continue;
-        }
-        level.ncsDirty[i] = qfalse;
-
-        const char *cmd = va( "ncs %i \"%s\"", i, level.ncs[i] );
-        for ( int c = 0; c < level.maxclients; c++ ) {
-            if ( level.clients[c].pers.connected == CON_CONNECTED ) {
-                G_RpcsEnqueue( c, cmd );
+    int processed = 0;
+    int idx = level.ncsDirtyNext;
+    for ( int count = 0; count < NCS_MAX && processed < RPCS_CMDS_PER_FRAME; count++ ) {
+        if ( level.ncsDirty[idx] ) {
+            level.ncsDirty[idx] = qfalse;
+            const char *cmd = va( "ncs %i \"%s\"", idx, level.ncs[idx] );
+            for ( int c = 0; c < level.maxclients; c++ ) {
+                if ( level.clients[c].pers.connected == CON_CONNECTED ) {
+                    G_RpcsEnqueue( c, cmd );
+                }
             }
+            processed++;
         }
+        idx = ( idx + 1 ) % NCS_MAX;
     }
+    level.ncsDirtyNext = idx;
 }
 
 /*
