@@ -1468,6 +1468,9 @@ void G_ProcessPendingCommands( void ) {
     }
 
     // Part 3: Process dirty NCS entries (runtime changes like fireteam/OID updates)
+    // These only go to clients that have COMPLETED their initial load (ncsPendingNext < 0).
+    // Clients still receiving deferred data won't get these - they'll receive the updated
+    // values when their pending scan reaches those indices (since ncs[] is already updated).
     for ( int i = 0; i < NCS_MAX; i++ ) {
         if ( !level.ncsDirty[i] ) {
             continue;
