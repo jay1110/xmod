@@ -1479,9 +1479,10 @@ void G_ProcessPendingCommands( void ) {
         int budget = CMDS_PER_CLIENT_PER_FRAME;
 
         // 2a: Send XCS commands incrementally (one per call, phased)
+        // Empty phases (no weapon scripts, no data) are skipped without consuming budget.
+        // Loop is bounded by XCS_PHASE_DONE (~60 phases max).
         while ( level.xcsPendingPhase[c] >= 0 && budget > 0 ) {
-            int sent = G_SendXcsPhased( c );
-            budget -= sent;
+            budget -= G_SendXcsPhased( c );
         }
 
         // 2b: Send pending NCS entries (deferred from G_SendXmodCS)
