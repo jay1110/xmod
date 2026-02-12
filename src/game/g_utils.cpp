@@ -100,11 +100,15 @@ or -1 if the range is not NCS-managed.
 ================
 */
 static int G_NcsIndex( int csStart ) {
-	if ( csStart == CS_MODELS )		return NCS_MODELS;
-	if ( csStart == CS_SOUNDS )		return NCS_SOUNDS;
-	if ( csStart == CS_SHADERS )	return NCS_SHADERS;
-	if ( csStart == CS_SKINS )		return NCS_SKINS;
-	if ( csStart == CS_CHARACTERS )	return NCS_CHARACTERS;
+	if ( csStart == CS_MODELS )				return NCS_MODELS;
+	if ( csStart == CS_SOUNDS )				return NCS_SOUNDS;
+	if ( csStart == CS_SHADERS )			return NCS_SHADERS;
+	if ( csStart == CS_SKINS )				return NCS_SKINS;
+	if ( csStart == CS_CHARACTERS )			return NCS_CHARACTERS;
+	if ( csStart == CS_MULTI_SPAWNTARGETS )	return NCS_MULTI_SPAWNTARGETS;
+	if ( csStart == CS_OID_TRIGGERS )		return NCS_OID_TRIGGERS;
+	if ( csStart == CS_OID_DATA )			return NCS_OID_DATA;
+	if ( csStart == CS_FIRETEAMS )			return NCS_FIRETEAMS;
 	return -1;
 }
 
@@ -129,15 +133,80 @@ void G_NcsSetConfigstring( int ncsIndex, const char *value ) {
 
 	Q_strncpyz( level.ncs[ncsIndex], value, NCS_STRING_SIZE );
 
-	// Mark as dirty for deferred broadcast in G_NcsProcessDirty()
+	// Mark as dirty for deferred broadcast in G_ProcessPendingCommands()
 	level.ncsDirty[ncsIndex] = qtrue;
+}
+
+/*
+================
+G_NcsGetConfigstring
+Reads an NCS entry into a buffer.
+================
+*/
+void G_NcsGetConfigstring( int ncsIndex, char *buffer, int bufferSize ) {
+	if ( ncsIndex < 0 || ncsIndex >= NCS_MAX ) {
+		G_Error( "G_NcsGetConfigstring: bad index %i\n", ncsIndex );
+	}
+	Q_strncpyz( buffer, level.ncs[ncsIndex], bufferSize );
+}
+
+/*
+================
+G_XSetConfigstring
+NCS-aware configstring set: routes NCS-managed virtual indices (CS_MULTI_SPAWNTARGETS,
+CS_OID_TRIGGERS, CS_OID_DATA, CS_FIRETEAMS, CS_MODELS, etc.) to the NCS system,
+and all other indices to engine trap_SetConfigstring.
+================
+*/
+void G_XSetConfigstring( int csIndex, const char *value ) {
+	int ncsBase;
+	// Check if this is an NCS-managed range by trying to map the base
+	if ( csIndex >= CS_MULTI_SPAWNTARGETS && csIndex < CS_MULTI_SPAWNTARGETS + MAX_MULTI_SPAWNTARGETS ) {
+		ncsBase = NCS_MULTI_SPAWNTARGETS + (csIndex - CS_MULTI_SPAWNTARGETS);
+	} else if ( csIndex >= CS_OID_TRIGGERS && csIndex < CS_OID_TRIGGERS + MAX_OID_TRIGGERS ) {
+		ncsBase = NCS_OID_TRIGGERS + (csIndex - CS_OID_TRIGGERS);
+	} else if ( csIndex >= CS_OID_DATA && csIndex < CS_OID_DATA + MAX_OID_TRIGGERS ) {
+		ncsBase = NCS_OID_DATA + (csIndex - CS_OID_DATA);
+	} else if ( csIndex >= CS_FIRETEAMS && csIndex < CS_FIRETEAMS + MAX_FIRETEAMS ) {
+		ncsBase = NCS_FIRETEAMS + (csIndex - CS_FIRETEAMS);
+	} else {
+		// Not NCS-managed, use engine
+		trap_SetConfigstring( csIndex, value );
+		return;
+	}
+	G_NcsSetConfigstring( ncsBase, value );
+}
+
+/*
+================
+G_XGetConfigstring
+NCS-aware configstring get: routes NCS-managed virtual indices to the NCS buffer,
+and all other indices to engine trap_GetConfigstring.
+================
+*/
+void G_XGetConfigstring( int csIndex, char *buffer, int bufferSize ) {
+	int ncsBase;
+	if ( csIndex >= CS_MULTI_SPAWNTARGETS && csIndex < CS_MULTI_SPAWNTARGETS + MAX_MULTI_SPAWNTARGETS ) {
+		ncsBase = NCS_MULTI_SPAWNTARGETS + (csIndex - CS_MULTI_SPAWNTARGETS);
+	} else if ( csIndex >= CS_OID_TRIGGERS && csIndex < CS_OID_TRIGGERS + MAX_OID_TRIGGERS ) {
+		ncsBase = NCS_OID_TRIGGERS + (csIndex - CS_OID_TRIGGERS);
+	} else if ( csIndex >= CS_OID_DATA && csIndex < CS_OID_DATA + MAX_OID_TRIGGERS ) {
+		ncsBase = NCS_OID_DATA + (csIndex - CS_OID_DATA);
+	} else if ( csIndex >= CS_FIRETEAMS && csIndex < CS_FIRETEAMS + MAX_FIRETEAMS ) {
+		ncsBase = NCS_FIRETEAMS + (csIndex - CS_FIRETEAMS);
+	} else {
+		// Not NCS-managed, use engine
+		trap_GetConfigstring( csIndex, buffer, bufferSize );
+		return;
+	}
+	G_NcsGetConfigstring( ncsBase, buffer, bufferSize );
 }
 
 /*
 ================
 G_FindConfigstringIndex
 
-Uses NCS (private mod storage) for models/sounds/shaders/skins/characters.
+Uses NCS (private mod storage) for models/sounds/shaders/skins/characters/spawntargets/OID/fireteams.
 Uses engine configstrings for all other ranges.
 ================
 */
@@ -1017,10 +1086,10 @@ void G_SetEntState( gentity_t *ent, entState_t state ) {
 
 									if( ent->s.eType == ET_WOLF_OBJECTIVE) {
 										char cs[MAX_STRING_CHARS];
-										trap_GetConfigstring( ent->count, cs, sizeof(cs) );
+										G_XGetConfigstring( ent->count, cs, sizeof(cs) );
 										ent->count2 &= ~256;
 										Info_SetValueForKey( cs, "t", va( "%i", ent->count2 ) );
-										trap_SetConfigstring( ent->count, cs );
+										G_XSetConfigstring( ent->count, cs );
 									}
 
 									if( ent->s.eType != ET_COMMANDMAP_MARKER )
@@ -1122,10 +1191,10 @@ void G_SetEntState( gentity_t *ent, entState_t state ) {
 										mg42_stopusing( ent );
 									} else if( ent->s.eType == ET_WOLF_OBJECTIVE ) {
 										char cs[MAX_STRING_CHARS];
-										trap_GetConfigstring( ent->count, cs, sizeof(cs) );
+										G_XGetConfigstring( ent->count, cs, sizeof(cs) );
 										ent->count2 |= 256;
 										Info_SetValueForKey( cs, "t", va( "%i", ent->count2 ) );
-										trap_SetConfigstring( ent->count, cs );
+										G_XSetConfigstring( ent->count, cs );
 									}
 
 									if( ent->s.eType == ET_COMMANDMAP_MARKER ) {

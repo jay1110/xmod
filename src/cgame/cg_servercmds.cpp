@@ -733,6 +733,18 @@ static void CG_NcsResourceRegister( int ncsIndex ) {
 		}
 		return;
 	}
+	if ( ncsIndex >= NCS_MULTI_SPAWNTARGETS && ncsIndex < NCS_MULTI_SPAWNTARGETS + MAX_MULTI_SPAWNTARGETS ) {
+		CG_ParseSpawns();
+		return;
+	}
+	if ( ncsIndex >= NCS_OID_DATA && ncsIndex < NCS_OID_DATA + MAX_OID_TRIGGERS ) {
+		CG_ParseOIDInfo( CS_OID_DATA + (ncsIndex - NCS_OID_DATA) );
+		return;
+	}
+	if ( ncsIndex >= NCS_FIRETEAMS && ncsIndex < NCS_FIRETEAMS + MAX_FIRETEAMS ) {
+		CG_ParseFireteams();
+		return;
+	}
 }
 
 /*
@@ -921,31 +933,19 @@ void CG_ConfigStringModified( void )
             break;
     }
 
-    if (index >= CS_MULTI_SPAWNTARGETS && index < CS_MULTI_SPAWNTARGETS + MAX_MULTI_SPAWNTARGETS) {
-        CG_ParseSpawns();
-        return;
-    }
+    // CS_MULTI_SPAWNTARGETS, CS_OID_DATA, CS_FIRETEAMS are NCS-managed
+    // (sent via "ncs" commands, handled in CG_NcsResourceRegister)
 
     // CS_MODELS, CS_SOUNDS, CS_SHADERS, CS_SHADERSTATE, CS_SKINS, CS_CHARACTERS
     // are NCS-managed (sent via "ncs" commands, not engine configstrings)
 
     if (index >= CS_PLAYERS && index < CS_PLAYERS+MAX_CLIENTS) {
-        int clientNum = index - CS_PLAYERS;
-        // If configstring is empty (disconnect), clear RPCS buffer too
-        if ( !csval[0] ) {
-            cgs.rpcsPlayers[clientNum][0] = '\0';
-        }
-        CG_NewClientInfo( clientNum );
+        CG_NewClientInfo( index - CS_PLAYERS );
         return;
     }
 
     if (index >= CS_DLIGHTS && index < CS_DLIGHTS+MAX_DLIGHT_CONFIGSTRINGS) {
         // FIXME - dlight changes ignored!
-        return;
-    }
-
-    if (index >= CS_FIRETEAMS && index < CS_FIRETEAMS+MAX_FIRETEAMS) {
-        CG_ParseFireteams();
         return;
     }
 
@@ -955,11 +955,6 @@ void CG_ConfigStringModified( void )
     }
 
     // CS_AXIS_MAPS_XP and CS_ALLIED_MAPS_XP moved to RPCS ("xcs a/b")
-
-    if (index >= CS_OID_DATA && index < CS_OID_DATA + MAX_OID_TRIGGERS) {
-        CG_ParseOIDInfo( index );
-        return;
-    }
 }
 
 // Jaybird - icons support
@@ -1180,6 +1175,7 @@ static void CG_MapRestart( void ) {
 	memset(&cg.lastWeapSelInBank[0], 0, MAX_WEAP_BANKS_MP * sizeof(int));	// clear weapon bank selections
 
 	cg.numbufferedSoundScripts = 0;
+	cg.clientInfoReceived = qfalse;	// reset so first CS_PLAYERS update doesn't trigger skill announcements
 
 	// Jaybird - bp
 	cg.bPrintTime = 0;
@@ -2630,18 +2626,6 @@ static void CG_ServerCommand( void ) {
 		} else if ( !Q_stricmp( type, "b" ) ) {
 			Q_strncpyz( cgs.rpcsAlliedMapsXP, CG_Argv(2), sizeof(cgs.rpcsAlliedMapsXP) );
 			CG_ParseTeamXPs( 1 );
-		} else if ( !Q_stricmp( type, "p" ) ) {
-			// Player info via RPCS: "xcs p <clientNum> <data>"
-			int clientNum = atoi( CG_Argv(2) );
-			if ( clientNum >= 0 && clientNum < MAX_CLIENTS ) {
-				Q_strncpyz( cgs.rpcsPlayers[clientNum], CG_Argv(3), sizeof(cgs.rpcsPlayers[clientNum]) );
-				CG_NewClientInfo( clientNum );
-				// After receiving our own player data, mark initial load as done
-				// so that subsequent skill changes are properly announced
-				if ( clientNum == cg.clientNum && !cgs.rpcsInitialLoadDone ) {
-					cgs.rpcsInitialLoadDone = qtrue;
-				}
-			}
 		} else if ( !Q_stricmp( type, "c" ) ) {
 			// Charge times via RPCS
 			Q_strncpyz( cgs.rpcsChargeTimes, CG_Argv(2), sizeof(cgs.rpcsChargeTimes) );

@@ -782,7 +782,6 @@ void G_BuildEndgameStats( void ) {
 	CHECKSTATMIN( sess.team_kills, 5 );
 	CHECKSTATTIME( ps.persistant[PERS_SCORE], pers.enterTime );
 
-	// RPCS: Send endgame stats via deferred broadcast
 	Q_strncpyz( level.rpcsEndgameStats, buffer, sizeof(level.rpcsEndgameStats) );
-	G_RpcsBroadcast( va("xcs e \"%s\"", buffer) );
+	trap_SendServerCommand( -1, va("xcs e \"%s\"", buffer) );
 }

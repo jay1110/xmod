@@ -2011,44 +2011,14 @@ void ClientUserinfoChanged( int clientNum ) {
         s = csStr;
     }
 
-    // RPCS: Set minimal configstring for UI module compatibility,
-    // and send full player data via RPCS to avoid MAX_GAMESTATE_CHARS exceeded.
-    // The UI module (limbo menu, fireteam menu) reads: n, t, mu, ref from CS_PLAYERS.
-    // The cgame module uses the RPCS buffer for the full data.
+    // Store CS_PLAYERS data and mark dirty for deferred sending
+    // During map_restart, 64 clients all call ClientBegin in one frame.
+    // Direct trap_SetConfigstring broadcasts to ALL clients, exceeding the 128-slot
+    // reliable command buffer. Dirty flags + throttled processing prevents this.
     {
-        char minimalCS[MAX_INFO_STRING];
-        int len = snprintf( minimalCS, sizeof(minimalCS), "n\\%s\\t\\%i",
-            client->pers.netname,
-            client->sess.sessionTeam );
-        // Include mu and ref for UI module (limbo menu mute/referee display)
-        if (::xmod::isClientMuted(clientNum)) {
-            len += snprintf( minimalCS + len, sizeof(minimalCS) - len, "\\mu\\1" );
-        }
-        if (client->sess.referee) {
-            len += snprintf( minimalCS + len, sizeof(minimalCS) - len, "\\ref\\%i", client->sess.referee );
-        }
-        (void)len; // suppress unused variable warning
-
         trap_GetConfigstring( CS_PLAYERS + clientNum, oldname, sizeof( oldname ) );
-
-        // NitMod-style deferred update: mark dirty instead of immediate trap_SetConfigstring.
-        // G_ProcessDirtyPlayers() will send a limited number per frame to prevent
-        // "Server command overflow" when all players update at once (warmup→match).
-        Q_strncpyz( level.csPlayersMinimal[clientNum], minimalCS, sizeof(level.csPlayersMinimal[clientNum]) );
+        Q_strncpyz( level.csPlayersData[clientNum], s, sizeof(level.csPlayersData[clientNum]) );
         level.csPlayersDirty[clientNum] = qtrue;
-
-        // Store full player info for connecting clients and send via RPCS
-        // Use deferred queue to prevent "Server command overflow" when many
-        // players update at once (e.g. after warmup ends, round restart)
-        Q_strncpyz( level.rpcsPlayerInfo[clientNum], s, sizeof(level.rpcsPlayerInfo[clientNum]) );
-        {
-            const char *cmd = va("xcs p %i \"%s\"", clientNum, s);
-            for (int i = 0; i < level.maxclients; i++) {
-                if (level.clients[i].pers.connected == CON_CONNECTED) {
-                    G_RpcsEnqueue( i, cmd );
-                }
-            }
-        }
     }
 
     if (Q_stricmp( oldname, s )) {
@@ -2680,7 +2650,13 @@ void ClientBegin( int clientNum )
 		limbo(ent, qfalse);
 	}
 
-	if(client->sess.sessionTeam != TEAM_SPECTATOR && !(ent->r.svFlags & SVF_BOT)) {
+	// Suppress "entered the game" broadcast during map_restart to prevent reliable
+	// command buffer overflow. During map_restart, all clients call ClientBegin in one frame,
+	// generating N broadcasts (one per player). Combined with configstring broadcasts from
+	// CalculateRanks and init, this can exceed MAX_RELIABLE_COMMANDS (128) per client.
+	// On fresh connects (not map_restart), level.time > level.startTime + GAME_INIT_FRAMES.
+	if(client->sess.sessionTeam != TEAM_SPECTATOR && !(ent->r.svFlags & SVF_BOT)
+	   && (level.time - level.startTime > FRAMETIME * GAME_INIT_FRAMES)) {
 		trap_SendServerCommand( -1, va("print \"[lof]%s" S_COLOR_WHITE " [lon]entered the game\n\"", client->pers.netname) );
 	}
 
@@ -3367,9 +3343,8 @@ void ClientDisconnect( int clientNum ) {
 	ent->active = qfalse;
 	ent->r.svFlags &= ~SVF_BOT;
 	trap_SetConfigstring( CS_PLAYERS + clientNum, "");
-	// Clear RPCS player data on disconnect
-	level.rpcsPlayerInfo[clientNum][0] = '\0';
-	trap_SendServerCommand( -1, va("xcs p %i \"\"", clientNum) );
+	level.csPlayersData[clientNum][0] = '\0';
+	level.csPlayersDirty[clientNum] = qfalse;
 
 
 	CalculateRanks();

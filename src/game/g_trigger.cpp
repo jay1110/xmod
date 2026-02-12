@@ -1203,9 +1203,9 @@ void constructible_indicator_think( gentity_t *ent ) {
 void G_SetConfigStringValue( int num, const char* key, const char* value ) {
 	char	cs[MAX_STRING_CHARS];
 	
-	trap_GetConfigstring( num, cs, sizeof(cs) );
+	G_XGetConfigstring( num, cs, sizeof(cs) );
 	Info_SetValueForKey( cs, key, value );
-	trap_SetConfigstring( num, cs );
+	G_XSetConfigstring( num, cs );
 }
 
 void Touch_ObjectiveInfo( gentity_t *ent, gentity_t *other, trace_t *trace ) {
@@ -1433,7 +1433,7 @@ void SP_trigger_objective_info( gentity_t *ent ) {
 	G_SpawnString ("score", "0", &scorestring);
 	ent->accuracy = atof (scorestring);
 
-	trap_SetConfigstring( CS_OID_TRIGGERS + level.numOidTriggers, ent->track );
+	G_XSetConfigstring( CS_OID_TRIGGERS + level.numOidTriggers, ent->track );
 
 	InitTrigger( ent );
 

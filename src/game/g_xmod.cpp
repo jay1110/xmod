@@ -209,8 +209,7 @@ void G_InitCustomLevels() {
 			skillLevels[i][4],
 			skillLevels[i][5] ));
 	}
-	// Send skill levels via deferred RPCS broadcast
-	G_RpcsBroadcast( va("xcs s \"%s\"", info) );
+	trap_SendServerCommand( -1, va("xcs s \"%s\"", info) );
 }
 
 /*
@@ -1285,192 +1284,239 @@ void G_UpdateXmodCS() {
 
     G_BuildXmodCS( cs, sizeof(cs), cs2, sizeof(cs2) );
 
-    // Send xmod info via deferred RPCS broadcast
-    G_RpcsBroadcast( va("xcs 1 \"%s\"", cs) );
-    G_RpcsBroadcast( va("xcs 2 \"%s\"", cs2) );
-}
-
-/*
-================
-G_RpcsEnqueue
-----------------
-Queue a server command for deferred sending to a specific client.
-Commands are drained gradually in G_RpcsProcessQueues() during RunFrame
-to prevent "msg overflowed" and "reliable command was cycled out" errors.
-================
-*/
-void G_RpcsEnqueue( int clientNum, const char *cmd ) {
-    if ( clientNum < 0 || clientNum >= MAX_CLIENTS ) {
-        return;
-    }
-
-    auto *q = &level.rpcsQueue[clientNum];
-    if ( q->count >= RPCS_QUEUE_SIZE ) {
-        G_LogPrintf( "WARNING: RPCS queue full for client %d, dropping command\n", clientNum );
-        return;
-    }
-
-    Q_strncpyz( q->cmds[q->head], cmd, MAX_STRING_CHARS );
-    q->head = ( q->head + 1 ) % RPCS_QUEUE_SIZE;
-    q->count++;
-}
-
-/*
-================
-G_RpcsBroadcast
-----------------
-Queue a server command for deferred broadcast to ALL connected clients.
-Like NitMod's dirty-flag approach, this prevents "Server command overflow"
-by spreading broadcasts across multiple frames via the RPCS queue.
-================
-*/
-void G_RpcsBroadcast( const char *cmd ) {
-    for ( int i = 0; i < level.maxclients; i++ ) {
-        if ( level.clients[i].pers.connected == CON_CONNECTED ) {
-            G_RpcsEnqueue( i, cmd );
-        }
-    }
-}
-
-/*
-================
-G_RpcsProcessQueues
-----------------
-Called every server frame from G_RunFrame.
-Drains up to RPCS_CMDS_PER_FRAME commands per client per frame.
-================
-*/
-void G_RpcsProcessQueues( void ) {
-    for ( int i = 0; i < level.maxclients; i++ ) {
-        auto *q = &level.rpcsQueue[i];
-        if ( q->count <= 0 ) {
-            continue;
-        }
-
-        // Only send to connected clients
-        if ( level.clients[i].pers.connected != CON_CONNECTED ) {
-            // Client disconnected, flush their queue
-            q->head = 0;
-            q->tail = 0;
-            q->count = 0;
-            continue;
-        }
-
-        int sent = 0;
-        while ( q->count > 0 && sent < RPCS_CMDS_PER_FRAME ) {
-            trap_SendServerCommand( i, q->cmds[q->tail] );
-            q->tail = ( q->tail + 1 ) % RPCS_QUEUE_SIZE;
-            q->count--;
-            sent++;
-        }
-    }
+    trap_SendServerCommand( -1, va("xcs 1 \"%s\"", cs) );
+    trap_SendServerCommand( -1, va("xcs 2 \"%s\"", cs2) );
 }
 
 /*
 ================
 G_SendXmodCS
 ----------------
-Queues all RPCS (xmod configstring) data for deferred sending to a client.
-Called during ClientBegin. Commands are sent gradually across frames by
-G_RpcsProcessQueues() to prevent reliable command buffer overflow.
+Marks a connecting client for deferred xmod data sends.
+Called during ClientBegin. ALL sends are deferred to G_ProcessPendingCommands()
+which runs each frame and throttles to CMDS_PER_CLIENT_PER_FRAME to prevent
+"CL_GetServerCommand: a reliable command was cycled out".
 ================
 */
 void G_SendXmodCS( int clientNum ) {
-    char cs[MAX_INFO_STRING];
-    char cs2[MAX_INFO_STRING];
+    if ( clientNum < 0 || clientNum >= MAX_CLIENTS ) {
+        return;
+    }
 
-    G_BuildXmodCS( cs, sizeof(cs), cs2, sizeof(cs2) );
+    // Mark this client for deferred XCS + NCS sends
+    level.xcsPendingPhase[clientNum] = 0;
+    level.ncsPendingNext[clientNum] = 0;
+}
 
-    G_RpcsEnqueue( clientNum, va("xcs 1 \"%s\"", cs) );
-    G_RpcsEnqueue( clientNum, va("xcs 2 \"%s\"", cs2) );
+// XCS phases for per-frame incremental sending.
+// Phases 0-3 are fixed commands; phases 4+ are weapon scripts (one per weapon index);
+// after all weapons, remaining fixed commands are sent.
+#define XCS_PHASE_CS1       0
+#define XCS_PHASE_CS2       1
+#define XCS_PHASE_SKILLS    2
+#define XCS_PHASE_WATERMARK 3
+#define XCS_PHASE_WEAPONS   4  // phases 4 through 4+WP_NUM_WEAPONS-1
+#define XCS_PHASE_MAPXP_A   (XCS_PHASE_WEAPONS + WP_NUM_WEAPONS)
+#define XCS_PHASE_MAPXP_B   (XCS_PHASE_MAPXP_A + 1)
+#define XCS_PHASE_CHARGE    (XCS_PHASE_MAPXP_B + 1)
+#define XCS_PHASE_FILTER    (XCS_PHASE_CHARGE + 1)
+#define XCS_PHASE_ENDGAME   (XCS_PHASE_FILTER + 1)
+#define XCS_PHASE_DONE      (XCS_PHASE_ENDGAME + 1)
 
-    // Skill levels
-    {
+/*
+================
+G_SendXcsPhased
+----------------
+Sends one XCS command per call based on the current phase.
+Returns 1 if a command was sent, 0 if the phase was skipped (no data).
+Advances xcsPendingPhase. Sets to -1 when all phases complete.
+================
+*/
+static int G_SendXcsPhased( int clientNum ) {
+    int phase = level.xcsPendingPhase[clientNum];
+
+    if ( phase < 0 || phase >= XCS_PHASE_DONE ) {
+        level.xcsPendingPhase[clientNum] = -1;
+        return 0;
+    }
+
+    int sent = 0;
+
+    switch ( phase ) {
+    case XCS_PHASE_CS1: {
+        char cs[MAX_INFO_STRING], cs2[MAX_INFO_STRING];
+        G_BuildXmodCS( cs, sizeof(cs), cs2, sizeof(cs2) );
+        trap_SendServerCommand( clientNum, va("xcs 1 \"%s\"", cs) );
+        sent = 1;
+        break;
+    }
+    case XCS_PHASE_CS2: {
+        char cs[MAX_INFO_STRING], cs2[MAX_INFO_STRING];
+        G_BuildXmodCS( cs, sizeof(cs), cs2, sizeof(cs2) );
+        trap_SendServerCommand( clientNum, va("xcs 2 \"%s\"", cs2) );
+        sent = 1;
+        break;
+    }
+    case XCS_PHASE_SKILLS: {
         char info[MAX_INFO_STRING] = { '\0' };
         for (int i = 0; i < SK_NUM_SKILLS; i++) {
             Info_SetValueForKey(info, va("skill_%i",i), va("%i %i %i %i %i",
                 skillLevels[i][1], skillLevels[i][2], skillLevels[i][3],
                 skillLevels[i][4], skillLevels[i][5]));
         }
-        G_RpcsEnqueue( clientNum, va("xcs s \"%s\"", info) );
+        trap_SendServerCommand( clientNum, va("xcs s \"%s\"", info) );
+        sent = 1;
+        break;
     }
-
-    // Watermark info
-    {
+    case XCS_PHASE_WATERMARK: {
         char wm[MAX_INFO_STRING] = { '\0' };
         Info_SetValueForKey( wm, "wmFA", va("%i", g_watermarkFadeAfter.integer));
         Info_SetValueForKey( wm, "wmFT", va("%i", g_watermarkFadeTime.integer));
         Info_SetValueForKey( wm, "wmFN", g_watermark.string );
-        G_RpcsEnqueue( clientNum, va("xcs m \"%s\"", wm) );
+        trap_SendServerCommand( clientNum, va("xcs m \"%s\"", wm) );
+        sent = 1;
+        break;
     }
-
-    // Weapon scripts (only send weapons that actually have scripts)
-    for ( int i = 0; i < WP_NUM_WEAPONS; i++ ) {
-        weaponScriptDef_t *script = G_GetWeaponScript( i );
-        if ( script && script->hasScript ) {
-            char wcs[MAX_INFO_STRING];
-            wcs[0] = '\0';
-            if ( script->name[0] ) {
-                Info_SetValueForKey( wcs, "n", script->name );
-            }
-            if ( script->killMessage[0] ) {
-                Info_SetValueForKey( wcs, "k", script->killMessage );
-            }
-            if ( script->killMessage2[0] ) {
-                Info_SetValueForKey( wcs, "l", script->killMessage2 );
-            }
-            if ( script->selfKillMessage[0] ) {
-                Info_SetValueForKey( wcs, "s", script->selfKillMessage );
-            }
-            G_RpcsEnqueue( clientNum, va("xcs w %i \"%s\"", i, wcs) );
+    case XCS_PHASE_MAPXP_A:
+        if ( level.axisMapsXP[0] ) {
+            trap_SendServerCommand( clientNum, va("xcs a \"%s\"", level.axisMapsXP) );
+            sent = 1;
         }
-    }
-
-    // Map XP data (RPCS: moved out of configstrings)
-    if ( level.axisMapsXP[0] ) {
-        G_RpcsEnqueue( clientNum, va("xcs a \"%s\"", level.axisMapsXP) );
-    }
-    if ( level.alliedMapsXP[0] ) {
-        G_RpcsEnqueue( clientNum, va("xcs b \"%s\"", level.alliedMapsXP) );
-    }
-
-    // Charge times, filtercams, endgame stats (RPCS: moved out of configstrings)
-    if ( level.rpcsChargeTimes[0] ) {
-        G_RpcsEnqueue( clientNum, va("xcs c \"%s\"", level.rpcsChargeTimes) );
-    }
-    if ( level.rpcsFilterCams[0] ) {
-        G_RpcsEnqueue( clientNum, va("xcs f \"%s\"", level.rpcsFilterCams) );
-    }
-    if ( level.rpcsEndgameStats[0] ) {
-        G_RpcsEnqueue( clientNum, va("xcs e \"%s\"", level.rpcsEndgameStats) );
-    }
-
-    // Player info (RPCS: full player data, CS_PLAYERS only has minimal name+team)
-    for ( int i = 0; i < level.maxclients; i++ ) {
-        if ( level.rpcsPlayerInfo[i][0] ) {
-            G_RpcsEnqueue( clientNum, va("xcs p %i \"%s\"", i, level.rpcsPlayerInfo[i]) );
+        break;
+    case XCS_PHASE_MAPXP_B:
+        if ( level.alliedMapsXP[0] ) {
+            trap_SendServerCommand( clientNum, va("xcs b \"%s\"", level.alliedMapsXP) );
+            sent = 1;
         }
+        break;
+    case XCS_PHASE_CHARGE:
+        if ( level.rpcsChargeTimes[0] ) {
+            trap_SendServerCommand( clientNum, va("xcs c \"%s\"", level.rpcsChargeTimes) );
+            sent = 1;
+        }
+        break;
+    case XCS_PHASE_FILTER:
+        if ( level.rpcsFilterCams[0] ) {
+            trap_SendServerCommand( clientNum, va("xcs f \"%s\"", level.rpcsFilterCams) );
+            sent = 1;
+        }
+        break;
+    case XCS_PHASE_ENDGAME:
+        if ( level.rpcsEndgameStats[0] ) {
+            trap_SendServerCommand( clientNum, va("xcs e \"%s\"", level.rpcsEndgameStats) );
+            sent = 1;
+        }
+        break;
+    default:
+        // Weapon script phases (XCS_PHASE_WEAPONS + weaponIndex)
+        if ( phase >= XCS_PHASE_WEAPONS && phase < XCS_PHASE_MAPXP_A ) {
+            int wpIdx = phase - XCS_PHASE_WEAPONS;
+            weaponScriptDef_t *script = G_GetWeaponScript( wpIdx );
+            if ( script && script->hasScript ) {
+                char wcs[MAX_INFO_STRING];
+                wcs[0] = '\0';
+                if ( script->name[0] )
+                    Info_SetValueForKey( wcs, "n", script->name );
+                if ( script->killMessage[0] )
+                    Info_SetValueForKey( wcs, "k", script->killMessage );
+                if ( script->killMessage2[0] )
+                    Info_SetValueForKey( wcs, "l", script->killMessage2 );
+                if ( script->selfKillMessage[0] )
+                    Info_SetValueForKey( wcs, "s", script->selfKillMessage );
+                trap_SendServerCommand( clientNum, va("xcs w %i \"%s\"", wpIdx, wcs) );
+                sent = 1;
+            }
+        }
+        break;
     }
 
-    // NCS (NitMod ConfigStrings): send all non-empty entries for models/sounds/shaders/skins/characters
-    for ( int i = 0; i < NCS_MAX; i++ ) {
-        if ( level.ncs[i][0] ) {
-            G_RpcsEnqueue( clientNum, va("ncs %i \"%s\"", i, level.ncs[i]) );
-        }
+    level.xcsPendingPhase[clientNum] = phase + 1;
+    if ( phase + 1 >= XCS_PHASE_DONE ) {
+        level.xcsPendingPhase[clientNum] = -1;
     }
+
+    return sent;
 }
 
 /*
 ================
-G_NcsProcessDirty
+G_ProcessPendingCommands
 ----------------
-Called every server frame from G_RunFrame (before G_RpcsProcessQueues).
-Queues dirty NCS entries into the RPCS queue for all connected clients.
-This defers NCS broadcasts to prevent "reliable command was cycled out"
-errors when many models/sounds are registered in a single frame.
+Called every server frame from G_RunFrame.
+Processes all deferred reliable commands with per-client throttling:
+1. CS_PLAYERS dirty flags → trap_SetConfigstring (max 4 per frame total)
+2. Per-client XCS pending → sends xcs commands when throttle allows
+3. Per-client NCS pending → sends ncs entries when throttle allows
+4. NCS dirty flags → broadcasts runtime changes to completed clients
+
+Limited to CMDS_PER_CLIENT_PER_FRAME reliable commands per client per frame
+to prevent "CL_GetServerCommand: a reliable command was cycled out".
 ================
 */
-void G_NcsProcessDirty( void ) {
+void G_ProcessPendingCommands( void ) {
+    // Wait for clients to finish loading after map_restart before sending deferred commands.
+    // During loading, clients can't acknowledge reliable commands, so the engine's 128-slot
+    // buffer accumulates. Init broadcasts (configstrings, mapconfigs) must be acknowledged
+    // first before we add XCS/NCS/CS_PLAYERS to the buffer.
+    if ( level.deferredSendDelay > 0 ) {
+        level.deferredSendDelay--;
+        return;
+    }
+
+    // Part 1: Process CS_PLAYERS dirty flags (throttled to 2 per frame total)
+    // Each trap_SetConfigstring broadcasts to ALL clients, consuming one reliable
+    // command slot per client. With 33+ clients, we keep this very low.
+    {
+        int csProcessed = 0;
+        for ( int i = 0; i < level.maxclients && csProcessed < 2; i++ ) {
+            if ( level.csPlayersDirty[i] ) {
+                level.csPlayersDirty[i] = qfalse;
+                trap_SetConfigstring( CS_PLAYERS + i, level.csPlayersData[i] );
+                csProcessed++;
+            }
+        }
+    }
+
+    // Part 2: Process per-client deferred sends (XCS + NCS)
+    for ( int c = 0; c < level.maxclients; c++ ) {
+        if ( level.clients[c].pers.connected != CON_CONNECTED ) {
+            level.xcsPendingPhase[c] = -1;
+            level.ncsPendingNext[c] = -1;
+            continue;
+        }
+
+        int budget = CMDS_PER_CLIENT_PER_FRAME;
+
+        // 2a: Send XCS commands incrementally (one per call, phased)
+        // Empty phases (no weapon scripts, no data) are skipped without consuming budget.
+        // Loop is bounded by XCS_PHASE_DONE (~60 phases max).
+        while ( level.xcsPendingPhase[c] >= 0 && budget > 0 ) {
+            budget -= G_SendXcsPhased( c );
+        }
+
+        // 2b: Send pending NCS entries (deferred from G_SendXmodCS)
+        if ( level.ncsPendingNext[c] >= 0 && budget > 0 ) {
+            int sent = 0;
+            int idx = level.ncsPendingNext[c];
+            while ( idx < NCS_MAX && sent < budget ) {
+                if ( level.ncs[idx][0] ) {
+                    trap_SendServerCommand( c, va("ncs %i \"%s\"", idx, level.ncs[idx]) );
+                    sent++;
+                }
+                idx++;
+            }
+            if ( idx >= NCS_MAX ) {
+                level.ncsPendingNext[c] = -1;  // done
+            } else {
+                level.ncsPendingNext[c] = idx;  // continue next frame
+            }
+        }
+    }
+
+    // Part 3: Process dirty NCS entries (runtime changes like fireteam/OID updates)
+    // These only go to clients that have COMPLETED their initial load (ncsPendingNext < 0).
+    // Clients still receiving deferred data won't get these - they'll receive the updated
+    // values when their pending scan reaches those indices (since ncs[] is already updated).
     for ( int i = 0; i < NCS_MAX; i++ ) {
         if ( !level.ncsDirty[i] ) {
             continue;
@@ -1479,36 +1525,11 @@ void G_NcsProcessDirty( void ) {
 
         const char *cmd = va( "ncs %i \"%s\"", i, level.ncs[i] );
         for ( int c = 0; c < level.maxclients; c++ ) {
-            if ( level.clients[c].pers.connected == CON_CONNECTED ) {
-                G_RpcsEnqueue( c, cmd );
+            if ( level.clients[c].pers.connected == CON_CONNECTED
+                 && level.ncsPendingNext[c] < 0 ) {
+                trap_SendServerCommand( c, cmd );
             }
         }
-    }
-}
-
-/*
-================
-G_ProcessDirtyPlayers
-----------------
-Called every server frame from G_RunFrame (before G_RpcsProcessQueues).
-Processes deferred CS_PLAYERS configstring updates. When many players
-update at once (e.g. warmup→match transition), calling trap_SetConfigstring
-for all 63 in one frame causes "Server command overflow" because the engine
-internally broadcasts a reliable command per client per configstring change.
-
-NitMod uses the same dirty-flag approach (DAT_0312b2a8) to batch configstring
-updates. We process at most RPCS_CMDS_PER_FRAME players per frame.
-================
-*/
-void G_ProcessDirtyPlayers( void ) {
-    int processed = 0;
-    for ( int i = 0; i < level.maxclients && processed < RPCS_CMDS_PER_FRAME; i++ ) {
-        if ( !level.csPlayersDirty[i] ) {
-            continue;
-        }
-        level.csPlayersDirty[i] = qfalse;
-        trap_SetConfigstring( CS_PLAYERS + i, level.csPlayersMinimal[i] );
-        processed++;
     }
 }
 

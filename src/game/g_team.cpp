@@ -1068,12 +1068,12 @@ void team_wolf_objective_use( gentity_t *self, gentity_t *other, gentity_t *acti
 		self->count2 = (self->count2 & 256) + TEAM_AXIS;
 
 	// And update configstring
-	trap_GetConfigstring( self->count, cs, sizeof(cs) );
+	G_XGetConfigstring( self->count, cs, sizeof(cs) );
 	Info_SetValueForKey( cs, "spawn_targ", self->message );
 	Info_SetValueForKey( cs, "x", va( "%i", (int)self->s.origin[0] ) );
 	Info_SetValueForKey( cs, "y", va( "%i", (int)self->s.origin[1] ) );
 	Info_SetValueForKey( cs, "t", va( "%i", self->count2 ) );
-	trap_SetConfigstring( self->count, cs );
+	G_XSetConfigstring( self->count, cs );
 }
 
 void objective_Register(gentity_t *self)
@@ -1093,14 +1093,14 @@ void objective_Register(gentity_t *self)
 	self->use   = team_wolf_objective_use;
 	self->count = cs_obj;
 
-	trap_GetConfigstring(cs_obj, cs, sizeof(cs));
+	G_XGetConfigstring(cs_obj, cs, sizeof(cs));
 	Info_SetValueForKey(cs, "spawn_targ", self->message);
 	Info_SetValueForKey(cs, "x", va("%i", (int)self->s.origin[0]));
 	Info_SetValueForKey(cs, "y", va("%i", (int)self->s.origin[1]));
 	if (level.ccLayers)
 		Info_SetValueForKey(cs, "z", va("%i", (int)self->s.origin[2]));
 	Info_SetValueForKey(cs, "t", va("%i", self->count2));
-	trap_SetConfigstring(cs_obj, cs);
+	G_XSetConfigstring(cs_obj, cs);
 	VectorCopy(self->s.origin, level.spawntargets[level.numspawntargets]);
 
 	level.numspawntargets++;

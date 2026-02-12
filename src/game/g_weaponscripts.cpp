@@ -638,8 +638,8 @@ void G_LoadWeaponScripts( void )
         G_Printf( "Loaded %d weapon script(s)\n", loadedCustom + loadedFallback );
     }
     
-    // Broadcast weapon script data to clients via configstrings
-    G_BroadcastWeaponScripts();
+    // Weapon scripts are sent to each client via deferred G_SendXmodCS (xcsPending)
+    // during ClientBegin. No need to broadcast during init.
 }
 
 /*

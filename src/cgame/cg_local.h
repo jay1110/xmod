@@ -792,6 +792,7 @@ typedef struct {
 
 	qboolean	demoPlayback;
 	qboolean	loading;			// don't defer players at initial startup
+	qboolean	clientInfoReceived;		// true after first CS_PLAYERS update for own client
 	qboolean	intermissionStarted;	// don't play voice rewards, because game will end shortly
 
 	// there are only one or two snapshot_t that are relevent at a time
@@ -2234,8 +2235,6 @@ typedef struct {
 	char				ncsStringData[32000];
 	int					ncsDataUsed;
 
-	char				rpcsPlayers[MAX_CLIENTS][MAX_INFO_STRING]; // Full player info via RPCS
-	qboolean			rpcsInitialLoadDone; // Set after initial RPCS data is received; suppresses skill/rank announcements
 	char				rpcsChargeTimes[MAX_INFO_STRING]; // Charge times via RPCS
 	char				rpcsFilterCams[32]; // Filtercams via RPCS
 	char				rpcsEndgameStats[MAX_INFO_STRING]; // Endgame stats via RPCS

@@ -461,7 +461,7 @@ cvarTable_t		gameCvarTable[] = {
     { &g_adminChat,         "g_adminChat",          "1",        CVAR_ARCHIVE },
 
     // Some useful mod-info cvars.
-    { NULL, "mod_binary",  XMOD_buildTarget, CVAR_ROM },
+    { NULL, "mod_binary",  XMOD_buildTarget, CVAR_SERVERINFO | CVAR_ROM },
     { NULL, "mod_url",     XMOD_website,     CVAR_SERVERINFO | CVAR_ROM },
     { NULL, "mod_version", XMOD_version,     CVAR_SERVERINFO | CVAR_ROM },
 
@@ -565,9 +565,7 @@ cvarTable_t		gameCvarTable[] = {
 
 	{ &g_antilag, "g_antilag", "1", CVAR_ROM | CVAR_SERVERINFO, 0, qfalse },
 
-	//bani - #184 -- removed from SERVERINFO to save gamestate space
-	// P is only used by server browsers, not by cgame/UI
-	{ NULL, "P", "", CVAR_ROM, 0, qfalse, qfalse },
+	{ NULL, "P", "", CVAR_SERVERINFO_NOUPDATE, 0, qfalse, qfalse },
 
 	{ &refereePassword, "refereePassword", "none", 0, 0, qfalse},
 	{ &g_spectatorInactivity, "g_spectatorInactivity", "0", 0, 0, qfalse, qfalse },
@@ -657,8 +655,8 @@ cvarTable_t		gameCvarTable[] = {
 	
 	// Omni-bot user defined path to load bot library from.
 	{ &g_OmniBotPath, "omnibot_path", "", CVAR_ARCHIVE | CVAR_NORESTART, 0, qfalse },
-	{ &g_OmniBotEnable, "omnibot_enable", "1", CVAR_ARCHIVE | CVAR_NORESTART, 0, qfalse },
-	{ &g_OmniBotPlaying, "omnibot_playing", "0", CVAR_ROM, 0, qfalse },	
+	{ &g_OmniBotEnable, "omnibot_enable", "1", CVAR_ARCHIVE | CVAR_SERVERINFO_NOUPDATE | CVAR_NORESTART, 0, qfalse },
+	{ &g_OmniBotPlaying, "omnibot_playing", "0", CVAR_SERVERINFO_NOUPDATE | CVAR_ROM, 0, qfalse },	
 	{ &g_OmniBotFlags, "omnibot_flags", "0", CVAR_ARCHIVE | CVAR_NORESTART, 0, qfalse },
 };
 
@@ -1613,9 +1611,8 @@ void G_UpdateCvars( void )
 				}
 
 				if( cv->vmCvar == &g_filtercams ) {
-					// RPCS: Send filtercams via deferred broadcast
 					Q_strncpyz( level.rpcsFilterCams, va( "%i", g_filtercams.integer ), sizeof(level.rpcsFilterCams) );
-					G_RpcsBroadcast( va("xcs f \"%s\"", level.rpcsFilterCams) );
+					trap_SendServerCommand( -1, va("xcs f \"%s\"", level.rpcsFilterCams) );
 				}
 
 				if( cv->vmCvar == &g_soldierChargeTime ) {
@@ -1749,9 +1746,8 @@ void G_UpdateCvars( void )
 		Info_SetValueForKey( cs, "ald_lnt", va("%i", level.lieutenantChargeTime[1]) );
 		Info_SetValueForKey( cs, "axs_cvo", va("%i", level.covertopsChargeTime[0]) );
 		Info_SetValueForKey( cs, "ald_cvo", va("%i", level.covertopsChargeTime[1]) );
-		// RPCS: Send charge times via deferred broadcast
 		Q_strncpyz( level.rpcsChargeTimes, cs, sizeof(level.rpcsChargeTimes) );
-		G_RpcsBroadcast( va("xcs c \"%s\"", cs) );
+		trap_SendServerCommand( -1, va("xcs c \"%s\"", cs) );
 	}
 }
 
@@ -1801,9 +1797,11 @@ void bani_clearmapxp( void ) {
 	trap_Cvar_Set( va( "%s_axismapxp0", GAMEVERSION ), "" );
 	trap_Cvar_Set( va( "%s_alliedmapxp0", GAMEVERSION ), "" );
 
-	// Broadcast empty XP data to all clients
-	G_RpcsBroadcast( "xcs a \"\"" );
-	G_RpcsBroadcast( "xcs b \"\"" );
+	// Only broadcast if we're past init (clients get XCS data via deferred sends during init)
+	if ( level.numConnectedClients > 0 ) {
+		trap_SendServerCommand( -1, "xcs a \"\"" );
+		trap_SendServerCommand( -1, "xcs b \"\"" );
+	}
 }
 
 void bani_storemapxp( void ) {
@@ -1815,8 +1813,8 @@ void bani_storemapxp( void ) {
 	for( i = 0; i < SK_NUM_SKILLS; i++ ) {
 		Q_strcat( level.axisMapsXP, sizeof( level.axisMapsXP ), va( " %i", (int)level.teamXP[ i ][ 0 ] ) );
 	}
-	// Broadcast axis XP data to all clients via deferred RPCS
-	G_RpcsBroadcast( va("xcs a \"%s\"", level.axisMapsXP) );
+	// Broadcast axis XP data to all clients
+	trap_SendServerCommand( -1, va("xcs a \"%s\"", level.axisMapsXP) );
 
 	j = 0;
 	k = strcut( u, level.axisMapsXP, SNIPSIZE );
@@ -1834,8 +1832,8 @@ void bani_storemapxp( void ) {
 	for( i = 0; i < SK_NUM_SKILLS; i++ ) {
 		Q_strcat( level.alliedMapsXP, sizeof( level.alliedMapsXP ), va( " %i", (int)level.teamXP[ i ][ 1 ] ) );
 	}
-	// Broadcast allied XP data to all clients via deferred RPCS
-	G_RpcsBroadcast( va("xcs b \"%s\"", level.alliedMapsXP) );
+	// Broadcast allied XP data to all clients
+	trap_SendServerCommand( -1, va("xcs b \"%s\"", level.alliedMapsXP) );
 
 	j = 0;
 	k = strcut( u, level.alliedMapsXP, SNIPSIZE );
@@ -1996,6 +1994,11 @@ void G_InitGame( int levelTime, int randomSeed, int restart ) {
 	level.startTime = levelTime;
 	level.server_settings = i;
 
+	// Initialize per-client NCS pending state (no pending sends)
+	for ( i = 0; i < MAX_CLIENTS; i++ ) {
+		level.ncsPendingNext[i] = -1;
+	}
+
 	for( i =0; i < level.numConnectedClients; i++ ) {
 		level.clients[ level.sortedClients[ i ] ].sess.spawnObjectiveIndex = 0;
 	}
@@ -2036,15 +2039,9 @@ void G_InitGame( int levelTime, int randomSeed, int restart ) {
 	// RPCS: Store filtercams for connecting clients (sent in G_SendXmodCS)
 	Q_strncpyz( level.rpcsFilterCams, va( "%i", g_filtercams.integer ), sizeof(level.rpcsFilterCams) );
 
-	// Xmod - Watermarking features (sent via server command to avoid gamestate overflow)
-	cs[0] = '\0';
-	Info_SetValueForKey( cs, "wmFA", va("%i", g_watermarkFadeAfter.integer));
-	Info_SetValueForKey( cs, "wmFT", va("%i", g_watermarkFadeTime.integer));
-	Info_SetValueForKey( cs, "wmFN", g_watermark.string );
-	G_RpcsBroadcast( va("xcs m \"%s\"", cs) );
-
-	// Construct the Xmod Config String
-	G_UpdateXmodCS();
+	// Xmod - Watermarking and XCS: Don't broadcast during init.
+	// Clients get this data via deferred G_SendXmodCS during ClientBegin.
+	// Broadcasting here during map_restart wastes reliable command buffer slots.
 
 	G_SoundIndex( "sound/misc/referee.wav"	);
 	G_SoundIndex( "sound/misc/vote.wav"		);
@@ -2168,7 +2165,7 @@ void G_InitGame( int levelTime, int randomSeed, int restart ) {
 	trap_SetConfigstring( CS_MULTI_INFO, cs );
 
 	for ( i=CS_MULTI_SPAWNTARGETS; i<CS_MULTI_SPAWNTARGETS + MAX_MULTI_SPAWNTARGETS; i++ ) {
-		trap_SetConfigstring( i, "" );
+		G_XSetConfigstring( i, "" );
 	}
 
 	G_ResetTeamMapData();
@@ -2327,6 +2324,20 @@ void G_InitGame( int levelTime, int randomSeed, int restart ) {
 
 	// Initialize xmod SQLite database and sessions
 	xmod::initXmod();
+
+	// Clear NCS dirty flags from init-time model/sound/shader registration.
+	// Each connecting client receives full NCS data via deferred G_ProcessPendingCommands.
+	// Without this, G_ProcessPendingCommands in the first G_RunFrame would re-send all
+	// init-time NCS entries to all clients that connected during this init cycle.
+	memset( level.ncsDirty, 0, sizeof(level.ncsDirty) );
+
+	// Delay deferred sends for a few frames after init.
+	// During map_restart, clients are loading the map and can't process server commands.
+	// The ET engine buffers up to 128 reliable commands per client. If we start sending
+	// deferred XCS/NCS immediately while init broadcasts (configstrings, "entered the game")
+	// are still unacknowledged, we overflow the buffer. Wait for clients to finish loading
+	// and acknowledge existing commands before starting deferred sends.
+	level.deferredSendDelay = 20;	// ~1 second at 20fps
 }
 
 
@@ -4157,16 +4168,8 @@ void G_RunFrame( int levelTime ) {
     cmd::CrazyGravity::run();
 	G_Update_CS_Airstrikes();
 
-	// Process dirty NCS entries - queue changed model/sound/shader data for broadcast
-	G_NcsProcessDirty();
-
-	// Process dirty CS_PLAYERS entries - deferred configstring updates to prevent
-	// "Server command overflow" when many players update at once (warmup→match)
-	G_ProcessDirtyPlayers();
-
-	// Process deferred RPCS queue - sends queued commands gradually to prevent
-	// "msg overflowed" and "reliable command was cycled out" client errors
-	G_RpcsProcessQueues();
+	// Process deferred CS_PLAYERS, XCS, and NCS commands with per-client throttling
+	G_ProcessPendingCommands();
 
 	// Call Lua et_RunFrame callback
 	G_LuaHook_RunFrame(levelTime);
