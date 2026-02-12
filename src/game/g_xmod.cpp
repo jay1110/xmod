@@ -1370,7 +1370,7 @@ void G_SendXmodCS( int clientNum ) {
         trap_SendServerCommand( clientNum, va("xcs e \"%s\"", level.rpcsEndgameStats) );
     }
 
-    // NCS: Defer sending to G_NcsProcessPending (called each frame from G_RunFrame).
+    // NCS: Defer sending to G_NcsProcessDirty (called each frame from G_RunFrame).
     // This prevents flooding the reliable command buffer (only 64 slots in ET engine).
     if ( clientNum >= 0 && clientNum < MAX_CLIENTS ) {
         level.ncsPendingNext[clientNum] = 0;
