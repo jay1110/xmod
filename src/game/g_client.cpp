@@ -2011,37 +2011,13 @@ void ClientUserinfoChanged( int clientNum ) {
         s = csStr;
     }
 
-    // RPCS: Set minimal configstring for UI module compatibility,
-    // and send full player data via RPCS to avoid MAX_GAMESTATE_CHARS exceeded.
-    // The UI module (limbo menu, fireteam menu) reads: n, t, mu, ref from CS_PLAYERS.
-    // The cgame module uses the RPCS buffer for the full data.
+    // NitMod-style deferred CS_PLAYERS update: full player data goes directly into
+    // the engine configstring. Mark dirty so G_ProcessDirtyPlayers() sends it gradually.
     {
-        char minimalCS[MAX_INFO_STRING];
-        int len = snprintf( minimalCS, sizeof(minimalCS), "n\\%s\\t\\%i",
-            client->pers.netname,
-            client->sess.sessionTeam );
-        // Include mu and ref for UI module (limbo menu mute/referee display)
-        if (::xmod::isClientMuted(clientNum)) {
-            len += snprintf( minimalCS + len, sizeof(minimalCS) - len, "\\mu\\1" );
-        }
-        if (client->sess.referee) {
-            len += snprintf( minimalCS + len, sizeof(minimalCS) - len, "\\ref\\%i", client->sess.referee );
-        }
-        (void)len; // suppress unused variable warning
-
         trap_GetConfigstring( CS_PLAYERS + clientNum, oldname, sizeof( oldname ) );
 
-        // NitMod-style deferred update: mark dirty instead of immediate trap_SetConfigstring.
-        // G_ProcessDirtyPlayers() will send a limited number per frame to prevent
-        // "Server command overflow" when all players update at once (warmup→match).
-        Q_strncpyz( level.csPlayersMinimal[clientNum], minimalCS, sizeof(level.csPlayersMinimal[clientNum]) );
+        Q_strncpyz( level.csPlayersData[clientNum], s, sizeof(level.csPlayersData[clientNum]) );
         level.csPlayersDirty[clientNum] = qtrue;
-
-        // Store full player info and mark dirty for deferred RPCS broadcast.
-        // G_ProcessDirtyRpcsPlayers() will broadcast a limited number per frame to prevent
-        // "Server command overflow" when many players update at once (warmup→match).
-        Q_strncpyz( level.rpcsPlayerInfo[clientNum], s, sizeof(level.rpcsPlayerInfo[clientNum]) );
-        level.rpcsPlayerInfoDirty[clientNum] = qtrue;
     }
 
     if (Q_stricmp( oldname, s )) {
@@ -3360,9 +3336,6 @@ void ClientDisconnect( int clientNum ) {
 	ent->active = qfalse;
 	ent->r.svFlags &= ~SVF_BOT;
 	trap_SetConfigstring( CS_PLAYERS + clientNum, "");
-	// Clear RPCS player data on disconnect
-	level.rpcsPlayerInfo[clientNum][0] = '\0';
-	trap_SendServerCommand( -1, va("xcs p %i \"\"", clientNum) );
 
 
 	CalculateRanks();

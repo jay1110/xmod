@@ -940,12 +940,7 @@ void CG_ConfigStringModified( void )
     // are NCS-managed (sent via "ncs" commands, not engine configstrings)
 
     if (index >= CS_PLAYERS && index < CS_PLAYERS+MAX_CLIENTS) {
-        int clientNum = index - CS_PLAYERS;
-        // If configstring is empty (disconnect), clear RPCS buffer too
-        if ( !csval[0] ) {
-            cgs.rpcsPlayers[clientNum][0] = '\0';
-        }
-        CG_NewClientInfo( clientNum );
+        CG_NewClientInfo( index - CS_PLAYERS );
         return;
     }
 
@@ -2630,18 +2625,6 @@ static void CG_ServerCommand( void ) {
 		} else if ( !Q_stricmp( type, "b" ) ) {
 			Q_strncpyz( cgs.rpcsAlliedMapsXP, CG_Argv(2), sizeof(cgs.rpcsAlliedMapsXP) );
 			CG_ParseTeamXPs( 1 );
-		} else if ( !Q_stricmp( type, "p" ) ) {
-			// Player info via RPCS: "xcs p <clientNum> <data>"
-			int clientNum = atoi( CG_Argv(2) );
-			if ( clientNum >= 0 && clientNum < MAX_CLIENTS ) {
-				Q_strncpyz( cgs.rpcsPlayers[clientNum], CG_Argv(3), sizeof(cgs.rpcsPlayers[clientNum]) );
-				CG_NewClientInfo( clientNum );
-				// After receiving our own player data, mark initial load as done
-				// so that subsequent skill changes are properly announced
-				if ( clientNum == cg.clientNum && !cgs.rpcsInitialLoadDone ) {
-					cgs.rpcsInitialLoadDone = qtrue;
-				}
-			}
 		} else if ( !Q_stricmp( type, "c" ) ) {
 			// Charge times via RPCS
 			Q_strncpyz( cgs.rpcsChargeTimes, CG_Argv(2), sizeof(cgs.rpcsChargeTimes) );

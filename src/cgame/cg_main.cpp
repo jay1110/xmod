@@ -2298,14 +2298,6 @@ const char *CG_ConfigString( int index ) {
 		CG_Error( "CG_ConfigString: bad index: %i", index );
 	}
 
-	// RPCS: return full player info from RPCS buffer instead of gamestate
-	if ( index >= CS_PLAYERS && index < CS_PLAYERS + MAX_CLIENTS ) {
-		int clientNum = index - CS_PLAYERS;
-		if ( cgs.rpcsPlayers[clientNum][0] ) {
-			return cgs.rpcsPlayers[clientNum];
-		}
-	}
-
 	return cgs.gameState.stringData + cgs.gameState.stringOffsets[ index ];
 }
 

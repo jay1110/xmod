@@ -1445,12 +1445,8 @@ void G_SendXmodCS( int clientNum ) {
         G_RpcsEnqueue( clientNum, va("xcs e \"%s\"", level.rpcsEndgameStats) );
     }
 
-    // Player info (RPCS: full player data, CS_PLAYERS only has minimal name+team)
-    for ( int i = 0; i < level.maxclients; i++ ) {
-        if ( level.rpcsPlayerInfo[i][0] ) {
-            G_RpcsEnqueue( clientNum, va("xcs p %i \"%s\"", i, level.rpcsPlayerInfo[i]) );
-        }
-    }
+    // Player info: Full data is now in CS_PLAYERS engine configstrings (like nitmod).
+    // Clients receive it automatically via engine gamestate, no RPCS needed.
 
     // NCS (NitMod ConfigStrings): send all non-empty entries for models/sounds/shaders/skins/characters
     for ( int i = 0; i < NCS_MAX; i++ ) {
@@ -1506,44 +1502,12 @@ void G_ProcessDirtyPlayers( void ) {
     for ( int count = 0; count < level.maxclients && processed < RPCS_CMDS_PER_FRAME; count++ ) {
         if ( level.csPlayersDirty[idx] ) {
             level.csPlayersDirty[idx] = qfalse;
-            trap_SetConfigstring( CS_PLAYERS + idx, level.csPlayersMinimal[idx] );
+            trap_SetConfigstring( CS_PLAYERS + idx, level.csPlayersData[idx] );
             processed++;
         }
         idx = ( idx + 1 ) % level.maxclients;
     }
     level.csPlayersDirtyNext = idx;
-}
-
-/*
-================
-G_ProcessDirtyRpcsPlayers
-----------------
-Called every server frame from G_RunFrame (before G_RpcsProcessQueues).
-Broadcasts dirty RPCS player info ("xcs p") to all connected clients.
-Uses the RPCS deferred queue so commands are drained gradually.
-
-Uses round-robin starting from rpcsPlayerInfoNext to ensure fair processing.
-We process at most RPCS_CMDS_PER_FRAME players per frame to prevent
-"Server command overflow" when many players update at once (warmup→match).
-================
-*/
-void G_ProcessDirtyRpcsPlayers( void ) {
-    int processed = 0;
-    int idx = level.rpcsPlayerInfoNext;
-    for ( int count = 0; count < level.maxclients && processed < RPCS_CMDS_PER_FRAME; count++ ) {
-        if ( level.rpcsPlayerInfoDirty[idx] ) {
-            level.rpcsPlayerInfoDirty[idx] = qfalse;
-            const char *cmd = va( "xcs p %i \"%s\"", idx, level.rpcsPlayerInfo[idx] );
-            for ( int c = 0; c < level.maxclients; c++ ) {
-                if ( level.clients[c].pers.connected == CON_CONNECTED ) {
-                    G_RpcsEnqueue( c, cmd );
-                }
-            }
-            processed++;
-        }
-        idx = ( idx + 1 ) % level.maxclients;
-    }
-    level.rpcsPlayerInfoNext = idx;
 }
 
 /*************************************************

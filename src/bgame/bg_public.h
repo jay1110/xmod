@@ -382,9 +382,9 @@ extern const unsigned int aReinfSeeds[MAX_REINFSEEDS];
 
 // RPCS (Reliable Per-Client Server Commands) for mod-specific data:
 // CS_XMODINFO, CS_XMODINFO2, CS_WEAPONSCRIPTS, CS_SKILLLEVELS, CS_WATERMARKINFO,
-// CS_AXIS_MAPS_XP, CS_ALLIED_MAPS_XP, CS_PLAYERS (full data), CS_CHARGETIMES,
+// CS_AXIS_MAPS_XP, CS_ALLIED_MAPS_XP, CS_CHARGETIMES,
 // CS_FILTERCAMS, CS_ENDGAME_STATS are sent via server commands ("xcs").
-// CS_PLAYERS still contains minimal data (name+team+mu+ref) for UI module compatibility.
+// CS_PLAYERS contains full player data in engine configstrings (like nitmod).
 //
 // NCS (NitMod ConfigStrings): CS_MODELS, CS_SOUNDS, CS_SHADERS, CS_SHADERSTATE,
 // CS_SKINS, CS_CHARACTERS are stored in private mod-side buffers and synced to

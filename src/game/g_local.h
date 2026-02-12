@@ -1293,19 +1293,13 @@ typedef struct {
 	char		axisMapsXP[MAX_STRING_CHARS];
 	char		alliedMapsXP[MAX_STRING_CHARS];
 
-	// RPCS: Full player info (moved out of configstrings to avoid MAX_GAMESTATE_CHARS exceeded)
-	// CS_PLAYERS only contains minimal data (name+team) for UI compatibility.
-	// This buffer holds the full player info sent via RPCS to cgame.
-	char		rpcsPlayerInfo[MAX_CLIENTS][MAX_INFO_STRING];
-	qboolean	rpcsPlayerInfoDirty[MAX_CLIENTS];	// dirty flag for deferred RPCS broadcast
-	int			rpcsPlayerInfoNext;					// round-robin index for G_ProcessDirtyRpcsPlayers
-
 	// Deferred CS_PLAYERS update system (NitMod-style dirty flags)
+	// Full player data goes directly into CS_PLAYERS engine configstrings (like nitmod).
 	// Prevents "Server command overflow" when many players update at once
 	// (e.g. after warmup ends triggering ClientUserinfoChanged for all 63 players)
 	qboolean	csPlayersDirty[MAX_CLIENTS];
 	int			csPlayersDirtyNext;					// round-robin index for G_ProcessDirtyPlayers
-	char		csPlayersMinimal[MAX_CLIENTS][MAX_INFO_STRING];
+	char		csPlayersData[MAX_CLIENTS][MAX_INFO_STRING];
 
 	// RPCS: Charge times, filtercams, endgame stats (moved out of configstrings)
 	char		rpcsChargeTimes[MAX_INFO_STRING];
