@@ -1249,6 +1249,8 @@ void Server::checkForcedCvar( int clientNum, const char* cvarName, const char* v
                                "Forced CVAR '%s' mismatch: '%s' (must be '%s')",
                                cvarName, value, fcvar.value );
                     reportViolation( clientNum, JXAC_VIOLATION_CVAR, details );
+                    // Re-send the forced value to the client
+                    trap_SendServerCommand( clientNum, va("fc \"%s\" \"%s\"", fcvar.name, fcvar.value) );
                 }
             }
             return;
