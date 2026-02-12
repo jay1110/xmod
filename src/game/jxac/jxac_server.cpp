@@ -118,6 +118,10 @@ static const jxacCvarCheck_t protectedCvars[] = {
 // Current batch index per client for rotating checks
 static int currentCvarBatch[MAX_CLIENTS];
 
+// Per-client batch offset for forced CVAR checks (rotates through forcedCvars vector)
+#define FORCED_CVAR_BATCH_SIZE 8
+static int currentForcedCvarOffset[MAX_CLIENTS];
+
 // Security: Rate limiting for screenshots (prevent disk fill attacks)
 #define JXAC_SS_MIN_INTERVAL    5000    // Minimum 5 seconds between screenshots per client (for testing)
 #define JXAC_SS_MAX_PER_HOUR    120     // Maximum 120 screenshots per client per hour (for testing)
@@ -128,6 +132,10 @@ static int hourStartTime[MAX_CLIENTS];
 // Time tracking for CVAR checks (check every 60 seconds)
 #define JXAC_CVAR_CHECK_INTERVAL 60000
 static int lastCvarCheckTime = 0;
+
+// Time tracking for forced CVAR checks (always enabled, every 60 seconds)
+#define JXAC_FORCED_CVAR_CHECK_INTERVAL 60000
+static int lastForcedCvarCheckTime = 0;
 
 // Structure to store forced CVARs
 struct ForcedCvar {
@@ -202,6 +210,7 @@ void Server::init() {
     
     // Initialize CVAR batch indexes
     memset( currentCvarBatch, 0, sizeof( currentCvarBatch ) );
+    memset( currentForcedCvarOffset, 0, sizeof( currentForcedCvarOffset ) );
     
     // Initialize rate limiting arrays (security: prevent disk fill attacks)
     memset( lastScreenshotTime, 0, sizeof( lastScreenshotTime ) );
@@ -317,8 +326,23 @@ void Server::frame() {
         }
     }
     
+    // Periodic forced CVAR checks (always enabled when JXAC is active and config has entries)
+    if ( !forcedCvars.empty() && level.time - lastForcedCvarCheckTime > JXAC_FORCED_CVAR_CHECK_INTERVAL ) {
+        lastForcedCvarCheckTime = level.time;
+        
+        for ( int i = 0; i < level.maxclients; i++ ) {
+            gentity_t* ent = &g_entities[i];
+            if ( ent->client && ent->client->pers.connected == CON_CONNECTED ) {
+                if ( ent->r.svFlags & SVF_BOT ) {
+                    continue;
+                }
+                requestForcedCvarCheck( i );
+            }
+        }
+    }
+    
     // Periodic cheat CVAR scanning (every 120 seconds)
-    if ( level.time - lastCheatCvarScanTime > JXAC_CHEAT_CVAR_SCAN_INTERVAL ) {
+    if ( cvar::objects::g_jxacCvarScan.ivalue && level.time - lastCheatCvarScanTime > JXAC_CHEAT_CVAR_SCAN_INTERVAL ) {
         lastCheatCvarScanTime = level.time;
         
         // Request cheat CVAR scan from all connected players
@@ -356,6 +380,10 @@ void Server::clientConnect( int clientNum ) {
     pd->violations = 0;
     pd->screenshotPending = qfalse;
     pd->ssBuffer = NULL;
+    
+    // Reset CVAR check batch indexes for this client
+    currentCvarBatch[clientNum] = 0;
+    currentForcedCvarOffset[clientNum] = 0;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -396,6 +424,18 @@ void Server::clientBegin( int clientNum ) {
     // This would normally send a network message to the client
     // For now, just mark as verified (placeholder)
     playerData[clientNum].status |= JXAC_STATUS_VERIFIED | JXAC_STATUS_CLEAN;
+    
+    // Send all forced CVARs to this client so they can enforce them locally
+    // This follows the NitMod pattern: server sends "fc" commands on client begin
+    gentity_t* ent = &g_entities[clientNum];
+    if ( ent->r.svFlags & SVF_BOT ) {
+        return;
+    }
+    for ( int i = 0; i < (int)forcedCvars.size(); i++ ) {
+        if ( !forcedCvars[i].isRange ) {
+            trap_SendServerCommand( clientNum, va("fc \"%s\" \"%s\"", forcedCvars[i].name, forcedCvars[i].value) );
+        }
+    }
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -638,6 +678,45 @@ void Server::requestCvarCheck( int clientNum ) {
     
     // Rotate to next batch
     currentCvarBatch[clientNum] = (batch + 1) % 4;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+
+void Server::requestForcedCvarCheck( int clientNum ) {
+    if ( !initialized || !cvar::objects::g_jxacEnable.ivalue ) {
+        return;
+    }
+    
+    if ( clientNum < 0 || clientNum >= MAX_CLIENTS ) {
+        return;
+    }
+    
+    gentity_t* ent = &g_entities[clientNum];
+    if ( !ent->client || ent->client->pers.connected != CON_CONNECTED ) {
+        return;
+    }
+    
+    // Skip bots
+    if ( ent->r.svFlags & SVF_BOT ) {
+        return;
+    }
+    
+    int numForced = (int)forcedCvars.size();
+    if ( numForced <= 0 ) {
+        return;
+    }
+    
+    int offset = currentForcedCvarOffset[clientNum];
+    if ( offset >= numForced ) {
+        offset = 0;
+    }
+    int sent = 0;
+    while ( sent < FORCED_CVAR_BATCH_SIZE && offset < numForced ) {
+        trap_SendServerCommand( clientNum, va("jxac_cvar_req %s", forcedCvars[offset].name) );
+        offset++;
+        sent++;
+    }
+    currentForcedCvarOffset[clientNum] = ( offset >= numForced ) ? 0 : offset;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -1157,19 +1236,15 @@ void Server::checkForcedCvar( int clientNum, const char* cvarName, const char* v
             if ( fcvar.isRange ) {
                 float fval = atof( value );
                 if ( fval < fcvar.minValue || fval > fcvar.maxValue ) {
-                    char details[256];
-                    Com_sprintf( details, sizeof( details ), 
-                               "Forced CVAR '%s' out of range: %.2f (must be %.2f-%.2f)",
-                               cvarName, fval, fcvar.minValue, fcvar.maxValue );
-                    reportViolation( clientNum, JXAC_VIOLATION_CVAR, details );
+                    // Out of range - re-send forced value to client
+                    // For range checks we can't force a specific value, so clamp to nearest bound
+                    float clamped = fval < fcvar.minValue ? fcvar.minValue : fcvar.maxValue;
+                    trap_SendServerCommand( clientNum, va("fc \"%s\" \"%g\"", fcvar.name, clamped) );
                 }
             } else {
                 if ( Q_stricmp( value, fcvar.value ) != 0 ) {
-                    char details[256];
-                    Com_sprintf( details, sizeof( details ), 
-                               "Forced CVAR '%s' mismatch: '%s' (must be '%s')",
-                               cvarName, value, fcvar.value );
-                    reportViolation( clientNum, JXAC_VIOLATION_CVAR, details );
+                    // Mismatch - re-send the forced value to the client
+                    trap_SendServerCommand( clientNum, va("fc \"%s\" \"%s\"", fcvar.name, fcvar.value) );
                 }
             }
             return;

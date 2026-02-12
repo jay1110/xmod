@@ -1304,6 +1304,7 @@ typedef struct {
 	// data, but the ET engine's reliable command buffer is only 128 slots per client.
 	// We defer everything and send throttled per-frame.
 #define CMDS_PER_CLIENT_PER_FRAME	6
+#define NCS_DIRTY_PER_FRAME			4	// max NCS dirty broadcasts per frame (each goes to all clients)
 	int			ncsPendingNext[MAX_CLIENTS];	// -1 = complete, else next NCS index to send
 	int			xcsPendingPhase[MAX_CLIENTS];	// -1 = complete, else next XCS phase to send
 	int			deferredSendDelay;				// frames to wait before sending deferred commands
