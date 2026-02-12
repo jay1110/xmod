@@ -1175,6 +1175,7 @@ static void CG_MapRestart( void ) {
 	memset(&cg.lastWeapSelInBank[0], 0, MAX_WEAP_BANKS_MP * sizeof(int));	// clear weapon bank selections
 
 	cg.numbufferedSoundScripts = 0;
+	cg.clientInfoReceived = qfalse;	// reset so first CS_PLAYERS update doesn't trigger skill announcements
 
 	// Jaybird - bp
 	cg.bPrintTime = 0;

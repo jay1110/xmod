@@ -792,6 +792,7 @@ typedef struct {
 
 	qboolean	demoPlayback;
 	qboolean	loading;			// don't defer players at initial startup
+	qboolean	clientInfoReceived;		// true after first CS_PLAYERS update for own client
 	qboolean	intermissionStarted;	// don't play voice rewards, because game will end shortly
 
 	// there are only one or two snapshot_t that are relevent at a time

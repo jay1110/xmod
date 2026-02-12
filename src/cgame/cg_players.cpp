@@ -256,10 +256,10 @@ void CG_NewClientInfo( int clientNum ) {
 			}
 		}
 
-		// Only announce rank/skill changes after initial loading is complete.
-		// During initial connect, skills go from 0 -> restored values which would
-		// incorrectly trigger all skill upgrade announcements.
-		if( !cg.loading ) {
+		// Only announce rank/skill changes after the first CS_PLAYERS update
+		// has been received. The first update restores skill values from the
+		// server (0 -> restored), which is not a real upgrade.
+		if( cg.clientInfoReceived ) {
 			if( newInfo.rank > cgs.clientinfo[ cg.clientNum ].rank ) {
 
 				CG_SoundPlaySoundScript( cgs.clientinfo[cg.clientNum].team == TEAM_ALLIES ? rankSoundNames_Allies[ newInfo.rank ] : rankSoundNames_Axis[ newInfo.rank ], NULL, -1, qtrue );
@@ -282,7 +282,7 @@ void CG_NewClientInfo( int clientNum ) {
 
 				// Only auto-select weapons and show messages for real skill changes,
 				// not during initial load where skills go from 0 to restored values
-				if( !cg.loading ) {
+				if( cg.clientInfoReceived ) {
 					if( i == SK_HEAVY_WEAPONS && oldskill < 4 && newInfo.skill[i] >= 4 ) {
 						CG_LimboPanel_SetSelectedWeaponNumForSlot( 1, 2 ); // Selects SMG
 						CG_LimboPanel_SendSetupMsg( qfalse );
@@ -307,6 +307,8 @@ void CG_NewClientInfo( int clientNum ) {
 				}
 			}
 		}
+
+		cg.clientInfoReceived = qtrue;
 
 		if( newInfo.team != cgs.clientinfo[ cg.clientNum ].team ) {
 			// clear these
