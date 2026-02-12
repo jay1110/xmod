@@ -1292,9 +1292,12 @@ void G_UpdateXmodCS() {
 ================
 G_SendXmodCS
 ----------------
-Sends all xmod configstring data directly to a client.
-Called during ClientBegin. Uses trap_SendServerCommand directly
-like vanilla ET and nitmod.
+Sends xmod configstring data to a connecting client.
+Called during ClientBegin. XCS commands (~10) are sent immediately.
+NCS entries (100-200+) are deferred via per-client pending flags
+and sent gradually over multiple frames by G_NcsProcessPending()
+to prevent "CL_GetServerCommand: a reliable command was cycled out".
+This matches nitmod's approach where NCS data is sent on client request.
 ================
 */
 void G_SendXmodCS( int clientNum ) {
@@ -1367,11 +1370,10 @@ void G_SendXmodCS( int clientNum ) {
         trap_SendServerCommand( clientNum, va("xcs e \"%s\"", level.rpcsEndgameStats) );
     }
 
-    // NCS (NitMod ConfigStrings): send all non-empty entries for models/sounds/shaders/skins/characters
-    for ( int i = 0; i < NCS_MAX; i++ ) {
-        if ( level.ncs[i][0] ) {
-            trap_SendServerCommand( clientNum, va("ncs %i \"%s\"", i, level.ncs[i]) );
-        }
+    // NCS: Defer sending to G_NcsProcessPending (called each frame from G_RunFrame).
+    // This prevents flooding the reliable command buffer (only 64 slots in ET engine).
+    if ( clientNum >= 0 && clientNum < MAX_CLIENTS ) {
+        level.ncsPendingNext[clientNum] = 0;
     }
 }
 
@@ -1380,11 +1382,14 @@ void G_SendXmodCS( int clientNum ) {
 G_NcsProcessDirty
 ----------------
 Called every server frame from G_RunFrame.
-Sends dirty NCS entries directly to all connected clients via
-trap_SendServerCommand (like nitmod's nitrox_UpdateConfigstrings).
+1. Sends dirty NCS entries to all connected clients (runtime changes)
+2. Processes per-client pending NCS sends (deferred from G_SendXmodCS)
+   Sends up to NCS_CMDS_PER_CLIENT_PER_FRAME entries per client per frame
+   to prevent "CL_GetServerCommand: a reliable command was cycled out"
 ================
 */
 void G_NcsProcessDirty( void ) {
+    // Part 1: Process dirty NCS entries (runtime changes like fireteam/OID updates)
     for ( int i = 0; i < NCS_MAX; i++ ) {
         if ( !level.ncsDirty[i] ) {
             continue;
@@ -1393,9 +1398,40 @@ void G_NcsProcessDirty( void ) {
 
         const char *cmd = va( "ncs %i \"%s\"", i, level.ncs[i] );
         for ( int c = 0; c < level.maxclients; c++ ) {
-            if ( level.clients[c].pers.connected == CON_CONNECTED ) {
+            if ( level.clients[c].pers.connected == CON_CONNECTED
+                 && level.ncsPendingNext[c] < 0 ) {
+                // Only send to clients that have completed their initial NCS load.
+                // Clients still receiving pending NCS will get this entry when
+                // their pending scan reaches it.
                 trap_SendServerCommand( c, cmd );
             }
+        }
+    }
+
+    // Part 2: Process per-client pending NCS sends (deferred from G_SendXmodCS)
+    for ( int c = 0; c < level.maxclients; c++ ) {
+        if ( level.ncsPendingNext[c] < 0 ) {
+            continue;  // no pending NCS for this client
+        }
+        if ( level.clients[c].pers.connected != CON_CONNECTED ) {
+            level.ncsPendingNext[c] = -1;  // client disconnected, cancel
+            continue;
+        }
+
+        int sent = 0;
+        int idx = level.ncsPendingNext[c];
+        while ( idx < NCS_MAX && sent < NCS_CMDS_PER_CLIENT_PER_FRAME ) {
+            if ( level.ncs[idx][0] ) {
+                trap_SendServerCommand( c, va("ncs %i \"%s\"", idx, level.ncs[idx]) );
+                sent++;
+            }
+            idx++;
+        }
+
+        if ( idx >= NCS_MAX ) {
+            level.ncsPendingNext[c] = -1;  // done, all NCS sent
+        } else {
+            level.ncsPendingNext[c] = idx;  // continue next frame
         }
     }
 }

@@ -1299,6 +1299,13 @@ typedef struct {
 	char		ncs[NCS_MAX][NCS_STRING_SIZE];
 	qboolean	ncsDirty[NCS_MAX];		// dirty flags for deferred NCS broadcast
 
+	// Per-client deferred NCS sending (prevents "reliable command was cycled out").
+	// When a client connects, ncsPendingNext[client] is set to 0.
+	// G_NcsProcessPending sends NCS_CMDS_PER_CLIENT_PER_FRAME entries per frame per client,
+	// advancing ncsPendingNext until it reaches NCS_MAX (-1 = complete).
+#define NCS_CMDS_PER_CLIENT_PER_FRAME	16
+	int			ncsPendingNext[MAX_CLIENTS];	// -1 = no pending, else next NCS index to send
+
 	// Data for connecting clients (sent in G_SendXmodCS)
 	char		rpcsChargeTimes[MAX_INFO_STRING];
 	char		rpcsFilterCams[32];

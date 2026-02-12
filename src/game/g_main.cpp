@@ -1992,6 +1992,11 @@ void G_InitGame( int levelTime, int randomSeed, int restart ) {
 	level.startTime = levelTime;
 	level.server_settings = i;
 
+	// Initialize per-client NCS pending state (no pending sends)
+	for ( i = 0; i < MAX_CLIENTS; i++ ) {
+		level.ncsPendingNext[i] = -1;
+	}
+
 	for( i =0; i < level.numConnectedClients; i++ ) {
 		level.clients[ level.sortedClients[ i ] ].sess.spawnObjectiveIndex = 0;
 	}
