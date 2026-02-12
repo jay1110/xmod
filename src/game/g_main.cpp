@@ -1797,9 +1797,11 @@ void bani_clearmapxp( void ) {
 	trap_Cvar_Set( va( "%s_axismapxp0", GAMEVERSION ), "" );
 	trap_Cvar_Set( va( "%s_alliedmapxp0", GAMEVERSION ), "" );
 
-	// Broadcast empty XP data to all clients
-	trap_SendServerCommand( -1, "xcs a \"\"" );
-	trap_SendServerCommand( -1, "xcs b \"\"" );
+	// Only broadcast if we're past init (clients get XCS data via deferred sends during init)
+	if ( level.numConnectedClients > 0 ) {
+		trap_SendServerCommand( -1, "xcs a \"\"" );
+		trap_SendServerCommand( -1, "xcs b \"\"" );
+	}
 }
 
 void bani_storemapxp( void ) {
@@ -2037,15 +2039,9 @@ void G_InitGame( int levelTime, int randomSeed, int restart ) {
 	// RPCS: Store filtercams for connecting clients (sent in G_SendXmodCS)
 	Q_strncpyz( level.rpcsFilterCams, va( "%i", g_filtercams.integer ), sizeof(level.rpcsFilterCams) );
 
-	// Xmod - Watermarking features (sent via server command to avoid gamestate overflow)
-	cs[0] = '\0';
-	Info_SetValueForKey( cs, "wmFA", va("%i", g_watermarkFadeAfter.integer));
-	Info_SetValueForKey( cs, "wmFT", va("%i", g_watermarkFadeTime.integer));
-	Info_SetValueForKey( cs, "wmFN", g_watermark.string );
-	trap_SendServerCommand( -1, va("xcs m \"%s\"", cs) );
-
-	// Construct the Xmod Config String
-	G_UpdateXmodCS();
+	// Xmod - Watermarking and XCS: Don't broadcast during init.
+	// Clients get this data via deferred G_SendXmodCS during ClientBegin.
+	// Broadcasting here during map_restart wastes reliable command buffer slots.
 
 	G_SoundIndex( "sound/misc/referee.wav"	);
 	G_SoundIndex( "sound/misc/vote.wav"		);
@@ -2330,8 +2326,8 @@ void G_InitGame( int levelTime, int randomSeed, int restart ) {
 	xmod::initXmod();
 
 	// Clear NCS dirty flags from init-time model/sound/shader registration.
-	// Each connecting client receives full NCS data via G_SendXmodCS in ClientBegin.
-	// Without this, G_NcsProcessDirty in the first G_RunFrame would re-send all
+	// Each connecting client receives full NCS data via deferred G_ProcessPendingCommands.
+	// Without this, G_ProcessPendingCommands in the first G_RunFrame would re-send all
 	// init-time NCS entries to all clients that connected during this init cycle.
 	memset( level.ncsDirty, 0, sizeof(level.ncsDirty) );
 }
@@ -4164,8 +4160,8 @@ void G_RunFrame( int levelTime ) {
     cmd::CrazyGravity::run();
 	G_Update_CS_Airstrikes();
 
-	// Process dirty NCS entries - send changed model/sound/shader data to all clients
-	G_NcsProcessDirty();
+	// Process deferred CS_PLAYERS, XCS, and NCS commands with per-client throttling
+	G_ProcessPendingCommands();
 
 	// Call Lua et_RunFrame callback
 	G_LuaHook_RunFrame(levelTime);

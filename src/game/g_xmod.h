@@ -295,7 +295,7 @@ void     G_NcsSetConfigstring   ( int ncsIndex, const char *value );
 void     G_NcsGetConfigstring  ( int ncsIndex, char *buffer, int bufferSize );
 void     G_XSetConfigstring    ( int csIndex, const char *value );
 void     G_XGetConfigstring    ( int csIndex, char *buffer, int bufferSize );
-void     G_NcsProcessDirty      ( void );
+void     G_ProcessPendingCommands ( void );
 void     G_UpdateUptime          ( );
 qboolean IsReflectable           ( int );
 bool     G_MutePlayer            ( gentity_t*, string, string = "" );

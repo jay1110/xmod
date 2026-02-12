@@ -638,8 +638,11 @@ void G_LoadWeaponScripts( void )
         G_Printf( "Loaded %d weapon script(s)\n", loadedCustom + loadedFallback );
     }
     
-    // Broadcast weapon script data to clients via configstrings
-    G_BroadcastWeaponScripts();
+    // Don't broadcast during init - clients will get weapon scripts via
+    // deferred G_SendXmodCS during ClientBegin. Broadcasting here during
+    // map_restart would send to all still-connected clients, wasting
+    // reliable command buffer slots.
+    // G_BroadcastWeaponScripts();
 }
 
 /*

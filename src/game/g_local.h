@@ -1299,12 +1299,17 @@ typedef struct {
 	char		ncs[NCS_MAX][NCS_STRING_SIZE];
 	qboolean	ncsDirty[NCS_MAX];		// dirty flags for deferred NCS broadcast
 
-	// Per-client deferred NCS sending (prevents "reliable command was cycled out").
-	// When a client connects, ncsPendingNext[client] is set to 0.
-	// G_NcsProcessPending sends NCS_CMDS_PER_CLIENT_PER_FRAME entries per frame per client,
-	// advancing ncsPendingNext until it reaches NCS_MAX (-1 = complete).
-#define NCS_CMDS_PER_CLIENT_PER_FRAME	16
-	int			ncsPendingNext[MAX_CLIENTS];	// -1 = no pending, else next NCS index to send
+	// Per-client deferred command sending (prevents "reliable command was cycled out").
+	// During map_restart, 64 clients all connect in one frame. Each needs NCS + XCS + CS_PLAYERS
+	// data, but the ET engine's reliable command buffer is only 128 slots per client.
+	// We defer everything and send throttled per-frame.
+#define CMDS_PER_CLIENT_PER_FRAME	16
+	int			ncsPendingNext[MAX_CLIENTS];	// -1 = complete, else next NCS index to send
+	qboolean	xcsPending[MAX_CLIENTS];		// qtrue = needs xcs/weapon script sends
+
+	// CS_PLAYERS deferred updates: store data + dirty flag, process throttled per-frame
+	char		csPlayersData[MAX_CLIENTS][MAX_INFO_STRING];
+	qboolean	csPlayersDirty[MAX_CLIENTS];
 
 	// Data for connecting clients (sent in G_SendXmodCS)
 	char		rpcsChargeTimes[MAX_INFO_STRING];

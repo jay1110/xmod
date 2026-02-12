@@ -2011,10 +2011,14 @@ void ClientUserinfoChanged( int clientNum ) {
         s = csStr;
     }
 
-    // Set CS_PLAYERS directly via engine configstring (like vanilla ET and nitmod)
+    // Store CS_PLAYERS data and mark dirty for deferred sending
+    // During map_restart, 64 clients all call ClientBegin in one frame.
+    // Direct trap_SetConfigstring broadcasts to ALL clients, exceeding the 128-slot
+    // reliable command buffer. Dirty flags + throttled processing prevents this.
     {
         trap_GetConfigstring( CS_PLAYERS + clientNum, oldname, sizeof( oldname ) );
-        trap_SetConfigstring( CS_PLAYERS + clientNum, s );
+        Q_strncpyz( level.csPlayersData[clientNum], s, sizeof(level.csPlayersData[clientNum]) );
+        level.csPlayersDirty[clientNum] = qtrue;
     }
 
     if (Q_stricmp( oldname, s )) {
@@ -3333,6 +3337,8 @@ void ClientDisconnect( int clientNum ) {
 	ent->active = qfalse;
 	ent->r.svFlags &= ~SVF_BOT;
 	trap_SetConfigstring( CS_PLAYERS + clientNum, "");
+	level.csPlayersData[clientNum][0] = '\0';
+	level.csPlayersDirty[clientNum] = qfalse;
 
 
 	CalculateRanks();

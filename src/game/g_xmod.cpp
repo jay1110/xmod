@@ -1292,15 +1292,33 @@ void G_UpdateXmodCS() {
 ================
 G_SendXmodCS
 ----------------
-Sends xmod configstring data to a connecting client.
-Called during ClientBegin. XCS commands (~10) are sent immediately.
-NCS entries (100-200+) are deferred via per-client pending flags
-and sent gradually over multiple frames by G_NcsProcessPending()
-to prevent "CL_GetServerCommand: a reliable command was cycled out".
-This matches nitmod's approach where NCS data is sent on client request.
+Marks a connecting client for deferred xmod data sends.
+Called during ClientBegin. ALL sends are deferred to G_ProcessPendingCommands()
+which runs each frame and throttles to CMDS_PER_CLIENT_PER_FRAME to prevent
+"CL_GetServerCommand: a reliable command was cycled out".
 ================
 */
 void G_SendXmodCS( int clientNum ) {
+    if ( clientNum < 0 || clientNum >= MAX_CLIENTS ) {
+        return;
+    }
+
+    // Mark this client for deferred XCS + NCS sends
+    level.xcsPending[clientNum] = qtrue;
+    level.ncsPendingNext[clientNum] = 0;
+}
+
+/*
+================
+G_SendXmodCSImmediate
+----------------
+Actually sends all xcs commands to a client. Called from G_ProcessPendingCommands
+when it's this client's turn (throttled).
+Returns the number of reliable commands sent.
+================
+*/
+static int G_SendXmodCSImmediate( int clientNum ) {
+    int sent = 0;
     char cs[MAX_INFO_STRING];
     char cs2[MAX_INFO_STRING];
 
@@ -1308,6 +1326,7 @@ void G_SendXmodCS( int clientNum ) {
 
     trap_SendServerCommand( clientNum, va("xcs 1 \"%s\"", cs) );
     trap_SendServerCommand( clientNum, va("xcs 2 \"%s\"", cs2) );
+    sent += 2;
 
     // Skill levels
     {
@@ -1318,6 +1337,7 @@ void G_SendXmodCS( int clientNum ) {
                 skillLevels[i][4], skillLevels[i][5]));
         }
         trap_SendServerCommand( clientNum, va("xcs s \"%s\"", info) );
+        sent++;
     }
 
     // Watermark info
@@ -1327,6 +1347,7 @@ void G_SendXmodCS( int clientNum ) {
         Info_SetValueForKey( wm, "wmFT", va("%i", g_watermarkFadeTime.integer));
         Info_SetValueForKey( wm, "wmFN", g_watermark.string );
         trap_SendServerCommand( clientNum, va("xcs m \"%s\"", wm) );
+        sent++;
     }
 
     // Weapon scripts (only send weapons that actually have scripts)
@@ -1348,48 +1369,105 @@ void G_SendXmodCS( int clientNum ) {
                 Info_SetValueForKey( wcs, "s", script->selfKillMessage );
             }
             trap_SendServerCommand( clientNum, va("xcs w %i \"%s\"", i, wcs) );
+            sent++;
         }
     }
 
     // Map XP data
     if ( level.axisMapsXP[0] ) {
         trap_SendServerCommand( clientNum, va("xcs a \"%s\"", level.axisMapsXP) );
+        sent++;
     }
     if ( level.alliedMapsXP[0] ) {
         trap_SendServerCommand( clientNum, va("xcs b \"%s\"", level.alliedMapsXP) );
+        sent++;
     }
 
     // Charge times, filtercams, endgame stats
     if ( level.rpcsChargeTimes[0] ) {
         trap_SendServerCommand( clientNum, va("xcs c \"%s\"", level.rpcsChargeTimes) );
+        sent++;
     }
     if ( level.rpcsFilterCams[0] ) {
         trap_SendServerCommand( clientNum, va("xcs f \"%s\"", level.rpcsFilterCams) );
+        sent++;
     }
     if ( level.rpcsEndgameStats[0] ) {
         trap_SendServerCommand( clientNum, va("xcs e \"%s\"", level.rpcsEndgameStats) );
+        sent++;
     }
 
-    // NCS: Defer sending to G_NcsProcessDirty (called each frame from G_RunFrame).
-    // This prevents flooding the reliable command buffer (only 64 slots in ET engine).
-    if ( clientNum >= 0 && clientNum < MAX_CLIENTS ) {
-        level.ncsPendingNext[clientNum] = 0;
-    }
+    return sent;
 }
 
 /*
 ================
-G_NcsProcessDirty
+G_ProcessPendingCommands
 ----------------
 Called every server frame from G_RunFrame.
-1. Sends dirty NCS entries to all connected clients (runtime changes)
-2. Processes per-client pending NCS sends (deferred from G_SendXmodCS)
-   Sends up to NCS_CMDS_PER_CLIENT_PER_FRAME entries per client per frame
-   to prevent "CL_GetServerCommand: a reliable command was cycled out"
+Processes all deferred reliable commands with per-client throttling:
+1. CS_PLAYERS dirty flags → trap_SetConfigstring (max 8 per frame total)
+2. Per-client XCS pending → sends xcs commands when throttle allows
+3. Per-client NCS pending → sends ncs entries when throttle allows
+4. NCS dirty flags → broadcasts runtime changes to completed clients
+
+Limited to CMDS_PER_CLIENT_PER_FRAME reliable commands per client per frame
+to prevent "CL_GetServerCommand: a reliable command was cycled out".
 ================
 */
-void G_NcsProcessDirty( void ) {
-    // Part 1: Process dirty NCS entries (runtime changes like fireteam/OID updates)
+void G_ProcessPendingCommands( void ) {
+    // Part 1: Process CS_PLAYERS dirty flags (throttled to 8 per frame total)
+    // Each trap_SetConfigstring broadcasts to ALL clients, consuming one reliable
+    // command slot per client. With 64 clients, 8 updates = 8 slots each.
+    {
+        int csProcessed = 0;
+        for ( int i = 0; i < level.maxclients && csProcessed < 8; i++ ) {
+            if ( level.csPlayersDirty[i] ) {
+                level.csPlayersDirty[i] = qfalse;
+                trap_SetConfigstring( CS_PLAYERS + i, level.csPlayersData[i] );
+                csProcessed++;
+            }
+        }
+    }
+
+    // Part 2: Process per-client deferred sends (XCS + NCS)
+    for ( int c = 0; c < level.maxclients; c++ ) {
+        if ( level.clients[c].pers.connected != CON_CONNECTED ) {
+            level.xcsPending[c] = qfalse;
+            level.ncsPendingNext[c] = -1;
+            continue;
+        }
+
+        int budget = CMDS_PER_CLIENT_PER_FRAME;
+
+        // 2a: Send XCS commands if pending (one-shot, sends all xcs at once)
+        if ( level.xcsPending[c] ) {
+            level.xcsPending[c] = qfalse;
+            int sent = G_SendXmodCSImmediate( c );
+            budget -= sent;
+            if ( budget <= 0 ) continue;
+        }
+
+        // 2b: Send pending NCS entries (deferred from G_SendXmodCS)
+        if ( level.ncsPendingNext[c] >= 0 ) {
+            int sent = 0;
+            int idx = level.ncsPendingNext[c];
+            while ( idx < NCS_MAX && sent < budget ) {
+                if ( level.ncs[idx][0] ) {
+                    trap_SendServerCommand( c, va("ncs %i \"%s\"", idx, level.ncs[idx]) );
+                    sent++;
+                }
+                idx++;
+            }
+            if ( idx >= NCS_MAX ) {
+                level.ncsPendingNext[c] = -1;  // done
+            } else {
+                level.ncsPendingNext[c] = idx;  // continue next frame
+            }
+        }
+    }
+
+    // Part 3: Process dirty NCS entries (runtime changes like fireteam/OID updates)
     for ( int i = 0; i < NCS_MAX; i++ ) {
         if ( !level.ncsDirty[i] ) {
             continue;
@@ -1400,38 +1478,8 @@ void G_NcsProcessDirty( void ) {
         for ( int c = 0; c < level.maxclients; c++ ) {
             if ( level.clients[c].pers.connected == CON_CONNECTED
                  && level.ncsPendingNext[c] < 0 ) {
-                // Only send to clients that have completed their initial NCS load.
-                // Clients still receiving pending NCS will get this entry when
-                // their pending scan reaches it.
                 trap_SendServerCommand( c, cmd );
             }
-        }
-    }
-
-    // Part 2: Process per-client pending NCS sends (deferred from G_SendXmodCS)
-    for ( int c = 0; c < level.maxclients; c++ ) {
-        if ( level.ncsPendingNext[c] < 0 ) {
-            continue;  // no pending NCS for this client
-        }
-        if ( level.clients[c].pers.connected != CON_CONNECTED ) {
-            level.ncsPendingNext[c] = -1;  // client disconnected, cancel
-            continue;
-        }
-
-        int sent = 0;
-        int idx = level.ncsPendingNext[c];
-        while ( idx < NCS_MAX && sent < NCS_CMDS_PER_CLIENT_PER_FRAME ) {
-            if ( level.ncs[idx][0] ) {
-                trap_SendServerCommand( c, va("ncs %i \"%s\"", idx, level.ncs[idx]) );
-                sent++;
-            }
-            idx++;
-        }
-
-        if ( idx >= NCS_MAX ) {
-            level.ncsPendingNext[c] = -1;  // done, all NCS sent
-        } else {
-            level.ncsPendingNext[c] = idx;  // continue next frame
         }
     }
 }

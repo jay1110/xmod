@@ -133,7 +133,7 @@ void G_NcsSetConfigstring( int ncsIndex, const char *value ) {
 
 	Q_strncpyz( level.ncs[ncsIndex], value, NCS_STRING_SIZE );
 
-	// Mark as dirty for deferred broadcast in G_NcsProcessDirty()
+	// Mark as dirty for deferred broadcast in G_ProcessPendingCommands()
 	level.ncsDirty[ncsIndex] = qtrue;
 }
 
