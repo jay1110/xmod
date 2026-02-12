@@ -1236,20 +1236,14 @@ void Server::checkForcedCvar( int clientNum, const char* cvarName, const char* v
             if ( fcvar.isRange ) {
                 float fval = atof( value );
                 if ( fval < fcvar.minValue || fval > fcvar.maxValue ) {
-                    char details[256];
-                    Com_sprintf( details, sizeof( details ), 
-                               "Forced CVAR '%s' out of range: %.2f (must be %.2f-%.2f)",
-                               cvarName, fval, fcvar.minValue, fcvar.maxValue );
-                    reportViolation( clientNum, JXAC_VIOLATION_CVAR, details );
+                    // Out of range - re-send forced value to client
+                    // For range checks we can't force a specific value, so clamp to nearest bound
+                    float clamped = fval < fcvar.minValue ? fcvar.minValue : fcvar.maxValue;
+                    trap_SendServerCommand( clientNum, va("fc \"%s\" \"%g\"", fcvar.name, clamped) );
                 }
             } else {
                 if ( Q_stricmp( value, fcvar.value ) != 0 ) {
-                    char details[256];
-                    Com_sprintf( details, sizeof( details ), 
-                               "Forced CVAR '%s' mismatch: '%s' (must be '%s')",
-                               cvarName, value, fcvar.value );
-                    reportViolation( clientNum, JXAC_VIOLATION_CVAR, details );
-                    // Re-send the forced value to the client
+                    // Mismatch - re-send the forced value to the client
                     trap_SendServerCommand( clientNum, va("fc \"%s\" \"%s\"", fcvar.name, fcvar.value) );
                 }
             }
