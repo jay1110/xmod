@@ -2330,6 +2330,14 @@ void G_InitGame( int levelTime, int randomSeed, int restart ) {
 	// Without this, G_ProcessPendingCommands in the first G_RunFrame would re-send all
 	// init-time NCS entries to all clients that connected during this init cycle.
 	memset( level.ncsDirty, 0, sizeof(level.ncsDirty) );
+
+	// Delay deferred sends for a few frames after init.
+	// During map_restart, clients are loading the map and can't process server commands.
+	// The ET engine buffers up to 128 reliable commands per client. If we start sending
+	// deferred XCS/NCS immediately while init broadcasts (configstrings, "entered the game")
+	// are still unacknowledged, we overflow the buffer. Wait for clients to finish loading
+	// and acknowledge existing commands before starting deferred sends.
+	level.deferredSendDelay = 20;	// ~1 second at 20fps
 }
 
 

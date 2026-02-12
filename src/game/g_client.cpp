@@ -2650,7 +2650,13 @@ void ClientBegin( int clientNum )
 		limbo(ent, qfalse);
 	}
 
-	if(client->sess.sessionTeam != TEAM_SPECTATOR && !(ent->r.svFlags & SVF_BOT)) {
+	// Suppress "entered the game" broadcast during map_restart to prevent reliable
+	// command buffer overflow. During map_restart, all clients call ClientBegin in one frame,
+	// generating N broadcasts (one per player). Combined with configstring broadcasts from
+	// CalculateRanks and init, this can exceed MAX_RELIABLE_COMMANDS (128) per client.
+	// On fresh connects (not map_restart), level.time > level.startTime + GAME_INIT_FRAMES.
+	if(client->sess.sessionTeam != TEAM_SPECTATOR && !(ent->r.svFlags & SVF_BOT)
+	   && (level.time - level.startTime > FRAMETIME * GAME_INIT_FRAMES)) {
 		trap_SendServerCommand( -1, va("print \"[lof]%s" S_COLOR_WHITE " [lon]entered the game\n\"", client->pers.netname) );
 	}
 

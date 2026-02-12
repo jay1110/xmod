@@ -1454,12 +1454,21 @@ to prevent "CL_GetServerCommand: a reliable command was cycled out".
 ================
 */
 void G_ProcessPendingCommands( void ) {
-    // Part 1: Process CS_PLAYERS dirty flags (throttled to 4 per frame total)
+    // Wait for clients to finish loading after map_restart before sending deferred commands.
+    // During loading, clients can't acknowledge reliable commands, so the engine's 128-slot
+    // buffer accumulates. Init broadcasts (configstrings, mapconfigs) must be acknowledged
+    // first before we add XCS/NCS/CS_PLAYERS to the buffer.
+    if ( level.deferredSendDelay > 0 ) {
+        level.deferredSendDelay--;
+        return;
+    }
+
+    // Part 1: Process CS_PLAYERS dirty flags (throttled to 2 per frame total)
     // Each trap_SetConfigstring broadcasts to ALL clients, consuming one reliable
-    // command slot per client. With 33+ clients, we keep this low.
+    // command slot per client. With 33+ clients, we keep this very low.
     {
         int csProcessed = 0;
-        for ( int i = 0; i < level.maxclients && csProcessed < 4; i++ ) {
+        for ( int i = 0; i < level.maxclients && csProcessed < 2; i++ ) {
             if ( level.csPlayersDirty[i] ) {
                 level.csPlayersDirty[i] = qfalse;
                 trap_SetConfigstring( CS_PLAYERS + i, level.csPlayersData[i] );

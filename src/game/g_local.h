@@ -1303,9 +1303,10 @@ typedef struct {
 	// During map_restart, 64 clients all connect in one frame. Each needs NCS + XCS + CS_PLAYERS
 	// data, but the ET engine's reliable command buffer is only 128 slots per client.
 	// We defer everything and send throttled per-frame.
-#define CMDS_PER_CLIENT_PER_FRAME	8
+#define CMDS_PER_CLIENT_PER_FRAME	6
 	int			ncsPendingNext[MAX_CLIENTS];	// -1 = complete, else next NCS index to send
 	int			xcsPendingPhase[MAX_CLIENTS];	// -1 = complete, else next XCS phase to send
+	int			deferredSendDelay;				// frames to wait before sending deferred commands
 
 	// CS_PLAYERS deferred updates: store data + dirty flag, process throttled per-frame
 	char		csPlayersData[MAX_CLIENTS][MAX_INFO_STRING];
