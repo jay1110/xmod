@@ -1293,41 +1293,16 @@ typedef struct {
 	char		axisMapsXP[MAX_STRING_CHARS];
 	char		alliedMapsXP[MAX_STRING_CHARS];
 
-	// Deferred CS_PLAYERS update system (NitMod-style dirty flags)
-	// Full player data goes directly into CS_PLAYERS engine configstrings (like nitmod).
-	// Prevents "Server command overflow" when many players update at once
-	// (e.g. after warmup ends triggering ClientUserinfoChanged for all 63 players)
-	qboolean	csPlayersDirty[MAX_CLIENTS];
-	int			csPlayersDirtyNext;					// round-robin index for G_ProcessDirtyPlayers
-	char		csPlayersData[MAX_CLIENTS][MAX_INFO_STRING];
-
-	// RPCS: Charge times, filtercams, endgame stats (moved out of configstrings)
-	char		rpcsChargeTimes[MAX_INFO_STRING];
-	char		rpcsFilterCams[32];
-	char		rpcsEndgameStats[MAX_INFO_STRING];
-
 	// NCS (NitMod ConfigStrings): private storage for models/sounds/shaders/skins/characters
 	// These are NOT stored in engine configstrings (which contribute to MAX_GAMESTATE_CHARS).
 	// Instead, they're synced to clients via "ncs" server commands.
 	char		ncs[NCS_MAX][NCS_STRING_SIZE];
 	qboolean	ncsDirty[NCS_MAX];		// dirty flags for deferred NCS broadcast
-	int			ncsDirtyNext;			// round-robin index for G_NcsProcessDirty
 
-	// RPCS deferred queue: spreads commands across frames to prevent
-	// "msg overflowed", "reliable command was cycled out" and "Server command overflow".
-	// The ET engine can only buffer ~64 reliable commands per client.
-	// Combined budget: RPCS_CMDS_PER_FRAME + dirty players (same limit) must stay
-	// well under 64 to leave room for engine-internal cs updates.
-	// Queue must be large enough for initial connect data: NCS (~200 used) + player data (64) + other (~20).
-	// Kept at 384 to reduce BSS size for 32-bit server builds (was 768 = ~50MB, now ~25MB).
-#define RPCS_QUEUE_SIZE		384		// max queued commands per client
-#define RPCS_CMDS_PER_FRAME	8		// max commands sent per client per frame
-	struct {
-		char	cmds[RPCS_QUEUE_SIZE][MAX_STRING_CHARS];
-		int		head;		// next slot to write
-		int		tail;		// next slot to send
-		int		count;		// number of queued commands
-	} rpcsQueue[MAX_CLIENTS];
+	// Data for connecting clients (sent in G_SendXmodCS)
+	char		rpcsChargeTimes[MAX_INFO_STRING];
+	char		rpcsFilterCams[32];
+	char		rpcsEndgameStats[MAX_INFO_STRING];
 
 } level_locals_t;
 

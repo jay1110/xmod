@@ -824,9 +824,8 @@ qboolean G_ScriptAction_SetChargeTimeFactor( gentity_t* ent, char *params ) {
 		Info_SetValueForKey( cs, "ald_lnt", va("%i", level.lieutenantChargeTime[1]) );
 		Info_SetValueForKey( cs, "axs_cvo", va("%i", level.covertopsChargeTime[0]) );
 		Info_SetValueForKey( cs, "ald_cvo", va("%i", level.covertopsChargeTime[1]) );
-		// RPCS: Send charge times via deferred broadcast
 		Q_strncpyz( level.rpcsChargeTimes, cs, sizeof(level.rpcsChargeTimes) );
-		G_RpcsBroadcast( va("xcs c \"%s\"", cs) );
+		trap_SendServerCommand( -1, va("xcs c \"%s\"", cs) );
 	}
 
 	return qtrue;

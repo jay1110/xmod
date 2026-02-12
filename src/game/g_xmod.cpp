@@ -209,8 +209,7 @@ void G_InitCustomLevels() {
 			skillLevels[i][4],
 			skillLevels[i][5] ));
 	}
-	// Send skill levels via deferred RPCS broadcast
-	G_RpcsBroadcast( va("xcs s \"%s\"", info) );
+	trap_SendServerCommand( -1, va("xcs s \"%s\"", info) );
 }
 
 /*
@@ -1285,94 +1284,17 @@ void G_UpdateXmodCS() {
 
     G_BuildXmodCS( cs, sizeof(cs), cs2, sizeof(cs2) );
 
-    // Send xmod info via deferred RPCS broadcast
-    G_RpcsBroadcast( va("xcs 1 \"%s\"", cs) );
-    G_RpcsBroadcast( va("xcs 2 \"%s\"", cs2) );
-}
-
-/*
-================
-G_RpcsEnqueue
-----------------
-Queue a server command for deferred sending to a specific client.
-Commands are drained gradually in G_RpcsProcessQueues() during RunFrame
-to prevent "msg overflowed" and "reliable command was cycled out" errors.
-================
-*/
-void G_RpcsEnqueue( int clientNum, const char *cmd ) {
-    if ( clientNum < 0 || clientNum >= MAX_CLIENTS ) {
-        return;
-    }
-
-    auto *q = &level.rpcsQueue[clientNum];
-    if ( q->count >= RPCS_QUEUE_SIZE ) {
-        G_LogPrintf( "WARNING: RPCS queue full for client %d, dropping command\n", clientNum );
-        return;
-    }
-
-    Q_strncpyz( q->cmds[q->head], cmd, MAX_STRING_CHARS );
-    q->head = ( q->head + 1 ) % RPCS_QUEUE_SIZE;
-    q->count++;
-}
-
-/*
-================
-G_RpcsBroadcast
-----------------
-Queue a server command for deferred broadcast to ALL connected clients.
-Like NitMod's dirty-flag approach, this prevents "Server command overflow"
-by spreading broadcasts across multiple frames via the RPCS queue.
-================
-*/
-void G_RpcsBroadcast( const char *cmd ) {
-    for ( int i = 0; i < level.maxclients; i++ ) {
-        if ( level.clients[i].pers.connected == CON_CONNECTED ) {
-            G_RpcsEnqueue( i, cmd );
-        }
-    }
-}
-
-/*
-================
-G_RpcsProcessQueues
-----------------
-Called every server frame from G_RunFrame.
-Drains up to RPCS_CMDS_PER_FRAME commands per client per frame.
-================
-*/
-void G_RpcsProcessQueues( void ) {
-    for ( int i = 0; i < level.maxclients; i++ ) {
-        auto *q = &level.rpcsQueue[i];
-        if ( q->count <= 0 ) {
-            continue;
-        }
-
-        // Only send to connected clients
-        if ( level.clients[i].pers.connected != CON_CONNECTED ) {
-            // Client disconnected, flush their queue
-            q->head = 0;
-            q->tail = 0;
-            q->count = 0;
-            continue;
-        }
-
-        int sent = 0;
-        while ( q->count > 0 && sent < RPCS_CMDS_PER_FRAME ) {
-            trap_SendServerCommand( i, q->cmds[q->tail] );
-            q->tail = ( q->tail + 1 ) % RPCS_QUEUE_SIZE;
-            q->count--;
-            sent++;
-        }
-    }
+    trap_SendServerCommand( -1, va("xcs 1 \"%s\"", cs) );
+    trap_SendServerCommand( -1, va("xcs 2 \"%s\"", cs2) );
 }
 
 /*
 ================
 G_SendXmodCS
 ----------------
-Queues all RPCS (xmod configstring) data for deferred sending to a client.
-Called during ClientBegin. Commands are sent gradually across frames by
-G_RpcsProcessQueues() to prevent reliable command buffer overflow.
+Sends all xmod configstring data directly to a client.
+Called during ClientBegin. Uses trap_SendServerCommand directly
+like vanilla ET and nitmod.
 ================
 */
 void G_SendXmodCS( int clientNum ) {
@@ -1381,8 +1303,8 @@ void G_SendXmodCS( int clientNum ) {
 
     G_BuildXmodCS( cs, sizeof(cs), cs2, sizeof(cs2) );
 
-    G_RpcsEnqueue( clientNum, va("xcs 1 \"%s\"", cs) );
-    G_RpcsEnqueue( clientNum, va("xcs 2 \"%s\"", cs2) );
+    trap_SendServerCommand( clientNum, va("xcs 1 \"%s\"", cs) );
+    trap_SendServerCommand( clientNum, va("xcs 2 \"%s\"", cs2) );
 
     // Skill levels
     {
@@ -1392,7 +1314,7 @@ void G_SendXmodCS( int clientNum ) {
                 skillLevels[i][1], skillLevels[i][2], skillLevels[i][3],
                 skillLevels[i][4], skillLevels[i][5]));
         }
-        G_RpcsEnqueue( clientNum, va("xcs s \"%s\"", info) );
+        trap_SendServerCommand( clientNum, va("xcs s \"%s\"", info) );
     }
 
     // Watermark info
@@ -1401,7 +1323,7 @@ void G_SendXmodCS( int clientNum ) {
         Info_SetValueForKey( wm, "wmFA", va("%i", g_watermarkFadeAfter.integer));
         Info_SetValueForKey( wm, "wmFT", va("%i", g_watermarkFadeTime.integer));
         Info_SetValueForKey( wm, "wmFN", g_watermark.string );
-        G_RpcsEnqueue( clientNum, va("xcs m \"%s\"", wm) );
+        trap_SendServerCommand( clientNum, va("xcs m \"%s\"", wm) );
     }
 
     // Weapon scripts (only send weapons that actually have scripts)
@@ -1422,36 +1344,33 @@ void G_SendXmodCS( int clientNum ) {
             if ( script->selfKillMessage[0] ) {
                 Info_SetValueForKey( wcs, "s", script->selfKillMessage );
             }
-            G_RpcsEnqueue( clientNum, va("xcs w %i \"%s\"", i, wcs) );
+            trap_SendServerCommand( clientNum, va("xcs w %i \"%s\"", i, wcs) );
         }
     }
 
-    // Map XP data (RPCS: moved out of configstrings)
+    // Map XP data
     if ( level.axisMapsXP[0] ) {
-        G_RpcsEnqueue( clientNum, va("xcs a \"%s\"", level.axisMapsXP) );
+        trap_SendServerCommand( clientNum, va("xcs a \"%s\"", level.axisMapsXP) );
     }
     if ( level.alliedMapsXP[0] ) {
-        G_RpcsEnqueue( clientNum, va("xcs b \"%s\"", level.alliedMapsXP) );
+        trap_SendServerCommand( clientNum, va("xcs b \"%s\"", level.alliedMapsXP) );
     }
 
-    // Charge times, filtercams, endgame stats (RPCS: moved out of configstrings)
+    // Charge times, filtercams, endgame stats
     if ( level.rpcsChargeTimes[0] ) {
-        G_RpcsEnqueue( clientNum, va("xcs c \"%s\"", level.rpcsChargeTimes) );
+        trap_SendServerCommand( clientNum, va("xcs c \"%s\"", level.rpcsChargeTimes) );
     }
     if ( level.rpcsFilterCams[0] ) {
-        G_RpcsEnqueue( clientNum, va("xcs f \"%s\"", level.rpcsFilterCams) );
+        trap_SendServerCommand( clientNum, va("xcs f \"%s\"", level.rpcsFilterCams) );
     }
     if ( level.rpcsEndgameStats[0] ) {
-        G_RpcsEnqueue( clientNum, va("xcs e \"%s\"", level.rpcsEndgameStats) );
+        trap_SendServerCommand( clientNum, va("xcs e \"%s\"", level.rpcsEndgameStats) );
     }
-
-    // Player info: Full data is now in CS_PLAYERS engine configstrings (like nitmod).
-    // Clients receive it automatically via engine gamestate, no RPCS needed.
 
     // NCS (NitMod ConfigStrings): send all non-empty entries for models/sounds/shaders/skins/characters
     for ( int i = 0; i < NCS_MAX; i++ ) {
         if ( level.ncs[i][0] ) {
-            G_RpcsEnqueue( clientNum, va("ncs %i \"%s\"", i, level.ncs[i]) );
+            trap_SendServerCommand( clientNum, va("ncs %i \"%s\"", i, level.ncs[i]) );
         }
     }
 }
@@ -1460,57 +1379,25 @@ void G_SendXmodCS( int clientNum ) {
 ================
 G_NcsProcessDirty
 ----------------
-Called every server frame from G_RunFrame (before G_RpcsProcessQueues).
-Queues dirty NCS entries into the RPCS queue for all connected clients.
-Throttled to RPCS_CMDS_PER_FRAME entries per frame with round-robin
-to prevent RPCS queue overflow when many entries change at once.
+Called every server frame from G_RunFrame.
+Sends dirty NCS entries directly to all connected clients via
+trap_SendServerCommand (like nitmod's nitrox_UpdateConfigstrings).
 ================
 */
 void G_NcsProcessDirty( void ) {
-    int processed = 0;
-    int idx = level.ncsDirtyNext;
-    for ( int count = 0; count < NCS_MAX && processed < RPCS_CMDS_PER_FRAME; count++ ) {
-        if ( level.ncsDirty[idx] ) {
-            level.ncsDirty[idx] = qfalse;
-            const char *cmd = va( "ncs %i \"%s\"", idx, level.ncs[idx] );
-            for ( int c = 0; c < level.maxclients; c++ ) {
-                if ( level.clients[c].pers.connected == CON_CONNECTED ) {
-                    G_RpcsEnqueue( c, cmd );
-                }
+    for ( int i = 0; i < NCS_MAX; i++ ) {
+        if ( !level.ncsDirty[i] ) {
+            continue;
+        }
+        level.ncsDirty[i] = qfalse;
+
+        const char *cmd = va( "ncs %i \"%s\"", i, level.ncs[i] );
+        for ( int c = 0; c < level.maxclients; c++ ) {
+            if ( level.clients[c].pers.connected == CON_CONNECTED ) {
+                trap_SendServerCommand( c, cmd );
             }
-            processed++;
         }
-        idx = ( idx + 1 ) % NCS_MAX;
     }
-    level.ncsDirtyNext = idx;
-}
-
-/*
-================
-G_ProcessDirtyPlayers
-----------------
-Called every server frame from G_RunFrame (before G_RpcsProcessQueues).
-Processes deferred CS_PLAYERS configstring updates. When many players
-update at once (e.g. warmup→match transition), calling trap_SetConfigstring
-for all 63 in one frame causes "Server command overflow" because the engine
-internally broadcasts a reliable command per client per configstring change.
-
-Uses round-robin starting from csPlayersDirtyNext to ensure fair processing
-when many players are dirty simultaneously (prevents starvation of higher indices).
-================
-*/
-void G_ProcessDirtyPlayers( void ) {
-    int processed = 0;
-    int idx = level.csPlayersDirtyNext;
-    for ( int count = 0; count < level.maxclients && processed < RPCS_CMDS_PER_FRAME; count++ ) {
-        if ( level.csPlayersDirty[idx] ) {
-            level.csPlayersDirty[idx] = qfalse;
-            trap_SetConfigstring( CS_PLAYERS + idx, level.csPlayersData[idx] );
-            processed++;
-        }
-        idx = ( idx + 1 ) % level.maxclients;
-    }
-    level.csPlayersDirtyNext = idx;
 }
 
 /*************************************************

@@ -2011,13 +2011,10 @@ void ClientUserinfoChanged( int clientNum ) {
         s = csStr;
     }
 
-    // NitMod-style deferred CS_PLAYERS update: full player data goes directly into
-    // the engine configstring. Mark dirty so G_ProcessDirtyPlayers() sends it gradually.
+    // Set CS_PLAYERS directly via engine configstring (like vanilla ET and nitmod)
     {
         trap_GetConfigstring( CS_PLAYERS + clientNum, oldname, sizeof( oldname ) );
-
-        Q_strncpyz( level.csPlayersData[clientNum], s, sizeof(level.csPlayersData[clientNum]) );
-        level.csPlayersDirty[clientNum] = qtrue;
+        trap_SetConfigstring( CS_PLAYERS + clientNum, s );
     }
 
     if (Q_stricmp( oldname, s )) {
