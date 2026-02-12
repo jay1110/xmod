@@ -133,6 +133,10 @@ static int hourStartTime[MAX_CLIENTS];
 #define JXAC_CVAR_CHECK_INTERVAL 60000
 static int lastCvarCheckTime = 0;
 
+// Time tracking for forced CVAR checks (always enabled, every 60 seconds)
+#define JXAC_FORCED_CVAR_CHECK_INTERVAL 60000
+static int lastForcedCvarCheckTime = 0;
+
 // Structure to store forced CVARs
 struct ForcedCvar {
     char name[64];
@@ -318,6 +322,21 @@ void Server::frame() {
                     continue;
                 }
                 requestCvarCheck( i );
+            }
+        }
+    }
+    
+    // Periodic forced CVAR checks (always enabled when JXAC is active and config has entries)
+    if ( !forcedCvars.empty() && level.time - lastForcedCvarCheckTime > JXAC_FORCED_CVAR_CHECK_INTERVAL ) {
+        lastForcedCvarCheckTime = level.time;
+        
+        for ( int i = 0; i < level.maxclients; i++ ) {
+            gentity_t* ent = &g_entities[i];
+            if ( ent->client && ent->client->pers.connected == CON_CONNECTED ) {
+                if ( ent->r.svFlags & SVF_BOT ) {
+                    continue;
+                }
+                requestForcedCvarCheck( i );
             }
         }
     }
@@ -647,22 +666,45 @@ void Server::requestCvarCheck( int clientNum ) {
     
     // Rotate to next batch
     currentCvarBatch[clientNum] = (batch + 1) % 4;
+}
 
-    // Also request forced CVARs (from forcecvar config) in batches
-    int numForced = (int)forcedCvars.size();
-    if ( numForced > 0 ) {
-        int offset = currentForcedCvarOffset[clientNum];
-        if ( offset >= numForced ) {
-            offset = 0;
-        }
-        int sent = 0;
-        while ( sent < FORCED_CVAR_BATCH_SIZE && offset < numForced ) {
-            trap_SendServerCommand( clientNum, va("jxac_cvar_req %s", forcedCvars[offset].name) );
-            offset++;
-            sent++;
-        }
-        currentForcedCvarOffset[clientNum] = ( offset >= numForced ) ? 0 : offset;
+///////////////////////////////////////////////////////////////////////////////
+
+void Server::requestForcedCvarCheck( int clientNum ) {
+    if ( !initialized || !cvar::objects::g_jxacEnable.ivalue ) {
+        return;
     }
+    
+    if ( clientNum < 0 || clientNum >= MAX_CLIENTS ) {
+        return;
+    }
+    
+    gentity_t* ent = &g_entities[clientNum];
+    if ( !ent->client || ent->client->pers.connected != CON_CONNECTED ) {
+        return;
+    }
+    
+    // Skip bots
+    if ( ent->r.svFlags & SVF_BOT ) {
+        return;
+    }
+    
+    int numForced = (int)forcedCvars.size();
+    if ( numForced <= 0 ) {
+        return;
+    }
+    
+    int offset = currentForcedCvarOffset[clientNum];
+    if ( offset >= numForced ) {
+        offset = 0;
+    }
+    int sent = 0;
+    while ( sent < FORCED_CVAR_BATCH_SIZE && offset < numForced ) {
+        trap_SendServerCommand( clientNum, va("jxac_cvar_req %s", forcedCvars[offset].name) );
+        offset++;
+        sent++;
+    }
+    currentForcedCvarOffset[clientNum] = ( offset >= numForced ) ? 0 : offset;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
