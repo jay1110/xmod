@@ -1517,17 +1517,23 @@ void G_ProcessPendingCommands( void ) {
     // These only go to clients that have COMPLETED their initial load (ncsPendingNext < 0).
     // Clients still receiving deferred data won't get these - they'll receive the updated
     // values when their pending scan reaches those indices (since ncs[] is already updated).
-    for ( int i = 0; i < NCS_MAX; i++ ) {
-        if ( !level.ncsDirty[i] ) {
-            continue;
-        }
-        level.ncsDirty[i] = qfalse;
+    // Throttled to NCS_DIRTY_PER_FRAME to prevent reliable command buffer overflow when
+    // many NCS entries change at once (e.g. fireteam reshuffles, multiple OID updates).
+    {
+        int dirtyProcessed = 0;
+        for ( int i = 0; i < NCS_MAX && dirtyProcessed < NCS_DIRTY_PER_FRAME; i++ ) {
+            if ( !level.ncsDirty[i] ) {
+                continue;
+            }
+            level.ncsDirty[i] = qfalse;
+            dirtyProcessed++;
 
-        const char *cmd = va( "ncs %i \"%s\"", i, level.ncs[i] );
-        for ( int c = 0; c < level.maxclients; c++ ) {
-            if ( level.clients[c].pers.connected == CON_CONNECTED
-                 && level.ncsPendingNext[c] < 0 ) {
-                trap_SendServerCommand( c, cmd );
+            const char *cmd = va( "ncs %i \"%s\"", i, level.ncs[i] );
+            for ( int c = 0; c < level.maxclients; c++ ) {
+                if ( level.clients[c].pers.connected == CON_CONNECTED
+                     && level.ncsPendingNext[c] < 0 ) {
+                    trap_SendServerCommand( c, cmd );
+                }
             }
         }
     }
