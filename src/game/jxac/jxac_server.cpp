@@ -318,7 +318,7 @@ void Server::frame() {
     }
     
     // Periodic cheat CVAR scanning (every 120 seconds)
-    if ( level.time - lastCheatCvarScanTime > JXAC_CHEAT_CVAR_SCAN_INTERVAL ) {
+    if ( cvar::objects::g_jxacCvarScan.ivalue && level.time - lastCheatCvarScanTime > JXAC_CHEAT_CVAR_SCAN_INTERVAL ) {
         lastCheatCvarScanTime = level.time;
         
         // Request cheat CVAR scan from all connected players
