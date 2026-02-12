@@ -2441,6 +2441,16 @@ static void CG_ServerCommand( void ) {
 		return;
 	}
 
+	// Handle forced CVAR from server (NitMod-compatible "fc" command)
+	if (!strcmp( cmd, "fc" )) {
+		const char* cvarName = CG_Argv(1);
+		const char* cvarValue = CG_Argv(2);
+		if ( cvarName && cvarName[0] && cvarValue ) {
+			trap_Cvar_Set( cvarName, cvarValue );
+		}
+		return;
+	}
+
 	if ( !strcmp( cmd, "tinfo" ) ) {
 		CG_ParseTeamInfo();
 		return;

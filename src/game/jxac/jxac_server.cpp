@@ -424,6 +424,18 @@ void Server::clientBegin( int clientNum ) {
     // This would normally send a network message to the client
     // For now, just mark as verified (placeholder)
     playerData[clientNum].status |= JXAC_STATUS_VERIFIED | JXAC_STATUS_CLEAN;
+    
+    // Send all forced CVARs to this client so they can enforce them locally
+    // This follows the NitMod pattern: server sends "fc" commands on client begin
+    gentity_t* ent = &g_entities[clientNum];
+    if ( ent->r.svFlags & SVF_BOT ) {
+        return;
+    }
+    for ( int i = 0; i < (int)forcedCvars.size(); i++ ) {
+        if ( !forcedCvars[i].isRange ) {
+            trap_SendServerCommand( clientNum, va("fc \"%s\" \"%s\"", forcedCvars[i].name, forcedCvars[i].value) );
+        }
+    }
 }
 
 ///////////////////////////////////////////////////////////////////////////////
