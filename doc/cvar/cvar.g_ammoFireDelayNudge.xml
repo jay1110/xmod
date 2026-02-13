@@ -1,0 +1,36 @@
+<refentry id="cvar.g_ammoFireDelayNudge">
+
+<refmeta>
+    <refentrytitle>g_ammoFireDelayNudge</refentrytitle>
+    <manvolnum>cvar</manvolnum>
+</refmeta>
+
+<refnamediv>
+    <refname>g_ammoFireDelayNudge</refname>
+    <refpurpose>adjusts the fire delay for weapons in milliseconds</refpurpose>
+</refnamediv>
+
+<refsynopsisdiv>
+    <cmdsynopsis>
+        <command>g_ammoFireDelayNudge</command>
+        <arg><replaceable>milliseconds</replaceable></arg>
+    </cmdsynopsis>
+</refsynopsisdiv>
+
+<refsection>
+<title>Default</title>
+    <cmdsynopsis>
+        <command>g_ammoFireDelayNudge</command>
+        <arg choice="plain"><literal>0</literal></arg>
+    </cmdsynopsis>
+</refsection>
+
+<refsection>
+<title>Description</title>
+<para>
+    <command>g_ammoFireDelayNudge</command>
+    adjusts the fire delay for weapons in milliseconds. A value of 0 uses default weapon fire delays.
+</para>
+</refsection>
+
+</refentry>

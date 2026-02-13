@@ -1,0 +1,36 @@
+<refentry id="cvar.g_ammoNextDelayNudge">
+
+<refmeta>
+    <refentrytitle>g_ammoNextDelayNudge</refentrytitle>
+    <manvolnum>cvar</manvolnum>
+</refmeta>
+
+<refnamediv>
+    <refname>g_ammoNextDelayNudge</refname>
+    <refpurpose>adjusts the next-shot delay for weapons in milliseconds</refpurpose>
+</refnamediv>
+
+<refsynopsisdiv>
+    <cmdsynopsis>
+        <command>g_ammoNextDelayNudge</command>
+        <arg><replaceable>milliseconds</replaceable></arg>
+    </cmdsynopsis>
+</refsynopsisdiv>
+
+<refsection>
+<title>Default</title>
+    <cmdsynopsis>
+        <command>g_ammoNextDelayNudge</command>
+        <arg choice="plain"><literal>0</literal></arg>
+    </cmdsynopsis>
+</refsection>
+
+<refsection>
+<title>Description</title>
+<para>
+    <command>g_ammoNextDelayNudge</command>
+    adjusts the next-shot delay for weapons in milliseconds. A value of 0 uses default weapon delays.
+</para>
+</refsection>
+
+</refentry>

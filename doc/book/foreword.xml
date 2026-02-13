@@ -2,16 +2,13 @@
 <title>Foreword</title>
 
 <blockquote>
-<attribution>&jaybird:name;</attribution>
 <para>
-    First and foremost, thanks for taking the time out to give this mod a try.
-    There are many other &et:name:tm; modifications out on the internet nowadays with the release of the SDK.
-    This started as a project to just have a little fun and explore how the code of a great game works,
-    but it turned into much more after my clan’s game server kept experiencing instability with
-    the popular &shrub:name;.
-<para>
+    Welcome to &project:name;, a modern server-side modification for &et:name:tm;.
+    &project:name; is a fork of jaymod, continuing its legacy with new features,
+    platform support, and an active development community.
 </para>
-    I hope you have fun with this mod, as this is its intention.
+<para>
+    We hope you enjoy playing and running servers with this mod.
 </para>
 </blockquote>
 

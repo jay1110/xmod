@@ -2,30 +2,18 @@
 <title>Introduction</title>
 
 <para>
-    &project:name; is an add-on modification to &et:name;.
-    The idea for &project:name; came from the main features of &shrub:name;.
-    &shrub:name; has long been out of date and unsupported, and with the instability
-    issues that come with &shrub:name;, something had to be done to get a Shrub-like
-    server-side mod that would provide most of the features, be stable, and be supported.
+    &project:name; is an open source server-side and client-side modification for &et:name;.
+    It is a fork of jaymod, building on its foundation with modern features, 64-bit platform support,
+    an integrated anticheat system (JXAC), Lua scripting, and a SQLite database backend.
 </para>
 <para>
-    This mod has long since far outgrown its original objectives and has moved on to implement more
-    advanced features with client-side support. To keep things as simple as possible, only one pak
-    file needs to be downloaded (on the fly) for clients connecting to a &project:name; server for
-    the first time.
+    &project:name; provides extensive gameplay customization, a powerful admin system,
+    and client-side enhancements. Only one pak file needs to be downloaded (on the fly) for clients
+    connecting to a &project:name; server for the first time.
 </para>
 <para>
-    With most of the &shrub:name; compatibility implementation complete,
-    the focus has shifted to the requests of the community, many of which mirror features
-    already implemented in &etpro:name;. This mod is becoming a rather well-rounded game play mod as a result.
-    It is seeing more and more options that might be deemed competition-minded while maintaining its fun factor
-    for pub environments.
-</para>
-<para>
-    &project:name; is a closed source project originally forked from the &et:sdk;.
-    In mid-2006 the entire code base was converted to compile cleanly in C++ .
-    Some &et:sdk; and all major &project:name; subsystems have been refactored/implemented
-    to take full advantage of C++ language features.
+    &project:name; supports both 32-bit and 64-bit platforms on &linux:name; and &windows:name;.
+    The codebase is written in C++ and originally forked from the &et:sdk;.
 </para>
 
 <section id="introduction.download">

@@ -1,0 +1,36 @@
+<refentry id="cvar.team_maxTripmines">
+
+<refmeta>
+    <refentrytitle>team_maxTripmines</refentrytitle>
+    <manvolnum>cvar</manvolnum>
+</refmeta>
+
+<refnamediv>
+    <refname>team_maxTripmines</refname>
+    <refpurpose>sets the maximum number of tripmines per team</refpurpose>
+</refnamediv>
+
+<refsynopsisdiv>
+    <cmdsynopsis>
+        <command>team_maxTripmines</command>
+        <arg><replaceable>count</replaceable></arg>
+    </cmdsynopsis>
+</refsynopsisdiv>
+
+<refsection>
+<title>Default</title>
+    <cmdsynopsis>
+        <command>team_maxTripmines</command>
+        <arg choice="plain"><literal>3</literal></arg>
+    </cmdsynopsis>
+</refsection>
+
+<refsection>
+<title>Description</title>
+<para>
+    <command>team_maxTripmines</command>
+    sets the maximum number of tripmines per team.
+</para>
+</refsection>
+
+</refentry>
