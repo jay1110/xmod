@@ -1020,6 +1020,10 @@ static void CG_CPM_f( void ) {
 	CG_AddPMItem( PM_MESSAGE, CG_Argv(1), cgs.media.voiceChatShader, 0 );
 }
 
+static void CG_Minimize_f( void ) {
+	trap_SendConsoleCommand( "minimize\n" );
+}
+
 typedef struct {
 	char	*cmd;
 	void	(*function)(void);
@@ -1131,6 +1135,7 @@ static consoleCommand_t	commands[] =
 	{ "cpm", CG_CPM_f },
 	{ "forcetapout", CG_ForceTapOut_f },
 	{ "campaigninfo", CG_CampaignInfo_f },
+	{ "minimize", CG_Minimize_f },
 };
 
 
