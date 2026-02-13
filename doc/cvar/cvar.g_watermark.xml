@@ -71,12 +71,8 @@ watermark/bluecherry/bc
 <para>
     Of course, replace <filename>bluecherry/bc.tga</filename> with your actual file name.
     When you set a watermark, the game will requires that it be placed in the <filename>watermark/</filename>
-    subdirectory. For example, <command>g_watermark “clanfu.jpg”</command> will attempt to load
-    <filename>watermark/clanfu.jpg</filename>. Make sure you remember this when you make your .pk3.
-</para>
-<para>
-    For more information on using watermarks, check out Rain's
-    <ulink url="http://bani.anime.net/banimod/forums/viewtopic.php?t=2033">post</ulink> on &etpro:name; forums.
+    subdirectory. For example, <command>g_watermark “mylogo.jpg”</command> will attempt to load
+    <filename>watermark/mylogo.jpg</filename>. Make sure you remember this when you make your .pk3.
 </para>
 </refsection>
 
