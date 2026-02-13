@@ -63,7 +63,7 @@
         <title>&project:title;</title>
         <subtitle>a &et:name:tm; modification</subtitle>
         <copyright>
-            <year>2005-2007</year>
+            <year>2005-2025</year>
             <holder><ulink url="&project:website;"/></holder>
         </copyright>
         <releaseinfo>&buildinfo;</releaseinfo>
