@@ -6443,6 +6443,8 @@ static void CG_M97Pattern( vec3_t origin, vec3_t origin2, int seed, int otherEnt
 	    CG_Trace( &tr,  origin, NULL, NULL, end, otherEntNum, MASK_SHOT );
 	    CG_Trace( &tr2, origin, NULL, NULL, end, otherEntNum, MASK_WATER | MASK_SHOT );
 
+        // Water trace hit a surface earlier than the wall trace - bullet passed through water
+        // Use 0.01f epsilon to avoid false positives from floating-point imprecision
         if (tr2.fraction < tr.fraction - 0.01f) {
             waterfraction = tr2.fraction / tr.fraction;
         }
