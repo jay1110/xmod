@@ -468,9 +468,8 @@ qboolean G_CanHaveDualSMG( gentity_t* ent ) {
 		return qfalse;
 	}
 	
-	// Cannot be used by CovertOps or Soldiers
-	if (ent->client->sess.playerType == PC_COVERTOPS || 
-	    ent->client->sess.playerType == PC_SOLDIER) {
+	// Cannot be used by CovertOps
+	if (ent->client->sess.playerType == PC_COVERTOPS) {
 		return qfalse;
 	}
 	
@@ -504,6 +503,12 @@ qboolean G_HasDualSMG( gentity_t* ent ) {
 qboolean G_CanPickupWeapon( weapon_t weapon, gentity_t* ent ) {
 	weapon_t originalWeapon = weapon;
 	
+	// g_pickAnyWeapon: Skip class restriction but still respect weapon restriction settings
+	if (g_pickAnyWeapon.integer) {
+		if (G_IsWeaponDisabled(ent, weapon, qtrue)) return qfalse;
+		return qtrue;
+	}
+
 	if( ent->client->sess.sessionTeam == TEAM_AXIS ) {
 		if( weapon == WP_THOMPSON ) {
 			weapon = WP_MP40;

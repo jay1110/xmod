@@ -117,6 +117,9 @@ extern vmCvar_t g_canisterKickDistance;
 // Dual SMG
 extern vmCvar_t g_dualSMG;
 
+// Pick any weapon
+extern vmCvar_t g_pickAnyWeapon;
+
 // Damage weapons (shoot to destroy)
 extern vmCvar_t g_damageweapons;
 
