@@ -1229,18 +1229,16 @@ qboolean _SetSoldierSpawnWeapons(gclient_t *client)
 		AddWeaponToPlayer(client, WP_MORTAR_SET, GetAmmoTableData(WP_MORTAR_SET)->defaultStartingAmmo, GetAmmoTableData(WP_MORTAR_SET)->defaultStartingClip, qfalse);
 	}
 
-    // g_dualSMG: Give both SMGs if enabled
+    // g_dualSMG: Give SMGs if enabled
     if (g_dualSMG.integer & DUALSMG_ENABLE) {
         if (w == WP_MP40 || w == WP_THOMPSON) {
             // Primary is an SMG, give the other one
             weapon_t otherSMG = (w == WP_MP40) ? WP_THOMPSON : WP_MP40;
             AddWeaponToPlayer(client, otherSMG, GetAmmoTableData(otherSMG)->defaultStartingAmmo, GetAmmoTableData(otherSMG)->defaultStartingClip, qfalse);
         } else {
-            // Primary is a heavy weapon, give both SMGs as secondary weapons
+            // Primary is a heavy weapon, give team SMG as secondary
             weapon_t teamSMG = (client->sess.sessionTeam == TEAM_AXIS) ? WP_MP40 : WP_THOMPSON;
-            weapon_t otherSMG = (teamSMG == WP_MP40) ? WP_THOMPSON : WP_MP40;
             AddWeaponToPlayer(client, teamSMG, GetAmmoTableData(teamSMG)->defaultStartingAmmo, GetAmmoTableData(teamSMG)->defaultStartingClip, qfalse);
-            AddWeaponToPlayer(client, otherSMG, GetAmmoTableData(otherSMG)->defaultStartingAmmo, GetAmmoTableData(otherSMG)->defaultStartingClip, qfalse);
         }
     }
 
@@ -1298,18 +1296,16 @@ qboolean _SetMedicSpawnWeapons(gclient_t *client)
     // Add the primary weapon
 	AddWeaponToPlayer(client, w, 0, GetAmmoTableData(w)->defaultStartingClip, qtrue);
 
-    // g_dualSMG: Give both SMGs if enabled
+    // g_dualSMG: Give SMGs if enabled
     if (g_dualSMG.integer & DUALSMG_ENABLE) {
         if (w == WP_MP40 || w == WP_THOMPSON) {
             // Primary is an SMG, give the other one
             weapon_t otherSMG = (w == WP_MP40) ? WP_THOMPSON : WP_MP40;
             AddWeaponToPlayer(client, otherSMG, 0, GetAmmoTableData(otherSMG)->defaultStartingClip, qfalse);
         } else {
-            // Primary is not an SMG, give both SMGs as secondary weapons
+            // Primary is not an SMG, give team SMG as secondary
             weapon_t teamSMG = (client->sess.sessionTeam == TEAM_AXIS) ? WP_MP40 : WP_THOMPSON;
-            weapon_t otherSMG = (teamSMG == WP_MP40) ? WP_THOMPSON : WP_MP40;
             AddWeaponToPlayer(client, teamSMG, 0, GetAmmoTableData(teamSMG)->defaultStartingClip, qfalse);
-            AddWeaponToPlayer(client, otherSMG, 0, GetAmmoTableData(otherSMG)->defaultStartingClip, qfalse);
         }
     }
 
@@ -1360,18 +1356,16 @@ qboolean _SetEngineerSpawnWeapons(gclient_t *client)
     // Add the primary weapon
 	AddWeaponToPlayer(client, w, GetAmmoTableData(w)->defaultStartingAmmo, GetAmmoTableData(w)->defaultStartingClip, qtrue);
 
-    // g_dualSMG: Give both SMGs if enabled
+    // g_dualSMG: Give SMGs if enabled
     if (g_dualSMG.integer & DUALSMG_ENABLE) {
         if (w == WP_MP40 || w == WP_THOMPSON) {
             // Primary is an SMG, give the other one
             weapon_t otherSMG = (w == WP_MP40) ? WP_THOMPSON : WP_MP40;
             AddWeaponToPlayer(client, otherSMG, GetAmmoTableData(otherSMG)->defaultStartingAmmo, GetAmmoTableData(otherSMG)->defaultStartingClip, qfalse);
         } else {
-            // Primary is not an SMG, give both SMGs as secondary weapons
+            // Primary is not an SMG, give team SMG as secondary
             weapon_t teamSMG = (client->sess.sessionTeam == TEAM_AXIS) ? WP_MP40 : WP_THOMPSON;
-            weapon_t otherSMG = (teamSMG == WP_MP40) ? WP_THOMPSON : WP_MP40;
             AddWeaponToPlayer(client, teamSMG, GetAmmoTableData(teamSMG)->defaultStartingAmmo, GetAmmoTableData(teamSMG)->defaultStartingClip, qfalse);
-            AddWeaponToPlayer(client, otherSMG, GetAmmoTableData(otherSMG)->defaultStartingAmmo, GetAmmoTableData(otherSMG)->defaultStartingClip, qfalse);
         }
     }
 
@@ -1427,18 +1421,16 @@ qboolean _SetFieldOpSpawnWeapons(gclient_t *client)
     // Add the primary weapon
 	AddWeaponToPlayer(client, w, GetAmmoTableData(w)->defaultStartingAmmo, GetAmmoTableData(w)->defaultStartingClip, qtrue);
 
-    // g_dualSMG: Give both SMGs if enabled
+    // g_dualSMG: Give SMGs if enabled
     if (g_dualSMG.integer & DUALSMG_ENABLE) {
         if (w == WP_MP40 || w == WP_THOMPSON) {
             // Primary is an SMG, give the other one
             weapon_t otherSMG = (w == WP_MP40) ? WP_THOMPSON : WP_MP40;
             AddWeaponToPlayer(client, otherSMG, GetAmmoTableData(otherSMG)->defaultStartingAmmo, GetAmmoTableData(otherSMG)->defaultStartingClip, qfalse);
         } else {
-            // Primary is not an SMG, give both SMGs as secondary weapons
+            // Primary is not an SMG, give team SMG as secondary
             weapon_t teamSMG = (client->sess.sessionTeam == TEAM_AXIS) ? WP_MP40 : WP_THOMPSON;
-            weapon_t otherSMG = (teamSMG == WP_MP40) ? WP_THOMPSON : WP_MP40;
             AddWeaponToPlayer(client, teamSMG, GetAmmoTableData(teamSMG)->defaultStartingAmmo, GetAmmoTableData(teamSMG)->defaultStartingClip, qfalse);
-            AddWeaponToPlayer(client, otherSMG, GetAmmoTableData(otherSMG)->defaultStartingAmmo, GetAmmoTableData(otherSMG)->defaultStartingClip, qfalse);
         }
     }
 
