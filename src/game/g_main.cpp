@@ -324,6 +324,9 @@ vmCvar_t        g_multiReviveTime;   // Max delay between revives for multi-revi
 // Admin Chat
 vmCvar_t        g_adminChat;         // Enable admin chat
 
+// OS/Architecture support
+vmCvar_t        g_oss;               // Supported OS/architecture bitflags for server browser
+
 /*********************
 * End Xmod Cvars   *
 *********************/
@@ -464,6 +467,9 @@ cvarTable_t		gameCvarTable[] = {
     { NULL, "mod_binary",  XMOD_buildTarget, CVAR_SERVERINFO | CVAR_ROM },
     { NULL, "mod_url",     XMOD_website,     CVAR_SERVERINFO | CVAR_ROM },
     { NULL, "mod_version", XMOD_version,     CVAR_SERVERINFO | CVAR_ROM },
+
+    // OS/Architecture support for server browser
+    { &g_oss, "g_oss", XMOD_OSS_DEFAULT, CVAR_SERVERINFO | CVAR_ROM },
 
 	// don't override the cheat state set by the system
 	{ &g_cheats, "sv_cheats", "", 0, qfalse },

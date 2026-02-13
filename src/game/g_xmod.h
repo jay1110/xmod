@@ -143,6 +143,53 @@ extern vmCvar_t g_multiReviveTime;   // Max delay between revives for multi-revi
 // Admin Chat
 extern vmCvar_t g_adminChat;         // Enable admin chat
 
+// OS/Architecture support
+extern vmCvar_t g_oss;               // Supported OS/architecture bitflags for server browser
+
+// g_oss bitflags - supported OS/architecture for server browser
+typedef enum
+{
+    OSS_DEFAULT         = 0,        ///< 0 - vanilla/unknown/ET:L auto setup
+    OSS_WIN_X86         = (1 << 0), ///< 1 - Windows x86
+    OSS_LNX_X86         = (1 << 1), ///< 2 - Linux x86
+    OSS_LNX_X86_64      = (1 << 2), ///< 4 - Linux x86_64
+    OSS_MACOS_x86_64    = (1 << 3), ///< 8 - macOs x86_64
+    OSS_ANDROID_AARCH64 = (1 << 4), ///< 16 - Android aarch64
+    OSS_LNX_ARMV7       = (1 << 5), ///< 32 - Raspberry Pi arm
+    OSS_LNX_ARMV8_64    = (1 << 6), ///< 64 - Raspberry Pi aarch 64
+    OSS_MACOS_AARCH64   = (1 << 7), ///< 128 - macOS m1
+    OSS_WIN_X86_64      = (1 << 8), ///< 256 - Windows x86_64
+    OSS_ANDROID_X86     = (1 << 9), ///< 512 - Android x86
+    OSS_ANDROID_X86_64  = (1 << 10),///< 1024 - Android x86_64
+
+    OSS_END                         ///< Moving "known platforms" index
+} oss_t;
+
+// Compile-time default for g_oss based on build target
+#if defined( XMOD_MINGW ) || defined( XMOD_WINDOWS )
+#define XMOD_OSS_DEFAULT "1"
+#elif defined( XMOD_LINUX ) && !defined( __x86_64__ ) && !defined( __aarch64__ )
+#define XMOD_OSS_DEFAULT "2"
+#elif defined( XMOD_LINUX64 )
+#define XMOD_OSS_DEFAULT "4"
+#elif defined( XMOD_OSX ) || defined( XMOD_OSX64 )
+#define XMOD_OSS_DEFAULT "8"
+#elif defined( XMOD_ANDROID_ARM64 )
+#define XMOD_OSS_DEFAULT "16"
+#elif defined( XMOD_LINUX_AARCH64 )
+#define XMOD_OSS_DEFAULT "64"
+#elif defined( XMOD_OSX_ARM64 )
+#define XMOD_OSS_DEFAULT "128"
+#elif defined( XMOD_MINGW64 ) || defined( XMOD_WINDOWS64 )
+#define XMOD_OSS_DEFAULT "256"
+#elif defined( XMOD_ANDROID_X86 )
+#define XMOD_OSS_DEFAULT "512"
+#elif defined( XMOD_ANDROID_X86_64 )
+#define XMOD_OSS_DEFAULT "1024"
+#else
+#define XMOD_OSS_DEFAULT "0"
+#endif
+
 ///////////////////////////////////////////////////////////////////////////////
 
 // g_killAssistances bitflags
