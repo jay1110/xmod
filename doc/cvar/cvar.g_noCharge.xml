@@ -1,0 +1,37 @@
+<refentry id="cvar.g_noCharge">
+
+<refmeta>
+    <refentrytitle>g_noCharge</refentrytitle>
+    <manvolnum>cvar</manvolnum>
+</refmeta>
+
+<refnamediv>
+    <refname>g_noCharge</refname>
+    <refpurpose>disables class ability charge bars, giving unlimited ability usage</refpurpose>
+</refnamediv>
+
+<refsynopsisdiv>
+    <cmdsynopsis>
+        <command>g_noCharge</command>
+        <arg><replaceable>mode</replaceable></arg>
+    </cmdsynopsis>
+	&boolean.mode;
+</refsynopsisdiv>
+
+<refsection>
+<title>Default</title>
+    <cmdsynopsis>
+        <command>g_noCharge</command>
+        <arg choice="plain"><literal>0</literal></arg>
+    </cmdsynopsis>
+</refsection>
+
+<refsection>
+<title>Description</title>
+<para>
+    <command>g_noCharge</command>
+    disables class ability charge bars, giving unlimited ability usage.
+</para>
+</refsection>
+
+</refentry>

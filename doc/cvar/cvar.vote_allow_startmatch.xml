@@ -1,0 +1,37 @@
+<refentry id="cvar.vote_allow_startmatch">
+
+<refmeta>
+    <refentrytitle>vote_allow_startmatch</refentrytitle>
+    <manvolnum>cvar</manvolnum>
+</refmeta>
+
+<refnamediv>
+    <refname>vote_allow_startmatch</refname>
+    <refpurpose>allows players to call a vote to start the match</refpurpose>
+</refnamediv>
+
+<refsynopsisdiv>
+    <cmdsynopsis>
+        <command>vote_allow_startmatch</command>
+        <arg><replaceable>mode</replaceable></arg>
+    </cmdsynopsis>
+	&boolean.mode;
+</refsynopsisdiv>
+
+<refsection>
+<title>Default</title>
+    <cmdsynopsis>
+        <command>vote_allow_startmatch</command>
+        <arg choice="plain"><literal>1</literal></arg>
+    </cmdsynopsis>
+</refsection>
+
+<refsection>
+<title>Description</title>
+<para>
+    <command>vote_allow_startmatch</command>
+    allows players to call a vote to start the match.
+</para>
+</refsection>
+
+</refentry>

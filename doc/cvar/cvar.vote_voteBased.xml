@@ -1,0 +1,38 @@
+<refentry id="cvar.vote_voteBased">
+
+<refmeta>
+    <refentrytitle>vote_voteBased</refentrytitle>
+    <manvolnum>cvar</manvolnum>
+</refmeta>
+
+<refnamediv>
+    <refname>vote_voteBased</refname>
+    <refpurpose>enables vote-based voting where votes are counted based on the total number of voters rather than total eligible players</refpurpose>
+</refnamediv>
+
+<refsynopsisdiv>
+    <cmdsynopsis>
+        <command>vote_voteBased</command>
+        <arg><replaceable>mode</replaceable></arg>
+    </cmdsynopsis>
+	&boolean.mode;
+</refsynopsisdiv>
+
+<refsection>
+<title>Default</title>
+    <cmdsynopsis>
+        <command>vote_voteBased</command>
+        <arg choice="plain"><literal>0</literal></arg>
+    </cmdsynopsis>
+</refsection>
+
+<refsection>
+<title>Description</title>
+<para>
+    <command>vote_voteBased</command>
+    enables vote-based voting where votes are counted based on the total number of voters
+    rather than total eligible players.
+</para>
+</refsection>
+
+</refentry>

@@ -1,0 +1,45 @@
+<refentry id="cvar.g_canisterKickDistance">
+
+<refmeta>
+    <refentrytitle>g_canisterKickDistance</refentrytitle>
+    <manvolnum>cvar</manvolnum>
+</refmeta>
+
+<refnamediv>
+    <refname>g_canisterKickDistance</refname>
+    <refpurpose>sets the kick distance for canisters</refpurpose>
+</refnamediv>
+
+<refsynopsisdiv>
+    <cmdsynopsis>
+        <command>g_canisterKickDistance</command>
+        <arg><replaceable>distance</replaceable></arg>
+    </cmdsynopsis>
+</refsynopsisdiv>
+
+<refsection>
+<title>Default</title>
+    <cmdsynopsis>
+        <command>g_canisterKickDistance</command>
+        <arg choice="plain"><literal>250</literal></arg>
+    </cmdsynopsis>
+</refsection>
+
+<refsection>
+<title>Description</title>
+<para>
+    <command>g_canisterKickDistance</command>
+    sets the kick distance for canisters.
+    Only has effect when canister kicking is enabled via
+    <xref linkend="cvar.g_canisterKick"/>.
+</para>
+</refsection>
+
+<refsection>
+<title>See Also</title>
+<para>
+    <xref linkend="cvar.g_canisterKick"/>
+</para>
+</refsection>
+
+</refentry>

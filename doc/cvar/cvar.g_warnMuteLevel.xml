@@ -1,0 +1,36 @@
+<refentry id="cvar.g_warnMuteLevel">
+
+<refmeta>
+    <refentrytitle>g_warnMuteLevel</refentrytitle>
+    <manvolnum>cvar</manvolnum>
+</refmeta>
+
+<refnamediv>
+    <refname>g_warnMuteLevel</refname>
+    <refpurpose>sets the warning level at which a player is automatically muted</refpurpose>
+</refnamediv>
+
+<refsynopsisdiv>
+    <cmdsynopsis>
+        <command>g_warnMuteLevel</command>
+        <arg><replaceable>level</replaceable></arg>
+    </cmdsynopsis>
+</refsynopsisdiv>
+
+<refsection>
+<title>Default</title>
+    <cmdsynopsis>
+        <command>g_warnMuteLevel</command>
+        <arg choice="plain"><literal>50</literal></arg>
+    </cmdsynopsis>
+</refsection>
+
+<refsection>
+<title>Description</title>
+<para>
+    <command>g_warnMuteLevel</command>
+    sets the warning level at which a player is automatically muted.
+</para>
+</refsection>
+
+</refentry>

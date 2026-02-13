@@ -1,0 +1,37 @@
+<refentry id="cvar.g_damageweapons">
+
+<refmeta>
+    <refentrytitle>g_damageweapons</refentrytitle>
+    <manvolnum>cvar</manvolnum>
+</refmeta>
+
+<refnamediv>
+    <refname>g_damageweapons</refname>
+    <refpurpose>controls weapon damage modifications</refpurpose>
+</refnamediv>
+
+<refsynopsisdiv>
+    <cmdsynopsis>
+        <command>g_damageweapons</command>
+        <arg><replaceable>value</replaceable></arg>
+    </cmdsynopsis>
+</refsynopsisdiv>
+
+<refsection>
+<title>Default</title>
+    <cmdsynopsis>
+        <command>g_damageweapons</command>
+        <arg choice="plain"><literal>0</literal></arg>
+    </cmdsynopsis>
+</refsection>
+
+<refsection>
+<title>Description</title>
+<para>
+    <command>g_damageweapons</command>
+    controls weapon damage modifications.
+    A value of <literal>0</literal> disables weapon damage modifications.
+</para>
+</refsection>
+
+</refentry>

@@ -1,0 +1,37 @@
+<refentry id="cvar.g_killAssistances">
+
+<refmeta>
+    <refentrytitle>g_killAssistances</refentrytitle>
+    <manvolnum>cvar</manvolnum>
+</refmeta>
+
+<refnamediv>
+    <refname>g_killAssistances</refname>
+    <refpurpose>enables kill assistance tracking and announcements</refpurpose>
+</refnamediv>
+
+<refsynopsisdiv>
+    <cmdsynopsis>
+        <command>g_killAssistances</command>
+        <arg><replaceable>mode</replaceable></arg>
+    </cmdsynopsis>
+	&boolean.mode;
+</refsynopsisdiv>
+
+<refsection>
+<title>Default</title>
+    <cmdsynopsis>
+        <command>g_killAssistances</command>
+        <arg choice="plain"><literal>1</literal></arg>
+    </cmdsynopsis>
+</refsection>
+
+<refsection>
+<title>Description</title>
+<para>
+    <command>g_killAssistances</command>
+    enables kill assistance tracking and announcements.
+</para>
+</refsection>
+
+</refentry>

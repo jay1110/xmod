@@ -1,0 +1,37 @@
+<refentry id="cvar.g_canisterKickOwner">
+
+<refmeta>
+    <refentrytitle>g_canisterKickOwner</refentrytitle>
+    <manvolnum>cvar</manvolnum>
+</refmeta>
+
+<refnamediv>
+    <refname>g_canisterKickOwner</refname>
+    <refpurpose>restricts canister kicking to the pack owner only</refpurpose>
+</refnamediv>
+
+<refsynopsisdiv>
+    <cmdsynopsis>
+        <command>g_canisterKickOwner</command>
+        <arg><replaceable>mode</replaceable></arg>
+    </cmdsynopsis>
+	&boolean.mode;
+</refsynopsisdiv>
+
+<refsection>
+<title>Default</title>
+    <cmdsynopsis>
+        <command>g_canisterKickOwner</command>
+        <arg choice="plain"><literal>0</literal></arg>
+    </cmdsynopsis>
+</refsection>
+
+<refsection>
+<title>Description</title>
+<para>
+    <command>g_canisterKickOwner</command>
+    restricts canister kicking to the pack owner only.
+</para>
+</refsection>
+
+</refentry>

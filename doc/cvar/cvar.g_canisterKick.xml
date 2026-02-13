@@ -1,0 +1,37 @@
+<refentry id="cvar.g_canisterKick">
+
+<refmeta>
+    <refentrytitle>g_canisterKick</refentrytitle>
+    <manvolnum>cvar</manvolnum>
+</refmeta>
+
+<refnamediv>
+    <refname>g_canisterKick</refname>
+    <refpurpose>enables kicking of canisters (health and ammo packs)</refpurpose>
+</refnamediv>
+
+<refsynopsisdiv>
+    <cmdsynopsis>
+        <command>g_canisterKick</command>
+        <arg><replaceable>mode</replaceable></arg>
+    </cmdsynopsis>
+	&boolean.mode;
+</refsynopsisdiv>
+
+<refsection>
+<title>Default</title>
+    <cmdsynopsis>
+        <command>g_canisterKick</command>
+        <arg choice="plain"><literal>0</literal></arg>
+    </cmdsynopsis>
+</refsection>
+
+<refsection>
+<title>Description</title>
+<para>
+    <command>g_canisterKick</command>
+    enables kicking of canisters (health and ammo packs).
+</para>
+</refsection>
+
+</refentry>

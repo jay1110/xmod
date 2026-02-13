@@ -1,0 +1,37 @@
+<refentry id="cvar.vote_minPercent">
+
+<refmeta>
+    <refentrytitle>vote_minPercent</refentrytitle>
+    <manvolnum>cvar</manvolnum>
+</refmeta>
+
+<refnamediv>
+    <refname>vote_minPercent</refname>
+    <refpurpose>sets the minimum percentage of eligible voters that must vote for a vote to be valid</refpurpose>
+</refnamediv>
+
+<refsynopsisdiv>
+    <cmdsynopsis>
+        <command>vote_minPercent</command>
+        <arg><replaceable>percent</replaceable></arg>
+    </cmdsynopsis>
+</refsynopsisdiv>
+
+<refsection>
+<title>Default</title>
+    <cmdsynopsis>
+        <command>vote_minPercent</command>
+        <arg choice="plain"><literal>0</literal></arg>
+    </cmdsynopsis>
+</refsection>
+
+<refsection>
+<title>Description</title>
+<para>
+    <command>vote_minPercent</command>
+    sets the minimum percentage of eligible voters that must vote for a vote to be valid.
+    A value of <literal>0</literal> disables this requirement.
+</para>
+</refsection>
+
+</refentry>

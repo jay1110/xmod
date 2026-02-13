@@ -1,0 +1,37 @@
+<refentry id="cvar.g_noReload">
+
+<refmeta>
+    <refentrytitle>g_noReload</refentrytitle>
+    <manvolnum>cvar</manvolnum>
+</refmeta>
+
+<refnamediv>
+    <refname>g_noReload</refname>
+    <refpurpose>disables weapon reloading, giving unlimited clip ammunition</refpurpose>
+</refnamediv>
+
+<refsynopsisdiv>
+    <cmdsynopsis>
+        <command>g_noReload</command>
+        <arg><replaceable>mode</replaceable></arg>
+    </cmdsynopsis>
+	&boolean.mode;
+</refsynopsisdiv>
+
+<refsection>
+<title>Default</title>
+    <cmdsynopsis>
+        <command>g_noReload</command>
+        <arg choice="plain"><literal>0</literal></arg>
+    </cmdsynopsis>
+</refsection>
+
+<refsection>
+<title>Description</title>
+<para>
+    <command>g_noReload</command>
+    disables weapon reloading, giving unlimited clip ammunition.
+</para>
+</refsection>
+
+</refentry>

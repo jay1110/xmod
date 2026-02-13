@@ -1,0 +1,37 @@
+<refentry id="cvar.g_spawnInvulNoClip">
+
+<refmeta>
+    <refentrytitle>g_spawnInvulNoClip</refentrytitle>
+    <manvolnum>cvar</manvolnum>
+</refmeta>
+
+<refnamediv>
+    <refname>g_spawnInvulNoClip</refname>
+    <refpurpose>enables noclip during spawn invulnerability, allowing players to pass through teammates</refpurpose>
+</refnamediv>
+
+<refsynopsisdiv>
+    <cmdsynopsis>
+        <command>g_spawnInvulNoClip</command>
+        <arg><replaceable>mode</replaceable></arg>
+    </cmdsynopsis>
+	&boolean.mode;
+</refsynopsisdiv>
+
+<refsection>
+<title>Default</title>
+    <cmdsynopsis>
+        <command>g_spawnInvulNoClip</command>
+        <arg choice="plain"><literal>0</literal></arg>
+    </cmdsynopsis>
+</refsection>
+
+<refsection>
+<title>Description</title>
+<para>
+    <command>g_spawnInvulNoClip</command>
+    enables noclip during spawn invulnerability, allowing players to pass through teammates.
+</para>
+</refsection>
+
+</refentry>
