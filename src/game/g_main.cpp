@@ -469,7 +469,7 @@ cvarTable_t		gameCvarTable[] = {
     { NULL, "mod_version", XMOD_version,     CVAR_SERVERINFO | CVAR_ROM },
 
     // OS/Architecture support for server browser
-    { &g_oss, "g_oss", XMOD_OSS_DEFAULT, CVAR_SERVERINFO | CVAR_ROM },
+    { &g_oss, "g_oss", XMOD_OSS_DEFAULT, CVAR_SERVERINFO },
 
 	// don't override the cheat state set by the system
 	{ &g_cheats, "sv_cheats", "", 0, qfalse },

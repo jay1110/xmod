@@ -165,30 +165,8 @@ typedef enum
     OSS_END                         ///< Moving "known platforms" index
 } oss_t;
 
-// Compile-time default for g_oss based on build target
-#if defined( XMOD_MINGW ) || defined( XMOD_WINDOWS )
-#define XMOD_OSS_DEFAULT "1"
-#elif defined( XMOD_LINUX ) && !defined( __x86_64__ ) && !defined( __aarch64__ )
-#define XMOD_OSS_DEFAULT "2"
-#elif defined( XMOD_LINUX64 )
-#define XMOD_OSS_DEFAULT "4"
-#elif defined( XMOD_OSX ) || defined( XMOD_OSX64 )
-#define XMOD_OSS_DEFAULT "8"
-#elif defined( XMOD_ANDROID_ARM64 )
-#define XMOD_OSS_DEFAULT "16"
-#elif defined( XMOD_LINUX_AARCH64 )
-#define XMOD_OSS_DEFAULT "64"
-#elif defined( XMOD_OSX_ARM64 )
-#define XMOD_OSS_DEFAULT "128"
-#elif defined( XMOD_MINGW64 ) || defined( XMOD_WINDOWS64 )
-#define XMOD_OSS_DEFAULT "256"
-#elif defined( XMOD_ANDROID_X86 )
-#define XMOD_OSS_DEFAULT "512"
-#elif defined( XMOD_ANDROID_X86_64 )
-#define XMOD_OSS_DEFAULT "1024"
-#else
-#define XMOD_OSS_DEFAULT "0"
-#endif
+// Default for g_oss - all supported platforms
+#define XMOD_OSS_DEFAULT "2047"
 
 ///////////////////////////////////////////////////////////////////////////////
 
