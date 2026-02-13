@@ -1,18 +1,19 @@
-<refentry id="cmd.jxac_screenshot">
+<refentry id="cmd.ss">
 
 <refmeta>
-    <refentrytitle>jxac_screenshot</refentrytitle>
+    <refentrytitle>ss</refentrytitle>
     <manvolnum>1</manvolnum>
 </refmeta>
 
 <refnamediv>
-    <refname>jxac_screenshot</refname>
+    <refname>ss</refname>
     <refpurpose>Request screenshot from a specific player (JXAC).</refpurpose>
 </refnamediv>
 
 <refsynopsisdiv>
     <cmdsynopsis>
-        <command>!jxac_screenshot</command>
+        <command>!ss</command>
+        <arg><replaceable>PLAYER</replaceable></arg>
         <arg><replaceable>QUALITY</replaceable></arg>
     </cmdsynopsis>
 </refsynopsisdiv>
@@ -20,8 +21,9 @@
 <refsection>
 <title>Description</title>
 <para>
-    <command>jxac_screenshot</command>
-    Request screenshot from a specific player (JXAC).
+    <command>ss</command>
+    requests a screenshot from a specific player using the JXAC anticheat system.
+    An optional quality parameter can be specified.
 </para>
 </refsection>
 

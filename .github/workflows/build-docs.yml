@@ -32,7 +32,11 @@ jobs:
       uses: actions/upload-artifact@v4
       with:
         name: documentation-html
-        path: build/doc/en/html/
+        path: |
+          build/doc/en/html/
+          build/doc/en/styles/
+          build/doc/en/images/
+          build/doc/en/figures/
         retention-days: 30
         
     - name: Upload PDF documentation
@@ -46,5 +50,9 @@ jobs:
       uses: actions/upload-artifact@v4
       with:
         name: documentation-html-single
-        path: build/doc/en/book.html
+        path: |
+          build/doc/en/book.html
+          build/doc/en/styles/
+          build/doc/en/images/
+          build/doc/en/figures/
         retention-days: 30

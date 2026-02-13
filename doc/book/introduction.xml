@@ -2,7 +2,7 @@
 <title>Introduction</title>
 
 <para>
-    &project:name; is an open source server-side and client-side modification for &et:name;.
+    &project:name; is a server-side and client-side modification for &et:name;.
     It is a fork of jaymod, building on its foundation with modern features, 64-bit platform support,
     an integrated anticheat system (JXAC), Lua scripting, and a SQLite database backend.
 </para>
@@ -12,7 +12,8 @@
     connecting to a &project:name; server for the first time.
 </para>
 <para>
-    &project:name; supports both 32-bit and 64-bit platforms on &linux:name; and &windows:name;.
+    &project:name; supports 32-bit and 64-bit platforms on &linux:name;, &windows:name;,
+    macOS (x86_64 and Apple Silicon), and Android.
     The codebase is written in C++ and originally forked from the &et:sdk;.
 </para>
 

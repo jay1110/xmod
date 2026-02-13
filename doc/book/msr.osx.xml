@@ -1,8 +1,9 @@
 <section id="msr.osx">
-<title>OSX</title>
+<title>macOS</title>
 
-<para>
-    OSX is currently not supported by &project:name;.
-</para>
+<orderedlist>
+    <listitem>macOS with x86_64 or Apple Silicon (arm64) processor</listitem>
+    <listitem>working installation of Enemy Territory or compatible client (e.g. ET: Legacy)</listitem>
+</orderedlist>
 
 </section>
