@@ -1,0 +1,37 @@
+<refentry id="cvar.jxac_enable">
+
+<refmeta>
+    <refentrytitle>jxac_enable</refentrytitle>
+    <manvolnum>cvar</manvolnum>
+</refmeta>
+
+<refnamediv>
+    <refname>jxac_enable</refname>
+    <refpurpose>enables the JXAC anticheat system</refpurpose>
+</refnamediv>
+
+<refsynopsisdiv>
+    <cmdsynopsis>
+        <command>jxac_enable</command>
+        <arg><replaceable>mode</replaceable></arg>
+    </cmdsynopsis>
+	&boolean.mode;
+</refsynopsisdiv>
+
+<refsection>
+<title>Default</title>
+    <cmdsynopsis>
+        <command>jxac_enable</command>
+        <arg choice="plain"><literal>1</literal></arg>
+    </cmdsynopsis>
+</refsection>
+
+<refsection>
+<title>Description</title>
+<para>
+    <command>jxac_enable</command>
+    enables the JXAC anticheat system.
+</para>
+</refsection>
+
+</refentry>

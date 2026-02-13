@@ -1,0 +1,37 @@
+<refentry id="cvar.jxac_checkCvars">
+
+<refmeta>
+    <refentrytitle>jxac_checkCvars</refentrytitle>
+    <manvolnum>cvar</manvolnum>
+</refmeta>
+
+<refnamediv>
+    <refname>jxac_checkCvars</refname>
+    <refpurpose>enables JXAC CVAR checking to detect known cheat CVARs on clients</refpurpose>
+</refnamediv>
+
+<refsynopsisdiv>
+    <cmdsynopsis>
+        <command>jxac_checkCvars</command>
+        <arg><replaceable>mode</replaceable></arg>
+    </cmdsynopsis>
+	&boolean.mode;
+</refsynopsisdiv>
+
+<refsection>
+<title>Default</title>
+    <cmdsynopsis>
+        <command>jxac_checkCvars</command>
+        <arg choice="plain"><literal>1</literal></arg>
+    </cmdsynopsis>
+</refsection>
+
+<refsection>
+<title>Description</title>
+<para>
+    <command>jxac_checkCvars</command>
+    enables JXAC CVAR checking to detect known cheat CVARs on clients.
+</para>
+</refsection>
+
+</refentry>

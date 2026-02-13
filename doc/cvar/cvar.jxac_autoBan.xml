@@ -1,0 +1,37 @@
+<refentry id="cvar.jxac_autoBan">
+
+<refmeta>
+    <refentrytitle>jxac_autoBan</refentrytitle>
+    <manvolnum>cvar</manvolnum>
+</refmeta>
+
+<refnamediv>
+    <refname>jxac_autoBan</refname>
+    <refpurpose>enables automatic banning of players detected cheating by JXAC</refpurpose>
+</refnamediv>
+
+<refsynopsisdiv>
+    <cmdsynopsis>
+        <command>jxac_autoBan</command>
+        <arg><replaceable>mode</replaceable></arg>
+    </cmdsynopsis>
+	&boolean.mode;
+</refsynopsisdiv>
+
+<refsection>
+<title>Default</title>
+    <cmdsynopsis>
+        <command>jxac_autoBan</command>
+        <arg choice="plain"><literal>0</literal></arg>
+    </cmdsynopsis>
+</refsection>
+
+<refsection>
+<title>Description</title>
+<para>
+    <command>jxac_autoBan</command>
+    enables automatic banning of players detected cheating by JXAC.
+</para>
+</refsection>
+
+</refentry>

@@ -1,0 +1,36 @@
+<refentry id="cvar.jxac_cvarScanDelay">
+
+<refmeta>
+    <refentrytitle>jxac_cvarScanDelay</refentrytitle>
+    <manvolnum>cvar</manvolnum>
+</refmeta>
+
+<refnamediv>
+    <refname>jxac_cvarScanDelay</refname>
+    <refpurpose>sets the delay in milliseconds between individual CVAR scan requests sent to the client</refpurpose>
+</refnamediv>
+
+<refsynopsisdiv>
+    <cmdsynopsis>
+        <command>jxac_cvarScanDelay</command>
+        <arg><replaceable>milliseconds</replaceable></arg>
+    </cmdsynopsis>
+</refsynopsisdiv>
+
+<refsection>
+<title>Default</title>
+    <cmdsynopsis>
+        <command>jxac_cvarScanDelay</command>
+        <arg choice="plain"><literal>750</literal></arg>
+    </cmdsynopsis>
+</refsection>
+
+<refsection>
+<title>Description</title>
+<para>
+    <command>jxac_cvarScanDelay</command>
+    sets the delay in milliseconds between individual CVAR scan requests sent to the client.
+</para>
+</refsection>
+
+</refentry>

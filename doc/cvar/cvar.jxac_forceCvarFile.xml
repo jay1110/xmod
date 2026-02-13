@@ -1,0 +1,36 @@
+<refentry id="cvar.jxac_forceCvarFile">
+
+<refmeta>
+    <refentrytitle>jxac_forceCvarFile</refentrytitle>
+    <manvolnum>cvar</manvolnum>
+</refmeta>
+
+<refnamediv>
+    <refname>jxac_forceCvarFile</refname>
+    <refpurpose>sets the configuration file containing CVARs that are forced on connected clients</refpurpose>
+</refnamediv>
+
+<refsynopsisdiv>
+    <cmdsynopsis>
+        <command>jxac_forceCvarFile</command>
+        <arg><replaceable>"filename"</replaceable></arg>
+    </cmdsynopsis>
+</refsynopsisdiv>
+
+<refsection>
+<title>Default</title>
+    <cmdsynopsis>
+        <command>jxac_forceCvarFile</command>
+        <arg choice="plain"><literal>jxac/jxac_forcecvar.cfg</literal></arg>
+    </cmdsynopsis>
+</refsection>
+
+<refsection>
+<title>Description</title>
+<para>
+    <command>jxac_forceCvarFile</command>
+    sets the configuration file containing CVARs that are forced on connected clients.
+</para>
+</refsection>
+
+</refentry>

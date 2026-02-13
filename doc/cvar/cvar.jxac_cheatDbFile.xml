@@ -1,0 +1,36 @@
+<refentry id="cvar.jxac_cheatDbFile">
+
+<refmeta>
+    <refentrytitle>jxac_cheatDbFile</refentrytitle>
+    <manvolnum>cvar</manvolnum>
+</refmeta>
+
+<refnamediv>
+    <refname>jxac_cheatDbFile</refname>
+    <refpurpose>sets the configuration file containing the cheat signature database for JXAC module scanning</refpurpose>
+</refnamediv>
+
+<refsynopsisdiv>
+    <cmdsynopsis>
+        <command>jxac_cheatDbFile</command>
+        <arg><replaceable>"filename"</replaceable></arg>
+    </cmdsynopsis>
+</refsynopsisdiv>
+
+<refsection>
+<title>Default</title>
+    <cmdsynopsis>
+        <command>jxac_cheatDbFile</command>
+        <arg choice="plain"><literal>jxac/jxac_cheats.cfg</literal></arg>
+    </cmdsynopsis>
+</refsection>
+
+<refsection>
+<title>Description</title>
+<para>
+    <command>jxac_cheatDbFile</command>
+    sets the configuration file containing the cheat signature database for JXAC module scanning.
+</para>
+</refsection>
+
+</refentry>

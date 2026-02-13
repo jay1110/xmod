@@ -1,0 +1,36 @@
+<refentry id="cvar.jxac_cvarScanWait">
+
+<refmeta>
+    <refentrytitle>jxac_cvarScanWait</refentrytitle>
+    <manvolnum>cvar</manvolnum>
+</refmeta>
+
+<refnamediv>
+    <refname>jxac_cvarScanWait</refname>
+    <refpurpose>sets the initial wait time in milliseconds before JXAC begins CVAR scanning after a client connects</refpurpose>
+</refnamediv>
+
+<refsynopsisdiv>
+    <cmdsynopsis>
+        <command>jxac_cvarScanWait</command>
+        <arg><replaceable>milliseconds</replaceable></arg>
+    </cmdsynopsis>
+</refsynopsisdiv>
+
+<refsection>
+<title>Default</title>
+    <cmdsynopsis>
+        <command>jxac_cvarScanWait</command>
+        <arg choice="plain"><literal>10000</literal></arg>
+    </cmdsynopsis>
+</refsection>
+
+<refsection>
+<title>Description</title>
+<para>
+    <command>jxac_cvarScanWait</command>
+    sets the initial wait time in milliseconds before JXAC begins CVAR scanning after a client connects.
+</para>
+</refsection>
+
+</refentry>

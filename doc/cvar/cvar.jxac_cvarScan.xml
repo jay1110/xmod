@@ -1,0 +1,37 @@
+<refentry id="cvar.jxac_cvarScan">
+
+<refmeta>
+    <refentrytitle>jxac_cvarScan</refentrytitle>
+    <manvolnum>cvar</manvolnum>
+</refmeta>
+
+<refnamediv>
+    <refname>jxac_cvarScan</refname>
+    <refpurpose>enables JXAC CVAR scanning to detect cheat CVARs injected by external programs</refpurpose>
+</refnamediv>
+
+<refsynopsisdiv>
+    <cmdsynopsis>
+        <command>jxac_cvarScan</command>
+        <arg><replaceable>mode</replaceable></arg>
+    </cmdsynopsis>
+	&boolean.mode;
+</refsynopsisdiv>
+
+<refsection>
+<title>Default</title>
+    <cmdsynopsis>
+        <command>jxac_cvarScan</command>
+        <arg choice="plain"><literal>0</literal></arg>
+    </cmdsynopsis>
+</refsection>
+
+<refsection>
+<title>Description</title>
+<para>
+    <command>jxac_cvarScan</command>
+    enables JXAC CVAR scanning to detect cheat CVARs injected by external programs.
+</para>
+</refsection>
+
+</refentry>

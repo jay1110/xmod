@@ -1,0 +1,36 @@
+<refentry id="cvar.jxac_cvarScanInterval">
+
+<refmeta>
+    <refentrytitle>jxac_cvarScanInterval</refentrytitle>
+    <manvolnum>cvar</manvolnum>
+</refmeta>
+
+<refnamediv>
+    <refname>jxac_cvarScanInterval</refname>
+    <refpurpose>sets the interval in milliseconds between complete CVAR scan cycles</refpurpose>
+</refnamediv>
+
+<refsynopsisdiv>
+    <cmdsynopsis>
+        <command>jxac_cvarScanInterval</command>
+        <arg><replaceable>milliseconds</replaceable></arg>
+    </cmdsynopsis>
+</refsynopsisdiv>
+
+<refsection>
+<title>Default</title>
+    <cmdsynopsis>
+        <command>jxac_cvarScanInterval</command>
+        <arg choice="plain"><literal>300000</literal></arg>
+    </cmdsynopsis>
+</refsection>
+
+<refsection>
+<title>Description</title>
+<para>
+    <command>jxac_cvarScanInterval</command>
+    sets the interval in milliseconds between complete CVAR scan cycles.
+</para>
+</refsection>
+
+</refentry>

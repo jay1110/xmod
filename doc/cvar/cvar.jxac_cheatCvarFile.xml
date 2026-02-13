@@ -1,0 +1,36 @@
+<refentry id="cvar.jxac_cheatCvarFile">
+
+<refmeta>
+    <refentrytitle>jxac_cheatCvarFile</refentrytitle>
+    <manvolnum>cvar</manvolnum>
+</refmeta>
+
+<refnamediv>
+    <refname>jxac_cheatCvarFile</refname>
+    <refpurpose>sets the configuration file containing CVAR names to scan for on clients during CVAR scan cycles</refpurpose>
+</refnamediv>
+
+<refsynopsisdiv>
+    <cmdsynopsis>
+        <command>jxac_cheatCvarFile</command>
+        <arg><replaceable>"filename"</replaceable></arg>
+    </cmdsynopsis>
+</refsynopsisdiv>
+
+<refsection>
+<title>Default</title>
+    <cmdsynopsis>
+        <command>jxac_cheatCvarFile</command>
+        <arg choice="plain"><literal>jxac/jxac_cvarscan.cfg</literal></arg>
+    </cmdsynopsis>
+</refsection>
+
+<refsection>
+<title>Description</title>
+<para>
+    <command>jxac_cheatCvarFile</command>
+    sets the configuration file containing CVAR names to scan for on clients during CVAR scan cycles.
+</para>
+</refsection>
+
+</refentry>

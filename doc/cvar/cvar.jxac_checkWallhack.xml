@@ -1,0 +1,37 @@
+<refentry id="cvar.jxac_checkWallhack">
+
+<refmeta>
+    <refentrytitle>jxac_checkWallhack</refentrytitle>
+    <manvolnum>cvar</manvolnum>
+</refmeta>
+
+<refnamediv>
+    <refname>jxac_checkWallhack</refname>
+    <refpurpose>enables JXAC wallhack detection</refpurpose>
+</refnamediv>
+
+<refsynopsisdiv>
+    <cmdsynopsis>
+        <command>jxac_checkWallhack</command>
+        <arg><replaceable>mode</replaceable></arg>
+    </cmdsynopsis>
+	&boolean.mode;
+</refsynopsisdiv>
+
+<refsection>
+<title>Default</title>
+    <cmdsynopsis>
+        <command>jxac_checkWallhack</command>
+        <arg choice="plain"><literal>1</literal></arg>
+    </cmdsynopsis>
+</refsection>
+
+<refsection>
+<title>Description</title>
+<para>
+    <command>jxac_checkWallhack</command>
+    enables JXAC wallhack detection.
+</para>
+</refsection>
+
+</refentry>
