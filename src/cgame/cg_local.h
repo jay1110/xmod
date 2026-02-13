@@ -3792,6 +3792,10 @@ void CG_Fireteams_MenuTitleText_Draw( panel_button_t* button );
 // cg_hardware.c
 bool GetMACAddress( string& );
 
+//
+// cg_minimize.cpp
+void CG_AddMinimizeButton( void );
+
 // Fireteam defines
 #define FTLOC_NAMES  0x00000001
 #define FTLOC_COORDS 0x00000002

@@ -174,7 +174,13 @@
     <ClCompile Include="linux/cg_hardware.cpp">
       <Filter>linux</Filter>
     </ClCompile>
+    <ClCompile Include="linux/cg_minimize.cpp">
+      <Filter>linux</Filter>
+    </ClCompile>
     <ClCompile Include="osx/cg_hardware.cpp">
+      <Filter>osx</Filter>
+    </ClCompile>
+    <ClCompile Include="osx/cg_minimize.cpp">
       <Filter>osx</Filter>
     </ClCompile>
     <ClCompile Include="static.cpp" />
@@ -182,6 +188,9 @@
       <Filter>win32</Filter>
     </ClCompile>
     <ClCompile Include="win32/cg_hardware.cpp">
+      <Filter>win32</Filter>
+    </ClCompile>
+    <ClCompile Include="win32/cg_minimize.cpp">
       <Filter>win32</Filter>
     </ClCompile>
     <ClCompile Include="xm_client_auth.cpp" />

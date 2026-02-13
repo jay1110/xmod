@@ -3020,6 +3020,8 @@ void CG_Init( int serverMessageNum, int serverCommandSequence, int clientNum, qb
 
 	CG_InitConsoleCommands();
 
+	CG_AddMinimizeButton();
+
 	// Gordon: moved this up so it's initialized for the loading screen
 	CG_LoadHudMenu();      // load new hud stuff
 	CG_AssetCache();
