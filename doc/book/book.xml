@@ -39,18 +39,7 @@
 <!ENTITY omni      SYSTEM "omni.xml">
 
 <!ENTITY changelog    SYSTEM "changelog.xml">
-<!ENTITY changelog210 SYSTEM "changelog210.xml">
-<!ENTITY changelog211 SYSTEM "changelog211.xml">
-<!ENTITY changelog212 SYSTEM "changelog212.xml">
-<!ENTITY changelog213 SYSTEM "changelog213.xml">
-<!ENTITY changelog214 SYSTEM "changelog214.xml">
-<!ENTITY changelog215 SYSTEM "changelog215.xml">
-<!ENTITY changelog216 SYSTEM "changelog216.xml">
-<!ENTITY changelog217 SYSTEM "changelog217.xml">
-<!ENTITY changelog218 SYSTEM "changelog218.xml">
-<!ENTITY changelog219 SYSTEM "changelog219.xml">
-<!ENTITY changelog2110 SYSTEM "changelog2110.xml">
-<!ENTITY changelog220 SYSTEM "changelog220.xml">
+<!ENTITY changelog200 SYSTEM "changelog200.xml">
 <!ENTITY changelog201 SYSTEM "changelog201.xml">
 
 <!ENTITY feature.panzerwar      SYSTEM "panzerwar.xml">

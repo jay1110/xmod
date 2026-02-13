@@ -1,146 +1,62 @@
 <listitem>
 <simpara>
     <emphasis role="add">Added:</emphasis>
-    JXAC anticheat system with CVAR checking, wallhack detection, module scanning, anti-tamper, speedhack detection, CVAR scanning, and forced CVAR enforcement.
+    Network Config Strings (NCS) system to overcome engine gamestate size limits on large servers.
 </simpara>
 </listitem>
 
 <listitem>
 <simpara>
     <emphasis role="add">Added:</emphasis>
-    country flag display for players (g_countryflags).
+    deferred command system with per-client throttling to prevent reliable command buffer overflow during map changes and client connections.
 </simpara>
 </listitem>
 
 <listitem>
 <simpara>
     <emphasis role="add">Added:</emphasis>
-    canister kicking feature for health and ammo packs (g_canisterKick, g_canisterKickOwner, g_canisterKickDistance).
+    XCS phased sending for incremental delivery of mod data to connecting clients.
 </simpara>
 </listitem>
 
 <listitem>
 <simpara>
     <emphasis role="add">Added:</emphasis>
-    dual SMG akimbo weapons (g_dualSMG).
+    g_oss CVAR for advertising supported platforms and architectures in the server browser.
 </simpara>
 </listitem>
 
 <listitem>
 <simpara>
     <emphasis role="add">Added:</emphasis>
-    instant spawn feature (g_instantSpawn).
+    suppression of false skill and rank upgrade announcements during map changes using deferred CS_PLAYERS sending.
 </simpara>
 </listitem>
 
 <listitem>
 <simpara>
-    <emphasis role="add">Added:</emphasis>
-    warning system with automatic muting and banning (g_warnDecay, g_warnMuteLevel, g_warnBanLevel).
+    <emphasis role="touch">Improved:</emphasis>
+    JXAC forced CVAR enforcement now re-sends corrections silently without flagging as violations.
 </simpara>
 </listitem>
 
 <listitem>
 <simpara>
-    <emphasis role="add">Added:</emphasis>
-    revenge announcements (g_revenge).
+    <emphasis role="touch">Improved:</emphasis>
+    JXAC CVAR scanning uses configurable batch sizes and rotating offsets for efficient checking of forced CVARs.
 </simpara>
 </listitem>
 
 <listitem>
 <simpara>
-    <emphasis role="add">Added:</emphasis>
-    revive spree tracking and multi-revive time window (g_reviveSpreeOptions, g_multiReviveTime).
+    <emphasis role="touch">Improved:</emphasis>
+    server stability on large servers by throttling configstring broadcasts and deferred sends.
 </simpara>
 </listitem>
 
 <listitem>
 <simpara>
-    <emphasis role="add">Added:</emphasis>
-    kill assistance tracking (g_killAssistances).
-</simpara>
-</listitem>
-
-<listitem>
-<simpara>
-    <emphasis role="add">Added:</emphasis>
-    no-attack during spawn invulnerability (g_noAttackInvul).
-</simpara>
-</listitem>
-
-<listitem>
-<simpara>
-    <emphasis role="add">Added:</emphasis>
-    no-charge and no-reload modes (g_noCharge, g_noReload).
-</simpara>
-</listitem>
-
-<listitem>
-<simpara>
-    <emphasis role="add">Added:</emphasis>
-    spawn invulnerability noclip (g_spawnInvulNoClip).
-</simpara>
-</listitem>
-
-<listitem>
-<simpara>
-    <emphasis role="add">Added:</emphasis>
-    spectator name visibility control (g_spectatorNames).
-</simpara>
-</listitem>
-
-<listitem>
-<simpara>
-    <emphasis role="add">Added:</emphasis>
-    team change delay (g_teamChangeDelay).
-</simpara>
-</listitem>
-
-<listitem>
-<simpara>
-    <emphasis role="add">Added:</emphasis>
-    custom weapon scripts directory (g_weaponScriptsDir).
-</simpara>
-</listitem>
-
-<listitem>
-<simpara>
-    <emphasis role="add">Added:</emphasis>
-    vote-based voting and minimum vote percent (vote_voteBased, vote_minPercent).
-</simpara>
-</listitem>
-
-<listitem>
-<simpara>
-    <emphasis role="add">Added:</emphasis>
-    admin chat visibility control (g_adminChat).
-</simpara>
-</listitem>
-
-<listitem>
-<simpara>
-    <emphasis role="add">Added:</emphasis>
-    SQLite database backend for user data (g_userConfig).
-</simpara>
-</listitem>
-
-<listitem>
-<simpara>
-    <emphasis role="add">Added:</emphasis>
-    weapon damage modifications (g_damageweapons).
-</simpara>
-</listitem>
-
-<listitem>
-<simpara>
-    <emphasis role="touch">Changed:</emphasis>
-    rebranded from jaymod to xmod.
-</simpara>
-</listitem>
-
-<listitem>
-<simpara>
-    <emphasis role="touch">Changed:</emphasis>
-    64-bit support for Linux and Windows platforms.
+    <emphasis role="touch">Improved:</emphasis>
+    documentation updated with all missing CVAR references for xmod-specific and JXAC anticheat settings.
 </simpara>
 </listitem>
