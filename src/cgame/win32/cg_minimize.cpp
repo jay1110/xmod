@@ -7,7 +7,11 @@ void CG_AddMinimizeButton( void ) {
     char buffer[64];
     const char *WindowClassName = "Enemy Territory";
     trap_Cvar_VariableStringBuffer( "win_hinstance", buffer, sizeof( buffer ) );
+    if ( !buffer[0] )
+        return;
     HINSTANCE etHandle = reinterpret_cast<HINSTANCE>( atoll( buffer ) );
+    if ( !etHandle )
+        return;
     HWND wnd = NULL;
     while ( ( wnd = FindWindowEx( NULL, wnd, WindowClassName, WindowClassName ) ) != NULL ) {
         HINSTANCE hInst = reinterpret_cast<HINSTANCE>( GetWindowLongPtr( wnd, GWLP_HINSTANCE ) );
