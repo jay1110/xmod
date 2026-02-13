@@ -6443,10 +6443,7 @@ static void CG_M97Pattern( vec3_t origin, vec3_t origin2, int seed, int otherEnt
 	    CG_Trace( &tr,  origin, NULL, NULL, end, otherEntNum, MASK_SHOT );
 	    CG_Trace( &tr2, origin, NULL, NULL, end, otherEntNum, MASK_WATER | MASK_SHOT );
 
-        if (VectorLength(tr.endpos) != VectorLength(tr2.endpos)) {
-            vec3_t v;
-            VectorSubtract( tr.endpos, origin, v );
-            //waterfraction = (8192 * tr2.fraction) / VectorLength( v );
+        if (tr2.fraction < tr.fraction - 0.01f) {
             waterfraction = tr2.fraction / tr.fraction;
         }
 

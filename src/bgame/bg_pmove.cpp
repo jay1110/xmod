@@ -4538,7 +4538,7 @@ static void PM_Weapon( void ) {
 
 			default:
 				// Allow firing underwater if SBW_FIRE_UNDERWATER flag is set
-				// (except flamers, panzers, rifle grenades, mortars, MG42 and shotgun which should always be blocked)
+				// (except flamers, panzers, rifle grenades, mortars and MG42 which should always be blocked)
 				if (cvars::bg_weapons.ivalue & SBW_FIRE_UNDERWATER) {
 					switch (pm->ps->weapon) {
 						case WP_FLAMETHROWER:
@@ -4549,7 +4549,6 @@ static void PM_Weapon( void ) {
 						case WP_MORTAR_SET:
 						case WP_MOBILE_MG42:
 						case WP_MOBILE_MG42_SET:
-						case WP_M97:
 							nofire = 1;
 							break;
 						default:
