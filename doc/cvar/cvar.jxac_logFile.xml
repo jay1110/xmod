@@ -1,0 +1,36 @@
+<refentry id="cvar.jxac_logFile">
+
+<refmeta>
+    <refentrytitle>jxac_logFile</refentrytitle>
+    <manvolnum>cvar</manvolnum>
+</refmeta>
+
+<refnamediv>
+    <refname>jxac_logFile</refname>
+    <refpurpose>sets the filename for the JXAC anticheat log</refpurpose>
+</refnamediv>
+
+<refsynopsisdiv>
+    <cmdsynopsis>
+        <command>jxac_logFile</command>
+        <arg><replaceable>"filename"</replaceable></arg>
+    </cmdsynopsis>
+</refsynopsisdiv>
+
+<refsection>
+<title>Default</title>
+    <cmdsynopsis>
+        <command>jxac_logFile</command>
+        <arg choice="plain"><literal>jxac.log</literal></arg>
+    </cmdsynopsis>
+</refsection>
+
+<refsection>
+<title>Description</title>
+<para>
+    <command>jxac_logFile</command>
+    sets the filename for the JXAC anticheat log.
+</para>
+</refsection>
+
+</refentry>

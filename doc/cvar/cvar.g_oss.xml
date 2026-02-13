@@ -1,0 +1,36 @@
+<refentry id="cvar.g_oss">
+
+<refmeta>
+    <refentrytitle>g_oss</refentrytitle>
+    <manvolnum>cvar</manvolnum>
+</refmeta>
+
+<refnamediv>
+    <refname>g_oss</refname>
+    <refpurpose>sets the supported platform/architecture bitflags advertised in the server browser</refpurpose>
+</refnamediv>
+
+<refsynopsisdiv>
+    <cmdsynopsis>
+        <command>g_oss</command>
+        <arg><replaceable>bitflags</replaceable></arg>
+    </cmdsynopsis>
+</refsynopsisdiv>
+
+<refsection>
+<title>Default</title>
+    <cmdsynopsis>
+        <command>g_oss</command>
+        <arg choice="plain"><literal>2047</literal></arg>
+    </cmdsynopsis>
+</refsection>
+
+<refsection>
+<title>Description</title>
+<para>
+    <command>g_oss</command>
+    sets the supported platform/architecture bitflags advertised in the server browser. This value is automatically determined based on the server binary.
+</para>
+</refsection>
+
+</refentry>

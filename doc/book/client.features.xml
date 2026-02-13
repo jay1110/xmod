@@ -80,7 +80,7 @@
 <title>Double Jump</title>
 <para>
     Double jump allows you to jump an extra time while in mid-air to gain more height.
-    This feature is enabled on the server using <xref linkend="cvar.g_misc"/>.
+    This feature is enabled on the server using <xref linkend="cvar.g_doubleJump"/>.
 </para>
 </section>
 
@@ -302,6 +302,54 @@
 <para>
     Reloading works different than most &et:name:abbr; weapons as you must load one shell at a time,
     and reloading can be interrupted by pressing (not necessarily holding) fire while reloading.
+</para>
+</section>
+
+<section id="client.features.countryFlags">
+<title>Country Flags</title>
+<para>
+    &project:name; can display country flags next to player names based on their IP geolocation.
+    This feature is enabled on the server using <xref linkend="cvar.g_countryflags"/>.
+</para>
+</section>
+
+<section id="client.features.instantSpawn">
+<title>Instant Spawn</title>
+<para>
+    When enabled, players spawn immediately after dying without waiting for the next spawn wave.
+    This feature is enabled on the server using <xref linkend="cvar.g_instantSpawn"/>.
+</para>
+</section>
+
+<section id="client.features.canisterKick">
+<title>Canister Kicking</title>
+<para>
+    Players can kick health and ammo packs on the ground to move them toward teammates.
+    This feature is enabled on the server using <xref linkend="cvar.g_canisterKick"/>.
+</para>
+</section>
+
+<section id="client.features.dualSMG">
+<title>Dual SMG</title>
+<para>
+    Enables dual-wielding akimbo SMG weapons.
+    This feature is enabled on the server using <xref linkend="cvar.g_dualSMG"/>.
+</para>
+</section>
+
+<section id="client.features.revenge">
+<title>Revenge</title>
+<para>
+    When a player kills someone who recently killed them, a revenge announcement is displayed.
+    This feature is enabled on the server using <xref linkend="cvar.g_revenge"/>.
+</para>
+</section>
+
+<section id="client.features.killAssistances">
+<title>Kill Assistances</title>
+<para>
+    Tracks and announces kill assists when multiple players contribute damage to a kill.
+    This feature is enabled on the server using <xref linkend="cvar.g_killAssistances"/>.
 </para>
 </section>
 

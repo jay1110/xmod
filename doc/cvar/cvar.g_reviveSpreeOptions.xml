@@ -1,0 +1,36 @@
+<refentry id="cvar.g_reviveSpreeOptions">
+
+<refmeta>
+    <refentrytitle>g_reviveSpreeOptions</refentrytitle>
+    <manvolnum>cvar</manvolnum>
+</refmeta>
+
+<refnamediv>
+    <refname>g_reviveSpreeOptions</refname>
+    <refpurpose>controls revive spree announcement options</refpurpose>
+</refnamediv>
+
+<refsynopsisdiv>
+    <cmdsynopsis>
+        <command>g_reviveSpreeOptions</command>
+        <arg><replaceable>value</replaceable></arg>
+    </cmdsynopsis>
+</refsynopsisdiv>
+
+<refsection>
+<title>Default</title>
+    <cmdsynopsis>
+        <command>g_reviveSpreeOptions</command>
+        <arg choice="plain"><literal>1</literal></arg>
+    </cmdsynopsis>
+</refsection>
+
+<refsection>
+<title>Description</title>
+<para>
+    <command>g_reviveSpreeOptions</command>
+    controls revive spree announcement options.
+</para>
+</refsection>
+
+</refentry>

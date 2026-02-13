@@ -1,0 +1,36 @@
+<refentry id="cvar.jxac_cheatFile">
+
+<refmeta>
+    <refentrytitle>jxac_cheatFile</refentrytitle>
+    <manvolnum>cvar</manvolnum>
+</refmeta>
+
+<refnamediv>
+    <refname>jxac_cheatFile</refname>
+    <refpurpose>sets the configuration file containing cheat signature definitions for JXAC detection</refpurpose>
+</refnamediv>
+
+<refsynopsisdiv>
+    <cmdsynopsis>
+        <command>jxac_cheatFile</command>
+        <arg><replaceable>"filename"</replaceable></arg>
+    </cmdsynopsis>
+</refsynopsisdiv>
+
+<refsection>
+<title>Default</title>
+    <cmdsynopsis>
+        <command>jxac_cheatFile</command>
+        <arg choice="plain"><literal>jxac/jxac_cheats.cfg</literal></arg>
+    </cmdsynopsis>
+</refsection>
+
+<refsection>
+<title>Description</title>
+<para>
+    <command>jxac_cheatFile</command>
+    sets the configuration file containing cheat signature definitions for JXAC detection.
+</para>
+</refsection>
+
+</refentry>

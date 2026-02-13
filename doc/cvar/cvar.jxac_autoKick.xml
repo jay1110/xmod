@@ -1,0 +1,37 @@
+<refentry id="cvar.jxac_autoKick">
+
+<refmeta>
+    <refentrytitle>jxac_autoKick</refentrytitle>
+    <manvolnum>cvar</manvolnum>
+</refmeta>
+
+<refnamediv>
+    <refname>jxac_autoKick</refname>
+    <refpurpose>enables automatic kicking of players detected cheating by JXAC</refpurpose>
+</refnamediv>
+
+<refsynopsisdiv>
+    <cmdsynopsis>
+        <command>jxac_autoKick</command>
+        <arg><replaceable>mode</replaceable></arg>
+    </cmdsynopsis>
+	&boolean.mode;
+</refsynopsisdiv>
+
+<refsection>
+<title>Default</title>
+    <cmdsynopsis>
+        <command>jxac_autoKick</command>
+        <arg choice="plain"><literal>1</literal></arg>
+    </cmdsynopsis>
+</refsection>
+
+<refsection>
+<title>Description</title>
+<para>
+    <command>jxac_autoKick</command>
+    enables automatic kicking of players detected cheating by JXAC.
+</para>
+</refsection>
+
+</refentry>

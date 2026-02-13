@@ -1,0 +1,36 @@
+<refentry id="cvar.g_multiReviveTime">
+
+<refmeta>
+    <refentrytitle>g_multiReviveTime</refentrytitle>
+    <manvolnum>cvar</manvolnum>
+</refmeta>
+
+<refnamediv>
+    <refname>g_multiReviveTime</refname>
+    <refpurpose>sets the time window in milliseconds for counting consecutive revives as a multi-revive</refpurpose>
+</refnamediv>
+
+<refsynopsisdiv>
+    <cmdsynopsis>
+        <command>g_multiReviveTime</command>
+        <arg><replaceable>milliseconds</replaceable></arg>
+    </cmdsynopsis>
+</refsynopsisdiv>
+
+<refsection>
+<title>Default</title>
+    <cmdsynopsis>
+        <command>g_multiReviveTime</command>
+        <arg choice="plain"><literal>2000</literal></arg>
+    </cmdsynopsis>
+</refsection>
+
+<refsection>
+<title>Description</title>
+<para>
+    <command>g_multiReviveTime</command>
+    sets the time window in milliseconds for counting consecutive revives as a multi-revive.
+</para>
+</refsection>
+
+</refentry>

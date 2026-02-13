@@ -1,0 +1,36 @@
+<refentry id="cvar.jxac_heartbeatTimeout">
+
+<refmeta>
+    <refentrytitle>jxac_heartbeatTimeout</refentrytitle>
+    <manvolnum>cvar</manvolnum>
+</refmeta>
+
+<refnamediv>
+    <refname>jxac_heartbeatTimeout</refname>
+    <refpurpose>sets the timeout in milliseconds for JXAC client heartbeats</refpurpose>
+</refnamediv>
+
+<refsynopsisdiv>
+    <cmdsynopsis>
+        <command>jxac_heartbeatTimeout</command>
+        <arg><replaceable>milliseconds</replaceable></arg>
+    </cmdsynopsis>
+</refsynopsisdiv>
+
+<refsection>
+<title>Default</title>
+    <cmdsynopsis>
+        <command>jxac_heartbeatTimeout</command>
+        <arg choice="plain"><literal>60000</literal></arg>
+    </cmdsynopsis>
+</refsection>
+
+<refsection>
+<title>Description</title>
+<para>
+    <command>jxac_heartbeatTimeout</command>
+    sets the timeout in milliseconds for JXAC client heartbeats. Clients that fail to respond within this time are flagged.
+</para>
+</refsection>
+
+</refentry>

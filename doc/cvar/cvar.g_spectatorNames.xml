@@ -1,0 +1,37 @@
+<refentry id="cvar.g_spectatorNames">
+
+<refmeta>
+    <refentrytitle>g_spectatorNames</refentrytitle>
+    <manvolnum>cvar</manvolnum>
+</refmeta>
+
+<refnamediv>
+    <refname>g_spectatorNames</refname>
+    <refpurpose>controls whether spectator names are visible to other players</refpurpose>
+</refnamediv>
+
+<refsynopsisdiv>
+    <cmdsynopsis>
+        <command>g_spectatorNames</command>
+        <arg><replaceable>mode</replaceable></arg>
+    </cmdsynopsis>
+	&boolean.mode;
+</refsynopsisdiv>
+
+<refsection>
+<title>Default</title>
+    <cmdsynopsis>
+        <command>g_spectatorNames</command>
+        <arg choice="plain"><literal>1</literal></arg>
+    </cmdsynopsis>
+</refsection>
+
+<refsection>
+<title>Description</title>
+<para>
+    <command>g_spectatorNames</command>
+    controls whether spectator names are visible to other players.
+</para>
+</refsection>
+
+</refentry>

@@ -1,0 +1,37 @@
+<refentry id="cvar.g_countryflags">
+
+<refmeta>
+    <refentrytitle>g_countryflags</refentrytitle>
+    <manvolnum>cvar</manvolnum>
+</refmeta>
+
+<refnamediv>
+    <refname>g_countryflags</refname>
+    <refpurpose>enables country flag display next to player names</refpurpose>
+</refnamediv>
+
+<refsynopsisdiv>
+    <cmdsynopsis>
+        <command>g_countryflags</command>
+        <arg><replaceable>mode</replaceable></arg>
+    </cmdsynopsis>
+	&boolean.mode;
+</refsynopsisdiv>
+
+<refsection>
+<title>Default</title>
+    <cmdsynopsis>
+        <command>g_countryflags</command>
+        <arg choice="plain"><literal>1</literal></arg>
+    </cmdsynopsis>
+</refsection>
+
+<refsection>
+<title>Description</title>
+<para>
+    <command>g_countryflags</command>
+    enables country flag display next to player names.
+</para>
+</refsection>
+
+</refentry>

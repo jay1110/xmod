@@ -1,0 +1,37 @@
+<refentry id="cvar.g_warnDecay">
+
+<refmeta>
+    <refentrytitle>g_warnDecay</refentrytitle>
+    <manvolnum>cvar</manvolnum>
+</refmeta>
+
+<refnamediv>
+    <refname>g_warnDecay</refname>
+    <refpurpose>enables automatic decay of player warning levels over time</refpurpose>
+</refnamediv>
+
+<refsynopsisdiv>
+    <cmdsynopsis>
+        <command>g_warnDecay</command>
+        <arg><replaceable>mode</replaceable></arg>
+    </cmdsynopsis>
+	&boolean.mode;
+</refsynopsisdiv>
+
+<refsection>
+<title>Default</title>
+    <cmdsynopsis>
+        <command>g_warnDecay</command>
+        <arg choice="plain"><literal>1</literal></arg>
+    </cmdsynopsis>
+</refsection>
+
+<refsection>
+<title>Description</title>
+<para>
+    <command>g_warnDecay</command>
+    enables automatic decay of player warning levels over time.
+</para>
+</refsection>
+
+</refentry>

@@ -1,0 +1,37 @@
+<refentry id="cvar.g_weaponScriptsDir">
+
+<refmeta>
+    <refentrytitle>g_weaponScriptsDir</refentrytitle>
+    <manvolnum>cvar</manvolnum>
+</refmeta>
+
+<refnamediv>
+    <refname>g_weaponScriptsDir</refname>
+    <refpurpose>sets the directory for custom weapon script files</refpurpose>
+</refnamediv>
+
+<refsynopsisdiv>
+    <cmdsynopsis>
+        <command>g_weaponScriptsDir</command>
+        <arg><replaceable>path</replaceable></arg>
+    </cmdsynopsis>
+</refsynopsisdiv>
+
+<refsection>
+<title>Default</title>
+    <cmdsynopsis>
+        <command>g_weaponScriptsDir</command>
+        <arg choice="plain"><literal></literal></arg>
+    </cmdsynopsis>
+</refsection>
+
+<refsection>
+<title>Description</title>
+<para>
+    <command>g_weaponScriptsDir</command>
+    sets the directory for custom weapon script files.
+    An empty value uses the default weapon scripts.
+</para>
+</refsection>
+
+</refentry>

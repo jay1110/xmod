@@ -1,0 +1,37 @@
+<refentry id="cvar.jxac_moduleScan">
+
+<refmeta>
+    <refentrytitle>jxac_moduleScan</refentrytitle>
+    <manvolnum>cvar</manvolnum>
+</refmeta>
+
+<refnamediv>
+    <refname>jxac_moduleScan</refname>
+    <refpurpose>enables JXAC module scanning to detect known cheat modules loaded by clients</refpurpose>
+</refnamediv>
+
+<refsynopsisdiv>
+    <cmdsynopsis>
+        <command>jxac_moduleScan</command>
+        <arg><replaceable>mode</replaceable></arg>
+    </cmdsynopsis>
+	&boolean.mode;
+</refsynopsisdiv>
+
+<refsection>
+<title>Default</title>
+    <cmdsynopsis>
+        <command>jxac_moduleScan</command>
+        <arg choice="plain"><literal>1</literal></arg>
+    </cmdsynopsis>
+</refsection>
+
+<refsection>
+<title>Description</title>
+<para>
+    <command>jxac_moduleScan</command>
+    enables JXAC module scanning to detect known cheat modules loaded by clients.
+</para>
+</refsection>
+
+</refentry>

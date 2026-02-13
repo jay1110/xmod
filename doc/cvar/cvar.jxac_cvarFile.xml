@@ -1,0 +1,36 @@
+<refentry id="cvar.jxac_cvarFile">
+
+<refmeta>
+    <refentrytitle>jxac_cvarFile</refentrytitle>
+    <manvolnum>cvar</manvolnum>
+</refmeta>
+
+<refnamediv>
+    <refname>jxac_cvarFile</refname>
+    <refpurpose>sets the configuration file containing CVAR definitions for JXAC anticheat checks</refpurpose>
+</refnamediv>
+
+<refsynopsisdiv>
+    <cmdsynopsis>
+        <command>jxac_cvarFile</command>
+        <arg><replaceable>"filename"</replaceable></arg>
+    </cmdsynopsis>
+</refsynopsisdiv>
+
+<refsection>
+<title>Default</title>
+    <cmdsynopsis>
+        <command>jxac_cvarFile</command>
+        <arg choice="plain"><literal>jxac/jxac_cvars.cfg</literal></arg>
+    </cmdsynopsis>
+</refsection>
+
+<refsection>
+<title>Description</title>
+<para>
+    <command>jxac_cvarFile</command>
+    sets the configuration file containing CVAR definitions for JXAC anticheat checks.
+</para>
+</refsection>
+
+</refentry>

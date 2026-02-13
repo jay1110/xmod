@@ -1,0 +1,36 @@
+<refentry id="cvar.jxac_screenshotPath">
+
+<refmeta>
+    <refentrytitle>jxac_screenshotPath</refentrytitle>
+    <manvolnum>cvar</manvolnum>
+</refmeta>
+
+<refnamediv>
+    <refname>jxac_screenshotPath</refname>
+    <refpurpose>sets the directory where JXAC anticheat screenshots are saved</refpurpose>
+</refnamediv>
+
+<refsynopsisdiv>
+    <cmdsynopsis>
+        <command>jxac_screenshotPath</command>
+        <arg><replaceable>"path"</replaceable></arg>
+    </cmdsynopsis>
+</refsynopsisdiv>
+
+<refsection>
+<title>Default</title>
+    <cmdsynopsis>
+        <command>jxac_screenshotPath</command>
+        <arg choice="plain"><literal>jxac/screenshots/</literal></arg>
+    </cmdsynopsis>
+</refsection>
+
+<refsection>
+<title>Description</title>
+<para>
+    <command>jxac_screenshotPath</command>
+    sets the directory where JXAC anticheat screenshots are saved.
+</para>
+</refsection>
+
+</refentry>

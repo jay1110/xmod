@@ -1,0 +1,37 @@
+<refentry id="cvar.g_adminChat">
+
+<refmeta>
+    <refentrytitle>g_adminChat</refentrytitle>
+    <manvolnum>cvar</manvolnum>
+</refmeta>
+
+<refnamediv>
+    <refname>g_adminChat</refname>
+    <refpurpose>enables admin chat visibility for privileged players</refpurpose>
+</refnamediv>
+
+<refsynopsisdiv>
+    <cmdsynopsis>
+        <command>g_adminChat</command>
+        <arg><replaceable>mode</replaceable></arg>
+    </cmdsynopsis>
+	&boolean.mode;
+</refsynopsisdiv>
+
+<refsection>
+<title>Default</title>
+    <cmdsynopsis>
+        <command>g_adminChat</command>
+        <arg choice="plain"><literal>1</literal></arg>
+    </cmdsynopsis>
+</refsection>
+
+<refsection>
+<title>Description</title>
+<para>
+    <command>g_adminChat</command>
+    enables admin chat visibility for privileged players.
+</para>
+</refsection>
+
+</refentry>

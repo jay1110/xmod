@@ -1,0 +1,38 @@
+<refentry id="cvar.g_noAttackInvul">
+
+<refmeta>
+    <refentrytitle>g_noAttackInvul</refentrytitle>
+    <manvolnum>cvar</manvolnum>
+</refmeta>
+
+<refnamediv>
+    <refname>g_noAttackInvul</refname>
+    <refpurpose>prevents players from attacking while spawn-invulnerable</refpurpose>
+</refnamediv>
+
+<refsynopsisdiv>
+    <cmdsynopsis>
+        <command>g_noAttackInvul</command>
+        <arg><replaceable>mode</replaceable></arg>
+    </cmdsynopsis>
+	&boolean.mode;
+</refsynopsisdiv>
+
+<refsection>
+<title>Default</title>
+    <cmdsynopsis>
+        <command>g_noAttackInvul</command>
+        <arg choice="plain"><literal>0</literal></arg>
+    </cmdsynopsis>
+</refsection>
+
+<refsection>
+<title>Description</title>
+<para>
+    <command>g_noAttackInvul</command>
+    prevents players from attacking while spawn-invulnerable.
+    When enabled, players lose invulnerability when they fire their weapon.
+</para>
+</refsection>
+
+</refentry>

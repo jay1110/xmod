@@ -1,0 +1,36 @@
+<refentry id="cvar.jxac_screenshotQuality">
+
+<refmeta>
+    <refentrytitle>jxac_screenshotQuality</refentrytitle>
+    <manvolnum>cvar</manvolnum>
+</refmeta>
+
+<refnamediv>
+    <refname>jxac_screenshotQuality</refname>
+    <refpurpose>sets the JPEG quality for anticheat screenshots</refpurpose>
+</refnamediv>
+
+<refsynopsisdiv>
+    <cmdsynopsis>
+        <command>jxac_screenshotQuality</command>
+        <arg><replaceable>quality</replaceable></arg>
+    </cmdsynopsis>
+</refsynopsisdiv>
+
+<refsection>
+<title>Default</title>
+    <cmdsynopsis>
+        <command>jxac_screenshotQuality</command>
+        <arg choice="plain"><literal>85</literal></arg>
+    </cmdsynopsis>
+</refsection>
+
+<refsection>
+<title>Description</title>
+<para>
+    <command>jxac_screenshotQuality</command>
+    sets the JPEG quality for anticheat screenshots. Higher values produce better quality but larger files.
+</para>
+</refsection>
+
+</refentry>

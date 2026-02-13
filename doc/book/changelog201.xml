@@ -1,0 +1,62 @@
+<listitem>
+<simpara>
+    <emphasis role="add">Added:</emphasis>
+    Network Config Strings (NCS) system to overcome engine gamestate size limits on large servers.
+</simpara>
+</listitem>
+
+<listitem>
+<simpara>
+    <emphasis role="add">Added:</emphasis>
+    deferred command system with per-client throttling to prevent reliable command buffer overflow during map changes and client connections.
+</simpara>
+</listitem>
+
+<listitem>
+<simpara>
+    <emphasis role="add">Added:</emphasis>
+    XCS phased sending for incremental delivery of mod data to connecting clients.
+</simpara>
+</listitem>
+
+<listitem>
+<simpara>
+    <emphasis role="add">Added:</emphasis>
+    g_oss CVAR for advertising supported platforms and architectures in the server browser.
+</simpara>
+</listitem>
+
+<listitem>
+<simpara>
+    <emphasis role="add">Added:</emphasis>
+    suppression of false skill and rank upgrade announcements during map changes using deferred CS_PLAYERS sending.
+</simpara>
+</listitem>
+
+<listitem>
+<simpara>
+    <emphasis role="touch">Improved:</emphasis>
+    JXAC forced CVAR enforcement now re-sends corrections silently without flagging as violations.
+</simpara>
+</listitem>
+
+<listitem>
+<simpara>
+    <emphasis role="touch">Improved:</emphasis>
+    JXAC CVAR scanning uses configurable batch sizes and rotating offsets for efficient checking of forced CVARs.
+</simpara>
+</listitem>
+
+<listitem>
+<simpara>
+    <emphasis role="touch">Improved:</emphasis>
+    server stability on large servers by throttling configstring broadcasts and deferred sends.
+</simpara>
+</listitem>
+
+<listitem>
+<simpara>
+    <emphasis role="touch">Improved:</emphasis>
+    documentation updated with all missing CVAR references for xmod-specific and JXAC anticheat settings.
+</simpara>
+</listitem>

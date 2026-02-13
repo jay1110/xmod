@@ -8,7 +8,7 @@
 <para>
     The hitmode system is responsible for detecting bullet-hits on players.
     You might also know it as a <emphasis>hitbox</emphasis> system.
-    As of &project:name; 2.1.0, an entirely new hitmode architecture has been implemented.
+    As of &project:name; 2.0.0, an entirely new hitmode architecture has been implemented.
     I would like to acknowledge that we continue to use contributed code from &zinx:name;
     for server-side player-animation tracking.
 </para>
@@ -57,7 +57,7 @@
         temporary entities from the game engine. The net savings are very significant,
         resulting in more pound-for-pound CPU relief in typical gameplay, even when comparing
         a standing-up player with 7-boxes each in <emphasis>real</emphasis> mode,
-        to 2-boxes each in pre-2.1.0 mode.
+        to 2-boxes each in legacy mode.
     </para>
     </listitem>
 </varlistentry>

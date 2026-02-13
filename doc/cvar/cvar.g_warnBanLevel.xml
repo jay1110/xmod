@@ -1,0 +1,36 @@
+<refentry id="cvar.g_warnBanLevel">
+
+<refmeta>
+    <refentrytitle>g_warnBanLevel</refentrytitle>
+    <manvolnum>cvar</manvolnum>
+</refmeta>
+
+<refnamediv>
+    <refname>g_warnBanLevel</refname>
+    <refpurpose>sets the warning level at which a player is automatically banned</refpurpose>
+</refnamediv>
+
+<refsynopsisdiv>
+    <cmdsynopsis>
+        <command>g_warnBanLevel</command>
+        <arg><replaceable>level</replaceable></arg>
+    </cmdsynopsis>
+</refsynopsisdiv>
+
+<refsection>
+<title>Default</title>
+    <cmdsynopsis>
+        <command>g_warnBanLevel</command>
+        <arg choice="plain"><literal>100</literal></arg>
+    </cmdsynopsis>
+</refsection>
+
+<refsection>
+<title>Description</title>
+<para>
+    <command>g_warnBanLevel</command>
+    sets the warning level at which a player is automatically banned.
+</para>
+</refsection>
+
+</refentry>

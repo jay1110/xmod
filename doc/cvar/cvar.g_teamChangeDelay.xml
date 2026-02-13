@@ -1,0 +1,37 @@
+<refentry id="cvar.g_teamChangeDelay">
+
+<refmeta>
+    <refentrytitle>g_teamChangeDelay</refentrytitle>
+    <manvolnum>cvar</manvolnum>
+</refmeta>
+
+<refnamediv>
+    <refname>g_teamChangeDelay</refname>
+    <refpurpose>sets the delay in seconds before a player can switch teams again</refpurpose>
+</refnamediv>
+
+<refsynopsisdiv>
+    <cmdsynopsis>
+        <command>g_teamChangeDelay</command>
+        <arg><replaceable>seconds</replaceable></arg>
+    </cmdsynopsis>
+</refsynopsisdiv>
+
+<refsection>
+<title>Default</title>
+    <cmdsynopsis>
+        <command>g_teamChangeDelay</command>
+        <arg choice="plain"><literal>0</literal></arg>
+    </cmdsynopsis>
+</refsection>
+
+<refsection>
+<title>Description</title>
+<para>
+    <command>g_teamChangeDelay</command>
+    sets the delay in seconds before a player can switch teams again.
+    A value of <literal>0</literal> disables the delay.
+</para>
+</refsection>
+
+</refentry>

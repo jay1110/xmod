@@ -1,0 +1,37 @@
+<refentry id="cvar.g_userConfig">
+
+<refmeta>
+    <refentrytitle>g_userConfig</refentrytitle>
+    <manvolnum>cvar</manvolnum>
+</refmeta>
+
+<refnamediv>
+    <refname>g_userConfig</refname>
+    <refpurpose>sets the filename of the user database</refpurpose>
+</refnamediv>
+
+<refsynopsisdiv>
+    <cmdsynopsis>
+        <command>g_userConfig</command>
+        <arg><replaceable>filename</replaceable></arg>
+    </cmdsynopsis>
+</refsynopsisdiv>
+
+<refsection>
+<title>Default</title>
+    <cmdsynopsis>
+        <command>g_userConfig</command>
+        <arg choice="plain"><literal>xmod.db</literal></arg>
+    </cmdsynopsis>
+</refsection>
+
+<refsection>
+<title>Description</title>
+<para>
+    <command>g_userConfig</command>
+    sets the filename of the user database.
+    The database stores user levels, XP save data, and other persistent information.
+</para>
+</refsection>
+
+</refentry>

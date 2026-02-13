@@ -1,0 +1,37 @@
+<refentry id="cvar.jxac_antiTamper">
+
+<refmeta>
+    <refentrytitle>jxac_antiTamper</refentrytitle>
+    <manvolnum>cvar</manvolnum>
+</refmeta>
+
+<refnamediv>
+    <refname>jxac_antiTamper</refname>
+    <refpurpose>enables JXAC anti-tamper protection to detect modifications to the client game module</refpurpose>
+</refnamediv>
+
+<refsynopsisdiv>
+    <cmdsynopsis>
+        <command>jxac_antiTamper</command>
+        <arg><replaceable>mode</replaceable></arg>
+    </cmdsynopsis>
+	&boolean.mode;
+</refsynopsisdiv>
+
+<refsection>
+<title>Default</title>
+    <cmdsynopsis>
+        <command>jxac_antiTamper</command>
+        <arg choice="plain"><literal>1</literal></arg>
+    </cmdsynopsis>
+</refsection>
+
+<refsection>
+<title>Description</title>
+<para>
+    <command>jxac_antiTamper</command>
+    enables JXAC anti-tamper protection to detect modifications to the client game module.
+</para>
+</refsection>
+
+</refentry>

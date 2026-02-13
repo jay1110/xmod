@@ -1,0 +1,36 @@
+<refentry id="cvar.jxac_cvarScanMaxWarnings">
+
+<refmeta>
+    <refentrytitle>jxac_cvarScanMaxWarnings</refentrytitle>
+    <manvolnum>cvar</manvolnum>
+</refmeta>
+
+<refnamediv>
+    <refname>jxac_cvarScanMaxWarnings</refname>
+    <refpurpose>sets the maximum number of CVAR scan warnings before a player is kicked or banned</refpurpose>
+</refnamediv>
+
+<refsynopsisdiv>
+    <cmdsynopsis>
+        <command>jxac_cvarScanMaxWarnings</command>
+        <arg><replaceable>count</replaceable></arg>
+    </cmdsynopsis>
+</refsynopsisdiv>
+
+<refsection>
+<title>Default</title>
+    <cmdsynopsis>
+        <command>jxac_cvarScanMaxWarnings</command>
+        <arg choice="plain"><literal>1</literal></arg>
+    </cmdsynopsis>
+</refsection>
+
+<refsection>
+<title>Description</title>
+<para>
+    <command>jxac_cvarScanMaxWarnings</command>
+    sets the maximum number of CVAR scan warnings before a player is kicked or banned.
+</para>
+</refsection>
+
+</refentry>
