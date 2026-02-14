@@ -3179,6 +3179,13 @@ void CG_Init( int serverMessageNum, int serverCommandSequence, int clientNum, qb
 	// Jaybird - Call an authentication request
 	CG_Authenticate();
 
+	// Request NCS/XCS resend from server.
+	// After vid_restart the cgame module is reloaded and all NCS/XCS data is
+	// lost (models, sounds, shaders, etc.), but the server does not call
+	// ClientBegin again. This command tells the server to re-queue the
+	// deferred NCS/XCS sends for this client.
+	trap_SendConsoleCommand( "xmod_request\n" );
+
     // Read in map locations
     locationDB.load();
 
