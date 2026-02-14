@@ -1165,7 +1165,8 @@ static bool G_IsSecondaryWeapon(gclient_t* client, weapon_t weapnum) {
     if (classnum == PC_COVERTOPS) {
         // Allied weapons
         if (weapnum == WP_SILENCED_COLT) {
-            return (teamnum == TEAM_ALLIES);
+            // If player has akimbo skill, reject single pistol so default gives akimbo
+            return (teamnum == TEAM_ALLIES && client->sess.skill[SK_LIGHT_WEAPONS] < 4);
         }
         else if (weapnum == WP_AKIMBO_SILENCEDCOLT) {
             return (client->sess.skill[SK_LIGHT_WEAPONS] >= 4 && teamnum == TEAM_ALLIES);
@@ -1173,7 +1174,8 @@ static bool G_IsSecondaryWeapon(gclient_t* client, weapon_t weapnum) {
 
         // Axis weapons
         if (weapnum == WP_SILENCER) {
-            return (teamnum == TEAM_AXIS);
+            // If player has akimbo skill, reject single pistol so default gives akimbo
+            return (teamnum == TEAM_AXIS && client->sess.skill[SK_LIGHT_WEAPONS] < 4);
         }
         else if (weapnum == WP_AKIMBO_SILENCEDLUGER) {
             return (client->sess.skill[SK_LIGHT_WEAPONS] >= 4 && teamnum == TEAM_AXIS);
@@ -1181,7 +1183,8 @@ static bool G_IsSecondaryWeapon(gclient_t* client, weapon_t weapnum) {
     } else {
         // Allied weapons
         if (weapnum == WP_COLT) {
-            return (teamnum == TEAM_ALLIES);
+            // If player has akimbo skill, reject single pistol so default gives akimbo
+            return (teamnum == TEAM_ALLIES && client->sess.skill[SK_LIGHT_WEAPONS] < 4);
         }
         else if (weapnum == WP_AKIMBO_COLT) {
             return (client->sess.skill[SK_LIGHT_WEAPONS] >= 4 && teamnum == TEAM_ALLIES);
@@ -1189,7 +1192,8 @@ static bool G_IsSecondaryWeapon(gclient_t* client, weapon_t weapnum) {
 
         // Axis weapons
         if (weapnum == WP_LUGER) {
-            return (teamnum == TEAM_AXIS);
+            // If player has akimbo skill, reject single pistol so default gives akimbo
+            return (teamnum == TEAM_AXIS && client->sess.skill[SK_LIGHT_WEAPONS] < 4);
         }
         else if (weapnum == WP_AKIMBO_LUGER) {
             return (client->sess.skill[SK_LIGHT_WEAPONS] >= 4 && teamnum == TEAM_AXIS);
