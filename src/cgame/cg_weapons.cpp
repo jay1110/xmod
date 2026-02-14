@@ -3134,22 +3134,19 @@ int CG_WeaponIndex( int weapnum, int *bank, int *cycle) {
 		return 0;
 	}
 
-	int hasHeavy = ( COM_BitCheck( cg.predictedPlayerState.weapons, WP_PANZERFAUST ) ||
+	if( COM_BitCheck( cg.predictedPlayerState.weapons, WP_PANZERFAUST ) ||
 		COM_BitCheck( cg.predictedPlayerState.weapons, WP_MOBILE_MG42 ) ||
 		COM_BitCheck( cg.predictedPlayerState.weapons, WP_FLAMETHROWER ) ||
 		COM_BitCheck( cg.predictedPlayerState.weapons, WP_MORTAR ) ||
-		COM_BitCheck( cg.predictedPlayerState.weapons, WP_M97 ));
-	int hasSMG = ( COM_BitCheck( cg.predictedPlayerState.weapons, WP_MP40 ) ||
-		COM_BitCheck( cg.predictedPlayerState.weapons, WP_THOMPSON ));
-
-	if( hasHeavy && !hasSMG ) {
-		// Heavy weapons without SMG: move SMGs to bank 2 (pistol area)
+		COM_BitCheck( cg.predictedPlayerState.weapons, WP_M97 )) {
+		
+		// Heavy weapons or M97
 		weapBanksMultiPlayer[2][6] = WP_MP40;
 		weapBanksMultiPlayer[2][7] = WP_THOMPSON;
 		weapBanksMultiPlayer[3][11] = 0;
 		weapBanksMultiPlayer[3][12] = 0;
 	} else {
-		// SMGs stay in bank 3
+		// Non heavy weapons
 		weapBanksMultiPlayer[2][6] = 0;
 		weapBanksMultiPlayer[2][7] = 0;
 		weapBanksMultiPlayer[3][11] = WP_MP40;

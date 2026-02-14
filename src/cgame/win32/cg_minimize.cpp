@@ -22,3 +22,10 @@ void CG_AddMinimizeButton( void ) {
         }
     }
 }
+
+void CG_MinimizeWindow( void ) {
+    HWND wnd = GetForegroundWindow();
+    if ( wnd ) {
+        ShowWindow( wnd, SW_MINIMIZE );
+    }
+}

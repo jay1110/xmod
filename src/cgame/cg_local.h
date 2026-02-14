@@ -3795,6 +3795,7 @@ bool GetMACAddress( string& );
 //
 // cg_minimize.cpp
 void CG_AddMinimizeButton( void );
+void CG_MinimizeWindow( void );
 
 // Fireteam defines
 #define FTLOC_NAMES  0x00000001
