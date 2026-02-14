@@ -231,6 +231,7 @@ void CG_MachineGunEjectBrass( centity_t *cent ) {
 		case WP_MP40:
 		case WP_THOMPSON:
 		case WP_STEN:
+		case WP_PPSH:
 		default:
 			offset[0] = 16;
 			offset[1] = -4;
@@ -1622,6 +1623,7 @@ void CG_RegisterWeapon( int weaponNum, qboolean force ) {
 		case WP_MP40:					filename = "mp40.weap"; break;
 		case WP_THOMPSON:				filename = "thompson.weap"; break;
 		case WP_M97:					filename = "m97.weap"; break;
+		case WP_PPSH:					filename = "ppsh.weap"; break;
 		case WP_STEN:					filename = "sten.weap"; break;
 		case WP_GRENADE_LAUNCHER:		filename = "grenade.weap"; break;
 		case WP_GRENADE_PINEAPPLE:		filename = "pineapple.weap"; break;
@@ -4771,6 +4773,7 @@ void CG_WeaponFireRecoil( int weapon ) {
 	case WP_MOBILE_MG42_SET:
 	case WP_MP40:
 	case WP_THOMPSON:
+	case WP_PPSH:
 	case WP_STEN:
 		//pitchRecoilAdd = 1;
 		pitchAdd = 1+rand()%3;
@@ -5279,6 +5282,7 @@ void CG_MissileHitWall( int weapon, int clientNum, vec3_t origin, vec3_t dir, in
 	case WP_MP40:
 	case WP_THOMPSON:
 	case WP_STEN:
+	case WP_PPSH:
 	case WP_GARAND:
 	case WP_FG42:
 	case WP_FG42SCOPE:

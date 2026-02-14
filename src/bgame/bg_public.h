@@ -1040,6 +1040,7 @@ typedef enum {
 	WP_LANDMINE_PGAS,		// 55 - poison gas
 	WP_MOLOTOV,	        	// 56 - molotov cocktail
 	WP_BOMB,				// 57 - bomb (like red smoke bomb, explodes like dynamite)
+	WP_PPSH,				// 58
 
 	WP_NUM_WEAPONS			// WolfMP: 32 WolfXP: 50
 							// NOTE: this cannot be larger than 64 for AI/player weapons!
@@ -1128,7 +1129,8 @@ extern int weapAlts[];	// defined in bg_misc.c
 				weapon==WP_FG42		|| weapon==WP_K43			|| weapon==WP_MOBILE_MG42	|| \
 				weapon==WP_SILENCED_COLT	|| weapon==WP_SILENCER		|| \
 				weapon==WP_GARAND	|| weapon==WP_K43_SCOPE		|| weapon==WP_FG42SCOPE		|| \
-				BG_IsAkimboWeapon(weapon) || weapon==WP_MOBILE_MG42_SET \
+				BG_IsAkimboWeapon(weapon) || weapon==WP_MOBILE_MG42_SET || \
+				weapon==WP_PPSH \
 			)
 
 // entityState_t->event values
@@ -1426,6 +1428,7 @@ typedef enum extWeaponStats_s
     WS_GOOMBA,              // 26
     WS_MOLOTOV,             // 27 // molotov cocktail
 	WS_BOMB,				// 28 // bomb
+	WS_PPSH,				// 29
 
 	WS_MAX
 } extWeaponStats_t;
@@ -1534,6 +1537,9 @@ typedef enum {
 	MOD_POISON_GAS,
 	MOD_MOLOTOV,
 	MOD_BOMB,
+
+	// nick
+	MOD_PPSH,
 
     MOD_SHOVED,
 

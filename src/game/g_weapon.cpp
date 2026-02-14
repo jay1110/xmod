@@ -3508,7 +3508,8 @@ int G_GetWeaponDamage( int weapon ) {
 		case WP_AKIMBO_COLT:
 		case WP_AKIMBO_SILENCEDCOLT: 
 		case WP_THOMPSON: 
-		case WP_MP40: 
+		case WP_MP40:
+		case WP_PPSH:
 		case WP_MOBILE_MG42: 
 		case WP_MOBILE_MG42_SET:
 			return 18;
@@ -3610,6 +3611,8 @@ float G_GetWeaponSpread( int weapon ) {
 #define STEN_SPREAD		G_GetWeaponSpread(WP_STEN)
 #define	STEN_DAMAGE		G_GetWeaponDamage(WP_STEN) // JPW
 #define	M97_DAMAGE		G_GetWeaponDamage(WP_M97)	// Jaybird
+#define PPSH_SPREAD		G_GetWeaponSpread(WP_PPSH)
+#define	PPSH_DAMAGE		G_GetWeaponDamage(WP_PPSH)
 
 #define GARAND_SPREAD	G_GetWeaponSpread(WP_GARAND)
 #define	GARAND_DAMAGE	G_GetWeaponDamage(WP_GARAND) // JPW
@@ -4827,6 +4830,9 @@ void FireWeapon( gentity_t *ent ) {
 		break;
 	case WP_THOMPSON:
 		Bullet_Fire( ent, THOMPSON_SPREAD*aimSpreadScale, THOMPSON_DAMAGE, qtrue );
+		break;
+	case WP_PPSH:
+		Bullet_Fire(ent, PPSH_SPREAD * aimSpreadScale, PPSH_DAMAGE, qtrue);
 		break;
 	case WP_M97:
 		Weapon_M97( ent );

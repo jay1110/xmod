@@ -4449,6 +4449,7 @@ static void G_LuaRegisterConstants(lua_State* L)
     lua_regconstinteger(L, WP_POISON_SYRINGE);
     lua_regconstinteger(L, WP_ADRENALINE_SHARE);
     lua_regconstinteger(L, WP_M97);
+    lua_regconstinteger(L, WP_PPSH);
     lua_regconstinteger(L, WP_POISON_GAS);
     lua_regconstinteger(L, WP_LANDMINE_BBETTY);
     lua_regconstinteger(L, WP_LANDMINE_PGAS);

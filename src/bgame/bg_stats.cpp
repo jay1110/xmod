@@ -84,6 +84,7 @@ static const weap_ws_convert_t aWeapID[WP_NUM_WEAPONS] = {
 	{ WP_LANDMINE_PGAS,			WS_POISON_GAS		},
 	{ WP_MOLOTOV,		    	WS_MOLOTOV  		},
 	{ WP_BOMB,					WS_BOMB				},
+	{ WP_PPSH,					WS_PPSH				},
 };
 
 

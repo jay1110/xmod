@@ -54,6 +54,7 @@ namespace objects {
     Cvar bg_maxMortars       ( "cg_maxMortars",       "-1", CVAR_ROM );
     Cvar bg_maxGrenLaunchers ( "cg_maxGrenLaunchers", "-1", CVAR_ROM );
     Cvar bg_maxM97s          ( "cg_maxM97s",          "-1", CVAR_ROM );
+    Cvar bg_maxPPSHs         ( "cg_maxPPSHs",         "-1", CVAR_ROM );
 
     Cvar bg_sk5_battle    ( "cg_sk5_battle",    "0", CVAR_ROM );
     Cvar bg_sk5_lightweap ( "cg_sk5_lightweap", "0", CVAR_ROM );

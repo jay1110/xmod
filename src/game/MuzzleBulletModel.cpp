@@ -84,6 +84,7 @@ MuzzleBulletModel::adjustStartPoint( vec3_t start )
         case WP_MP40:     VectorSet( muzzleOffset, 23.375000f, 0.234375f, 2.843750f ); break;
         case WP_THOMPSON: VectorSet( muzzleOffset, 20.078125f, 0.234375f, 3.390625f ); break;
         case WP_STEN:     VectorSet( muzzleOffset, 19.734375f, 1.156250f, 1.843750f ); break;
+        case WP_PPSH:     VectorSet( muzzleOffset, 20.078125f, 0.234375f, 3.390625f ); break; //TODO
 
         default:
             // If we do not explicitly support weapon then do nothing for default ET-SDK behavior.

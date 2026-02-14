@@ -94,7 +94,7 @@ int weapBanksMultiPlayer[MAX_WEAP_BANKS_MP][MAX_WEAPS_IN_BANK_MP] = {
 	{0,						0,						0,					0,							0,						0,							0,			0,			0,			0,		0,				0,			0,			0,			0			},	// empty bank '0'
 	{WP_KNIFE,				0,						0,					0,							0,						0,							0,			0,			0,			0,		0,				0,			0,			0,			0			},
 	{WP_LUGER,				WP_COLT,				WP_AKIMBO_COLT,		WP_AKIMBO_LUGER,			WP_AKIMBO_SILENCEDCOLT,	WP_AKIMBO_SILENCEDLUGER,	0,			0,			0,			0,		0,				0,			0,			0,			0			},
-	{WP_PANZERFAUST,		WP_FLAMETHROWER,		WP_MOBILE_MG42,		WP_MORTAR,					WP_GARAND,				WP_CARBINE,					WP_STEN,	WP_FG42,	WP_K43,		WP_KAR98,	WP_M97,		WP_MP40,	WP_THOMPSON,0,			0			},	// Jaybird - rearranged so SMG can be modified on-the-fly
+	{WP_PANZERFAUST,		WP_FLAMETHROWER,		WP_MOBILE_MG42,		WP_MORTAR,					WP_GARAND,				WP_CARBINE,					WP_STEN,	WP_FG42,	WP_K43,		WP_KAR98,	WP_M97,		WP_MP40,	WP_THOMPSON,WP_PPSH,	0			},	// Jaybird - rearranged so SMG can be modified on-the-fly
 	{WP_GRENADE_LAUNCHER,	WP_GRENADE_PINEAPPLE,	WP_BOMB,			WP_MOLOTOV,					WP_POISON_SYRINGE,		0,							0,			0,			0,			0,		0,				0,			0,			0,			0			},
 	{WP_MEDIC_SYRINGE,		WP_PLIERS,				WP_SMOKE_MARKER,	WP_SMOKE_BOMB,				WP_POISON_GAS,			0,							0,			0,			0,			0,		0,				0,			0,			0,			0			},
 	{WP_DYNAMITE,			WP_MEDKIT,				WP_AMMO,			WP_SATCHEL,					WP_SATCHEL_DET,			0,							0,			0,			0,			0,		0,				0,			0,			0,			0			},
@@ -111,7 +111,7 @@ int reloadableWeapons[] = {
 	WP_KAR98,		WP_CARBINE,		WP_FG42,			WP_K43,					WP_MOBILE_MG42,			WP_COLT,
 	WP_LUGER,		WP_MORTAR,		WP_AKIMBO_COLT,		WP_AKIMBO_LUGER,		WP_M7,					WP_GPG40,
 	WP_AKIMBO_SILENCEDCOLT, WP_AKIMBO_SILENCEDLUGER,	WP_KNIFE,				WP_M97,                 WP_MOLOTOV,
-	-1 
+	WP_PPSH,		-1,
 };
 
 // [0] = maxammo		-	max player ammo carrying capacity.
@@ -209,6 +209,7 @@ ammotable_t ammoTableMP[WP_NUM_WEAPONS] = {
 	{	1,				0,		1,		0,		1,		100,	DELAY_LOW,		100,	0,		0,		MOD_POISON_GAS			},	// WP_LANDMINE_PGAS			// 55
 	{	3,				1,		3,		0,		3,		0,  	DELAY_THROW,	0,	    0,		0,		MOD_MOLOTOV 			},	// WP_MOLOTOV   			// 56
 	{	1,				1,		1,		0,		1,		1000,	DELAY_THROW,	1600,	0,		0,		MOD_BOMB				},	// WP_BOMB					// 57
+	{	90,				1,		30,		30,		30,		2400,	DELAY_LOW,		150,	0,		0,		MOD_PPSH				},	// WP_PPSH					// 58
 };
 
 //----(SA)	moved in here so both games can get to it
@@ -276,6 +277,7 @@ int weapAlts[] = {
 	WP_NONE,			// 55 WP_LANDMINE_PGAS
 	WP_NONE,			// 56 WP_MOLOTOV
 	WP_NONE,			// 57 WP_BOMB
+	WP_NONE,			// 58 WP_PPSH
 };
 
 
@@ -1018,6 +1020,30 @@ model="models/weapons2/m97/m97.md3"
 		"",					// precache
 		"",					// sounds
 //		{0,0,0,0,0}
+	},
+
+/*QUAKED weapon_ppsh (.3 .3 1) (-16 -16 -16) (16 16 16) suspended
+-------- MODEL FOR RADIANT ONLY - DO NOT SET THIS AS A KEY --------
+model="models/weapons2/ppsh/ppsh.md3"
+*/
+	{
+		"weapon_ppsh",
+		"sound/misc/w_pkup.wav",
+		{
+			"models/weapons2/ppsh/ppsh.md3",
+			"models/weapons2/ppsh/v_ppsh.md3",
+			0
+		},
+		"icons/iconw_ppsh_1",
+		"icons/ammo2",
+		"PPSH",
+		30,
+		IT_WEAPON,
+		WP_PPSH,
+		WP_PPSH,
+		WP_PPSH,
+		"",
+		"",
 	},
 
 	{
@@ -3027,6 +3053,7 @@ qboolean BG_WeaponInWolfMP( int weapon ) {
 	case WP_LUGER:
 	case WP_M7:
 	case WP_M97:
+	case WP_PPSH:
 	case WP_MEDIC_ADRENALINE:
 	case WP_MEDIC_SYRINGE:
 	case WP_MEDKIT:
@@ -3321,6 +3348,7 @@ qboolean BG_CanUseWeapon(int classNum, int teamNum, weapon_t weapon) {
 				case WP_LANDMINE_BBETTY:
 				case WP_LANDMINE_PGAS:
 				case WP_M97:
+				case WP_PPSH:
 				case WP_PLIERS:
 					return qtrue;
 
@@ -3341,6 +3369,7 @@ qboolean BG_CanUseWeapon(int classNum, int teamNum, weapon_t weapon) {
 			switch (weapon) {
 				case WP_STEN:
 				case WP_M97:
+				case WP_PPSH:
 					return qtrue;
 
 				case WP_MP40:
@@ -3359,6 +3388,7 @@ qboolean BG_CanUseWeapon(int classNum, int teamNum, weapon_t weapon) {
 				case WP_FG42:
 				case WP_FLAMETHROWER:
 				case WP_M97:
+				case WP_PPSH:
 				case WP_MOBILE_MG42:
 				case WP_MOBILE_MG42_SET:
 				case WP_MORTAR:
@@ -3381,6 +3411,7 @@ qboolean BG_CanUseWeapon(int classNum, int teamNum, weapon_t weapon) {
 		case PC_MEDIC:		
 			switch (weapon) {
 				case WP_M97:
+				case WP_PPSH:
 				case WP_MEDIC_SYRINGE:
 				case WP_MEDKIT:
 				case WP_POISON_SYRINGE:
@@ -4770,6 +4801,7 @@ int BG_MaxAmmoForWeapon( weapon_t weaponNum, int *skill ) {
 			break;
 		case WP_MP40:
 		case WP_THOMPSON:
+		case WP_PPSH:
 		case WP_M97:
 			if( skill[SK_FIRST_AID] >= 1 || skill[SK_LIGHT_WEAPONS] >= 1 )
 				return( GetAmmoTableData(weaponNum)->maxammo + GetAmmoTableData(weaponNum)->maxclip );

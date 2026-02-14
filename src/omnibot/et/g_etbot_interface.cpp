@@ -561,6 +561,8 @@ static int _weaponBotToGame(int weapon)
 		return WP_LANDMINE_BBETTY;
 	case 80:
 		return WP_LANDMINE_PGAS;
+	case 81:
+		return WP_PPSH;
 	default:
 		return WP_NONE;
 	}
@@ -666,6 +668,8 @@ int Bot_WeaponGameToBot(int weapon)
 		return 79;
 	case WP_LANDMINE_PGAS:
 		return 80;
+	case WP_PPSH:
+		return 81;
 	default:
 		return ET_WP_NONE;
 	}

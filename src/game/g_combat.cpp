@@ -368,6 +368,7 @@ char *modNames[] =
 	"MOD_FEAR",
 	"MOD_REFLECTED_FF",
 	"MOD_M97",
+	"MOD_PPSH",
 	"MOD_POISON_GAS",
 	"MOD_MOLOTOV",
 

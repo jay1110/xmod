@@ -609,6 +609,7 @@ toString( weapon_t type, string& out )
         case WP_LUGER:                 out = "LUGER";                 return out;
         case WP_M7:                    out = "M7";                    return out;
         case WP_M97:                   out = "M97";                   return out;
+        case WP_PPSH:                  out = "PPSH";                  return out;
         case WP_MAPMORTAR:             out = "MAPMORTAR";             return out;
         case WP_MEDIC_ADRENALINE:      out = "MEDIC_ADRENALINE";      return out;
         case WP_MEDIC_SYRINGE:         out = "MEDIC_SYRINGE";         return out;

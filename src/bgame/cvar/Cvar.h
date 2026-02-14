@@ -73,6 +73,7 @@ namespace objects {
     extern Cvar bg_maxMortars;
     extern Cvar bg_maxGrenLaunchers;
     extern Cvar bg_maxM97s;
+    extern Cvar bg_maxPPSHs;
 
     extern Cvar bg_sk5_battle;
     extern Cvar bg_sk5_cvops;

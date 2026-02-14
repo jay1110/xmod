@@ -230,6 +230,11 @@ void CG_ParseOIDInfo( int num ) {
 		Q_strncpyz( cgs.oidInfo[ index ].name, cs, sizeof( cgs.oidInfo[ 0 ].name ) );
 	}
 
+	cs = Info_ValueForKey( info, "K" );
+	if( cs && *cs ) {
+		Q_strncpyz( cgs.oidInfo[ index ].name, cs, sizeof( cgs.oidInfo[ 0 ].name ) );
+	}
+
 	cs = Info_ValueForKey( info, "x" );
 	if( cs && *cs ) {
 		cgs.oidInfo[ index ].origin[0] = atoi( cs );
@@ -299,6 +304,7 @@ void CG_ParseXmodinfo( void) {
 	cvars::bg_maxGrenLaunchers.set ( Info_ValueForKey( info, "l" ));
 	cvars::bg_maxFlamers.set       ( Info_ValueForKey( info, "m" ));
 	cvars::bg_maxM97s.set          ( Info_ValueForKey( info, "n" ));
+	cvars::bg_maxPPSHs.set         ( Info_ValueForKey( info, "K" ));
 
     // Skill-5 cvar propagation.
     cvars::bg_sk5_battle.set    ( Info_ValueForKey( info, "o" ));
@@ -351,6 +357,8 @@ void CG_ParseXmodinfo2( void) {
     cvars::bg_jxacModuleScan.set  ( Info_ValueForKey( info, "H" ));
     cvars::bg_jxacAntiTamper.set  ( Info_ValueForKey( info, "I" ));
     cvars::bg_jxacSpeedhack.set   ( Info_ValueForKey( info, "J" ));
+
+	// "K" is taken
 }
 
 /*
@@ -366,13 +374,21 @@ static void CG_ParseWeaponScript( int weapon, const char* info ) {
         return;
     }
 
-    // Parse name
+    // Parse M97
     val = Info_ValueForKey( info, "n" );
     if ( val[0] ) {
         Q_strncpyz( cgs.weaponScripts[weapon].name, val, sizeof(cgs.weaponScripts[weapon].name) );
     } else {
         cgs.weaponScripts[weapon].name[0] = '\0';
     }
+
+	// Parse PPSH
+	val = Info_ValueForKey( info, "K" );
+	if ( val[0] ) {
+		Q_strncpyz( cgs.weaponScripts[weapon].name, val, sizeof(cgs.weaponScripts[weapon].name) );
+	} else {
+		cgs.weaponScripts[weapon].name[0] = '\0';
+	}
 
     // Parse killMessage
     val = Info_ValueForKey( info, "k" );
