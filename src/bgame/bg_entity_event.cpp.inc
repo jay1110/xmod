@@ -134,4 +134,5 @@
     "EV_GLOBAL_TEAM_SOUND",
     "EV_FALL_MEDIUM",
 	"EV_M97",
+	"EV_PPSH",
 	"EV_BONK",

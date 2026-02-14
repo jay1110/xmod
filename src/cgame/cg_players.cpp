@@ -2875,7 +2875,8 @@ weaponType_t weaponTypes[] = {
 	{ WP_SILENCER,				"LUGER",		},
 	{ WP_AKIMBO_SILENCEDCOLT,	"AKIMBO COLTS",	},
 	{ WP_AKIMBO_SILENCEDLUGER,	"AKIMBO LUGERS",},
-	{ WP_M97,					"M97",		},
+	{ WP_M97,					"M97",			},
+	{ WP_PPSH,					"PPSH",			},
 	{ WP_NONE,					NULL,			},
 	{ (weapon_t)-1,				NULL,			},
 };

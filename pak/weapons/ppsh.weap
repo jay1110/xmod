@@ -1,0 +1,45 @@
+weaponDef {
+	client {
+		standModel			"models/weapons2/ppsh/ppsh_stand.mdc"
+		pickupModel			"models/weapons2/ppsh/ppsh_3rd.md3"
+
+		weaponConfig		"models/weapons2/ppsh/weapon.cfg"
+		handsModel			"models/weapons2/ppsh/v_ppsh_hand.mdc"
+
+		flashDlightColor	1.0 0.6 0.23
+		flashSound			"sound/weapons/ppsh/ppsh_fire.wav"
+
+		reloadSound		    "sound/weapons/ppsh/ppsh_reload.wav"
+		reloadFastSound		"sound/weapons/ppsh/ppsh_reload_fast.wav"
+
+		weaponIcon		    "icons/iconw_ppsh_1"
+		weaponSelectedIcon	"icons/iconw_ppsh_1_select"
+
+		ejectBrassFunc		"MachineGunEjectBrass"
+
+		firstPerson {
+			model			"models/weapons2/ppsh/v_ppsh.md3"
+			flashModel		"models/weapons2/ppsh/v_ppsh_flash.mdc"
+
+			weaponLink {
+				part 0 {
+					tag		"tag_barrel"
+					model	"models/weapons2/ppsh/v_ppsh_barrel.mdc" //TODO: why it doesn't exist?
+				}
+				part 1 {
+					tag		"tag_barrel2"
+					model	"models/weapons2/ppsh/v_ppsh_barrel2.md3"
+				}
+				part 2 {
+					tag		"tag_barrel3"
+					model	"models/weapons2/ppsh/v_ppsh_barrel3.mdc"
+				}
+			}
+		}
+
+		thirdPerson {
+			model			"models/weapons2/ppsh/ppsh_3rd.md3"
+			flashmodel		"models/weapons2/ppsh/ppsh_flash.mdc"
+		}
+	}
+}

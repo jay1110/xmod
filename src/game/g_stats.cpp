@@ -422,6 +422,7 @@ void G_AddKillSkillPoints( gentity_t *attacker, meansOfDeath_t mod, hitRegion_t 
 		case MOD_AKIMBO_LUGER:
 		case MOD_AKIMBO_SILENCEDCOLT:
 		case MOD_AKIMBO_SILENCEDLUGER:
+		case MOD_PPSH:
 		case MOD_M97:
 			switch( hr ) {
 				case HR_HEAD:	G_AddSkillPoints( attacker, SK_LIGHT_WEAPONS, damagexp ? 1.f : 5.f ); G_DebugAddSkillPoints( attacker, SK_LIGHT_WEAPONS, damagexp ? 1.f : 5.f, "headshot kill" ); break;

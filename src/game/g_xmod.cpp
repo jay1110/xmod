@@ -729,6 +729,7 @@ void G_ClassStealFixWeapons(gentity_t* stealer, gentity_t* deadguy)
 	COM_BitClear(stealer->client->ps.weapons, WP_MP40);
 	COM_BitClear(stealer->client->ps.weapons, WP_THOMPSON);
 	COM_BitClear(stealer->client->ps.weapons, WP_M97);
+	COM_BitClear(stealer->client->ps.weapons, WP_PPSH);
 	
     // Heavy weapons
 	COM_BitClear(stealer->client->ps.weapons, WP_PANZERFAUST);
@@ -1231,7 +1232,9 @@ static void G_BuildXmodCS( char* cs, int csSize, char* cs2, int cs2Size ) {
     Com_sprintf(val_buf, sizeof(val_buf), "%d", cvars::bg_maxFlamers.ivalue);
     Info_SetValueForKey( cs, "m", val_buf );
     Com_sprintf(val_buf, sizeof(val_buf), "%d", cvars::bg_maxM97s.ivalue);
-    Info_SetValueForKey( cs, "n", val_buf );
+	Info_SetValueForKey( cs, "n", val_buf );
+	Com_sprintf(val_buf, sizeof(val_buf), "%d", cvars::bg_maxPPSHs.ivalue);
+	Info_SetValueForKey(cs, "K", val_buf);
 
     // Skill-5 cvars
     Info_SetValueForKey( cs, "o", cvars::bg_sk5_battle.svalue );
@@ -1276,6 +1279,8 @@ static void G_BuildXmodCS( char* cs, int csSize, char* cs2, int cs2Size ) {
     Info_SetValueForKey( cs2, "H", cvars::g_jxacModuleScan.svalue );      // Module scan enabled
     Info_SetValueForKey( cs2, "I", cvars::g_jxacAntiTamper.svalue );      // Anti-tamper enabled
     Info_SetValueForKey( cs2, "J", cvars::g_jxacCheckSpeedhack.svalue );  // Speedhack check enabled
+
+	// "K" is taken!!! (shit code -> shit fixes)
 }
 
 void G_UpdateXmodCS() {
@@ -1991,6 +1996,7 @@ int G_SkillForMOD( int wp ) {
 		case MOD_GRENADE_LAUNCHER:
 		case MOD_GRENADE_PINEAPPLE:
 		case MOD_SMOKEGRENADE:
+		case MOD_PPSH:
 		case MOD_M97:
 			return SK_LIGHT_WEAPONS;
 		case MOD_MOBILE_MG42:
@@ -2207,6 +2213,7 @@ qboolean IsReflectable( int mod ) {
 	case MOD_SMOKEGRENADE:
 	case MOD_POISON_SYRINGE:
 	case MOD_THROWING_KNIFE:
+	case MOD_PPSH:
     case MOD_M97:
 		return qtrue;
 	}

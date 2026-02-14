@@ -60,6 +60,7 @@ void CG_CheckAmmo( void ) {
 			case WP_K43:
 			case WP_MORTAR_SET:
 			case WP_M97:
+			case WP_PPSH:
 			default:
 				total += cg.snap->ps.ammo[BG_FindAmmoForWeapon( (weapon_t)i )] * 1000;
 				break;

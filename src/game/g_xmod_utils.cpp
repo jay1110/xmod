@@ -190,6 +190,7 @@ char* G_WeaponNumToStr(weapon_t weapon) {
 		case WP_STEN:					return "sten";
 		case WP_THOMPSON:				return "thompson";
         case WP_M97:                    return "M97";
+        case WP_PPSH:                   return "PPSH";
         case WP_MOLOTOV:                return "molotov cocktail";
 		case WP_BOMB:					return "bomb";
 

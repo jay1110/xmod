@@ -1252,6 +1252,30 @@ qboolean G_IsWeaponDisabled( gentity_t* ent, weapon_t weapon, qboolean quiet ) {
 		    }
         }
 		break;
+	case WP_PPSH:
+		if (!(cvars::bg_weaponsenable.ivalue & WPEN_PPSH)) {
+			if (!quiet) {
+				CP("cp \"^7Sorry, but ^1PPSHs ^7are not enabled on this server.");
+			}
+			return qtrue;
+		}
+		if (cvars::bg_maxPPSHs.ivalue == -1) {
+			return qfalse;
+		}
+		if (BG_IsPercent(cvars::bg_maxPPSHs.svalue)) {
+			int percent = cvars::bg_maxPPSHs.ivalue;
+			if (wcount >= ceil(count * percent * 0.01f)) {
+				return qtrue;
+			}
+		} else {
+			if (wcount >= cvars::bg_maxPPSHs.ivalue) {
+				if (!quiet) {
+					CP(va("cp \"%s %s%s\" 1", msg1, "PPSH", msg2));
+				}
+				return qtrue;
+			}
+		}
+		break;
 	default:
 		break;
 	}

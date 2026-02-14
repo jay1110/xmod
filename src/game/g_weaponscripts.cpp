@@ -70,6 +70,7 @@ static const char* weaponFilenames[WP_NUM_WEAPONS] = {
     "poison",                  // WP_POISON_SYRINGE
     "adrenaline_share",        // WP_ADRENALINE_SHARE
     "m97",                     // WP_M97
+    "ppsh",                    // WP_PPSH
     "poison_gas",              // WP_POISON_GAS
     "landmine_bbetty",         // WP_LANDMINE_BBETTY
     "landmine_pgas",           // WP_LANDMINE_PGAS

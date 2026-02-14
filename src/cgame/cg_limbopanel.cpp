@@ -2649,6 +2649,7 @@ void CG_LimboPanel_GetWeaponCardIconData( weapon_t weap, qhandle_t* shader, floa
 		case WP_MP40:
 		case WP_STEN:
 		case WP_THOMPSON:
+		case WP_PPSH:
 			*shader = cgs.media.limboWeaponCard1;
 			break;
 
@@ -3067,6 +3068,23 @@ qboolean CG_LimboPanel_RealWeaponIsDisabled( weapon_t weap ) {
 
             percent = BG_IsPercent(cvars::bg_maxM97s.svalue);
 			count = cvars::bg_maxM97s.ivalue;
+			break;
+
+		case WP_PPSH:
+			if (!(cvars::bg_weaponsenable.ivalue & WPEN_PPSH)) {
+				return qtrue;
+			}
+
+			if (cvars::bg_maxPPSHs.ivalue < 0) {
+				break;
+			}
+
+			if (cvars::bg_maxPPSHs.ivalue == 0) {
+				return qtrue;
+			}
+
+			percent = BG_IsPercent(cvars::bg_maxPPSHs.svalue);
+			count = cvars::bg_maxPPSHs.ivalue;
 			break;
 
 		case WP_PANZERFAUST:

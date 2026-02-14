@@ -836,6 +836,7 @@ static void AddExtraSpawnAmmo( gclient_t *client, weapon_t weaponNum)
 			break;
 		case WP_MP40:
 		case WP_THOMPSON:
+		case WP_PPSH:
 		case WP_M97:
 			if( (client->sess.skill[SK_FIRST_AID] >= 1 && client->sess.playerType == PC_MEDIC) || client->sess.skill[SK_LIGHT_WEAPONS] >= 1 ) {
 				client->ps.ammo[BG_FindAmmoForWeapon(weaponNum)] += GetAmmoTableData(weaponNum)->maxclip;
@@ -1065,6 +1066,8 @@ static bool G_IsPrimaryWeapon(int classnum, team_t teamnum, weapon_t weapnum) {
 			return (teamnum == TEAM_AXIS);
 		case WP_THOMPSON:
 			return (teamnum == TEAM_ALLIES);
+		case WP_PPSH:
+			return true;
 		default:
 			break;
 		}

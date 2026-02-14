@@ -452,6 +452,11 @@ static void CG_Obituary( entityState_t *ent ) {
 			message2 = "'s M97";
 			break;
 
+		case MOD_PPSH:
+			message = "was killed by";
+			message2 = "'s PPSH";
+			break;
+
 		case MOD_STEN:
 			message = "was killed by";
 			message2 = "'s Sten";
@@ -3167,6 +3172,10 @@ void CG_EntityEvent( centity_t *cent, vec3_t position ) {
         DEBUGNAME("EV_M97");
         CG_M97Fire(es);
         break;
+
+	case EV_PPSH:
+		DEBUGNAME("EV_PPSH"); //TODO
+		break;
 
     case EV_BONK:
         DEBUGNAME("EV_BONK");

@@ -3368,6 +3368,9 @@ void PM_AdjustAimSpreadScale( void ) {
 	case WP_M97:
 		wpnScale = 0.6f;
 		break;
+	case WP_PPSH:
+		wpnScale = 0.6f;
+		break;
 	case WP_STEN:
 		wpnScale = 0.6f;
 		break;
@@ -4600,6 +4603,7 @@ static void PM_Weapon( void ) {
 		case WP_MOBILE_MG42:
 		case WP_MOBILE_MG42_SET:
 		case WP_LOCKPICK:
+		case WP_PPSH:
 		case WP_M97:
 			if(!weaponstateFiring) {
 				pm->ps->weaponDelay = GetAmmoTableData(pm->ps->weapon)->fireDelayTime;
@@ -4903,6 +4907,7 @@ static void PM_Weapon( void ) {
 		case WP_MOLOTOV:
 		case WP_TRIPMINE:
 		case WP_SMOKE_BOMB:
+		case WP_PPSH:
 		case WP_M97:
 		case WP_POISON_GAS:
 		case WP_BOMB:
@@ -5090,6 +5095,7 @@ static void PM_Weapon( void ) {
 
 	case WP_MP40:
 	case WP_THOMPSON:
+	case WP_PPSH:
 	case WP_M97:
 		addTime = GetAmmoTableData(pm->ps->weapon)->nextShotTime;
 		aimSpreadScaleAdd = 15+rand()%10;	// (SA) new values for DM

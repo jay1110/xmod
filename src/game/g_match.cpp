@@ -357,6 +357,7 @@ static const mod_ws_convert_t aWeapMOD[MOD_NUM_MODS] = {
 	{ MOD_POISON_SYRINGE,		WS_POISON_SYRINGE },
 	{ MOD_THROWING_KNIFE,		WS_THROWING_KNIFE },
 	{ MOD_M97,					WS_M97 },
+	{ MOD_PPSH,					WS_PPSH },
 	{ MOD_POISON_GAS,			WS_POISON_GAS },
     { MOD_GOOMBA,               WS_GOOMBA },
     { MOD_MOLOTOV,              WS_MOLOTOV },

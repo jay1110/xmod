@@ -53,6 +53,7 @@ namespace objects {
     Cvar bg_maxMortars      ( "team_maxMortars",  "-1", CVAR_XMODINFO );
     Cvar bg_maxGrenLaunchers( "team_maxGrenLaunchers", "-1", CVAR_XMODINFO );
     Cvar bg_maxM97s         ( "team_maxM97s",     "-1", CVAR_XMODINFO );
+    Cvar bg_maxPPSHs        ( "team_maxPPSHs",    "-1", CVAR_XMODINFO );
 
     Cvar bg_sk5_battle    ( "g_sk5_battle",    "1",    CVAR_XMODINFO );
     Cvar bg_sk5_lightweap ( "g_sk5_lightweap", "1",    CVAR_XMODINFO );
