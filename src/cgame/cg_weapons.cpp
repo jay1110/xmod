@@ -3140,7 +3140,7 @@ int CG_WeaponIndex( int weapnum, int *bank, int *cycle) {
 		COM_BitCheck( cg.predictedPlayerState.weapons, WP_MORTAR ) ||
 		COM_BitCheck( cg.predictedPlayerState.weapons, WP_M97 )) {
 		
-		// Heavy weapons or M97
+		// Heavy weapons or M97: move SMGs to bank 2 (pistol area)
 		weapBanksMultiPlayer[2][6] = WP_MP40;
 		weapBanksMultiPlayer[2][7] = WP_THOMPSON;
 		weapBanksMultiPlayer[3][11] = 0;
