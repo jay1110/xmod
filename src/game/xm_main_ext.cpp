@@ -225,6 +225,16 @@ qboolean OnClientCommand(int clientNum, const char* cmd) {
 		return qtrue;
 	}
 
+	// Handle xmod_request command - client requests NCS/XCS resend
+	// This is needed after vid_restart: the cgame module is reloaded and all
+	// NCS/XCS data is lost, but the server doesn't call ClientBegin again.
+	if (Q_stricmp(cmd, "xmod_request") == 0) {
+		if (clientNum >= 0 && clientNum < MAX_CLIENTS) {
+			G_SendXmodCS( clientNum );
+		}
+		return qtrue;
+	}
+
 	// Handle old "auth" command (legacy MAC/version check) - silently ignore
 	// This command is sent by CG_Authenticate() and is no longer needed
 	// We handle it here to prevent "unknown cmd auth" warnings
