@@ -4,18 +4,19 @@ on:
   push:
     branches:
       - main
-      - master
       - develop
+      - 'feature/**'
+      - 'fix/**'
+      - 'copilot/**'
   pull_request:
-    types: [opened, synchronize, reopened]
     branches:
       - main
-      - master
       - develop
   workflow_dispatch:
 
 permissions:
-  contents: write
+  contents: read
+
 
 jobs:
   build-linux64:
