@@ -1131,6 +1131,23 @@ static bool G_IsPrimaryWeapon(int classnum, team_t teamnum, weapon_t weapnum) {
     return false;
 }
 
+static weapon_t G_DefaultSecondaryWeapon(gclient_t* client) {
+    int classnum = client->sess.playerType;
+    team_t teamnum = client->sess.sessionTeam;
+
+    if (classnum == PC_COVERTOPS) {
+        if (client->sess.skill[SK_LIGHT_WEAPONS] >= 4) {
+            return (teamnum == TEAM_AXIS) ? WP_AKIMBO_SILENCEDLUGER : WP_AKIMBO_SILENCEDCOLT;
+        }
+        return (teamnum == TEAM_AXIS) ? WP_SILENCER : WP_SILENCED_COLT;
+    }
+
+    if (client->sess.skill[SK_LIGHT_WEAPONS] >= 4) {
+        return (teamnum == TEAM_AXIS) ? WP_AKIMBO_LUGER : WP_AKIMBO_COLT;
+    }
+    return (teamnum == TEAM_AXIS) ? WP_LUGER : WP_COLT;
+}
+
 static bool G_IsSecondaryWeapon(gclient_t* client, weapon_t weapnum) {
     int classnum = client->sess.playerType;
     team_t teamnum = client->sess.sessionTeam;
@@ -1148,7 +1165,8 @@ static bool G_IsSecondaryWeapon(gclient_t* client, weapon_t weapnum) {
     if (classnum == PC_COVERTOPS) {
         // Allied weapons
         if (weapnum == WP_SILENCED_COLT) {
-            return (teamnum == TEAM_ALLIES);
+            // If player has akimbo skill, reject single pistol so default gives akimbo
+            return (teamnum == TEAM_ALLIES && client->sess.skill[SK_LIGHT_WEAPONS] < 4);
         }
         else if (weapnum == WP_AKIMBO_SILENCEDCOLT) {
             return (client->sess.skill[SK_LIGHT_WEAPONS] >= 4 && teamnum == TEAM_ALLIES);
@@ -1156,7 +1174,8 @@ static bool G_IsSecondaryWeapon(gclient_t* client, weapon_t weapnum) {
 
         // Axis weapons
         if (weapnum == WP_SILENCER) {
-            return (teamnum == TEAM_AXIS);
+            // If player has akimbo skill, reject single pistol so default gives akimbo
+            return (teamnum == TEAM_AXIS && client->sess.skill[SK_LIGHT_WEAPONS] < 4);
         }
         else if (weapnum == WP_AKIMBO_SILENCEDLUGER) {
             return (client->sess.skill[SK_LIGHT_WEAPONS] >= 4 && teamnum == TEAM_AXIS);
@@ -1164,7 +1183,8 @@ static bool G_IsSecondaryWeapon(gclient_t* client, weapon_t weapnum) {
     } else {
         // Allied weapons
         if (weapnum == WP_COLT) {
-            return (teamnum == TEAM_ALLIES);
+            // If player has akimbo skill, reject single pistol so default gives akimbo
+            return (teamnum == TEAM_ALLIES && client->sess.skill[SK_LIGHT_WEAPONS] < 4);
         }
         else if (weapnum == WP_AKIMBO_COLT) {
             return (client->sess.skill[SK_LIGHT_WEAPONS] >= 4 && teamnum == TEAM_ALLIES);
@@ -1172,7 +1192,8 @@ static bool G_IsSecondaryWeapon(gclient_t* client, weapon_t weapnum) {
 
         // Axis weapons
         if (weapnum == WP_LUGER) {
-            return (teamnum == TEAM_AXIS);
+            // If player has akimbo skill, reject single pistol so default gives akimbo
+            return (teamnum == TEAM_AXIS && client->sess.skill[SK_LIGHT_WEAPONS] < 4);
         }
         else if (weapnum == WP_AKIMBO_LUGER) {
             return (client->sess.skill[SK_LIGHT_WEAPONS] >= 4 && teamnum == TEAM_AXIS);
@@ -1212,13 +1233,26 @@ qboolean _SetSoldierSpawnWeapons(gclient_t *client)
 		AddWeaponToPlayer(client, WP_MORTAR_SET, GetAmmoTableData(WP_MORTAR_SET)->defaultStartingAmmo, GetAmmoTableData(WP_MORTAR_SET)->defaultStartingClip, qfalse);
 	}
 
+    // g_dualSMG: Give SMGs if enabled
+    if (g_dualSMG.integer & DUALSMG_ENABLE) {
+        if (w == WP_MP40 || w == WP_THOMPSON) {
+            // Primary is an SMG, give the other one
+            weapon_t otherSMG = (w == WP_MP40) ? WP_THOMPSON : WP_MP40;
+            AddWeaponToPlayer(client, otherSMG, GetAmmoTableData(otherSMG)->defaultStartingAmmo, GetAmmoTableData(otherSMG)->defaultStartingClip, qfalse);
+        } else {
+            // Primary is a heavy weapon, give team SMG as secondary
+            weapon_t teamSMG = (client->sess.sessionTeam == TEAM_AXIS) ? WP_MP40 : WP_THOMPSON;
+            AddWeaponToPlayer(client, teamSMG, GetAmmoTableData(teamSMG)->defaultStartingAmmo, GetAmmoTableData(teamSMG)->defaultStartingClip, qfalse);
+        }
+    }
+
     // Get secondary weapon if not panzerwar
     if (!cvars::bg_panzerWar.ivalue) {
         weapon_t w2 = (weapon_t)client->sess.latchPlayerWeapon2;
 
         // Make sure they can use it
         if (!G_IsSecondaryWeapon(client, w2)) {
-            w2 = (client->sess.sessionTeam == TEAM_AXIS) ? WP_LUGER : WP_COLT;
+            w2 = G_DefaultSecondaryWeapon(client);
         }
 
         // Add ammo for akimbos
@@ -1266,10 +1300,17 @@ qboolean _SetMedicSpawnWeapons(gclient_t *client)
     // Add the primary weapon
 	AddWeaponToPlayer(client, w, 0, GetAmmoTableData(w)->defaultStartingClip, qtrue);
 
-    // g_dualSMG: Give both SMGs if enabled and primary is MP40/Thompson
-    if ((g_dualSMG.integer & DUALSMG_ENABLE) && (w == WP_MP40 || w == WP_THOMPSON)) {
-        weapon_t otherSMG = (w == WP_MP40) ? WP_THOMPSON : WP_MP40;
-        AddWeaponToPlayer(client, otherSMG, 0, GetAmmoTableData(otherSMG)->defaultStartingClip, qfalse);
+    // g_dualSMG: Give SMGs if enabled
+    if (g_dualSMG.integer & DUALSMG_ENABLE) {
+        if (w == WP_MP40 || w == WP_THOMPSON) {
+            // Primary is an SMG, give the other one
+            weapon_t otherSMG = (w == WP_MP40) ? WP_THOMPSON : WP_MP40;
+            AddWeaponToPlayer(client, otherSMG, 0, GetAmmoTableData(otherSMG)->defaultStartingClip, qfalse);
+        } else {
+            // Primary is not an SMG, give team SMG as secondary
+            weapon_t teamSMG = (client->sess.sessionTeam == TEAM_AXIS) ? WP_MP40 : WP_THOMPSON;
+            AddWeaponToPlayer(client, teamSMG, 0, GetAmmoTableData(teamSMG)->defaultStartingClip, qfalse);
+        }
     }
 
     // Give another clip for M97
@@ -1280,7 +1321,7 @@ qboolean _SetMedicSpawnWeapons(gclient_t *client)
 
     // Make sure they can use it
     if (!G_IsSecondaryWeapon(client, w2)) {
-        w2 = (client->sess.sessionTeam == TEAM_AXIS) ? WP_LUGER : WP_COLT;
+        w2 = G_DefaultSecondaryWeapon(client);
     }
 
     // Add ammo for akimbos
@@ -1319,10 +1360,17 @@ qboolean _SetEngineerSpawnWeapons(gclient_t *client)
     // Add the primary weapon
 	AddWeaponToPlayer(client, w, GetAmmoTableData(w)->defaultStartingAmmo, GetAmmoTableData(w)->defaultStartingClip, qtrue);
 
-    // g_dualSMG: Give both SMGs if enabled and primary is MP40/Thompson
-    if ((g_dualSMG.integer & DUALSMG_ENABLE) && (w == WP_MP40 || w == WP_THOMPSON)) {
-        weapon_t otherSMG = (w == WP_MP40) ? WP_THOMPSON : WP_MP40;
-        AddWeaponToPlayer(client, otherSMG, GetAmmoTableData(otherSMG)->defaultStartingAmmo, GetAmmoTableData(otherSMG)->defaultStartingClip, qfalse);
+    // g_dualSMG: Give SMGs if enabled
+    if (g_dualSMG.integer & DUALSMG_ENABLE) {
+        if (w == WP_MP40 || w == WP_THOMPSON) {
+            // Primary is an SMG, give the other one
+            weapon_t otherSMG = (w == WP_MP40) ? WP_THOMPSON : WP_MP40;
+            AddWeaponToPlayer(client, otherSMG, GetAmmoTableData(otherSMG)->defaultStartingAmmo, GetAmmoTableData(otherSMG)->defaultStartingClip, qfalse);
+        } else {
+            // Primary is not an SMG, give team SMG as secondary
+            weapon_t teamSMG = (client->sess.sessionTeam == TEAM_AXIS) ? WP_MP40 : WP_THOMPSON;
+            AddWeaponToPlayer(client, teamSMG, GetAmmoTableData(teamSMG)->defaultStartingAmmo, GetAmmoTableData(teamSMG)->defaultStartingClip, qfalse);
+        }
     }
 
     // Add secondaries
@@ -1338,7 +1386,7 @@ qboolean _SetEngineerSpawnWeapons(gclient_t *client)
 
     // Make sure they can use it
     if (!G_IsSecondaryWeapon(client, w2)) {
-        w2 = (client->sess.sessionTeam == TEAM_AXIS) ? WP_LUGER : WP_COLT;
+        w2 = G_DefaultSecondaryWeapon(client);
     }
 
     // Add ammo for akimbos
@@ -1377,10 +1425,17 @@ qboolean _SetFieldOpSpawnWeapons(gclient_t *client)
     // Add the primary weapon
 	AddWeaponToPlayer(client, w, GetAmmoTableData(w)->defaultStartingAmmo, GetAmmoTableData(w)->defaultStartingClip, qtrue);
 
-    // g_dualSMG: Give both SMGs if enabled and primary is MP40/Thompson
-    if ((g_dualSMG.integer & DUALSMG_ENABLE) && (w == WP_MP40 || w == WP_THOMPSON)) {
-        weapon_t otherSMG = (w == WP_MP40) ? WP_THOMPSON : WP_MP40;
-        AddWeaponToPlayer(client, otherSMG, GetAmmoTableData(otherSMG)->defaultStartingAmmo, GetAmmoTableData(otherSMG)->defaultStartingClip, qfalse);
+    // g_dualSMG: Give SMGs if enabled
+    if (g_dualSMG.integer & DUALSMG_ENABLE) {
+        if (w == WP_MP40 || w == WP_THOMPSON) {
+            // Primary is an SMG, give the other one
+            weapon_t otherSMG = (w == WP_MP40) ? WP_THOMPSON : WP_MP40;
+            AddWeaponToPlayer(client, otherSMG, GetAmmoTableData(otherSMG)->defaultStartingAmmo, GetAmmoTableData(otherSMG)->defaultStartingClip, qfalse);
+        } else {
+            // Primary is not an SMG, give team SMG as secondary
+            weapon_t teamSMG = (client->sess.sessionTeam == TEAM_AXIS) ? WP_MP40 : WP_THOMPSON;
+            AddWeaponToPlayer(client, teamSMG, GetAmmoTableData(teamSMG)->defaultStartingAmmo, GetAmmoTableData(teamSMG)->defaultStartingClip, qfalse);
+        }
     }
 
     // Get secondary weapon
@@ -1388,7 +1443,7 @@ qboolean _SetFieldOpSpawnWeapons(gclient_t *client)
 
     // Make sure they can use it
     if (!G_IsSecondaryWeapon(client, w2)) {
-        w2 = (client->sess.sessionTeam == TEAM_AXIS) ? WP_LUGER : WP_COLT;
+        w2 = G_DefaultSecondaryWeapon(client);
     }
 
     // Add ammo for akimbos
@@ -1465,8 +1520,9 @@ qboolean _SetCovertSpawnWeapons(gclient_t *client)
 
         // Make sure they can use it
     if (!G_IsSecondaryWeapon(client, w2)) {
-        w2 = (client->sess.sessionTeam == TEAM_AXIS) ? WP_SILENCER : WP_SILENCED_COLT;
-        w3 = (client->sess.sessionTeam == TEAM_AXIS) ? WP_LUGER : WP_COLT;
+        w2 = G_DefaultSecondaryWeapon(client);
+        if (!BG_IsAkimboWeapon(w2))
+            w3 = (client->sess.sessionTeam == TEAM_AXIS) ? WP_LUGER : WP_COLT;
     }
 
 

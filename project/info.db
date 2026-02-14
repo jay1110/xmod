@@ -9,7 +9,7 @@ irc       =
 
 versionMajor = 2
 versionMinor = 0
-versionPoint = 1
+versionPoint = 2
 
 buildDate    = enable
 buildRelease = false

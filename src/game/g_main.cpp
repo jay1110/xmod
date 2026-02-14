@@ -298,6 +298,9 @@ vmCvar_t        g_canisterKickDistance;
 // Dual SMG
 vmCvar_t        g_dualSMG;
 
+// Pick any weapon
+vmCvar_t        g_pickAnyWeapon;
+
 // Damage weapons (shoot to destroy)
 vmCvar_t        g_damageweapons;
 
@@ -435,6 +438,9 @@ cvarTable_t		gameCvarTable[] = {
 
     // Dual SMG
     { &g_dualSMG,           "g_dualSMG",            "0",        CVAR_ARCHIVE },
+
+    // Pick any weapon
+    { &g_pickAnyWeapon,     "g_pickAnyWeapon",      "0",        CVAR_ARCHIVE },
 
     // Damage weapons (shoot to destroy)
     { &g_damageweapons,     "g_damageweapons",      "0",        CVAR_ARCHIVE },

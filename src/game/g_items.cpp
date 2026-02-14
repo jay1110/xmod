@@ -468,9 +468,8 @@ qboolean G_CanHaveDualSMG( gentity_t* ent ) {
 		return qfalse;
 	}
 	
-	// Cannot be used by CovertOps or Soldiers
-	if (ent->client->sess.playerType == PC_COVERTOPS || 
-	    ent->client->sess.playerType == PC_SOLDIER) {
+	// Cannot be used by CovertOps
+	if (ent->client->sess.playerType == PC_COVERTOPS) {
 		return qfalse;
 	}
 	
@@ -501,9 +500,36 @@ qboolean G_HasDualSMG( gentity_t* ent ) {
 	return qfalse;
 }
 
+/*
+================
+G_HasHeavyWeapon
+Check if the player currently has a heavy weapon
+================
+*/
+static qboolean G_HasHeavyWeapon( gentity_t* ent ) {
+	if (!ent || !ent->client) {
+		return qfalse;
+	}
+	
+	if (COM_BitCheck(ent->client->ps.weapons, WP_PANZERFAUST) ||
+	    COM_BitCheck(ent->client->ps.weapons, WP_FLAMETHROWER) ||
+	    COM_BitCheck(ent->client->ps.weapons, WP_MOBILE_MG42) ||
+	    COM_BitCheck(ent->client->ps.weapons, WP_MORTAR) ||
+	    COM_BitCheck(ent->client->ps.weapons, WP_M97)) {
+		return qtrue;
+	}
+	return qfalse;
+}
+
 qboolean G_CanPickupWeapon( weapon_t weapon, gentity_t* ent ) {
 	weapon_t originalWeapon = weapon;
 	
+	// g_pickAnyWeapon: Skip class restriction but still respect weapon restriction settings
+	if (g_pickAnyWeapon.integer) {
+		if (G_IsWeaponDisabled(ent, weapon, qtrue)) return qfalse;
+		return qtrue;
+	}
+
 	if( ent->client->sess.sessionTeam == TEAM_AXIS ) {
 		if( weapon == WP_THOMPSON ) {
 			weapon = WP_MP40;
@@ -532,7 +558,8 @@ qboolean G_CanPickupWeapon( weapon_t weapon, gentity_t* ent ) {
 	if (G_IsWeaponDisabled(ent, weapon, qtrue)) return qfalse;
 	
 	// Check if this is an SMG and player can have dual SMG
-	if ((originalWeapon == WP_MP40 || originalWeapon == WP_THOMPSON) && G_CanHaveDualSMG(ent)) {
+	// Only allow dual SMG pickup when player does NOT have a heavy weapon
+	if ((originalWeapon == WP_MP40 || originalWeapon == WP_THOMPSON) && G_CanHaveDualSMG(ent) && !G_HasHeavyWeapon(ent)) {
 		// If they already have one SMG, they can pick up the other
 		qboolean hasMP40 = COM_BitCheck(ent->client->ps.weapons, WP_MP40);
 		qboolean hasThompson = COM_BitCheck(ent->client->ps.weapons, WP_THOMPSON);
@@ -632,7 +659,8 @@ int Pickup_Weapon( gentity_t *ent, gentity_t *other ) {
 			qboolean isDualSMGPickup = qfalse;
 			
 			// Check if this is a dual SMG pickup (picking up second SMG without dropping first)
-			if ((pickupWeapon == WP_MP40 || pickupWeapon == WP_THOMPSON) && G_CanHaveDualSMG(other)) {
+			// Only allow when player does NOT have a heavy weapon
+			if ((pickupWeapon == WP_MP40 || pickupWeapon == WP_THOMPSON) && G_CanHaveDualSMG(other) && !G_HasHeavyWeapon(other)) {
 				qboolean hasMP40 = COM_BitCheck(other->client->ps.weapons, WP_MP40);
 				qboolean hasThompson = COM_BitCheck(other->client->ps.weapons, WP_THOMPSON);
 				
@@ -836,10 +864,10 @@ void Touch_Item_Auto( gentity_t *ent, gentity_t *other, trace_t *trace )
 				allowAutoPickup = qtrue;
 			} else if (ent->item->giTag == WP_BINOCULARS) {
 				allowAutoPickup = qtrue;
-			} else if ((ent->item->giTag == WP_MP40 || ent->item->giTag == WP_THOMPSON) && G_CanHaveDualSMG(other) &&
+			} else if ((ent->item->giTag == WP_MP40 || ent->item->giTag == WP_THOMPSON) && G_CanHaveDualSMG(other) && !G_HasHeavyWeapon(other) &&
 				((ent->item->giTag == WP_MP40 && COM_BitCheck(other->client->ps.weapons, WP_THOMPSON)) ||
 				 (ent->item->giTag == WP_THOMPSON && COM_BitCheck(other->client->ps.weapons, WP_MP40)))) {
-				// Allow auto-pickup of second SMG for dual SMG feature
+				// Allow auto-pickup of second SMG for dual SMG feature (only without heavy weapon)
 				allowAutoPickup = qtrue;
 			}
 			

@@ -3134,24 +3134,11 @@ int CG_WeaponIndex( int weapnum, int *bank, int *cycle) {
 		return 0;
 	}
 
-	if( COM_BitCheck( cg.predictedPlayerState.weapons, WP_PANZERFAUST ) ||
-		COM_BitCheck( cg.predictedPlayerState.weapons, WP_MOBILE_MG42 ) ||
-		COM_BitCheck( cg.predictedPlayerState.weapons, WP_FLAMETHROWER ) ||
-		COM_BitCheck( cg.predictedPlayerState.weapons, WP_MORTAR ) ||
-		COM_BitCheck( cg.predictedPlayerState.weapons, WP_M97 )) {
-		
-		// Heavy weapons or M97
-		weapBanksMultiPlayer[2][6] = WP_MP40;
-		weapBanksMultiPlayer[2][7] = WP_THOMPSON;
-		weapBanksMultiPlayer[3][11] = 0;
-		weapBanksMultiPlayer[3][12] = 0;
-	} else {
-		// Non heavy weapons
-		weapBanksMultiPlayer[2][6] = 0;
-		weapBanksMultiPlayer[2][7] = 0;
-		weapBanksMultiPlayer[3][11] = WP_MP40;
-		weapBanksMultiPlayer[3][12] = WP_THOMPSON;
-	}
+	// SMGs always stay in bank 3
+	weapBanksMultiPlayer[2][6] = 0;
+	weapBanksMultiPlayer[2][7] = 0;
+	weapBanksMultiPlayer[3][11] = WP_MP40;
+	weapBanksMultiPlayer[3][12] = WP_THOMPSON;
 
 	for(bnk = 0; bnk < MAX_WEAP_BANKS_MP; bnk++) {
 		for(cyc = 0; cyc < MAX_WEAPS_IN_BANK_MP; cyc++) {
@@ -6443,10 +6430,9 @@ static void CG_M97Pattern( vec3_t origin, vec3_t origin2, int seed, int otherEnt
 	    CG_Trace( &tr,  origin, NULL, NULL, end, otherEntNum, MASK_SHOT );
 	    CG_Trace( &tr2, origin, NULL, NULL, end, otherEntNum, MASK_WATER | MASK_SHOT );
 
-        if (VectorLength(tr.endpos) != VectorLength(tr2.endpos)) {
-            vec3_t v;
-            VectorSubtract( tr.endpos, origin, v );
-            //waterfraction = (8192 * tr2.fraction) / VectorLength( v );
+        // Water trace hit a surface earlier than the wall trace - bullet passed through water
+        // Use 0.01f epsilon to avoid false positives from floating-point imprecision
+        if (tr2.fraction < tr.fraction - 0.01f) {
             waterfraction = tr2.fraction / tr.fraction;
         }
 
