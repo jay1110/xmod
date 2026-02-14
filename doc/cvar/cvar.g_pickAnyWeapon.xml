@@ -1,0 +1,48 @@
+<refentry id="cvar.g_pickAnyWeapon">
+
+<refmeta>
+    <refentrytitle>g_pickAnyWeapon</refentrytitle>
+    <manvolnum>cvar</manvolnum>
+</refmeta>
+
+<refnamediv>
+    <refname>g_pickAnyWeapon</refname>
+    <refpurpose>allow players to pick up any weapon regardless of class</refpurpose>
+</refnamediv>
+
+<refsynopsisdiv>
+    <cmdsynopsis>
+        <command>g_pickAnyWeapon</command>
+        <arg><replaceable>mode</replaceable></arg>
+    </cmdsynopsis>
+	&boolean.mode;
+</refsynopsisdiv>
+
+<refsection>
+<title>Default</title>
+    <cmdsynopsis>
+        <command>g_pickAnyWeapon</command>
+        <arg choice="plain"><literal>0</literal></arg>
+    </cmdsynopsis>
+</refsection>
+
+<refsection>
+<title>Description</title>
+<para>
+    <command>g_pickAnyWeapon</command>
+    allows players to pick up any weapon on the ground, no matter what class
+    they are playing. Players must use the activate key to pick up weapons;
+    auto-pickup is not enabled. Some weapons may still be unavailable due to
+    weapon restriction settings.
+</para>
+</refsection>
+
+<refsection>
+<title>See Also</title>
+<para>
+    <xref linkend="cvar.g_weapons"/>,
+    <xref linkend="cvar.g_weaponsenable"/>
+</para>
+</refsection>
+
+</refentry>
