@@ -12,7 +12,7 @@ versionMinor = 0
 versionPoint = 2
 
 buildDate    = enable
-buildRelease = false
+buildRelease = enable
 
 repoURL    = disable
 repoUUID   = enable
