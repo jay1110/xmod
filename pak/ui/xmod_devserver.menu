@@ -104,11 +104,11 @@ menuDef
     // Connect / Zurück
     BUTTON( SUBWINDOW_X+6, SUBWINDOW_Y+SUBWINDOW_HEIGHT-26,
             .5*(SUBWINDOW_WIDTH-18), 18,
-            "^7YES", .3, 14,
+            "YES", .3, 14,
             close xmod_devserver ; exec "connect etclan.de:27965" )
 
     BUTTON( SUBWINDOW_X+6+.5*(SUBWINDOW_WIDTH-18)+6, SUBWINDOW_Y+SUBWINDOW_HEIGHT-26,
             .5*(SUBWINDOW_WIDTH-18), 18,
-            "^7NO", .3, 14,
+            "NO", .3, 14,
             close xmod_devserver ; open xmod_options )
 }
