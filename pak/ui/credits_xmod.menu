@@ -63,7 +63,7 @@ menuDef {
 		name		"headerDevTeam"
 		group		GROUP_NAME
 		rect		6 $evalfloat(CREDITS_Y) $evalfloat(WINDOW_WIDTH-12) 12
-		text		"Development Team"
+		text		"EXXTREM TERROR CLAN"
 		textfont	UI_FONT_ARIBLK_16
 		textstyle	ITEM_TEXTSTYLE_SHADOWED
 		textscale	.25
@@ -76,75 +76,14 @@ menuDef {
 	}
 
 
-	LABELWHITE( (0.5*WINDOW_WIDTH)-100, CREDITS_Y+18, 200, 12, "^xJay^4bird", .25, ITEM_ALIGN_CENTER, 100, 8 )
-	LABELWHITE( (0.5*WINDOW_WIDTH)-100, CREDITS_Y+30, 200, 10, "Project Lead", .2, ITEM_ALIGN_CENTER, 100, 8 )
+	LABELWHITE( (0.5*WINDOW_WIDTH)-100, CREDITS_Y+18, 200, 12, "Developed by:", .25, ITEM_ALIGN_CENTER, 100, 8 )
+	LABELWHITE( (0.5*WINDOW_WIDTH)-100, CREDITS_Y+30, 200, 10, "^7ET^uc|^f#.^dJa^4y^9.#", .3, ITEM_ALIGN_CENTER, 100, 8 )
+	LABELWHITE( (0.5*WINDOW_WIDTH)-100, CREDITS_Y+42, 200, 10, "ETc|nick", .3, ITEM_ALIGN_CENTER, 100, 8 )
+	LABELWHITE( (0.5*WINDOW_WIDTH)-100, CREDITS_Y+64, 300, 12, "^dXMOD^7: is a fork of ^xJAY^4MOD", .25, ITEM_ALIGN_CENTER, 100, 8 )
+	LABELWHITE( (0.5*WINDOW_WIDTH)-100, CREDITS_Y+76, 300, 12, "^7With additional features.", .25, ITEM_ALIGN_CENTER, 100, 8 )
+    LABELWHITE( (0.5*WINDOW_WIDTH)-100, CREDITS_Y+88, 350, 12, "^7Full details you can find at ^3etclan.de/xmod", .25, ITEM_ALIGN_CENTER, 100, 8 )
+    LABELWHITE( (0.5*WINDOW_WIDTH)-100, CREDITS_Y+100, 390, 12, "^7report bugs and features requests to ^3discord.etclan.de", .25, ITEM_ALIGN_CENTER, 100, 8 )
 
-	LABELWHITE( (0.5*WINDOW_WIDTH)-100, CREDITS_Y+50, 200, 12, "^BMr^P.^GMxyzptlk", .25, ITEM_ALIGN_CENTER, 100, 8 )
-	LABELWHITE( (0.5*WINDOW_WIDTH)-100, CREDITS_Y+62, 200, 10, "Programmer/Build-system", .2, ITEM_ALIGN_CENTER, 100, 8 )
-
-// Contributors //
-
-#define CONTRIB_Y	CREDITS_Y + 62 + 40
-
-	itemDef {
-		name		"headerContrib"
-		group		GROUP_NAME
-		rect		6 $evalfloat(CONTRIB_Y) $evalfloat(WINDOW_WIDTH-12) 12
-		text		"Contributors"
-		textfont	UI_FONT_ARIBLK_16
-		textstyle	ITEM_TEXTSTYLE_SHADOWED
-		textscale	.25
-		textalign	ITEM_ALIGN_CENTER
-		textalignx	$evalfloat(.5*(WINDOW_WIDTH-12))
-		textaligny	10
-		forecolor	1 1 1 1
-		visible		1
-		decoration
-	}
-
-	// Meyer
-	LABELWHITE( 0, CONTRIB_Y+18, .5*(WINDOW_WIDTH), 10, "^>S.S.Meyerinchains^7:", .2, ITEM_ALIGN_RIGHT, .5*(WINDOW_WIDTH), 8 )
-	LABELWHITE( 0, CONTRIB_Y+18, .5*(WINDOW_WIDTH), 10, "Winchester M97 model", .2, ITEM_ALIGN_LEFT, .5*(WINDOW_WIDTH) + 10, 8 )
-
-	// Omni-bot
-	LABELWHITE( 0, CONTRIB_Y+30, .5*(WINDOW_WIDTH), 10, "Dr.Evil & Magik:", .2, ITEM_ALIGN_RIGHT, .5*(WINDOW_WIDTH), 8 )
-	LABELWHITE( 0, CONTRIB_Y+30, .5*(WINDOW_WIDTH), 10, "Omni-bot integration", .2, ITEM_ALIGN_LEFT, .5*(WINDOW_WIDTH) + 10, 8 )
-
-	// Snipey
-	LABELWHITE( 0, CONTRIB_Y+42, .5*(WINDOW_WIDTH), 10, "^7[JOT$] Snipey^7:", .2, ITEM_ALIGN_RIGHT, .5*(WINDOW_WIDTH), 8 )
-	LABELWHITE( 0, CONTRIB_Y+42, .5*(WINDOW_WIDTH), 10, "Winchester M97 sounds", .2, ITEM_ALIGN_LEFT, .5*(WINDOW_WIDTH) + 10, 8 )
-
-	// Frazee
-	LABELWHITE( 0, CONTRIB_Y+54, .5*(WINDOW_WIDTH), 10, "^7JohnFrazee:", .2, ITEM_ALIGN_RIGHT, .5*(WINDOW_WIDTH), 8 )
-	LABELWHITE( 0, CONTRIB_Y+54, .5*(WINDOW_WIDTH), 10, "^xJay^4mod^7 logo", .2, ITEM_ALIGN_LEFT, .5*(WINDOW_WIDTH) + 10, 8 )
-
-// Special Thanks //
-#define THANKS_Y	CONTRIB_Y + 54 + 40
-
-	itemDef {
-		name		"headerSpecialThanks"
-		group		GROUP_NAME
-		rect		6 $evalfloat(THANKS_Y) $evalfloat(WINDOW_WIDTH-12) 12
-		text		"Special Thanks To:"
-		textfont	UI_FONT_ARIBLK_16
-		textstyle	ITEM_TEXTSTYLE_SHADOWED
-		textscale	.25
-		textalign	ITEM_ALIGN_CENTER
-		textalignx	$evalfloat(.5*(WINDOW_WIDTH-12))
-		textaligny	14
-		forecolor	1 1 1 1
-		visible		1
-		decoration
-	}
-
-	LABELWHITE( 6, THANKS_Y+18, WINDOW_WIDTH-12, 8, "-First and foremost, Jaybird would like to thank his wife for her patience", .2, ITEM_ALIGN_LEFT, (.5*(WINDOW_WIDTH-440)), 8)
-	LABELWHITE( 6, THANKS_Y+30, WINDOW_WIDTH-12, 8, " with him from the onset of this project.  Love you, Bernadette.", .2, ITEM_ALIGN_LEFT, (.5*(WINDOW_WIDTH-440)), 8 )
-	LABELWHITE( 6, THANKS_Y+42, WINDOW_WIDTH-12, 8, "-The ^iC^ylan ^iF^yU^7 community for their tolerance, encouragement, and appreciation.", .2, ITEM_ALIGN_LEFT, (.5*(WINDOW_WIDTH-440)), 8 )
-	LABELWHITE( 6, THANKS_Y+54, WINDOW_WIDTH-12, 8, "-All the regulars at the ^xJay^4mod^7 forums for their inspiration and loyalty.", .2, ITEM_ALIGN_LEFT, (.5*(WINDOW_WIDTH-440)), 8 )
-	LABELWHITE( 6, THANKS_Y+66, WINDOW_WIDTH-12, 8, "-^fTechsurance^7.com for graciously hosting the ^xJay^4mod^7 website.", .2, ITEM_ALIGN_LEFT, (.5*(WINDOW_WIDTH-440)), 8 )
-	LABELWHITE( 6, THANKS_Y+78, WINDOW_WIDTH-12, 8, "-All the people who stepped up and donated to the Mini Mac fund.", .2, ITEM_ALIGN_LEFT, (.5*(WINDOW_WIDTH-440)), 8 )
-
-	LABELWHITE( 6, WINDOW_HEIGHT-48, WINDOW_WIDTH-12, 8, "^fVisit xmod.clanfu.org for more info.", .2, ITEM_ALIGN_CENTER, (.5*(WINDOW_WIDTH-24)), 8 )
 
 // Buttons //
 	BUTTON( 6, WINDOW_HEIGHT-24, .33*(WINDOW_WIDTH-24), 18, "BACK", .3, 14, close credits_xmod ; open xmod_options )

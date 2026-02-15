@@ -1,51 +1,43 @@
 #include "ui/menudef.h"
 
-// Defines //
-
-//#define WINDOW_X		32
-//#define WINDOW_Y		32
-//#define WINDOW_WIDTH	576
-//#define WINDOW_HEIGHT	416
-#define WINDOW_X		16
-#define WINDOW_Y		16
-#define WINDOW_WIDTH	300
-#define WINDOW_HEIGHT	125
-#define GROUP_NAME		"grpXmod"
-
-// Macros //
+#define WINDOW_X        16
+#define WINDOW_Y        16
+#define WINDOW_WIDTH    380
+#define WINDOW_HEIGHT   194
+#define GROUP_NAME      "grpXmodSound"
 
 #include "ui/menumacros.h"
-		
-// Customise Game Menu //
-	
+
 menuDef {
-	name		"xmod_sound"
-	visible		0
-	fullscreen	0
-	rect		WINDOW_X WINDOW_Y WINDOW_WIDTH WINDOW_HEIGHT
-	style		WINDOW_STYLE_FILLED
+	name        "xmod_sound"
+	visible     0
+	fullscreen  0
+	rect        WINDOW_X WINDOW_Y WINDOW_WIDTH WINDOW_HEIGHT
+	style       WINDOW_STYLE_FILLED
 	
 	onESC {
-		close xmod_sound;
-		open xmod_main
+		close xmod_sound ;
+		open xmod_options ;
 	}
 
-// Window //
+	WINDOW( "^dXMOD ^7Sound", 94 )
 
-	WINDOW( "^dX^4MOD ^7- Sound", 94 )
-	
-// Subwindows //
+#define SUBWINDOW_WIDTH     WINDOW_WIDTH-12
 
-//#define SUBWINDOW_WIDTH		.5*(WINDOW_WIDTH-18)
-#define SUBWINDOW_WIDTH		WINDOW_WIDTH-12
-	
-// Sound Options //
+	// Sound Options
+	SUBWINDOW( 6, 32, (SUBWINDOW_WIDTH), 90, "^oSOUNDS" )
+	MULTI( 8, 48,  (SUBWINDOW_WIDTH)-4, 10, "^7Game Sound:",          .2, 8, "s_mute",             cvarFloatList { "^dOn" 0 "^1Off" 1 }, "All Game Sounds" )
+	MULTI( 8, 60,  (SUBWINDOW_WIDTH)-4, 10, "^7Hitsounds:",           .2, 8, "cg_hitsounds",       cvarFloatList { "^1Off" 0 "^dOn" 1 }, "Enable hitsounds when you hit other players" )
+	MULTI( 8, 72,  (SUBWINDOW_WIDTH)-4, 10, "^7Killing Spree Voices:", .2, 8, "cg_killspreesounds", cvarFloatList { "^1Off" 0 "^dOn" 1 }, "Turn on voiceovers when people go on killing sprees" )
+	MULTI( 8, 84,  (SUBWINDOW_WIDTH)-4, 10, "^7TeamKill Sounds:",     .2, 8, "cg_tkSounds",        cvarFloatList { "^1Off" 0 "^dOn" 1 }, "Enable or Disable the 'TeamKiller' sound" )
+	MULTI( 8, 96,  (SUBWINDOW_WIDTH)-4, 10, "^7Goat Sounds:",         .2, 8, "cg_goatSound",       cvarFloatList { "^1Off" 0 "^dStab" 1 "^dThrow" 2 "^dStab + Throw" 3 }, "Knife kills sounds" )
+	MULTI( 8, 108, (SUBWINDOW_WIDTH)-4, 10, "^7Shove Sounds:",        .2, 8, "cg_shoveSounds",     cvarFloatList { "^1Off" 0 "^dOn" 1 }, "Play shove sounds" )
 
-	SUBWINDOW( 6, 32, (SUBWINDOW_WIDTH), 44, "^xSOUND" )
-	MULTI( 8, 48, (SUBWINDOW_WIDTH)-4, 10, "Hitsounds:", .2, 8, "cg_hitsounds", cvarFloatList { "^xOff" 0 "^xOn" 1  }, "Enable hitsounds when you hit other players." )
-	MULTI( 8, 60, (SUBWINDOW_WIDTH)-4, 10, "Killing Spree Voices:", .2, 8, "cg_killspreesounds", cvarFloatList { "^xOff" 0 "^xOn" 1  }, "Turn on voiceovers when people go on killing sprees." )
+	// Voices & Chat
+	SUBWINDOW( 6, 126, (SUBWINDOW_WIDTH), 40, "^oVOICES & CHAT" )
+	MULTI( 8, 142, (SUBWINDOW_WIDTH)-4, 10, "^7Chat Voice:", .2, 8, "cg_noVoiceChats", cvarFloatList { "^dOn" 0 "^1Off" 1 }, "Voice chats on/off" )
+	MULTI( 8, 154, (SUBWINDOW_WIDTH)-4, 10, "^7Chat Text:",  .2, 8, "cg_noVoiceText",  cvarFloatList { "^dOn" 0 "^1Off" 1 }, "Voice text on/off" )
 
-// Buttons //
-	
-	BUTTON( 6, WINDOW_HEIGHT-24, WINDOW_WIDTH-12, 18, "^xBACK", .3, 14, close xmod_sound; open xmod_main )
+	// Back Button
+	BUTTON( 6, WINDOW_HEIGHT-24, SUBWINDOW_WIDTH, 18, "BACK", .3, 14, close xmod_sound ; open xmod_options )
 }
