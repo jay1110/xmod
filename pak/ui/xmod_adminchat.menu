@@ -16,7 +16,7 @@
 	
 menuDef
 {
-	name		"ingame_messagemode4"
+	name		"ingame_messagemode5"
 	visible		0
 	fullscreen	0
 	rect		WINDOW_X WINDOW_Y WINDOW_WIDTH WINDOW_HEIGHT
@@ -32,12 +32,12 @@ menuDef
 	
 	onESC
 	{
-		close ingame_messagemode4 ;
+		close ingame_messagemode5 ;
 	}
 	
 	onEnter
 	{
-		close ingame_messagemode4 ;
+		close ingame_messagemode5 ;
 		exec messageSend ;
 	}
 	
@@ -63,13 +63,13 @@ menuDef
 	LABEL( SUBWINDOW_X+4, SUBWINDOW_Y+16, (SUBWINDOW_WIDTH)-12, 10, "Message:", .2, ITEM_ALIGN_LEFT, 8, 8 )
 
 	EDITFIELDLEFT( SUBWINDOW_X+14, SUBWINDOW_Y+28, (SUBWINDOW_WIDTH)-22, 10,
-		"", .2, 8, "cg_messageText" onEsc { close ingame_messagemode4 }, 256, 256, "Enter text here - press ESCAPE to cancel" )
+		"", .2, 8, "cg_messageText" onEsc { close ingame_messagemode5 }, 256, 256, "Enter text here - press ESCAPE to cancel" )
 
 	LABEL( SUBWINDOW_X+4, SUBWINDOW_Y+40, (SUBWINDOW_WIDTH)-12, 10, "Note: 256 characters maximum.\nUse /ma command in console for longer messages.", .2, ITEM_ALIGN_LEFT, 8, 8 )
 
 	
 	BUTTON( SUBWINDOW_X+6, SUBWINDOW_Y+SUBWINDOW_HEIGHT-24, .5*(SUBWINDOW_WIDTH-18), 18,
-		"CANCEL", .3, 14, close ingame_messagemode4 ; )
+		"CANCEL", .3, 14, close ingame_messagemode5 ; )
 	BUTTON( SUBWINDOW_X+6+.5*(SUBWINDOW_WIDTH-18)+6, SUBWINDOW_Y+SUBWINDOW_HEIGHT-24, .5*(SUBWINDOW_WIDTH-18), 18,
-		"SEND", .3, 14, close ingame_messagemode4 ; exec messageSend ; )
+		"SEND", .3, 14, close ingame_messagemode5 ; exec messageSend ; )
 }
