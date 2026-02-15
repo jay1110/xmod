@@ -147,6 +147,6 @@ menuDef {
 	LABELWHITE( 6, WINDOW_HEIGHT-48, WINDOW_WIDTH-12, 8, "^fVisit jaymod.clanfu.org for more info.", .2, ITEM_ALIGN_CENTER, (.5*(WINDOW_WIDTH-24)), 8 )
 
 // Buttons //
-	BUTTON( 6, WINDOW_HEIGHT-24, .33*(WINDOW_WIDTH-24), 18, "^7BACK", .3, 14, close credits_jaymod ; open xmod_options )
+	BUTTON( 6, WINDOW_HEIGHT-24, .33*(WINDOW_WIDTH-24), 18, "BACK", .3, 14, close credits_jaymod ; open xmod_options )
 	BUTTON( 6+.33*(WINDOW_WIDTH-24)+6, WINDOW_HEIGHT-24, .34*(WINDOW_WIDTH-24), 18, "^dXMOD", .3, 14, close credits_jaymod ; open credits_xmod) 
 }
