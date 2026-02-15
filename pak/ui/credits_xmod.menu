@@ -78,10 +78,11 @@ menuDef {
 
 	LABELWHITE( (0.5*WINDOW_WIDTH)-100, CREDITS_Y+18, 200, 12, "Developed by:", .25, ITEM_ALIGN_CENTER, 100, 8 )
 	LABELWHITE( (0.5*WINDOW_WIDTH)-100, CREDITS_Y+30, 200, 10, "^7ET^uc|^f#.^dJa^4y^9.#", .3, ITEM_ALIGN_CENTER, 100, 8 )
-	LABELWHITE( (0.5*WINDOW_WIDTH)-100, CREDITS_Y+50, 300, 12, "^dXMOD^7: is a fork of ^xJAY^4MOD", .25, ITEM_ALIGN_CENTER, 100, 8 )
-	LABELWHITE( (0.5*WINDOW_WIDTH)-100, CREDITS_Y+62, 300, 12, "^7With additional features.", .25, ITEM_ALIGN_CENTER, 100, 8 )
-    LABELWHITE( (0.5*WINDOW_WIDTH)-100, CREDITS_Y+84, 350, 12, "^7Full details you can find at ^3etclan.de/xmod", .25, ITEM_ALIGN_CENTER, 100, 8 )
-    LABELWHITE( (0.5*WINDOW_WIDTH)-100, CREDITS_Y+96, 390, 12, "^7report bugs and features requests to ^3discord.etclan.de", .25, ITEM_ALIGN_CENTER, 100, 8 )
+	LABELWHITE( (0.5*WINDOW_WIDTH)-100, CREDITS_Y+42, 200, 10, "ETc|nick", .3, ITEM_ALIGN_CENTER, 100, 8 )
+	LABELWHITE( (0.5*WINDOW_WIDTH)-100, CREDITS_Y+64, 300, 12, "^dXMOD^7: is a fork of ^xJAY^4MOD", .25, ITEM_ALIGN_CENTER, 100, 8 )
+	LABELWHITE( (0.5*WINDOW_WIDTH)-100, CREDITS_Y+76, 300, 12, "^7With additional features.", .25, ITEM_ALIGN_CENTER, 100, 8 )
+    LABELWHITE( (0.5*WINDOW_WIDTH)-100, CREDITS_Y+88, 350, 12, "^7Full details you can find at ^3etclan.de/xmod", .25, ITEM_ALIGN_CENTER, 100, 8 )
+    LABELWHITE( (0.5*WINDOW_WIDTH)-100, CREDITS_Y+100, 390, 12, "^7report bugs and features requests to ^3discord.etclan.de", .25, ITEM_ALIGN_CENTER, 100, 8 )
 
 
 // Buttons //
