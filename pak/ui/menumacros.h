@@ -649,6 +649,39 @@
 		}																\
     }
 
+#define CHECKBOXACTIONBITFLAG( CHECKBOXACTION_X, CHECKBOXACTION_Y, CHECKBOXACTION_W, CHECKBOXACTION_H, CHECKBOXACTION_TEXT, CHECKBOXACTION_TEXT_SCALE, CHECKBOXACTION_TEXT_ALIGN_X, CHECKBOXACTION_TEXT_ALIGN_Y, CHECKBOXACTION_CVAR, BITFLAG, CHECKBOXACTION_ACTION, CHECKBOXACTION_TOOLTIP )	\
+    itemDef {															\
+		name			"checkaction"##CHECKBOXACTION_TEXT				\
+      	group			GROUP_NAME										\
+      	rect			$evalfloat(CHECKBOXACTION_X - 0.5*CHECKBOXACTION_W) $evalfloat(CHECKBOXACTION_Y) $evalfloat(CHECKBOXACTION_W) $evalfloat(CHECKBOXACTION_H)	\
+		type			ITEM_TYPE_CHECKBOX								\
+		text			CHECKBOXACTION_TEXT								\
+		textfont		UI_FONT_COURBD_21								\
+		textstyle		ITEM_TEXTSTYLE_SHADOWED							\
+		textscale		CHECKBOXACTION_TEXT_SCALE						\
+		textalign		ITEM_ALIGN_RIGHT								\
+		textalignx		$evalfloat(0.5*(CHECKBOXACTION_W)+(CHECKBOXACTION_TEXT_ALIGN_X))			\
+		textaligny		CHECKBOXACTION_TEXT_ALIGN_Y						\
+		forecolor		.6 .6 .6 1										\
+		cvar			CHECKBOXACTION_CVAR								\
+		visible			1												\
+		tooltip			CHECKBOXACTION_TOOLTIP							\
+		bitflag			BITFLAG											\
+																		\
+		mouseEnter {													\
+			setitemcolor "checkaction"##CHECKBOXACTION_TEXT forecolor .9 .9 .9 1 ;	\
+		}																\
+																		\
+		mouseExit {														\
+			setitemcolor "checkaction"##CHECKBOXACTION_TEXT forecolor .6 .6 .6 1 ;	\
+		}																\
+																		\
+		action {														\
+			play "sound/menu/filter.wav" ;								\
+			CHECKBOXACTION_ACTION										\
+		}																\
+    }
+
 #define CHECKBOXALIGNXACTION( CHECKBOXALIGNXACTION_X, CHECKBOXALIGNXACTION_Y, CHECKBOXALIGNXACTION_W, CHECKBOXALIGNXACTION_H, CHECKBOXALIGNXACTION_TEXT, CHECKBOXALIGNXACTION_TEXT_SCALE, CHECKBOXALIGNXACTION_TEXT_ALIGN_X, CHECKBOXALIGNXACTION_TEXT_ALIGN_Y, CHECKBOXALIGNXACTION_CVAR, CHECKBOXALIGNXACTION_ACTION, CHECKBOXALIGNXACTION_TOOLTIP )	\
     itemDef {															\
 		name			"checkactionalx"##CHECKBOXALIGNXACTION_TEXT				\

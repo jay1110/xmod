@@ -72,7 +72,7 @@
 	loadMenu { "ui/ingame_tapoutlms.menu" }
 
 	// xmod
-	loadMenu { "ui/xmod_main.menu" }
+	loadMenu { "ui/xmod_options.menu" }
 	loadMenu { "ui/xmod_sound.menu" }
 	loadMenu { "ui/xmod_display.menu" }
 	loadMenu { "ui/xmod_misc.menu" }
@@ -80,5 +80,8 @@
 	loadMenu { "ui/ingame_privatemessage.menu" }
 	loadMenu { "ui/credits_xmod.menu" }
 	loadMenu { "ui/credits_jaymod.menu" }
-	
+	loadMenu { "ui/xmod_adminchat.menu" }
+	loadMenu { "ui/xmod_devserver.menu" }
+	loadMenu { "ui/xmod_discord.menu" }
+	loadMenu { "ui/xmod_website.menu" }
 }

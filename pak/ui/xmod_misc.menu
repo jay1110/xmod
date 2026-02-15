@@ -1,64 +1,83 @@
 #include "ui/menudef.h"
 
-// Defines //
-
-//#define WINDOW_X		32
-//#define WINDOW_Y		32
-//#define WINDOW_WIDTH	576
-//#define WINDOW_HEIGHT	416
-#define WINDOW_X		16
-#define WINDOW_Y		16
-#define WINDOW_WIDTH	300
-#define WINDOW_HEIGHT	274
-#define GROUP_NAME		"grpXmod"
-
-// Macros //
+#define WINDOW_X        16
+#define WINDOW_Y        16
+#define WINDOW_WIDTH    608
+#define WINDOW_HEIGHT   280
+#define GROUP_NAME      "grpXmodTweaks"
 
 #include "ui/menumacros.h"
-		
-// Customise Game Menu //
-	
+
 menuDef {
-	name		"xmod_misc"
-	visible		0
-	fullscreen	0
-	rect		WINDOW_X WINDOW_Y WINDOW_WIDTH WINDOW_HEIGHT
-	style		WINDOW_STYLE_FILLED
+	name        "xmod_misc"
+	visible     0
+	fullscreen  0
+	rect        WINDOW_X WINDOW_Y WINDOW_WIDTH WINDOW_HEIGHT
+	style       WINDOW_STYLE_FILLED
 	
 	onESC {
-		close xmod_misc;
-		open xmod_main
+		close xmod_misc ;
+		open xmod_options ;
 	}
 
-// Window //
+	WINDOW( "^dXMOD ^7TWEAKS/MISC", 94 )
 
-	WINDOW( "^dX^4MOD ^7- Miscellaneous", 94 )
-	
-// Subwindows //
+#define SUBWINDOW_WIDTH     296
+#define LEFT_X              6
+#define RIGHT_X             308
 
-//#define SUBWINDOW_WIDTH		.5*(WINDOW_WIDTH-18)
-#define SUBWINDOW_WIDTH		WINDOW_WIDTH-12
-	
-// Antilag Options //
+	// LINKE SPALTE //
 
-	SUBWINDOW( 6, 32, (SUBWINDOW_WIDTH), 56, "^xANTILAG" )
-	MULTI( 8, 48, (SUBWINDOW_WIDTH)-4, 10, "Antilag:", .2, 8, "cg_delag", cvarFloatList { "^xOpt-Out" 0 "^xEnabled" 1  }, "Toggle whether the server will delag your shots." )
-	MULTI( 8, 60, (SUBWINDOW_WIDTH)-4, 10, "Optimized Prediction:", .2, 8, "cg_optimizeprediction", cvarFloatList { "^xOff" 0 "^xOn" 1  }, "Use the Unlagged Optimized Prediction routines." )
-	MULTI( 8, 72, (SUBWINDOW_WIDTH)-4, 10, "Connection Icon:", .2, 8, "cg_drawDisconnectIcon", cvarFloatList { "^xOff" 0 "^xOn" 1 }, "Show a disconnection icon over lagging players." )
+	// View Options
+	SUBWINDOW( LEFT_X, 32, (SUBWINDOW_WIDTH), 116, "^oVIEW" )
+	SLIDER( LEFT_X+2, 48,  (SUBWINDOW_WIDTH)-4, 10, "^7Field Of View:",        .2, 8, "cg_fov" 90 90 120, "Horizontal View Range (Degrees)" )
+	MULTI(  LEFT_X+2, 60,  (SUBWINDOW_WIDTH)-4, 10, "^7Capped FPS:",           .2, 8, "com_maxfps",            cvarFloatList { "No Limit" 0 "^d76" 76 "^d125" 125 "^d250" 250 }, "Maximum Frames-Per-Second" )
+	MULTI(  LEFT_X+2, 72,  (SUBWINDOW_WIDTH)-4, 10, "^7Simple Sky:",           .2, 8, "r_fastsky",             cvarFloatList { "^dSky On" 0 "^1Sky Off" 1 }, "Toggle Drawing The Sky" )
+	MULTI(  LEFT_X+2, 84,  (SUBWINDOW_WIDTH)-4, 10, "^7Atmospheric Effects:",  .2, 8, "cg_atmosphericEffects", cvarFloatList { "^1Off" 0 "^dOn" 1 }, "Shows Or Hides Rain/Snow Effects" )
+	MULTI(  LEFT_X+2, 96,  (SUBWINDOW_WIDTH)-4, 10, "^7Map Overbright Bits:",  .2, 8, "r_mapoverbrightbits",   cvarFloatList { "^1Default" 2 "^dEnable" 3 }, "Brightness (requires vid_restart)" )
+	SLIDER( LEFT_X+2, 108, (SUBWINDOW_WIDTH)-4, 10, "^7Intensity:",           .2, 8, "r_intensity" 1.0 1.0 1.5, "Texture Intensity (requires vid_restart)" )
+	MULTI(  LEFT_X+2, 120, (SUBWINDOW_WIDTH)-4, 10, "^7Depthbits:",           .2, 8, "r_depthbits",           cvarFloatList { "^1Default" 0 "^d24" 24 "^d32" 32 }, "Depth-Buffer Precision (Bits Per Pixel)" )
+	MULTI(  LEFT_X+2, 132, (SUBWINDOW_WIDTH)-4, 10, "^7Connection Icon:",     .2, 8, "cg_drawDisconnectIcon", cvarFloatList { "^1Off" 0 "^dOn" 1 }, "Show disconnect icon over lagging players" )
 
-	SUBWINDOW( 6, 92, (SUBWINDOW_WIDTH), 44, "^xPRIVATE MESSAGES" )
-	MULTI( 8, 108, (SUBWINDOW_WIDTH)-4, 10, "Private Messages:", .2, 8, "cg_pmblock", cvarFloatList {"^xAllow" 0 "^xBlock" 1}, "Block private messages except from those with a higher admin level." )
-	MULTI( 8, 120, (SUBWINDOW_WIDTH)-4, 10, "PM Notification:", .2, 8, "cg_pmsounds", cvarFloatList { "^xOff" 0 "^xOn" 1 }, "Play a sound when you receive a private message." )
-	
-	SUBWINDOW( 6, 140, (SUBWINDOW_WIDTH), 32, "^xNETWORK" )
-	MULTI( 8, 156, (SUBWINDOW_WIDTH)-4, 10, "Auto Rate:", .2, 8, "cg_autoRate", cvarFloatList {"^xOff" 0 "^xAuto Step" 1 "^xServer Max" 2}, "Automatic optimized rate adjustment." )
-	
-	SUBWINDOW( 6, 176, (SUBWINDOW_WIDTH), 56, "^xCONTROLS" )
-	BIND( 8, 192, (SUBWINDOW_WIDTH)-4, 10, "Alternate Fire:", .2, 8, "+attack2", "" )
-	BIND( 8, 204, (SUBWINDOW_WIDTH)-4, 10, "Private Message:", .2, 8, "messagemode4", "" )
-	BIND( 8, 216, (SUBWINDOW_WIDTH)-4, 10, "Playdead:", .2, 8, "playdead", "" )
+	// Movement
+	SUBWINDOW( LEFT_X, 152, (SUBWINDOW_WIDTH), 52, "^oMOVEMENT" )
+	MULTI( LEFT_X+2, 168, (SUBWINDOW_WIDTH)-4, 10, "^7Xhair Vertical Movement:", .2, 8, "cg_bobpitch", cvarFloatList { "^dDefault" 0.002 "^1Off" 0 }, "Up-Down Motion Of Crosshair" )
+	MULTI( LEFT_X+2, 180, (SUBWINDOW_WIDTH)-4, 10, "^7Body Vertical Movement:",  .2, 8, "cg_bobup",    cvarFloatList { "^dDefault" 0.005 "^1Off" 0 }, "Up-Down Motion Of Body" )
+	MULTI( LEFT_X+2, 192, (SUBWINDOW_WIDTH)-4, 10, "^7Body Roll Movement:",      .2, 8, "cg_bobroll",  cvarFloatList { "^dDefault" 0.002 "^1Off" 0 }, "Rolling Motion Of Body" )
 
-// Buttons //
-	
-	BUTTON( 6, WINDOW_HEIGHT-24, WINDOW_WIDTH-12, 18, "^xBACK", .3, 14, close xmod_misc; open xmod_main )
+	// Antilag
+	SUBWINDOW( LEFT_X, 208, (SUBWINDOW_WIDTH), 44, "^oANTILAG" )
+	MULTI( LEFT_X+2, 224, (SUBWINDOW_WIDTH)-4, 10, "^7Antilag:",             .2, 8, "cg_delag",             cvarFloatList { "^1Opt-Out" 0 "^dEnabled" 1 }, "Server will delag your shots" )
+	MULTI( LEFT_X+2, 236, (SUBWINDOW_WIDTH)-4, 10, "^7Optimized Prediction:", .2, 8, "cg_optimizeprediction", cvarFloatList { "^1Off" 0 "^dOn" 1 }, "Use Unlagged Optimized Prediction" )
+
+	// RECHTE SPALTE //
+
+	// Connection
+	SUBWINDOW( RIGHT_X, 32, (SUBWINDOW_WIDTH), 64, "^oCONNECTION" )
+	MULTI( RIGHT_X+2, 48, (SUBWINDOW_WIDTH)-4, 10, "^7Rate:",       .2, 8, "rate",          cvarFloatList { "^d25000" 25000 "^d50000" 50000 "^d75000" 75000 "^d90000" 90000 }, "Connection Speed" )
+	MULTI( RIGHT_X+2, 60, (SUBWINDOW_WIDTH)-4, 10, "^7Snaps:",      .2, 8, "snaps",         cvarFloatList { "20 (Default)" 20 "40" 40 }, "Snapshots Per Second From Server" )
+	MULTI( RIGHT_X+2, 72, (SUBWINDOW_WIDTH)-4, 10, "^7Maxpackets:", .2, 8, "cl_maxpackets", cvarFloatList { "30 (Default)" 30 "43" 43 "50" 50 "60" 60 "70" 70 "76" 76 "80" 80 "90" 90 "100" 100 }, "Packets Per Second To Server" )
+	MULTI( RIGHT_X+2, 84, (SUBWINDOW_WIDTH)-4, 10, "^7Auto Rate:",  .2, 8, "cg_autoRate",   cvarFloatList { "^1Off" 0 "^dAuto Step" 1 "^dServer Max" 2 }, "Automatic rate adjustment" )
+
+	// Memory (Needs Save & Restart)
+	SUBWINDOW( RIGHT_X, 100, (SUBWINDOW_WIDTH), 52, "^oMEMORY ^9(Needs SAVE & Restart)" )
+	MULTI( RIGHT_X+2, 116, (SUBWINDOW_WIDTH)-4, 10, "^7Hunkmegs:",  .2, 8, "com_hunkmegs",  cvarFloatList { "128MB" 128 "256MB" 256 "512MB" 512 }, "Memory For General Game Data" )
+	MULTI( RIGHT_X+2, 128, (SUBWINDOW_WIDTH)-4, 10, "^7Soundmegs:", .2, 8, "com_soundmegs", cvarFloatList { "128MB" 128 "140MB" 140 "160" 160 }, "Memory For Sounds" )
+	MULTI( RIGHT_X+2, 140, (SUBWINDOW_WIDTH)-4, 10, "^7Zonemegs:", .2, 8, "com_zonemegs", cvarFloatList { "128MB" 128 "140MB" 140 "160" 160 }, "Memory For Sounds" )
+
+	// Private Messages
+	SUBWINDOW( RIGHT_X, 156, (SUBWINDOW_WIDTH), 40, "^oPRIVATE MESSAGES" )
+	MULTI( RIGHT_X+2, 172, (SUBWINDOW_WIDTH)-4, 10, "^7Private Messages:", .2, 8, "cg_pmblock",  cvarFloatList { "^dAllow" 0 "^1Block" 1 }, "Block PMs except from higher admin level" )
+	MULTI( RIGHT_X+2, 184, (SUBWINDOW_WIDTH)-4, 10, "^7PM Notification:",  .2, 8, "cg_pmsounds", cvarFloatList { "^1Off" 0 "^dOn" 1 }, "Play sound on PM receive" )
+
+	// Controls
+	SUBWINDOW( RIGHT_X, 200, (SUBWINDOW_WIDTH), 52, "^oCONTROLS - Binds" )
+	BIND( RIGHT_X+2, 216, (SUBWINDOW_WIDTH)-4, 10, "^7Alternate Fire:",  .2, 8, "+attack2",     "" )
+	BIND( RIGHT_X+2, 228, (SUBWINDOW_WIDTH)-4, 10, "^7Private Message:", .2, 8, "messagemode4", "" )
+	BIND( RIGHT_X+2, 240, (SUBWINDOW_WIDTH)-4, 10, "^7Playdead:",        .2, 8, "playdead",     "" )
+
+	// Buttons
+	BUTTON( 6,                          WINDOW_HEIGHT-24, .33*(WINDOW_WIDTH-20), 18, "VID_RESTART", .3, 14, close xmod_misc ; exec "vid_restart" )
+	BUTTON( 6+.33*(WINDOW_WIDTH-24)+6, WINDOW_HEIGHT-24, .33*(WINDOW_WIDTH-20), 18, "SAVE AUTOEXEC.CFG",        .3, 14, close xmod_misc ; open xmod_options ; exec "set cl_noprint 1;writeconfig autoexec.cfg;set cl_noprint 0" )
+	BUTTON( 6+.66*(WINDOW_WIDTH-24)+12, WINDOW_HEIGHT-24, .33*(WINDOW_WIDTH-10), 18, "BACK",        .3, 14, close xmod_misc ; open xmod_options )
 }

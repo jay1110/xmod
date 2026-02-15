@@ -1,0 +1,75 @@
+#include "ui/menudef.h"
+
+// Defines //
+
+#define WINDOW_X		0
+#define WINDOW_Y		0
+#define WINDOW_WIDTH	640
+#define WINDOW_HEIGHT	480
+#define GROUP_NAME		"grpMessageMode"
+
+// Macros //
+
+#include "ui/menumacros.h"
+		
+// Ingame MessageMode Menu //
+	
+menuDef
+{
+	name		"ingame_messagemode4"
+	visible		0
+	fullscreen	0
+	rect		WINDOW_X WINDOW_Y WINDOW_WIDTH WINDOW_HEIGHT
+	style		WINDOW_STYLE_FILLED
+	// popup
+	// modal
+	
+	onOpen
+	{
+		closeAllOtherMenus ;
+		setEditFocus "efleft"	// note this depends on the macro + item name
+	}
+	
+	onESC
+	{
+		close ingame_messagemode4 ;
+	}
+	
+	onEnter
+	{
+		close ingame_messagemode4 ;
+		exec messageSend ;
+	}
+	
+// Subwindows //
+
+#define SUBWINDOW_WIDTH		320
+#define SUBWINDOW_HEIGHT	96
+#define SUBWINDOW_X			.5*(WINDOW_WIDTH-SUBWINDOW_WIDTH)
+#define SUBWINDOW_Y			320	// .5*(WINDOW_HEIGHT-SUBWINDOW_HEIGHT)
+
+	SUBWINDOWBLACK( SUBWINDOW_X, SUBWINDOW_Y, SUBWINDOW_WIDTH, SUBWINDOW_HEIGHT, "ADMINCHAT" )
+	
+	itemDef {
+		name		"efleftbackSay:"
+		group		GROUP_NAME
+		rect		$evalfloat((SUBWINDOW_X+12)) $evalfloat(SUBWINDOW_Y+28) $evalfloat((SUBWINDOW_WIDTH)-16) $evalfloat(10)
+		style		WINDOW_STYLE_FILLED
+		backcolor	.5 .5 .5 .2
+		visible		1
+		decoration
+	}
+
+	LABEL( SUBWINDOW_X+4, SUBWINDOW_Y+16, (SUBWINDOW_WIDTH)-12, 10, "Message:", .2, ITEM_ALIGN_LEFT, 8, 8 )
+
+	EDITFIELDLEFT( SUBWINDOW_X+14, SUBWINDOW_Y+28, (SUBWINDOW_WIDTH)-22, 10,
+		"", .2, 8, "cg_messageText" onEsc { close ingame_messagemode4 }, 256, 256, "Enter text here - press ESCAPE to cancel" )
+
+	LABEL( SUBWINDOW_X+4, SUBWINDOW_Y+40, (SUBWINDOW_WIDTH)-12, 10, "Note: 256 characters maximum.\nUse /ma command in console for longer messages.", .2, ITEM_ALIGN_LEFT, 8, 8 )
+
+	
+	BUTTON( SUBWINDOW_X+6, SUBWINDOW_Y+SUBWINDOW_HEIGHT-24, .5*(SUBWINDOW_WIDTH-18), 18,
+		"CANCEL", .3, 14, close ingame_messagemode4 ; )
+	BUTTON( SUBWINDOW_X+6+.5*(SUBWINDOW_WIDTH-18)+6, SUBWINDOW_Y+SUBWINDOW_HEIGHT-24, .5*(SUBWINDOW_WIDTH-18), 18,
+		"SEND", .3, 14, close ingame_messagemode4 ; exec messageSend ; )
+}
