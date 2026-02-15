@@ -86,7 +86,7 @@ menuDef {
 
 
 // Buttons //
-	BUTTON( 6, WINDOW_HEIGHT-24, .33*(WINDOW_WIDTH-24), 18, "^7BACK", .3, 14, close credits_xmod ; open xmod_options )
+	BUTTON( 6, WINDOW_HEIGHT-24, .33*(WINDOW_WIDTH-24), 18, "BACK", .3, 14, close credits_xmod ; open xmod_options )
 	BUTTON( 6+.33*(WINDOW_WIDTH-24)+6, WINDOW_HEIGHT-24, .34*(WINDOW_WIDTH-24), 18, "^xJAY^4MOD", .3, 14, close credits_xmod ; open credits_jaymod) 
 }
 
