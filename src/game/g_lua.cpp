@@ -1593,6 +1593,23 @@ static int _et_G_GetClientName(lua_State* L)
     return 1;
 }
 
+// et.G_GetClientLevel(clientnum) - Get player's admin level
+// Also available as et.G_shrubbot_level() for jaymod/shrubbot compatibility
+static int _et_G_GetClientLevel(lua_State* L)
+{
+    int clientnum = (int)luaL_checkinteger(L, 1);
+    
+    if (clientnum < 0 || clientnum >= MAX_CLIENTS) {
+        lua_pushinteger(L, 0);
+        return 1;
+    }
+    
+    // Use xmod's session-aware getClientLevel function
+    int level = ::xmod::getClientLevel(clientnum);
+    lua_pushinteger(L, level);
+    return 1;
+}
+
 // et.G_GetClientPing(clientnum) - Get client's ping
 static int _et_G_GetClientPing(lua_State* L)
 {
@@ -3805,6 +3822,8 @@ static const luaL_Reg etlib[] = {
     { "G_GetClientName",         _et_G_GetClientName         },
     { "G_GetClientPing",         _et_G_GetClientPing         },
     { "G_GetClientGuid",         _et_G_GetClientGuid         },
+    { "G_GetClientLevel",        _et_G_GetClientLevel        },
+    { "G_shrubbot_level",        _et_G_GetClientLevel        },
     { "G_IsClientSpectator",     _et_G_IsClientSpectator     },
     { "G_ClientIsBot",           _et_G_ClientIsBot           },
     { "G_ClientKill",            _et_G_ClientKill            },
