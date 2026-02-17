@@ -1030,6 +1030,9 @@ struct gclient_s {
 	// Multi-revive tracking
 	int				lastReviveTime;    // Time of last revive
 	int				multiReviveCount;  // Count of consecutive revives
+
+	// Drop objective tracking (per life)
+	int				dropObjCount;      // Number of times objective dropped this life
 };
 
 typedef struct {

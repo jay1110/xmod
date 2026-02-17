@@ -149,6 +149,10 @@ extern vmCvar_t g_adminChat;         // Enable admin chat
 // Missile Cameras
 extern vmCvar_t g_missileCams;       // Bitflag: 1=Panzer, 2=Mortar, 4=Rifle Grenade
 
+// Drop Objective / Drop Weapon
+extern vmCvar_t g_dropObj;           // Max times per life a player can drop the objective (0=disabled)
+extern vmCvar_t g_allowDropWeapon;   // Allow players to drop their primary weapon (0=disabled, 1=enabled)
+
 // OS/Architecture support
 extern vmCvar_t g_oss;               // Supported OS/architecture bitflags for server browser
 
@@ -307,6 +311,8 @@ void     G_ChatShortcuts         ( gentity_t* , string& );
 void     G_FallDamage            ( gentity_t*, int );
 void     G_InitCustomLevels      ( );
 void     G_PlayDead              ( gentity_t* );
+void     Cmd_DropObj_f           ( gentity_t* );
+void     Cmd_DropWeapon_f        ( gentity_t* );
 void     G_PlaySound_Cmd         ( );
 void     G_PlaySoundEnv_Cmd      ( );
 void     G_PrivateMessage        ( gentity_t* );

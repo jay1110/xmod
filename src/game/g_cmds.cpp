@@ -3803,6 +3803,10 @@ void ClientCommand( int clientNum ) {
 		return;
 	} else if (!Q_stricmp(cmd, "playdead")) {
 		G_PlayDead(ent);
+	} else if (!Q_stricmp(cmd, "dropobj")) {
+		Cmd_DropObj_f(ent);
+	} else if (!Q_stricmp(cmd, "dropweapon")) {
+		Cmd_DropWeapon_f(ent);
 	} else if (!Q_stricmp(cmd, "sclogin") || !Q_stricmp(cmd, "shoutcastlogin")) {
 		G_ShoutcasterLogin(ent);
 	} else if (!Q_stricmp(cmd, "sclogout") || !Q_stricmp(cmd, "shoutcastlogout")) {

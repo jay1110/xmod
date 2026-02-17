@@ -3105,6 +3105,7 @@ void ClientSpawn( gentity_t *ent, qboolean revived )
 		// Reset damage tracking on fresh spawn (not revive)
 		if (!revived) {
 			G_ResetDamageTracking(ent);
+			client->dropObjCount = 0;
 		}
 	}
 	// End Xian

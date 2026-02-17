@@ -606,6 +606,103 @@ void G_PlayDead(gentity_t *ent)
 
 /*
 ====================
+Cmd_DropObj_f
+Drop the carried objective (flag). Controlled by g_dropObj cvar.
+g_dropObj value+1 = max drops per life.
+====================
+*/
+void Cmd_DropObj_f(gentity_t *ent)
+{
+	if (!ent->client)
+		return;
+
+	if (g_dropObj.integer <= 0)
+		return;
+
+	if (ent->client->sess.sessionTeam != TEAM_AXIS && ent->client->sess.sessionTeam != TEAM_ALLIES)
+		return;
+
+	if (ent->client->ps.stats[STAT_HEALTH] <= 0)
+		return;
+
+	// Check if player is carrying an objective
+	if (!ent->client->ps.powerups[PW_REDFLAG] && !ent->client->ps.powerups[PW_BLUEFLAG])
+	{
+		CPx(ent - g_entities, "cp \"You are not carrying an objective.\n\"");
+		return;
+	}
+
+	// Check drop limit (g_dropObj value + 1 = max drops per life)
+	if (ent->client->dropObjCount >= g_dropObj.integer + 1)
+	{
+		CPx(ent - g_entities, "cp \"You cannot drop the objective any more this life.\n\"");
+		return;
+	}
+
+	// Drop the objective
+	gitem_t *item = NULL;
+
+	if (ent->client->ps.powerups[PW_REDFLAG]) {
+		item = BG_FindItem("Red Flag");
+		if (!item)
+			item = BG_FindItem("Objective");
+		ent->client->ps.powerups[PW_REDFLAG] = 0;
+	} else if (ent->client->ps.powerups[PW_BLUEFLAG]) {
+		item = BG_FindItem("Blue Flag");
+		if (!item)
+			item = BG_FindItem("Objective");
+		ent->client->ps.powerups[PW_BLUEFLAG] = 0;
+	}
+
+	if (item) {
+		vec3_t launchvel = { 0, 0, 0 };
+		gentity_t *flag = LaunchItem(item, ent->r.currentOrigin, launchvel, ent->s.number);
+
+		flag->s.modelindex2 = ent->s.otherEntityNum2;
+		flag->message = ent->message;
+
+		// Clear out player's temp copies
+		ent->s.otherEntityNum2 = 0;
+		ent->message = NULL;
+
+		ent->client->dropObjCount++;
+
+		CPx(ent - g_entities, "cp \"Objective dropped.\n\"");
+	}
+}
+
+/*
+====================
+Cmd_DropWeapon_f
+Drop the primary weapon. Controlled by g_allowDropWeapon cvar.
+====================
+*/
+void Cmd_DropWeapon_f(gentity_t *ent)
+{
+	if (!ent->client)
+		return;
+
+	if (!g_allowDropWeapon.integer)
+		return;
+
+	if (ent->client->sess.sessionTeam != TEAM_AXIS && ent->client->sess.sessionTeam != TEAM_ALLIES)
+		return;
+
+	if (ent->client->ps.stats[STAT_HEALTH] <= 0)
+		return;
+
+	weapon_t primaryWeapon = G_GetPrimaryWeaponForClient(ent->client);
+
+	if (primaryWeapon == WP_NONE) {
+		CPx(ent - g_entities, "cp \"No weapon to drop.\n\"");
+		return;
+	}
+
+	G_DropWeapon(ent, primaryWeapon);
+}
+
+/*
+====================
 G_DragCorpse
 ====================
 */
