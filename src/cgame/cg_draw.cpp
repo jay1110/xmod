@@ -5467,6 +5467,10 @@ void CG_DrawMissileCamera( void ) {
 	refdef_t refdef;
 	vec3_t forward;
 
+	// Save state that CG_AddPacketEntities modifies
+	centity_t *savedMissile = cg.latestMissile;
+	centity_t *savedSatchel = cg.satchelCharge;
+
 	// Save render state
 	trap_R_SaveViewParms();
 
@@ -5524,6 +5528,10 @@ void CG_DrawMissileCamera( void ) {
 	trap_R_RenderScene( &refdef );
 
 	cg.refdef_current = savedRefdef;
+
+	// Restore state
+	cg.latestMissile = savedMissile;
+	cg.satchelCharge = savedSatchel;
 
 	// Restore render state
 	trap_R_RestoreViewParms();
