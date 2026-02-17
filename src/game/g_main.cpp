@@ -327,6 +327,9 @@ vmCvar_t        g_multiReviveTime;   // Max delay between revives for multi-revi
 // Admin Chat
 vmCvar_t        g_adminChat;         // Enable admin chat
 
+// Missile Cameras
+vmCvar_t        g_missileCams;       // Bitflag: 1=Panzer, 2=Mortar, 4=Rifle Grenade
+
 // OS/Architecture support
 vmCvar_t        g_oss;               // Supported OS/architecture bitflags for server browser
 
@@ -468,6 +471,9 @@ cvarTable_t		gameCvarTable[] = {
 
     // Admin Chat
     { &g_adminChat,         "g_adminChat",          "1",        CVAR_ARCHIVE },
+
+    // Missile Cameras
+    { &g_missileCams,       "g_missileCams",        "0",        CVAR_ARCHIVE | CVAR_XMODINFO },
 
     // Some useful mod-info cvars.
     { NULL, "mod_binary",  XMOD_buildTarget, CVAR_SERVERINFO | CVAR_ROM },

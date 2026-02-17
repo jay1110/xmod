@@ -5441,6 +5441,135 @@ void CG_DrawMiscGamemodels( void ) {
 
 /*
 =====================
+CG_DrawMissileCamera
+
+Draws a picture-in-picture view from a missile's perspective.
+Controlled by server cvar g_missileCams and client cvar cg_drawCam.
+=====================
+*/
+void CG_DrawMissileCamera( void ) {
+	if ( !cg.latestMissile || !cg_drawCam.integer || !cgs.sv_missileCams ) {
+		return;
+	}
+
+	if ( cg.showGameView || cg.intermissionStarted ) {
+		return;
+	}
+
+	// Skip when spectating other players
+	if ( cg.snap->ps.pm_flags & PMF_FOLLOW ) {
+		return;
+	}
+
+	centity_t *cent = cg.latestMissile;
+	const entityState_t *s1 = &cent->currentState;
+	float x, y, w, h;
+	refdef_t refdef;
+	vec3_t forward;
+
+	// Save state that CG_AddPacketEntities modifies
+	centity_t *savedMissile = cg.latestMissile;
+	centity_t *savedSatchel = cg.satchelCharge;
+
+	// Save render state
+	trap_R_SaveViewParms();
+
+	// Camera window position and size (bottom-left corner)
+	x = 16;
+	y = 160;
+	w = 160;
+	h = 120;
+
+	float ax = x, ay = y, aw = w, ah = h;
+	CG_AdjustFrom640( &ax, &ay, &aw, &ah );
+
+	memset( &refdef, 0, sizeof( refdef ) );
+	memcpy( refdef.areamask, cg.snap->areamask, sizeof( refdef.areamask ) );
+	AxisClear( refdef.viewaxis );
+
+	refdef.fov_x = cg.refdef_current->fov_x;
+	refdef.fov_y = cg.refdef_current->fov_y;
+	refdef.x = (int)ax;
+	refdef.y = (int)ay;
+	refdef.width = (int)aw;
+	refdef.height = (int)ah;
+	refdef.time = cg.time;
+
+	// Position camera at missile location
+	VectorCopy( cent->lerpOrigin, refdef.vieworg );
+
+	// Compute camera angles from missile's current velocity (flight direction)
+	vec3_t velocity;
+	vec3_t angles;
+	BG_EvaluateTrajectoryDelta( &s1->pos, cg.time, velocity, qfalse, s1->effect2Time );
+	vectoangles( velocity, angles );
+	angles[ROLL] = 0;
+	AnglesToAxis( angles, refdef.viewaxis );
+
+	// Push camera forward a bit for rockets (not rifle grenades which tumble)
+	if ( s1->weapon != WP_GPG40 && s1->weapon != WP_M7 ) {
+		AngleVectors( angles, forward, NULL, NULL );
+		VectorMA( refdef.vieworg, 32.0f, forward, refdef.vieworg );
+	}
+
+	refdef_t *savedRefdef = cg.refdef_current;
+	cg.refdef_current = &refdef;
+
+	trap_R_ClearScene();
+
+	CG_SetupFrustum();
+
+	if ( !cg.hyperspace ) {
+		CG_AddPacketEntities();
+		CG_AddMarks();
+		CG_AddParticles();
+		CG_AddLocalEntities();
+		CG_AddSmokeSprites();
+		CG_AddFlameChunks();
+		CG_AddTrails();
+	}
+
+	refdef.time = cg.time;
+	trap_SetClientLerpOrigin( refdef.vieworg[0], refdef.vieworg[1], refdef.vieworg[2] );
+	trap_R_RenderScene( &refdef );
+
+	cg.refdef_current = savedRefdef;
+
+	// Restore state
+	cg.latestMissile = savedMissile;
+	cg.satchelCharge = savedSatchel;
+
+	// Restore render state
+	trap_R_RestoreViewParms();
+
+	// Draw standard white crosshair in center of camera window
+	{
+		float chSize = 64.0f;
+		float cx = x + w * 0.5f - chSize * 0.5f;
+		float cy = y + h * 0.5f - chSize * 0.5f;
+		trap_R_SetColor( colorWhite );
+		CG_DrawPic( cx, cy, chSize, chSize, cgs.media.crosshairShader[0] );
+		trap_R_SetColor( NULL );
+	}
+
+	// Draw label text
+	const char *label;
+	if ( s1->weapon == WP_PANZERFAUST ) {
+		label = "MISSILE CAM";
+	} else if ( s1->weapon == WP_GPG40 || s1->weapon == WP_M7 ) {
+		label = "RIFLENADE CAM";
+	} else {
+		label = "MORTAR CAM";
+	}
+
+	vec4_t colorShade = { 0, 0, 0, 0.8f };
+	vec4_t color = { 1, 1, 1, 0.8f };
+	CG_DrawSmallStringColor( (int)x + 32, (int)y - 14, label, colorShade );
+	CG_DrawSmallStringColor( (int)x + 33, (int)y - 15, label, color );
+}
+
+/*
+=====================
 CG_DrawActive
 
 Perform all drawing needed to completely fill the screen

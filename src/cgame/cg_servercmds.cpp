@@ -359,6 +359,9 @@ void CG_ParseXmodinfo2( void) {
     cvars::bg_jxacSpeedhack.set   ( Info_ValueForKey( info, "J" ));
 
 	// "K" is taken
+
+    // Missile Cameras
+    cgs.sv_missileCams = atoi( Info_ValueForKey( info, "L" ) );
 }
 
 /*
