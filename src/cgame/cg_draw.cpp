@@ -5547,8 +5547,9 @@ void CG_DrawMissileCamera( void ) {
 		float chSize = 64.0f;
 		float cx = x + w * 0.5f - chSize * 0.5f;
 		float cy = y + h * 0.5f - chSize * 0.5f;
-		trap_R_SetColor( NULL );
+		trap_R_SetColor( colorWhite );
 		CG_DrawPic( cx, cy, chSize, chSize, cgs.media.crosshairShader[0] );
+		trap_R_SetColor( NULL );
 	}
 
 	// Draw label text
