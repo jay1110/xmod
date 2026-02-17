@@ -2096,6 +2096,7 @@ gentity_t *fire_grenade (gentity_t *self, vec3_t start, vec3_t dir, int grenadeW
 	bolt->r.ownerNum	= self->s.number;
 	bolt->parent		= self;
 	bolt->s.teamNum		= self->client->sess.sessionTeam;
+	bolt->s.clientNum	= self->client->ps.clientNum; // for missile cam
 
 // JPW NERVE -- commented out bolt->damage and bolt->splashdamage, override with G_GetWeaponDamage()
 // so it works with different netgame balance.  didn't uncomment bolt->damage on dynamite 'cause its so *special*
@@ -2560,6 +2561,7 @@ gentity_t *fire_rocket (gentity_t *self, vec3_t start, vec3_t dir) {
 
 	if(self->client) {
 		bolt->s.teamNum = self->client->sess.sessionTeam;
+		bolt->s.clientNum = self->client->ps.clientNum; // for missile cam
 	}
 
 	return bolt;

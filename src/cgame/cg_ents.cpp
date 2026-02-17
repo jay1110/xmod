@@ -1051,7 +1051,7 @@ void CG_Missile( centity_t *cent ) {
     }
 
     // Missile camera tracking
-    if ( s1->clientNum == cg.snap->ps.clientNum && cg.snap->ps.clientNum == cg.clientNum ) {
+    if ( s1->clientNum == cg.predictedPlayerState.clientNum && cg.snap->ps.clientNum == cg.clientNum ) {
         if ( (cgs.sv_missileCams & 1) && s1->weapon == WP_PANZERFAUST && s1->eType != ET_FLAMEBARREL ) {
             cg.latestMissile = cent;
         } else if ( (cgs.sv_missileCams & 2) && (s1->weapon == WP_MORTAR_SET || s1->weapon == WP_MORTAR) ) {
