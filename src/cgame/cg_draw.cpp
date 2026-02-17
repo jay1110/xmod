@@ -5542,12 +5542,13 @@ void CG_DrawMissileCamera( void ) {
 	// Restore render state
 	trap_R_RestoreViewParms();
 
-	// Draw crosshair in center of camera window
+	// Draw standard white crosshair in center of camera window
 	{
-		float chSize = 16.0f;
+		float chSize = 64.0f;
 		float cx = x + w * 0.5f - chSize * 0.5f;
 		float cy = y + h * 0.5f - chSize * 0.5f;
-		CG_DrawPic( cx, cy, chSize, chSize, cgs.media.crosshairShader[ cg_drawCrosshair.integer % NUM_CROSSHAIRS ] );
+		trap_R_SetColor( NULL );
+		CG_DrawPic( cx, cy, chSize, chSize, cgs.media.crosshairShader[0] );
 	}
 
 	// Draw label text
