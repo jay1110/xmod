@@ -330,6 +330,10 @@ vmCvar_t        g_adminChat;         // Enable admin chat
 // Missile Cameras
 vmCvar_t        g_missileCams;       // Bitflag: 1=Panzer, 2=Mortar, 4=Rifle Grenade
 
+// Drop Objective / Drop Weapon
+vmCvar_t        g_dropObj;           // Max times per life a player can drop the objective (0=disabled)
+vmCvar_t        g_allowDropWeapon;   // Allow players to drop their primary weapon (0=disabled, 1=enabled)
+
 // OS/Architecture support
 vmCvar_t        g_oss;               // Supported OS/architecture bitflags for server browser
 
@@ -474,6 +478,10 @@ cvarTable_t		gameCvarTable[] = {
 
     // Missile Cameras
     { &g_missileCams,       "g_missileCams",        "0",        CVAR_ARCHIVE | CVAR_XMODINFO },
+
+    // Drop Objective / Drop Weapon
+    { &g_dropObj,           "g_dropObj",            "0",        CVAR_ARCHIVE },
+    { &g_allowDropWeapon,   "g_allowDropWeapon",    "0",        CVAR_ARCHIVE },
 
     // Some useful mod-info cvars.
     { NULL, "mod_binary",  XMOD_buildTarget, CVAR_SERVERINFO | CVAR_ROM },
