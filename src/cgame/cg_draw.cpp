@@ -5497,12 +5497,18 @@ void CG_DrawMissileCamera( void ) {
 
 	// Position camera at missile location
 	VectorCopy( cent->lerpOrigin, refdef.vieworg );
-	cent->lerpAngles[2] = 0;
-	AnglesToAxis( cent->lerpAngles, refdef.viewaxis );
+
+	// Compute camera angles from missile's current velocity (flight direction)
+	vec3_t velocity;
+	vec3_t angles;
+	BG_EvaluateTrajectoryDelta( &s1->pos, cg.time, velocity, qfalse, s1->effect2Time );
+	vectoangles( velocity, angles );
+	angles[ROLL] = 0;
+	AnglesToAxis( angles, refdef.viewaxis );
 
 	// Push camera forward a bit for rockets (not rifle grenades which tumble)
 	if ( s1->weapon != WP_GPG40 && s1->weapon != WP_M7 ) {
-		AngleVectors( cent->lerpAngles, forward, NULL, NULL );
+		AngleVectors( angles, forward, NULL, NULL );
 		VectorMA( refdef.vieworg, 32.0f, forward, refdef.vieworg );
 	}
 
