@@ -445,6 +445,7 @@ void G_DropWeapon( gentity_t *ent, weapon_t weapon )
 
 //	ent2->item->quantity = client->ps.ammoclip[BG_FindClipForWeapon(weapon)]; // Gordon: um, modifying an item is not a good idea
 	client->ps.ammoclip[BG_FindClipForWeapon(weapon)] = 0;
+	client->ps.ammo[BG_FindAmmoForWeapon(weapon)] = 0;
 
 	Bot_Event_RemoveWeapon(client->ps.clientNum, Bot_WeaponGameToBot(weapon));
 }
@@ -674,7 +675,8 @@ int Pickup_Weapon( gentity_t *ent, gentity_t *other ) {
 			// rain - added parens around ambiguous &&
 			if( primaryWeapon || 
 				(other->client->sess.playerType == PC_SOLDIER && other->client->sess.skill[SK_HEAVY_WEAPONS] >= 4) ||
-				isDualSMGPickup ) {
+				isDualSMGPickup ||
+				(ent->flags & FL_DROPPED_ITEM) ) {
 
 				if( primaryWeapon && !isDualSMGPickup ) {
 					// drop our primary weapon

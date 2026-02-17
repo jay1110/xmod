@@ -655,8 +655,32 @@ void Cmd_DropObj_f(gentity_t *ent)
 	}
 
 	if (item) {
-		vec3_t launchvel = { 0, 0, 0 };
-		gentity_t *flag = LaunchItem(item, ent->r.currentOrigin, launchvel, ent->s.number);
+		vec3_t angles, velocity, org, offset, mins, maxs;
+		trace_t tr;
+
+		VectorCopy( ent->client->ps.viewangles, angles );
+
+		// clamp pitch
+		if ( angles[PITCH] < -30 )
+			angles[PITCH] = -30;
+		else if ( angles[PITCH] > 30 )
+			angles[PITCH] = 30;
+
+		AngleVectors( angles, velocity, NULL, NULL );
+		VectorScale( velocity, 64, offset );
+		offset[2] += ent->client->ps.viewheight / 2.f;
+		VectorScale( velocity, 75, velocity );
+		velocity[2] += 50 + random() * 35;
+
+		VectorAdd( ent->client->ps.origin, offset, org );
+
+		VectorSet( mins, -ITEM_RADIUS, -ITEM_RADIUS, 0 );
+		VectorSet( maxs, ITEM_RADIUS, ITEM_RADIUS, 2*ITEM_RADIUS );
+
+		trap_Trace( &tr, ent->client->ps.origin, mins, maxs, org, ent->s.number, MASK_SOLID );
+		VectorCopy( tr.endpos, org );
+
+		gentity_t *flag = LaunchItem(item, org, velocity, ent->s.number);
 
 		flag->s.modelindex2 = ent->s.otherEntityNum2;
 		flag->message = ent->message;
