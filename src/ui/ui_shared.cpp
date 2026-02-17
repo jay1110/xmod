@@ -4231,6 +4231,8 @@ static bind_t g_bindings[] = {
 	{ "+leanleft",	'q',			-1,	K_DEL,			-1,	-1,	-1 },
 	{ "+prone",		'x',			-1,	K_SHIFT,		-1,	-1,	-1 },
 	{ "playdead",	'p',			-1,	'p',			-1, -1, -1 },	// Jaybird
+	{ "dropobj",	-1,				-1,	-1,				-1, -1, -1 },
+	{ "dropweapon",	-1,				-1,	-1,				-1, -1, -1 },
 	{ "+attack",	K_MOUSE1,		-1,	K_MOUSE1,		-1,	-1,	-1 },
 	{ "+attack2",	K_MOUSE2,		-1, K_MOUSE2,		-1, -1, -1 },	// Jaybird
 //	{ "weapalt",	K_MOUSE4,		-1,	K_MOUSE4,		-1,	-1,	-1 },	// Jaybird
