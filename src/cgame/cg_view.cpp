@@ -1977,6 +1977,9 @@ void CG_DrawActiveFrame( int serverTime, stereoFrame_t stereoView, qboolean demo
 
 		// update audio positions
 		trap_S_Respatialize( cg.snap->ps.clientNum, cg.refdef.vieworg, cg.refdef.viewaxis, inwater );
+
+		// Missile camera overlay
+		CG_DrawMissileCamera();
 	}
 
 	if ( cg_stats.integer ) {

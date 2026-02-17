@@ -1281,6 +1281,9 @@ static void G_BuildXmodCS( char* cs, int csSize, char* cs2, int cs2Size ) {
     Info_SetValueForKey( cs2, "J", cvars::g_jxacCheckSpeedhack.svalue );  // Speedhack check enabled
 
 	// "K" is taken!!! (shit code -> shit fixes)
+
+    // Missile Cameras
+    Info_SetValueForKey( cs2, "L", va("%i", g_missileCams.integer) );
 }
 
 void G_UpdateXmodCS() {

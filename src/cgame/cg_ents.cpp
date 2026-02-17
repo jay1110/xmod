@@ -1050,6 +1050,17 @@ void CG_Missile( centity_t *cent ) {
             break;
     }
 
+    // Missile camera tracking
+    if ( s1->clientNum == cg.snap->ps.clientNum && cg.snap->ps.clientNum == cg.clientNum ) {
+        if ( (cgs.sv_missileCams & 1) && s1->weapon == WP_PANZERFAUST && s1->eType != ET_FLAMEBARREL ) {
+            cg.latestMissile = cent;
+        } else if ( (cgs.sv_missileCams & 2) && (s1->weapon == WP_MORTAR_SET || s1->weapon == WP_MORTAR) ) {
+            cg.latestMissile = cent;
+        } else if ( (cgs.sv_missileCams & 4) && (s1->weapon == WP_GPG40 || s1->weapon == WP_M7) ) {
+            cg.latestMissile = cent;
+        }
+    }
+
 
 	// add trails
     switch (cent->currentState.eType) {
@@ -2877,6 +2888,7 @@ void CG_AddPacketEntities( void ) {
 	CG_CalcEntityLerpPositions( &cg_entities[ cg.snap->ps.clientNum ] );
 
 	cg.satchelCharge = NULL;
+	cg.latestMissile = NULL;
 
 	// Gordon: changing to a single loop, child will request that their parents are added first anyway
 	for ( num = 0; num < cg.snap->numEntities ; num++ ) {

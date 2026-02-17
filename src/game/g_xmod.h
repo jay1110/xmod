@@ -146,6 +146,9 @@ extern vmCvar_t g_multiReviveTime;   // Max delay between revives for multi-revi
 // Admin Chat
 extern vmCvar_t g_adminChat;         // Enable admin chat
 
+// Missile Cameras
+extern vmCvar_t g_missileCams;       // Bitflag: 1=Panzer, 2=Mortar, 4=Rifle Grenade
+
 // OS/Architecture support
 extern vmCvar_t g_oss;               // Supported OS/architecture bitflags for server browser
 

@@ -1073,6 +1073,8 @@ typedef struct {
 	qboolean	cameraMode;		// if rendering from a camera
 	// Duffy end
 
+	centity_t	*latestMissile;	// missile camera tracking
+
 	// NERVE - SMF - Objective info display
 	qboolean	limboMenu;
 
@@ -2238,6 +2240,8 @@ typedef struct {
 	char				rpcsChargeTimes[MAX_INFO_STRING]; // Charge times via RPCS
 	char				rpcsFilterCams[32]; // Filtercams via RPCS
 	char				rpcsEndgameStats[MAX_INFO_STRING]; // Endgame stats via RPCS
+
+	int					sv_missileCams;     // g_missileCams from server (bitflags)
 } cgs_t;
 
 //==============================================================================
@@ -2487,6 +2491,9 @@ extern	vmCvar_t		cg_hudAlpha;
 extern	vmCvar_t		cg_hudBackgroundColor;
 extern	vmCvar_t		cg_hudBorderColor;
 
+// Missile Cameras
+extern	vmCvar_t		cg_drawCam;
+
 //
 // cg_main.c
 //
@@ -2635,6 +2642,7 @@ void CG_BPrint( const char *str, int y, int charWidth );
 void CG_PriorityBPrint( const char *str, int y, int charWidth, int priority );		// NERVE - SMF
 void CG_ObjectivePrint( const char *str, int charWidth );						// NERVE - SMF
 void CG_DrawActive( stereoFrame_t stereoView );
+void CG_DrawMissileCamera( void );
 void CG_GetHudBackgroundColor( vec4_t out );
 void CG_GetHudBorderColor( vec4_t out );
 void CG_CheckForCursorHints( void );
