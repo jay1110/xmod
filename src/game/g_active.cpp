@@ -873,10 +873,6 @@ static void G_MedicRegen( gentity_t* ent )
     if (ent->health < ent->client->ps.stats[STAT_MAX_HEALTH]) {
         ent->health += 3;
 
-        // Jaybird - handle g_medics less regen
-        if (g_medics.integer & MEDIC_LESSREGEN)
-	        ent->health --;
-
         if ( ent->health > ent->client->ps.stats[STAT_MAX_HEALTH] * 1.1f){
 	        ent->health = int( ent->client->ps.stats[STAT_MAX_HEALTH] * 1.1f );
         }
@@ -886,15 +882,39 @@ static void G_MedicRegen( gentity_t* ent )
     else if( ent->health < ent->client->ps.stats[STAT_MAX_HEALTH] * 1.12f) {
         ent->health += 2;
 
-        // Jaybird - handle g_medics less regen
-        if (g_medics.integer & MEDIC_LESSREGEN)
-	        ent->health --;
-
         if( ent->health > ent->client->ps.stats[STAT_MAX_HEALTH] * 1.12f ) {
 	        ent->health = int( ent->client->ps.stats[STAT_MAX_HEALTH] * 1.12f );
         }
 
         return;
+    }
+}
+
+/*
+==================
+G_HasCarryOverRegen
+
+Returns true if the player has carry-over regen enabled via g_sk5_medic flags
+==================
+*/
+static qboolean G_HasCarryOverRegen( gentity_t* ent )
+{
+    gclient_t* client = ent->client;
+
+    if (client->sess.skill[SK_FIRST_AID] < 5)
+        return qfalse;
+
+    switch (client->sess.playerType) {
+        case PC_COVERTOPS:
+            return (cvars::bg_sk5_medic.ivalue & SK5_MED_CARRY_CVO) ? qtrue : qfalse;
+        case PC_ENGINEER:
+            return (cvars::bg_sk5_medic.ivalue & SK5_MED_CARRY_ENG) ? qtrue : qfalse;
+        case PC_FIELDOPS:
+            return (cvars::bg_sk5_medic.ivalue & SK5_MED_CARRY_FDO) ? qtrue : qfalse;
+        case PC_SOLDIER:
+            return (cvars::bg_sk5_medic.ivalue & SK5_MED_CARRY_SOL) ? qtrue : qfalse;
+        default:
+            return qfalse;
     }
 }
 
@@ -921,6 +941,9 @@ void ClientTimerActions( gentity_t *ent, int msec ) {
                     && client->sess.skill[SK_FIRST_AID] >= 5 ) {
             // Level 5 First Aid: all non-medic classes can regen
             G_MedicRegen( ent );
+        } else if ( G_HasCarryOverRegen( ent ) ) {
+            // Don't count down health for carry-over regen players;
+            // their regen is handled in ClientTimerRegenCarryOver
         } else {
 			// count down health when over max
             if ( ent->health > client->ps.stats[STAT_MAX_HEALTH] ) {
@@ -956,43 +979,26 @@ void ClientTimerRegenCarryOver( gentity_t *ent, int msec ) {
 	gclient_t* client = ent->client;
 	client->regenCarryOverTime += msec;
 
-	while (client->regenCarryOverTime >= SK5G_MEDCARRY_TIMER) {
-		client->regenCarryOverTime -= SK5G_MEDCARRY_TIMER;
+	while (client->regenCarryOverTime >= 1000) {
+		client->regenCarryOverTime -= 1000;
 
-        if (ent->client->sess.skill[SK_FIRST_AID] < 5)
-			continue;
-
-		if (ent->health >= client->ps.stats[STAT_MAX_HEALTH])
+		if (!G_HasCarryOverRegen(ent))
 			continue;
 
 		if (G_IsPoisoned(ent))
 			continue;
 
-        switch (client->sess.playerType) {
-            case PC_COVERTOPS:
-                if (cvars::bg_sk5_medic.ivalue & SK5_MED_CARRY_CVO)
-                    ent->health += 1;
-                break;
-
-            case PC_ENGINEER:
-	            if (cvars::bg_sk5_medic.ivalue & SK5_MED_CARRY_ENG)
-                    ent->health += 1;
-                break;
-
-            case PC_FIELDOPS:
-                if (cvars::bg_sk5_medic.ivalue & SK5_MED_CARRY_FDO)
-                    ent->health += 1;
-                break;
-
-            default:
-            case PC_MEDIC:
-                break;
-
-            case PC_SOLDIER:
-	            if (cvars::bg_sk5_medic.ivalue & SK5_MED_CARRY_SOL)
-                    ent->health += 1;
-                break;
-        }
+		// Regenerate health at 2HP/s, bonus health at 1HP/s
+		if (ent->health < client->ps.stats[STAT_MAX_HEALTH]) {
+			ent->health += 2;
+			if (ent->health > int(client->ps.stats[STAT_MAX_HEALTH] * 1.1f))
+				ent->health = int(client->ps.stats[STAT_MAX_HEALTH] * 1.1f);
+		}
+		else if (ent->health < int(client->ps.stats[STAT_MAX_HEALTH] * 1.12f)) {
+			ent->health += 1;
+			if (ent->health > int(client->ps.stats[STAT_MAX_HEALTH] * 1.12f))
+				ent->health = int(client->ps.stats[STAT_MAX_HEALTH] * 1.12f);
+		}
     }
 }
 
