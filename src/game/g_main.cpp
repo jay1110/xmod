@@ -113,6 +113,7 @@ vmCvar_t		g_antilag;
 
 // OSP
 vmCvar_t		g_spectatorInactivity;
+vmCvar_t		g_inactivityOptions;
 vmCvar_t		match_latejoin;
 vmCvar_t		match_minplayers;
 vmCvar_t		match_mutespecs;
@@ -595,6 +596,7 @@ cvarTable_t		gameCvarTable[] = {
 
 	{ &refereePassword, "refereePassword", "none", 0, 0, qfalse},
 	{ &g_spectatorInactivity, "g_spectatorInactivity", "0", 0, 0, qfalse, qfalse },
+	{ &g_inactivityOptions, "g_inactivityOptions", "0", 0, 0, qfalse, qfalse },
 	{ &match_latejoin,		"match_latejoin", "1", 0, 0, qfalse, qfalse },
 	{ &match_minplayers,	"match_minplayers", MATCH_MINPLAYERS, 0, 0, qfalse, qfalse },
 	{ &match_mutespecs,		"match_mutespecs", "0", 0, 0, qfalse, qtrue },

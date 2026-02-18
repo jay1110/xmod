@@ -179,6 +179,7 @@ namespace priv {
             censorImmunity  ( Privilege::TYPE_BEHAVIORAL, "censorImmunity" ),
             commandChat     ( Privilege::TYPE_BEHAVIORAL, "commandChat" ),
             commandSilent   ( Privilege::TYPE_BEHAVIORAL, "commandSilent" ),
+            inactivity      ( Privilege::TYPE_BEHAVIORAL, "inactivity" ),
             reasonNone      ( Privilege::TYPE_BEHAVIORAL, "reasonNone" ),
             specChat        ( Privilege::TYPE_BEHAVIORAL, "specChat" ),
             voteAny         ( Privilege::TYPE_BEHAVIORAL, "voteAny" ),

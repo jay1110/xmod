@@ -51,6 +51,7 @@ namespace priv {
             censorImmunity,
             commandChat,
             commandSilent,
+            inactivity,
             reasonNone,
             specChat,
             voteAny,
