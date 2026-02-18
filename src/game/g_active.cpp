@@ -917,6 +917,10 @@ void ClientTimerActions( gentity_t *ent, int msec ) {
 		// Medic regeneration
         if( client->sess.playerType == PC_MEDIC ) {
             G_MedicRegen( ent );
+        } else if ( (g_medics.integer & MEDIC_ALLCLASS_REGEN)
+                    && client->sess.skill[SK_FIRST_AID] >= 5 ) {
+            // Level 5 First Aid: all non-medic classes can regen
+            G_MedicRegen( ent );
         } else {
 			// count down health when over max
             if ( ent->health > client->ps.stats[STAT_MAX_HEALTH] ) {

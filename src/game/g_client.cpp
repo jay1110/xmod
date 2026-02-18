@@ -1704,6 +1704,25 @@ void AddMedicTeamBonus( gclient_t *client ) {
 		client->pers.maxHealth += 15;
 	}
 
+	// g_classesMaxHP override: "Soldier Medic Engineer FieldOps CovertOps"
+	if ( g_classesMaxHP.string[0] ) {
+		int classHP[NUM_PLAYER_CLASSES] = {0};
+		int numScanned = sscanf( g_classesMaxHP.string, "%i %i %i %i %i",
+			&classHP[PC_SOLDIER],
+			&classHP[PC_MEDIC],
+			&classHP[PC_ENGINEER],
+			&classHP[PC_FIELDOPS],
+			&classHP[PC_COVERTOPS] );
+
+		if ( numScanned == NUM_PLAYER_CLASSES
+		     && client->sess.playerType >= 0
+		     && client->sess.playerType < NUM_PLAYER_CLASSES
+		     && classHP[client->sess.playerType] > 0 )
+		{
+			client->pers.maxHealth = classHP[client->sess.playerType];
+		}
+	}
+
 	client->ps.stats[STAT_MAX_HEALTH] = client->pers.maxHealth;
 }
 

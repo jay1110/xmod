@@ -914,6 +914,10 @@ void Touch_Item( gentity_t *ent, gentity_t *other, trace_t *trace ) {
         return;
 
     if (ent->item->giType == IT_HEALTH && other->client->sess.playerType == PC_MEDIC) {
+        // Medics can't pick up their own med packs at all
+        if ((g_medics.integer & MEDIC_NOSELFMEDPACK) && ent->parent && ent->parent == other)
+            return;
+
         // enforce g_medicSelfHealDelay policy
         if (g_medicSelfHealDelay.integer < 0)
             return;

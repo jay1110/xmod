@@ -722,6 +722,23 @@ void Weapon_Syringe(gentity_t *ent) {
 					CalculateRanks();
 				}
 			}
+			// Needle heal: heal living teammates when low HP
+			else if ( (g_medics.integer & MEDIC_NEEDLE_HEAL)
+			          && traceEnt->client->ps.pm_type == PM_NORMAL
+			          && traceEnt->client->sess.sessionTeam == ent->client->sess.sessionTeam
+			          && traceEnt->health > 0
+			          && traceEnt->health < traceEnt->client->ps.stats[STAT_MAX_HEALTH] )
+			{
+				int healamt = int( traceEnt->client->ps.stats[STAT_MAX_HEALTH] * 0.5f );
+				traceEnt->health += healamt;
+				if ( traceEnt->health > traceEnt->client->ps.stats[STAT_MAX_HEALTH] )
+					traceEnt->health = traceEnt->client->ps.stats[STAT_MAX_HEALTH];
+				traceEnt->client->ps.stats[STAT_HEALTH] = traceEnt->health;
+				usedSyringe = qtrue;
+
+				G_AddSkillPoints( ent, SK_FIRST_AID, 1.f );
+				G_DebugAddSkillPoints( ent, SK_FIRST_AID, 1.f, "needle heal" );
+			}
 		}
 	}
 
