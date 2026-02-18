@@ -1953,6 +1953,7 @@ extern vmCvar_t		g_antilag;
 // OSP
 extern vmCvar_t		refereePassword;
 extern vmCvar_t		g_spectatorInactivity;
+extern vmCvar_t		g_inactivityOptions;
 extern vmCvar_t		match_latejoin;
 extern vmCvar_t		match_minplayers;
 extern vmCvar_t		match_mutespecs;

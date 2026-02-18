@@ -769,9 +769,13 @@ Returns qfalse if the client is dropped
 =================
 */
 qboolean ClientInactivityTimer( gclient_t *client ) {
-	// OSP - modified
-	if( ( g_inactivity.integer == 0 && client->sess.sessionTeam != TEAM_SPECTATOR ) || ( g_spectatorInactivity.integer == 0 && client->sess.sessionTeam == TEAM_SPECTATOR ) ) {
+	qboolean isSpectator = (client->sess.sessionTeam == TEAM_SPECTATOR) ? qtrue : qfalse;
+	int inactivitySeconds = isSpectator ? g_spectatorInactivity.integer : g_inactivity.integer;
+	int clientNum = client - level.clients;
+	gentity_t *ent = &g_entities[clientNum];
+	int halfTime = inactivitySeconds * 1000 / 2;
 
+	if( inactivitySeconds == 0 ) {
 		// give everyone some time, so if the operator sets g_inactivity during
 		// gameplay, everyone isn't kicked
 		client->inactivityTime = level.time + 60 * 1000;
@@ -786,27 +790,59 @@ qboolean ClientInactivityTimer( gclient_t *client ) {
 		|| client->ps.pm_type == PM_DEAD ) {
 
 		client->inactivityWarning = qfalse;
-		client->inactivityTime = level.time + 1000 *
-								 ((client->sess.sessionTeam != TEAM_SPECTATOR) ?
-												g_inactivity.integer :
-												g_spectatorInactivity.integer);
+		client->inactivityTime = level.time + inactivitySeconds * 1000;
 
 	} else if ( !client->pers.localClient ) {
-		// Jaybird - Check for shrubbot permission
-		if ( level.time > client->inactivityTime && client->inactivityWarning && !cmd::entityHasPermission( &g_entities[client-level.clients], priv::base::voteImmunity )) {
-			client->inactivityWarning = qfalse;
-			client->inactivityTime = level.time + 60 * 1000;
-			trap_DropClient(client - level.clients, "Dropped due to inactivity", 0 );
-			return(qfalse);
-		}
+		if ( isSpectator ) {
+			// Players with the "inactivity" admin flag are NEVER kicked
+			if ( cmd::entityHasPermission( ent, priv::base::inactivity ) )
+				return qtrue;
 
-		if ( !client->inactivityWarning && level.time > client->inactivityTime - 10000 ) {
-			CPx(client - level.clients, "cp \"^310 seconds until inactivity drop!\n\"");
-			CPx(client - level.clients, "print \"^310 seconds until inactivity drop!\n\"");
-			G_Printf("10s inactivity warning issued to: %s\n", client->pers.netname);
+			// Option 1: Do not drop spectators if they are following a player
+			if ( (g_inactivityOptions.integer & 1) && client->sess.spectatorState == SPECTATOR_FOLLOW )
+				return qtrue;
 
-			client->inactivityWarning = qtrue;
-			client->inactivityTime = level.time + 10000;	// Just for safety
+			// By default, only drop spectators when server is full
+			// Option 2: Don't wait for a full server to drop inactive spectators
+			if ( !(g_inactivityOptions.integer & 2) && level.numConnectedClients < level.maxclients )
+				return qtrue;
+
+			if ( level.time > client->inactivityTime && client->inactivityWarning ) {
+				client->inactivityWarning = qfalse;
+				client->inactivityTime = level.time + 60 * 1000;
+				trap_DropClient( clientNum, "Dropped due to inactivity", 0 );
+				return qfalse;
+			}
+
+			if ( !client->inactivityWarning && level.time > client->inactivityTime - halfTime ) {
+				CPx( clientNum, va( "cp \"^3%d seconds until inactivity drop!\n\"", inactivitySeconds / 2 ) );
+				CPx( clientNum, va( "print \"^3%d seconds until inactivity drop!\n\"", inactivitySeconds / 2 ) );
+				G_Printf( "%ds inactivity warning issued to: %s\n", inactivitySeconds / 2, client->pers.netname );
+				client->inactivityWarning = qtrue;
+				client->inactivityTime = level.time + halfTime;
+			}
+		} else {
+			// Option 4: Do not move players with the "inactivity" admin flag to spectators
+			if ( (g_inactivityOptions.integer & 4) && cmd::entityHasPermission( ent, priv::base::inactivity ) )
+				return qtrue;
+
+			if ( level.time > client->inactivityTime && client->inactivityWarning ) {
+				client->inactivityWarning = qfalse;
+				client->inactivityTime = level.time + 60 * 1000;
+				SetTeam( ent, "spectator", qtrue, (weapon_t)-1, (weapon_t)-1, qfalse );
+				CPx( clientNum, "cp \"^3Moved to spectators due to inactivity\n\"" );
+				CPx( clientNum, "print \"^3Moved to spectators due to inactivity\n\"" );
+				AP( va( "print \"%s ^3was moved to spectators due to inactivity\n\"", client->pers.netname ) );
+				return qtrue;
+			}
+
+			if ( !client->inactivityWarning && level.time > client->inactivityTime - halfTime ) {
+				CPx( clientNum, va( "cp \"^3%d seconds until moved to spectators!\n\"", inactivitySeconds / 2 ) );
+				CPx( clientNum, va( "print \"^3%d seconds until moved to spectators!\n\"", inactivitySeconds / 2 ) );
+				G_Printf( "%ds inactivity warning issued to: %s\n", inactivitySeconds / 2, client->pers.netname );
+				client->inactivityWarning = qtrue;
+				client->inactivityTime = level.time + halfTime;
+			}
 		}
 	}
 	return qtrue;
