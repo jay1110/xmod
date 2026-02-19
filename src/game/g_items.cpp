@@ -786,7 +786,18 @@ int Pickup_Health (gentity_t *ent, gentity_t *other) {
 
 	max = other->client->ps.stats[STAT_MAX_HEALTH];
 	if( other->client->sess.playerType == PC_MEDIC ) {
-		max = int( max * 1.12f );
+		// When g_classesMaxHP sets a custom value, don't allow medic overheal
+		qboolean customMaxHP = qfalse;
+		if ( g_classesMaxHP.string[0] ) {
+			int classHP[NUM_PLAYER_CLASSES] = {0};
+			int numScanned = sscanf( g_classesMaxHP.string, "%i %i %i %i %i",
+				&classHP[PC_SOLDIER], &classHP[PC_MEDIC], &classHP[PC_ENGINEER],
+				&classHP[PC_FIELDOPS], &classHP[PC_COVERTOPS] );
+			if ( numScanned == NUM_PLAYER_CLASSES && classHP[PC_MEDIC] > 0 )
+				customMaxHP = qtrue;
+		}
+		if ( !customMaxHP )
+			max = int( max * 1.12f );
 	}
 
 	other->health += ent->item->quantity;

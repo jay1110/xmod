@@ -855,6 +855,36 @@ G_MedicRegen
 Handles medic regeneration
 ==================
 */
+/*
+==================
+G_HasCustomClassMaxHP
+
+Returns true if g_classesMaxHP provides a non-zero value for the player's class
+==================
+*/
+static qboolean G_HasCustomClassMaxHP( gentity_t* ent )
+{
+    if ( !g_classesMaxHP.string[0] )
+        return qfalse;
+
+    int classHP[NUM_PLAYER_CLASSES] = {0};
+    int numScanned = sscanf( g_classesMaxHP.string, "%i %i %i %i %i",
+        &classHP[PC_SOLDIER],
+        &classHP[PC_MEDIC],
+        &classHP[PC_ENGINEER],
+        &classHP[PC_FIELDOPS],
+        &classHP[PC_COVERTOPS] );
+
+    if ( numScanned == NUM_PLAYER_CLASSES
+         && ent->client->sess.playerType >= 0
+         && ent->client->sess.playerType < NUM_PLAYER_CLASSES
+         && classHP[ent->client->sess.playerType] > 0 )
+    {
+        return qtrue;
+    }
+    return qfalse;
+}
+
 static void G_MedicRegen( gentity_t* ent )
 {
     // No regeneration for poisoned players
@@ -870,6 +900,9 @@ static void G_MedicRegen( gentity_t* ent )
     if ((g_medics.integer & MEDIC_DELAYREGEN) && (level.time - ent->client->lasthurt_time) < 5000)
         return;
 
+    // When g_classesMaxHP sets a custom value, cap at exactly STAT_MAX_HEALTH (no overheal)
+    qboolean customMaxHP = G_HasCustomClassMaxHP( ent );
+
     if (ent->health < ent->client->ps.stats[STAT_MAX_HEALTH]) {
         ent->health += 3;
 
@@ -877,13 +910,17 @@ static void G_MedicRegen( gentity_t* ent )
         if (g_medics.integer & MEDIC_LESSREGEN)
 	        ent->health --;
 
-        if ( ent->health > ent->client->ps.stats[STAT_MAX_HEALTH] * 1.1f){
-	        ent->health = int( ent->client->ps.stats[STAT_MAX_HEALTH] * 1.1f );
+        if (customMaxHP) {
+            if ( ent->health > ent->client->ps.stats[STAT_MAX_HEALTH] )
+                ent->health = ent->client->ps.stats[STAT_MAX_HEALTH];
+        } else {
+            if ( ent->health > ent->client->ps.stats[STAT_MAX_HEALTH] * 1.1f)
+                ent->health = int( ent->client->ps.stats[STAT_MAX_HEALTH] * 1.1f );
         }
 
         return;
     }
-    else if( ent->health < ent->client->ps.stats[STAT_MAX_HEALTH] * 1.12f) {
+    else if( !customMaxHP && ent->health < ent->client->ps.stats[STAT_MAX_HEALTH] * 1.12f) {
         ent->health += 2;
 
         // Jaybird - handle g_medics less regen
@@ -992,16 +1029,24 @@ void ClientTimerRegenCarryOver( gentity_t *ent, int msec ) {
 		if (G_IsPoisoned(ent))
 			continue;
 
+		// When g_classesMaxHP sets a custom value, cap at exactly STAT_MAX_HEALTH (no overheal)
+		qboolean customMaxHP = G_HasCustomClassMaxHP( ent );
+
 		// Regenerate health: follow g_medics LESSREGEN flag for rate
 		if (ent->health < client->ps.stats[STAT_MAX_HEALTH]) {
 			if (g_medics.integer & MEDIC_LESSREGEN)
 				ent->health += 2;
 			else
 				ent->health += 3;
-			if (ent->health > int(client->ps.stats[STAT_MAX_HEALTH] * 1.1f))
-				ent->health = int(client->ps.stats[STAT_MAX_HEALTH] * 1.1f);
+			if (customMaxHP) {
+				if (ent->health > client->ps.stats[STAT_MAX_HEALTH])
+					ent->health = client->ps.stats[STAT_MAX_HEALTH];
+			} else {
+				if (ent->health > int(client->ps.stats[STAT_MAX_HEALTH] * 1.1f))
+					ent->health = int(client->ps.stats[STAT_MAX_HEALTH] * 1.1f);
+			}
 		}
-		else if (ent->health < int(client->ps.stats[STAT_MAX_HEALTH] * 1.12f)) {
+		else if (!customMaxHP && ent->health < int(client->ps.stats[STAT_MAX_HEALTH] * 1.12f)) {
 			if (g_medics.integer & MEDIC_LESSREGEN)
 				ent->health += 1;
 			else

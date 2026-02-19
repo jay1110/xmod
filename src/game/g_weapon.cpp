@@ -730,10 +730,7 @@ void Weapon_Syringe(gentity_t *ent) {
 			          && traceEnt->health > 0
 			          && traceEnt->health < traceEnt->client->ps.stats[STAT_MAX_HEALTH] )
 			{
-				int healamt = int( traceEnt->client->ps.stats[STAT_MAX_HEALTH] * 0.5f );
-				traceEnt->health += healamt;
-				if ( traceEnt->health > traceEnt->client->ps.stats[STAT_MAX_HEALTH] )
-					traceEnt->health = traceEnt->client->ps.stats[STAT_MAX_HEALTH];
+				traceEnt->health = traceEnt->client->ps.stats[STAT_MAX_HEALTH];
 				traceEnt->client->ps.stats[STAT_HEALTH] = traceEnt->health;
 				usedSyringe = qtrue;
 
