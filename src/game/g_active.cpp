@@ -992,14 +992,20 @@ void ClientTimerRegenCarryOver( gentity_t *ent, int msec ) {
 		if (G_IsPoisoned(ent))
 			continue;
 
-		// Regenerate health at 2HP/s, bonus health at 1HP/s
+		// Regenerate health: follow g_medics LESSREGEN flag for rate
 		if (ent->health < client->ps.stats[STAT_MAX_HEALTH]) {
-			ent->health += 2;
+			if (g_medics.integer & MEDIC_LESSREGEN)
+				ent->health += 2;
+			else
+				ent->health += 3;
 			if (ent->health > int(client->ps.stats[STAT_MAX_HEALTH] * 1.1f))
 				ent->health = int(client->ps.stats[STAT_MAX_HEALTH] * 1.1f);
 		}
 		else if (ent->health < int(client->ps.stats[STAT_MAX_HEALTH] * 1.12f)) {
-			ent->health += 1;
+			if (g_medics.integer & MEDIC_LESSREGEN)
+				ent->health += 1;
+			else
+				ent->health += 2;
 			if (ent->health > int(client->ps.stats[STAT_MAX_HEALTH] * 1.12f))
 				ent->health = int(client->ps.stats[STAT_MAX_HEALTH] * 1.12f);
 		}
