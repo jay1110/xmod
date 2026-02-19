@@ -724,6 +724,7 @@ void Weapon_Syringe(gentity_t *ent) {
 			}
 			// Needle heal: heal living teammates when low HP
 			else if ( (g_medics.integer & MEDIC_NEEDLE_HEAL)
+			          && traceEnt != ent
 			          && traceEnt->client->ps.pm_type == PM_NORMAL
 			          && traceEnt->client->sess.sessionTeam == ent->client->sess.sessionTeam
 			          && traceEnt->health > 0
@@ -735,6 +736,12 @@ void Weapon_Syringe(gentity_t *ent) {
 					traceEnt->health = traceEnt->client->ps.stats[STAT_MAX_HEALTH];
 				traceEnt->client->ps.stats[STAT_HEALTH] = traceEnt->health;
 				usedSyringe = qtrue;
+
+				// Feedback to target
+				trap_SendServerCommand( traceEnt-g_entities,
+					va("cp \"You have been healed by [lof]%s[lon] [lof]%s!\n\"",
+					ent->client->sess.sessionTeam == TEAM_ALLIES ? rankNames_Allies[ ent->client->sess.rank ] : rankNames_Axis[ ent->client->sess.rank ],
+					ent->client->pers.netname) );
 
 				G_AddSkillPoints( ent, SK_FIRST_AID, 1.f );
 				G_DebugAddSkillPoints( ent, SK_FIRST_AID, 1.f, "needle heal" );

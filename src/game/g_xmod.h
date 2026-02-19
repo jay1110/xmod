@@ -274,7 +274,7 @@ namespace cache {
 // Jaybird - Class modification defines
 // g_medics
 #define MEDIC_NOSELFMEDPACK   1
-#define MEDIC_ALLCLASS_REGEN  2
+#define MEDIC_LESSREGEN       4
 #define MEDIC_NOREGEN         8
 #define MEDIC_SHAREADRENALINE 16
 #define MEDIC_DELAYREGEN      32

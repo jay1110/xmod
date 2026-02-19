@@ -873,6 +873,10 @@ static void G_MedicRegen( gentity_t* ent )
     if (ent->health < ent->client->ps.stats[STAT_MAX_HEALTH]) {
         ent->health += 3;
 
+        // Jaybird - handle g_medics less regen
+        if (g_medics.integer & MEDIC_LESSREGEN)
+	        ent->health --;
+
         if ( ent->health > ent->client->ps.stats[STAT_MAX_HEALTH] * 1.1f){
 	        ent->health = int( ent->client->ps.stats[STAT_MAX_HEALTH] * 1.1f );
         }
@@ -881,6 +885,10 @@ static void G_MedicRegen( gentity_t* ent )
     }
     else if( ent->health < ent->client->ps.stats[STAT_MAX_HEALTH] * 1.12f) {
         ent->health += 2;
+
+        // Jaybird - handle g_medics less regen
+        if (g_medics.integer & MEDIC_LESSREGEN)
+	        ent->health --;
 
         if( ent->health > ent->client->ps.stats[STAT_MAX_HEALTH] * 1.12f ) {
 	        ent->health = int( ent->client->ps.stats[STAT_MAX_HEALTH] * 1.12f );
@@ -936,10 +944,6 @@ void ClientTimerActions( gentity_t *ent, int msec ) {
 
 		// Medic regeneration
         if( client->sess.playerType == PC_MEDIC ) {
-            G_MedicRegen( ent );
-        } else if ( (g_medics.integer & MEDIC_ALLCLASS_REGEN)
-                    && client->sess.skill[SK_FIRST_AID] >= 5 ) {
-            // Level 5 First Aid: all non-medic classes can regen
             G_MedicRegen( ent );
         } else if ( G_HasCarryOverRegen( ent ) ) {
             // Don't count down health for carry-over regen players;
