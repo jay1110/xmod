@@ -1117,6 +1117,9 @@ void CG_Missile( centity_t *cent ) {
 
 			BG_EvaluateTrajectoryDelta( &cent->currentState.pos, cg.time, velocity, qfalse, -1 );
 			trap_S_AddLoopingSound( cent->lerpOrigin, velocity, weapon->spindownSound, 255, 0 );
+
+			// Scan for crosshair focus on armed dynamite
+			CG_ScanForCrosshairDynamite( cent );
 		}
 	}
 

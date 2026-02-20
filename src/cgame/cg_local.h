@@ -952,6 +952,11 @@ typedef struct {
 	int         crosshairMineTime;
 	centity_t*	crosshairMineEntity;
 
+	// dynamite crosshair
+	int         crosshairDynamite;
+	int         crosshairDynamiteTime;
+	centity_t*	crosshairDynamiteEntity;
+
 	qboolean	crosshairNotLookingAtClient;
 	int			crosshairSPClientTime;
 	int			crosshairVerticalShift;
@@ -2632,6 +2637,7 @@ void CG_ReloadTranslation();
 extern	char cg_fxflags; // JPW NERVE
 
 void CG_ScanForCrosshairMine( centity_t *cent );
+void CG_ScanForCrosshairDynamite( centity_t *cent );
 void CG_InitStatsDebug( void );
 void CG_StatsDebugAddText( const char *text );
 
