@@ -2585,6 +2585,31 @@ void CG_ScanForCrosshairMine(centity_t *cent) {
 
 /*
 =================
+CG_ScanForCrosshairDynamite
+=================
+*/
+void CG_ScanForCrosshairDynamite(centity_t *cent) {
+	trace_t      trace;
+	vec3_t      start, end;
+
+	VectorCopy( cg.refdef.vieworg, start );
+	VectorMA( start, 512, cg.refdef.viewaxis[0], end );
+
+	CG_Trace( &trace, start, NULL, NULL, end, -1, MASK_SOLID );
+
+	if(
+		Square(trace.endpos[0] - cent->currentState.pos.trBase[0]) < 256 &&
+		Square(trace.endpos[1] - cent->currentState.pos.trBase[1]) < 256 &&
+		Square(trace.endpos[2] - cent->currentState.pos.trBase[2]) < 256 )
+	{
+		cg.crosshairDynamite = cent->currentState.clientNum;
+		cg.crosshairDynamiteTime = cg.time;
+		cg.crosshairDynamiteEntity = cent;
+	}
+}
+
+/*
+=================
 CG_ScanForCrosshairEntity
 =================
 
@@ -2880,6 +2905,48 @@ static void CG_DrawCrosshairNames( void ) {
 			cg.crosshairMine = -1;
 			return;
 		}
+	}
+
+	// Dynamite crosshair - timer bar + owner name
+	if ( cg.crosshairDynamiteEntity ) {
+		color = CG_FadeColor( cg.crosshairDynamiteTime, 1000 );
+
+		if ( color ) {
+			centity_t *dynaEnt = cg.crosshairDynamiteEntity;
+			int ownerClientNum = cg.crosshairDynamite;
+			team_t dynaTeam = (team_t)dynaEnt->currentState.teamNum;
+			team_t playerTeam = cgs.clientinfo[cg.snap->ps.clientNum].team;
+			qboolean isTeammate = (qboolean)(playerTeam == dynaTeam);
+			qboolean isSpectator = (qboolean)(playerTeam == TEAM_SPECTATOR);
+
+			// Show owner name for teammates and spectators
+			if ( isTeammate || isSpectator ) {
+				s = va("%s^7's dynamite", cgs.clientinfo[ownerClientNum].name);
+				w = CG_DrawStrlen( s ) * SMALLCHAR_WIDTH;
+				CG_DrawSmallString( int(SCREEN_CENTER - w / 2), 170, s, color[3] );
+			}
+
+			// Draw timer bar for everyone
+			float timeRemaining = (float)(cg.dynamiteTime - cg.time + dynaEnt->currentState.effect1Time);
+			float timerFrac = timeRemaining / (float)cg.dynamiteTime;
+			if ( timerFrac > 1.0f ) timerFrac = 1.0f;
+			else if ( timerFrac < 0.0f ) timerFrac = 0.0f;
+
+			vec4_t timerColor, timerBgColor;
+			timerColor[0] = 1.0f - timerFrac;
+			timerColor[1] = timerFrac;
+			timerColor[2] = 0.0f;
+			timerColor[3] = (0.25f + timerFrac * 0.5f) * color[3];
+			Vector4Set( timerBgColor, 1.f, 1.f, 1.f, 0.25f * color[3] );
+
+			CG_FilledBar( SCREEN_CENTER - 110 / 2, 190, 110, 10, timerColor, NULL, timerBgColor, timerFrac, 16 );
+			trap_R_SetColor( NULL );
+
+			cg.crosshairDynamiteEntity = NULL;
+			return;
+		}
+
+		cg.crosshairDynamiteEntity = NULL;
 	}
 
 	// See if we're pointing at an entity
