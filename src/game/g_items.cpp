@@ -800,6 +800,10 @@ int Pickup_Health (gentity_t *ent, gentity_t *other) {
 			max = int( max * 1.12f );
 	}
 
+	// Don't pick up if already at max health
+	if ( other->health >= max )
+		return 0;
+
 	other->health += ent->item->quantity;
 	if (other->health > max ) {
 		other->health = max;

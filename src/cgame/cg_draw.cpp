@@ -4676,7 +4676,7 @@ static void CG_DrawPlayerHealthBar( rectDef_t *rect ) {
 	CG_ColorForHealth( colour );
 	colour[3] = 0.5f;
 
-	if( cgs.clientinfo[ cg.snap->ps.clientNum ].cls == PC_MEDIC ) {
+	if( cgs.clientinfo[ cg.snap->ps.clientNum ].cls == PC_MEDIC && !cgs.sv_customClassMaxHP ) {
 		frac = cg.snap->ps.stats[STAT_HEALTH] / ( (float) cg.snap->ps.stats[STAT_MAX_HEALTH] * 1.12f );
 	} else {
 		frac = cg.snap->ps.stats[STAT_HEALTH] / (float) cg.snap->ps.stats[STAT_MAX_HEALTH];

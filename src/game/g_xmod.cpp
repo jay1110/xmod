@@ -1405,6 +1405,23 @@ static void G_BuildXmodCS( char* cs, int csSize, char* cs2, int cs2Size ) {
 
     // Missile Cameras
     Info_SetValueForKey( cs2, "L", va("%i", g_missileCams.integer) );
+
+    // Custom class max HP active flag
+    {
+        int hasCustom = 0;
+        if ( g_classesMaxHP.string[0] ) {
+            int classHP[NUM_PLAYER_CLASSES] = {0};
+            int n = sscanf( g_classesMaxHP.string, "%i %i %i %i %i",
+                &classHP[PC_SOLDIER], &classHP[PC_MEDIC], &classHP[PC_ENGINEER],
+                &classHP[PC_FIELDOPS], &classHP[PC_COVERTOPS] );
+            if ( n == NUM_PLAYER_CLASSES ) {
+                for ( int i = 0; i < NUM_PLAYER_CLASSES; i++ ) {
+                    if ( classHP[i] > 0 ) { hasCustom = 1; break; }
+                }
+            }
+        }
+        Info_SetValueForKey( cs2, "M", va("%i", hasCustom) );
+    }
 }
 
 void G_UpdateXmodCS() {
