@@ -728,7 +728,7 @@ void Weapon_Syringe(gentity_t *ent) {
 			          && traceEnt->client->ps.pm_type == PM_NORMAL
 			          && traceEnt->client->sess.sessionTeam == ent->client->sess.sessionTeam
 			          && traceEnt->health > 0
-			          && traceEnt->health < traceEnt->client->ps.stats[STAT_MAX_HEALTH] )
+			          && traceEnt->health < 65 )
 			{
 				traceEnt->health = traceEnt->client->ps.stats[STAT_MAX_HEALTH];
 				traceEnt->client->ps.stats[STAT_HEALTH] = traceEnt->health;
