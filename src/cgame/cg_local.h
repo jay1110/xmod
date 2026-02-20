@@ -2242,6 +2242,7 @@ typedef struct {
 	char				rpcsEndgameStats[MAX_INFO_STRING]; // Endgame stats via RPCS
 
 	int					sv_missileCams;     // g_missileCams from server (bitflags)
+	int					sv_customClassMaxHP; // g_classesMaxHP active (any class has non-zero)
 } cgs_t;
 
 //==============================================================================

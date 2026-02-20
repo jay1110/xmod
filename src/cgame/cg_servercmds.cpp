@@ -362,6 +362,9 @@ void CG_ParseXmodinfo2( void) {
 
     // Missile Cameras
     cgs.sv_missileCams = atoi( Info_ValueForKey( info, "L" ) );
+
+    // Custom class max HP
+    cgs.sv_customClassMaxHP = atoi( Info_ValueForKey( info, "M" ) );
 }
 
 /*

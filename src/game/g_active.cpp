@@ -855,6 +855,36 @@ G_MedicRegen
 Handles medic regeneration
 ==================
 */
+/*
+==================
+G_HasCustomClassMaxHP
+
+Returns true if g_classesMaxHP provides a non-zero value for the player's class
+==================
+*/
+static qboolean G_HasCustomClassMaxHP( gentity_t* ent )
+{
+    if ( !g_classesMaxHP.string[0] )
+        return qfalse;
+
+    int classHP[NUM_PLAYER_CLASSES] = {0};
+    int numScanned = sscanf( g_classesMaxHP.string, "%i %i %i %i %i",
+        &classHP[PC_SOLDIER],
+        &classHP[PC_MEDIC],
+        &classHP[PC_ENGINEER],
+        &classHP[PC_FIELDOPS],
+        &classHP[PC_COVERTOPS] );
+
+    if ( numScanned == NUM_PLAYER_CLASSES
+         && ent->client->sess.playerType >= 0
+         && ent->client->sess.playerType < NUM_PLAYER_CLASSES
+         && classHP[ent->client->sess.playerType] > 0 )
+    {
+        return qtrue;
+    }
+    return qfalse;
+}
+
 static void G_MedicRegen( gentity_t* ent )
 {
     // No regeneration for poisoned players
@@ -870,6 +900,9 @@ static void G_MedicRegen( gentity_t* ent )
     if ((g_medics.integer & MEDIC_DELAYREGEN) && (level.time - ent->client->lasthurt_time) < 5000)
         return;
 
+    // When g_classesMaxHP sets a custom value, cap at exactly STAT_MAX_HEALTH (no overheal)
+    qboolean customMaxHP = G_HasCustomClassMaxHP( ent );
+
     if (ent->health < ent->client->ps.stats[STAT_MAX_HEALTH]) {
         ent->health += 3;
 
@@ -877,13 +910,17 @@ static void G_MedicRegen( gentity_t* ent )
         if (g_medics.integer & MEDIC_LESSREGEN)
 	        ent->health --;
 
-        if ( ent->health > ent->client->ps.stats[STAT_MAX_HEALTH] * 1.1f){
-	        ent->health = int( ent->client->ps.stats[STAT_MAX_HEALTH] * 1.1f );
+        if (customMaxHP) {
+            if ( ent->health > ent->client->ps.stats[STAT_MAX_HEALTH] )
+                ent->health = ent->client->ps.stats[STAT_MAX_HEALTH];
+        } else {
+            if ( ent->health > ent->client->ps.stats[STAT_MAX_HEALTH] * 1.1f)
+                ent->health = int( ent->client->ps.stats[STAT_MAX_HEALTH] * 1.1f );
         }
 
         return;
     }
-    else if( ent->health < ent->client->ps.stats[STAT_MAX_HEALTH] * 1.12f) {
+    else if( !customMaxHP && ent->health < ent->client->ps.stats[STAT_MAX_HEALTH] * 1.12f) {
         ent->health += 2;
 
         // Jaybird - handle g_medics less regen
@@ -895,6 +932,34 @@ static void G_MedicRegen( gentity_t* ent )
         }
 
         return;
+    }
+}
+
+/*
+==================
+G_HasCarryOverRegen
+
+Returns true if the player has carry-over regen enabled via g_sk5_medic flags
+==================
+*/
+static qboolean G_HasCarryOverRegen( gentity_t* ent )
+{
+    gclient_t* client = ent->client;
+
+    if (client->sess.skill[SK_FIRST_AID] < 5)
+        return qfalse;
+
+    switch (client->sess.playerType) {
+        case PC_COVERTOPS:
+            return (cvars::bg_sk5_medic.ivalue & SK5_MED_CARRY_CVO) ? qtrue : qfalse;
+        case PC_ENGINEER:
+            return (cvars::bg_sk5_medic.ivalue & SK5_MED_CARRY_ENG) ? qtrue : qfalse;
+        case PC_FIELDOPS:
+            return (cvars::bg_sk5_medic.ivalue & SK5_MED_CARRY_FDO) ? qtrue : qfalse;
+        case PC_SOLDIER:
+            return (cvars::bg_sk5_medic.ivalue & SK5_MED_CARRY_SOL) ? qtrue : qfalse;
+        default:
+            return qfalse;
     }
 }
 
@@ -917,6 +982,9 @@ void ClientTimerActions( gentity_t *ent, int msec ) {
 		// Medic regeneration
         if( client->sess.playerType == PC_MEDIC ) {
             G_MedicRegen( ent );
+        } else if ( G_HasCarryOverRegen( ent ) ) {
+            // Don't count down health for carry-over regen players;
+            // their regen is handled in ClientTimerRegenCarryOver
         } else {
 			// count down health when over max
             if ( ent->health > client->ps.stats[STAT_MAX_HEALTH] ) {
@@ -952,43 +1020,40 @@ void ClientTimerRegenCarryOver( gentity_t *ent, int msec ) {
 	gclient_t* client = ent->client;
 	client->regenCarryOverTime += msec;
 
-	while (client->regenCarryOverTime >= SK5G_MEDCARRY_TIMER) {
-		client->regenCarryOverTime -= SK5G_MEDCARRY_TIMER;
+	while (client->regenCarryOverTime >= 1000) {
+		client->regenCarryOverTime -= 1000;
 
-        if (ent->client->sess.skill[SK_FIRST_AID] < 5)
-			continue;
-
-		if (ent->health >= client->ps.stats[STAT_MAX_HEALTH])
+		if (!G_HasCarryOverRegen(ent))
 			continue;
 
 		if (G_IsPoisoned(ent))
 			continue;
 
-        switch (client->sess.playerType) {
-            case PC_COVERTOPS:
-                if (cvars::bg_sk5_medic.ivalue & SK5_MED_CARRY_CVO)
-                    ent->health += 1;
-                break;
+		// When g_classesMaxHP sets a custom value, cap at exactly STAT_MAX_HEALTH (no overheal)
+		qboolean customMaxHP = G_HasCustomClassMaxHP( ent );
 
-            case PC_ENGINEER:
-	            if (cvars::bg_sk5_medic.ivalue & SK5_MED_CARRY_ENG)
-                    ent->health += 1;
-                break;
-
-            case PC_FIELDOPS:
-                if (cvars::bg_sk5_medic.ivalue & SK5_MED_CARRY_FDO)
-                    ent->health += 1;
-                break;
-
-            default:
-            case PC_MEDIC:
-                break;
-
-            case PC_SOLDIER:
-	            if (cvars::bg_sk5_medic.ivalue & SK5_MED_CARRY_SOL)
-                    ent->health += 1;
-                break;
-        }
+		// Regenerate health: follow g_medics LESSREGEN flag for rate
+		if (ent->health < client->ps.stats[STAT_MAX_HEALTH]) {
+			if (g_medics.integer & MEDIC_LESSREGEN)
+				ent->health += 2;
+			else
+				ent->health += 3;
+			if (customMaxHP) {
+				if (ent->health > client->ps.stats[STAT_MAX_HEALTH])
+					ent->health = client->ps.stats[STAT_MAX_HEALTH];
+			} else {
+				if (ent->health > int(client->ps.stats[STAT_MAX_HEALTH] * 1.1f))
+					ent->health = int(client->ps.stats[STAT_MAX_HEALTH] * 1.1f);
+			}
+		}
+		else if (!customMaxHP && ent->health < int(client->ps.stats[STAT_MAX_HEALTH] * 1.12f)) {
+			if (g_medics.integer & MEDIC_LESSREGEN)
+				ent->health += 1;
+			else
+				ent->health += 2;
+			if (ent->health > int(client->ps.stats[STAT_MAX_HEALTH] * 1.12f))
+				ent->health = int(client->ps.stats[STAT_MAX_HEALTH] * 1.12f);
+		}
     }
 }
 

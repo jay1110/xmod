@@ -264,6 +264,7 @@ vmCvar_t		g_soldiers;
 
 vmCvar_t		g_medicSelfHealDelay;
 vmCvar_t		g_medics;
+vmCvar_t		g_classesMaxHP;
 
 // Killing Sprees
 vmCvar_t		g_killSpreeLevels;
@@ -413,6 +414,7 @@ cvarTable_t		gameCvarTable[] = {
 
     { &g_medicSelfHealDelay, "g_medicSelfHealDelay", "0",       CVAR_ARCHIVE },
     { &g_medics,             "g_medics",             "0",       CVAR_ARCHIVE },
+    { &g_classesMaxHP,       "g_classesMaxHP",       "0 0 0 0 0", CVAR_ARCHIVE },
 
 	// Custom Levels
 	{ &g_levels_battlesense,"g_levels_battlesense",	"",			CVAR_ARCHIVE },

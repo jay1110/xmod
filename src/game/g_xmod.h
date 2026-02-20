@@ -87,6 +87,7 @@ extern vmCvar_t	g_soldiers;
 
 extern vmCvar_t g_medicSelfHealDelay;
 extern vmCvar_t	g_medics;
+extern vmCvar_t	g_classesMaxHP;
 
 // Custom Levels
 extern vmCvar_t g_levels_battlesense;
@@ -272,10 +273,12 @@ namespace cache {
 
 // Jaybird - Class modification defines
 // g_medics
+#define MEDIC_NOSELFMEDPACK   1
 #define MEDIC_LESSREGEN       4
 #define MEDIC_NOREGEN         8
 #define MEDIC_SHAREADRENALINE 16
 #define MEDIC_DELAYREGEN      32
+#define MEDIC_NEEDLE_HEAL     64
 
 // g_engineers
 #define ENGI_FRIENDLYMINES         1    // Friendly landmines are not tripped by own team

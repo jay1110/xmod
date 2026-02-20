@@ -786,8 +786,23 @@ int Pickup_Health (gentity_t *ent, gentity_t *other) {
 
 	max = other->client->ps.stats[STAT_MAX_HEALTH];
 	if( other->client->sess.playerType == PC_MEDIC ) {
-		max = int( max * 1.12f );
+		// When g_classesMaxHP sets a custom value, don't allow medic overheal
+		qboolean customMaxHP = qfalse;
+		if ( g_classesMaxHP.string[0] ) {
+			int classHP[NUM_PLAYER_CLASSES] = {0};
+			int numScanned = sscanf( g_classesMaxHP.string, "%i %i %i %i %i",
+				&classHP[PC_SOLDIER], &classHP[PC_MEDIC], &classHP[PC_ENGINEER],
+				&classHP[PC_FIELDOPS], &classHP[PC_COVERTOPS] );
+			if ( numScanned == NUM_PLAYER_CLASSES && classHP[PC_MEDIC] > 0 )
+				customMaxHP = qtrue;
+		}
+		if ( !customMaxHP )
+			max = int( max * 1.12f );
 	}
+
+	// Don't pick up if already at max health
+	if ( other->health >= max )
+		return 0;
 
 	other->health += ent->item->quantity;
 	if (other->health > max ) {
@@ -914,6 +929,10 @@ void Touch_Item( gentity_t *ent, gentity_t *other, trace_t *trace ) {
         return;
 
     if (ent->item->giType == IT_HEALTH && other->client->sess.playerType == PC_MEDIC) {
+        // Medics can't pick up their own med packs at all
+        if ((g_medics.integer & MEDIC_NOSELFMEDPACK) && ent->parent && ent->parent == other)
+            return;
+
         // enforce g_medicSelfHealDelay policy
         if (g_medicSelfHealDelay.integer < 0)
             return;

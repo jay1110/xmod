@@ -1704,6 +1704,25 @@ void AddMedicTeamBonus( gclient_t *client ) {
 		client->pers.maxHealth += 15;
 	}
 
+	// g_classesMaxHP override: "Soldier Medic Engineer FieldOps CovertOps"
+	if ( g_classesMaxHP.string[0] ) {
+		int classHP[NUM_PLAYER_CLASSES] = {0};
+		int numScanned = sscanf( g_classesMaxHP.string, "%i %i %i %i %i",
+			&classHP[PC_SOLDIER],
+			&classHP[PC_MEDIC],
+			&classHP[PC_ENGINEER],
+			&classHP[PC_FIELDOPS],
+			&classHP[PC_COVERTOPS] );
+
+		if ( numScanned == NUM_PLAYER_CLASSES
+		     && client->sess.playerType >= 0
+		     && client->sess.playerType < NUM_PLAYER_CLASSES
+		     && classHP[client->sess.playerType] > 0 )
+		{
+			client->pers.maxHealth = classHP[client->sess.playerType];
+		}
+	}
+
 	client->ps.stats[STAT_MAX_HEALTH] = client->pers.maxHealth;
 }
 
@@ -3137,7 +3156,26 @@ void ClientSpawn( gentity_t *ent, qboolean revived )
 	// JPW NERVE ***NOTE*** the following line is order-dependent and must *FOLLOW* SetWolfSpawnWeapons() in multiplayer
 	// AddMedicTeamBonus() now adds medic team bonus and stores in ps.stats[STAT_MAX_HEALTH].
 
-	if( client->sess.skill[SK_BATTLE_SENSE] >= 3 )
+	// Check if g_classesMaxHP provides a custom max HP for this class
+	qboolean hasCustomMaxHP = qfalse;
+	if ( g_classesMaxHP.string[0] ) {
+		int classHP[NUM_PLAYER_CLASSES] = {0};
+		int numScanned = sscanf( g_classesMaxHP.string, "%i %i %i %i %i",
+			&classHP[PC_SOLDIER],
+			&classHP[PC_MEDIC],
+			&classHP[PC_ENGINEER],
+			&classHP[PC_FIELDOPS],
+			&classHP[PC_COVERTOPS] );
+		if ( numScanned == NUM_PLAYER_CLASSES
+		     && client->sess.playerType >= 0
+		     && client->sess.playerType < NUM_PLAYER_CLASSES
+		     && classHP[client->sess.playerType] > 0 )
+		{
+			hasCustomMaxHP = qtrue;
+		}
+	}
+
+	if( !hasCustomMaxHP && client->sess.skill[SK_BATTLE_SENSE] >= 3 )
 		// We get some extra max health, but don't spawn with that much
 		ent->health = client->ps.stats[STAT_HEALTH] = client->ps.stats[STAT_MAX_HEALTH] - 15;
 	else
