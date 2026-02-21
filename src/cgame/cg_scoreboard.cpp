@@ -8,6 +8,12 @@
 #define PING_THRESHOLD_GOOD		100		// 0-99: Green
 #define PING_THRESHOLD_AVERAGE	251		// 100-250: Yellow, 251+: Red
 
+// Reduced char sizes for K/D, XP, Ping columns (-30%)
+#define SCORE_CHAR_WIDTH	6	// SMALLCHAR_WIDTH * 0.7
+#define SCORE_CHAR_HEIGHT	11	// SMALLCHAR_HEIGHT * 0.7
+#define SCORE_MINI_WIDTH	6	// MINICHAR_WIDTH * 0.7
+#define SCORE_MINI_HEIGHT	8	// MINICHAR_HEIGHT * 0.7
+
 vec4_t clrUiBack = { 0.f, 0.f, 0.f, .6f };
 vec4_t clrUiBar = { .16f, .2f, .17f, .8f };
 
@@ -438,22 +444,24 @@ static void WM_DrawClientScore( int x, int y, score_t *score, float *color, floa
 		vec4_t deathColor = { 0.9f, 0.2f, 0.2f, fade };
 		char killStr[16], deathStr[16];
 		int killWidth;
-		int slashPos = int(tempx) + INFO_KD_WIDTH / 2 - SMALLCHAR_WIDTH / 2;
+		int slashPos = int(tempx) + INFO_KD_WIDTH / 2 - SCORE_CHAR_WIDTH / 2;
+		int yOff = y + (SMALLCHAR_HEIGHT - SCORE_CHAR_HEIGHT) / 2;
 
 		Com_sprintf(killStr, sizeof(killStr), "%i", ci->kills);
 		Com_sprintf(deathStr, sizeof(deathStr), "%i", ci->deaths);
 
 		// Right-align kills before the slash
-		killWidth = CG_DrawStrlen(killStr) * SMALLCHAR_WIDTH;
-		CG_DrawStringExt( slashPos - killWidth, y, killStr, killColor, qfalse, qtrue, SMALLCHAR_WIDTH, SMALLCHAR_HEIGHT, 0 );
+		killWidth = CG_DrawStrlen(killStr) * SCORE_CHAR_WIDTH;
+		CG_DrawStringExt( slashPos - killWidth, yOff, killStr, killColor, qfalse, qtrue, SCORE_CHAR_WIDTH, SCORE_CHAR_HEIGHT, 0 );
 		// Slash at fixed position
-		CG_DrawStringExt( slashPos, y, "/", slashColor, qfalse, qtrue, SMALLCHAR_WIDTH, SMALLCHAR_HEIGHT, 0 );
+		CG_DrawStringExt( slashPos, yOff, "/", slashColor, qfalse, qtrue, SCORE_CHAR_WIDTH, SCORE_CHAR_HEIGHT, 0 );
 		// Left-align deaths after the slash
-		CG_DrawStringExt( slashPos + SMALLCHAR_WIDTH, y, deathStr, deathColor, qfalse, qtrue, SMALLCHAR_WIDTH, SMALLCHAR_HEIGHT, 0 );
+		CG_DrawStringExt( slashPos + SCORE_CHAR_WIDTH, yOff, deathStr, deathColor, qfalse, qtrue, SCORE_CHAR_WIDTH, SCORE_CHAR_HEIGHT, 0 );
 		tempx += INFO_KD_WIDTH;
 
 		// XP
-		CG_DrawSmallString( int(tempx), y, va( "%4i", score->score ), fade );
+		vec4_t xpColor = { 1.0f, 1.0f, 1.0f, fade };
+		CG_DrawStringExt( int(tempx), yOff, va( "%4i", score->score ), xpColor, qfalse, qfalse, SCORE_CHAR_WIDTH, SCORE_CHAR_HEIGHT, 0 );
 		tempx += INFO_XP_WIDTH;
 	}
 
@@ -461,10 +469,12 @@ static void WM_DrawClientScore( int x, int y, score_t *score, float *color, floa
 	if (ci->botSkill > 0) {
 		// Show BOT for bots instead of ping
 		vec4_t botColor = { 0.7f, 0.7f, 0.7f, fade };
-		CG_DrawStringExt( int(tempx), y, " BOT", botColor, qfalse, qtrue, SMALLCHAR_WIDTH, SMALLCHAR_HEIGHT, 0 );
+		int yOff = y + (SMALLCHAR_HEIGHT - SCORE_CHAR_HEIGHT) / 2;
+		CG_DrawStringExt( int(tempx), yOff, " BOT", botColor, qfalse, qtrue, SCORE_CHAR_WIDTH, SCORE_CHAR_HEIGHT, 0 );
 	} else {
 		// Color-coded ping display
 		vec4_t pingColor;
+		int yOff = y + (SMALLCHAR_HEIGHT - SCORE_CHAR_HEIGHT) / 2;
 		if (score->ping < PING_THRESHOLD_GOOD) {
 			VectorCopy(clrPingGreen, pingColor);
 		} else if (score->ping < PING_THRESHOLD_AVERAGE) {
@@ -473,7 +483,7 @@ static void WM_DrawClientScore( int x, int y, score_t *score, float *color, floa
 			VectorCopy(clrPingRed, pingColor);
 		}
 		pingColor[3] = fade;
-		CG_DrawStringExt( int(tempx), y, va( "%4i", score->ping ), pingColor, qfalse, qtrue, SMALLCHAR_WIDTH, SMALLCHAR_HEIGHT, 0 );
+		CG_DrawStringExt( int(tempx), yOff, va( "%4i", score->ping ), pingColor, qfalse, qtrue, SCORE_CHAR_WIDTH, SCORE_CHAR_HEIGHT, 0 );
 	}
 	tempx += INFO_LATENCY_WIDTH;
 }
@@ -648,22 +658,23 @@ static void WM_DrawClientScore_Small( int x, int y, score_t *score, float *color
 		vec4_t deathColor = { 0.9f, 0.2f, 0.2f, fade };
 		char killStr[16], deathStr[16];
 		int killWidth;
-		int slashPos = int(tempx) + INFO_KD_WIDTH / 2 - MINICHAR_WIDTH / 2;
+		int slashPos = int(tempx) + INFO_KD_WIDTH / 2 - SCORE_MINI_WIDTH / 2;
+		int yOff = y + (MINICHAR_HEIGHT - SCORE_MINI_HEIGHT) / 2;
 
 		Com_sprintf(killStr, sizeof(killStr), "%i", ci->kills);
 		Com_sprintf(deathStr, sizeof(deathStr), "%i", ci->deaths);
 
 		// Right-align kills before the slash
-		killWidth = CG_DrawStrlen(killStr) * MINICHAR_WIDTH;
-		CG_DrawStringExt( slashPos - killWidth, y, killStr, killColor, qfalse, qtrue, MINICHAR_WIDTH, MINICHAR_HEIGHT, 0 );
+		killWidth = CG_DrawStrlen(killStr) * SCORE_MINI_WIDTH;
+		CG_DrawStringExt( slashPos - killWidth, yOff, killStr, killColor, qfalse, qtrue, SCORE_MINI_WIDTH, SCORE_MINI_HEIGHT, 0 );
 		// Slash at fixed position
-		CG_DrawStringExt( slashPos, y, "/", slashColor, qfalse, qtrue, MINICHAR_WIDTH, MINICHAR_HEIGHT, 0 );
+		CG_DrawStringExt( slashPos, yOff, "/", slashColor, qfalse, qtrue, SCORE_MINI_WIDTH, SCORE_MINI_HEIGHT, 0 );
 		// Left-align deaths after the slash
-		CG_DrawStringExt( slashPos + MINICHAR_WIDTH, y, deathStr, deathColor, qfalse, qtrue, MINICHAR_WIDTH, MINICHAR_HEIGHT, 0 );
+		CG_DrawStringExt( slashPos + SCORE_MINI_WIDTH, yOff, deathStr, deathColor, qfalse, qtrue, SCORE_MINI_WIDTH, SCORE_MINI_HEIGHT, 0 );
 		tempx += INFO_KD_WIDTH;
 
 		// XP (with shadow)
-		CG_DrawStringExt( int(tempx), y, va( "%4i", score->score ), hcolor, qfalse, qtrue, MINICHAR_WIDTH, MINICHAR_HEIGHT, 0 );
+		CG_DrawStringExt( int(tempx), yOff, va( "%4i", score->score ), hcolor, qfalse, qtrue, SCORE_MINI_WIDTH, SCORE_MINI_HEIGHT, 0 );
 		tempx += INFO_XP_WIDTH;
 	}
 
@@ -671,10 +682,12 @@ static void WM_DrawClientScore_Small( int x, int y, score_t *score, float *color
 	if (ci->botSkill > 0) {
 		// Show BOT for bots instead of ping
 		vec4_t botColor = { 0.7f, 0.7f, 0.7f, fade };
-		CG_DrawStringExt( int(tempx), y, " BOT", botColor, qfalse, qtrue, MINICHAR_WIDTH, MINICHAR_HEIGHT, 0 );
+		int yOff = y + (MINICHAR_HEIGHT - SCORE_MINI_HEIGHT) / 2;
+		CG_DrawStringExt( int(tempx), yOff, " BOT", botColor, qfalse, qtrue, SCORE_MINI_WIDTH, SCORE_MINI_HEIGHT, 0 );
 	} else {
 		// Color-coded ping display
 		vec4_t pingColor;
+		int yOff = y + (MINICHAR_HEIGHT - SCORE_MINI_HEIGHT) / 2;
 		if (score->ping < PING_THRESHOLD_GOOD) {
 			VectorCopy(clrPingGreen, pingColor);
 		} else if (score->ping < PING_THRESHOLD_AVERAGE) {
@@ -683,7 +696,7 @@ static void WM_DrawClientScore_Small( int x, int y, score_t *score, float *color
 			VectorCopy(clrPingRed, pingColor);
 		}
 		pingColor[3] = fade;
-		CG_DrawStringExt( int(tempx), y, va( "%4i", score->ping ), pingColor, qfalse, qtrue, MINICHAR_WIDTH, MINICHAR_HEIGHT, 0 );
+		CG_DrawStringExt( int(tempx), yOff, va( "%4i", score->ping ), pingColor, qfalse, qtrue, SCORE_MINI_WIDTH, SCORE_MINI_HEIGHT, 0 );
 	}
 	tempx += INFO_LATENCY_WIDTH;
 }
@@ -953,6 +966,14 @@ static int WM_TeamScoreboard( int x, int y, team_t team, float fade, int maxrows
 }
 // -NERVE - SMF
 
+static int CG_SortByKills( const void *a, const void *b ) {
+	const score_t *sa = (const score_t *)a;
+	const score_t *sb = (const score_t *)b;
+	int killsA = cgs.clientinfo[sa->client].kills;
+	int killsB = cgs.clientinfo[sb->client].kills;
+	return killsB - killsA;
+}
+
 /*
 =================
 CG_DrawScoreboard
@@ -1018,6 +1039,11 @@ qboolean CG_DrawScoreboard( void ) {
 	CG_DrawRect_FixedBorder( x - 10, 0, width + 15, 480, 2, borderColor );
 
 	y = WM_DrawObjectives( x, y, width, fade );
+
+	// Sort scores by kills if double-tab was activated
+	if ( cg.scoresSortByKills && cg.numScores > 0 ) {
+		qsort( cg.scores, cg.numScores, sizeof(score_t), CG_SortByKills );
+	}
 
 	if ( cgs.gametype == GT_WOLF_STOPWATCH && ( cg.snap->ps.pm_type == PM_INTERMISSION ) ) {
 		y = WM_DrawInfoLine( x, 155, fade );

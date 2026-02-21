@@ -879,6 +879,8 @@ typedef struct {
 	qboolean	showScores;
 	qboolean	scoreBoardShowing;
 	int			scoreFadeTime;
+	qboolean	scoresSortByKills;
+	int			lastScoresDownTime;
 	char		killerName[MAX_NAME_LENGTH];
 	char			spectatorList[MAX_STRING_CHARS];		// list of names
 	int				spectatorLen;												// length of list
