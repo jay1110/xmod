@@ -360,8 +360,7 @@ static void WM_DrawClientScore( int x, int y, score_t *score, float *color, floa
 		tempx += INFO_CLASS_WIDTH + 3;
 	} else {
 		// Class not shown - extra space extends player name
-		playerWidth += INFO_CLASS_WIDTH;
-		maxchars += INFO_CLASS_WIDTH / SCORE_CHAR_WIDTH;
+		playerWidth += INFO_CLASS_WIDTH + 3;
 	}
 
     // Icons - draw in order: special status icons first
@@ -570,8 +569,7 @@ static void WM_DrawClientScore_Small( int x, int y, score_t *score, float *color
 		tempx += INFO_CLASS_WIDTH + 3;
 	} else {
 		// Class not shown - extra space extends player name
-		playerWidth += INFO_CLASS_WIDTH;
-		maxchars += INFO_CLASS_WIDTH / SCORE_MINI_WIDTH;
+		playerWidth += INFO_CLASS_WIDTH + 3;
 	}
 
 	if ( ci->team != TEAM_SPECTATOR ) {
