@@ -18,6 +18,10 @@
 #define HEADER_CHAR_WIDTH	7	// SMALLCHAR_WIDTH * 0.85
 #define HEADER_CHAR_HEIGHT	14	// SMALLCHAR_HEIGHT * 0.85
 
+// Grace period before KEYCATCH_UI can dismiss the scoreboard (ms)
+// Prevents instant dismiss when menu button does "close ingame_main; exec +scores"
+#define SCORES_UI_GRACE_MS	500
+
 vec4_t clrUiBack = { 0.f, 0.f, 0.f, .6f };
 vec4_t clrUiBar = { .16f, .2f, .17f, .8f };
 
@@ -1056,7 +1060,7 @@ qboolean CG_DrawScoreboard( void ) {
 	if ( cg_paused.integer || (trap_Key_GetCatcher() & KEYCATCH_UI) ) {
 		// Grace period: don't dismiss scores that were just opened (e.g., from menu button
 		// doing "close ingame_main; exec +scores" where KEYCATCH_UI lingers briefly)
-		if ( cg.showScores && cg.lastScoresDownTime + 500 > cg.time ) {
+		if ( cg.showScores && cg.lastScoresDownTime + SCORES_UI_GRACE_MS > cg.time ) {
 			return qfalse;
 		}
 		if ( cg.showScores ) {
