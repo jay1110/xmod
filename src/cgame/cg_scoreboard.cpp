@@ -94,7 +94,7 @@ WM_DrawObjectives
 // Total per team should be ~290 pixels to fit 4:3 aspect ratio (640 width)
 // 2 * 290 + 20 gap = 600 < 640, leaving margin
 #define INFO_FLAG_WIDTH			14
-#define INFO_PLAYER_WIDTH		140
+#define INFO_PLAYER_WIDTH		134
 #define INFO_SCORE_WIDTH		56
 #define INFO_XP_WIDTH			28
 #define INFO_KD_WIDTH			40
@@ -103,7 +103,8 @@ WM_DrawObjectives
 #define INFO_TEAM_HEIGHT		24
 #define INFO_BORDER				2
 #define INFO_LINE_HEIGHT		30
-#define INFO_TOTAL_WIDTH		(INFO_FLAG_WIDTH + INFO_CLASS_WIDTH + INFO_PLAYER_WIDTH + INFO_KD_WIDTH + INFO_XP_WIDTH + INFO_LATENCY_WIDTH)
+#define INFO_SPACING			3	// gap between flag, class, and name
+#define INFO_TOTAL_WIDTH		(INFO_FLAG_WIDTH + INFO_SPACING + INFO_CLASS_WIDTH + INFO_SPACING + INFO_PLAYER_WIDTH + INFO_KD_WIDTH + INFO_XP_WIDTH + INFO_LATENCY_WIDTH)
 
 int WM_DrawObjectives( int x, int y, int width, float fade ) {
 	const char *s, *str;
@@ -315,7 +316,7 @@ static void WM_DrawClientScore( int x, int y, score_t *score, float *color, floa
     // Highlight background of your slot - continuous highlight without separators
 	if ( score->client == cg.snap->ps.clientNum ) {
 		tempx = x;
-		int totalWidth = INFO_FLAG_WIDTH + INFO_CLASS_WIDTH + INFO_PLAYER_WIDTH + INFO_KD_WIDTH + INFO_XP_WIDTH + INFO_LATENCY_WIDTH;
+		int totalWidth = INFO_TOTAL_WIDTH;
 
 		hcolor[3] = fade * 0.3;
 		VectorSet( hcolor, .5f, .5f, .2f );			// DARK-YELLOW
@@ -339,7 +340,7 @@ static void WM_DrawClientScore( int x, int y, score_t *score, float *color, floa
 			// flag drawn
 		}
 	}
-	tempx += INFO_FLAG_WIDTH + 3;
+	tempx += INFO_FLAG_WIDTH + INFO_SPACING;
 
 	// Draw class icon SECOND
 	// Determine if we should show class for this player
@@ -357,11 +358,11 @@ static void WM_DrawClientScore( int x, int y, score_t *score, float *color, floa
 
 	if ( showClass ) {
 		CG_DrawClassIcon(tempx + 1, y + 1, fade, score->playerClass);
-		tempx += INFO_CLASS_WIDTH + 3;
+		tempx += INFO_CLASS_WIDTH + INFO_SPACING;
 	} else {
 		// Class not shown - extra space extends player name
-		playerWidth += INFO_CLASS_WIDTH + 3;
-		maxchars += (INFO_CLASS_WIDTH + 3) / SCORE_CHAR_WIDTH;
+		playerWidth += INFO_CLASS_WIDTH + INFO_SPACING;
+		maxchars += (INFO_CLASS_WIDTH + INFO_SPACING) / SCORE_CHAR_WIDTH;
 	}
 
     // Icons - draw in order: special status icons first
@@ -533,7 +534,7 @@ static void WM_DrawClientScore_Small( int x, int y, score_t *score, float *color
 	// Highlight background of your slot - continuous highlight without separators
 	if ( score->client == cg.snap->ps.clientNum ) {
 		tempx = x;
-		int totalWidth = INFO_FLAG_WIDTH + INFO_CLASS_WIDTH + INFO_PLAYER_WIDTH + INFO_KD_WIDTH + INFO_XP_WIDTH + INFO_LATENCY_WIDTH;
+		int totalWidth = INFO_TOTAL_WIDTH;
 
 		hcolor[3] = fade * 0.3;
 		VectorSet( hcolor, .5f, .5f, .2f );			// DARK-YELLOW
@@ -557,7 +558,7 @@ static void WM_DrawClientScore_Small( int x, int y, score_t *score, float *color
 			// flag drawn
 		}
 	}
-	tempx += INFO_FLAG_WIDTH + 3;
+	tempx += INFO_FLAG_WIDTH + INFO_SPACING;
 
 	// Draw class icon SECOND
 	// Determine if we should show class for this player
@@ -574,11 +575,11 @@ static void WM_DrawClientScore_Small( int x, int y, score_t *score, float *color
 
 	if ( showClass ) {
 		CG_DrawClassIcon(tempx + 1, y, fade, score->playerClass);
-		tempx += INFO_CLASS_WIDTH + 3;
+		tempx += INFO_CLASS_WIDTH + INFO_SPACING;
 	} else {
 		// Class not shown - extra space extends player name
-		playerWidth += INFO_CLASS_WIDTH + 3;
-		maxchars += (INFO_CLASS_WIDTH + 3) / SCORE_MINI_WIDTH;
+		playerWidth += INFO_CLASS_WIDTH + INFO_SPACING;
+		maxchars += (INFO_CLASS_WIDTH + INFO_SPACING) / SCORE_MINI_WIDTH;
 	}
 
 	if ( ci->team != TEAM_SPECTATOR ) {
@@ -869,7 +870,7 @@ static int WM_TeamScoreboard( int x, int y, team_t team, float fade, int maxrows
 		int hdrYOff = y + (SMALLCHAR_HEIGHT - HEADER_CHAR_HEIGHT) / 2;
 		int hdrOff;
 		CG_DrawStringExt( int(tempx), hdrYOff, CG_TranslateString( "Name" ), hdrColor, qfalse, qfalse, HEADER_CHAR_WIDTH, HEADER_CHAR_HEIGHT, 0 );
-		tempx += INFO_FLAG_WIDTH + 3 + INFO_CLASS_WIDTH + 3 + INFO_PLAYER_WIDTH;
+		tempx += INFO_FLAG_WIDTH + INFO_SPACING + INFO_CLASS_WIDTH + INFO_SPACING + INFO_PLAYER_WIDTH;
 
 		if( cgs.gametype == GT_WOLF_LMS ) {
 			hdrOff = (INFO_SCORE_WIDTH - CG_DrawStrlen( CG_TranslateString( "Score" ) ) * HEADER_CHAR_WIDTH) / 2;
