@@ -910,6 +910,12 @@ void CG_KeyEvent(int key, qboolean down) {
 				return;
 			}
 
+			// ESC closes the scoreboard if it's open
+			if ( key == K_ESCAPE && cg.showScores ) {
+				CG_ScoresUp_f();
+				return;
+			}
+
 			if ( ( cg.predictedPlayerState.pm_type == PM_NORMAL ||
 				(cg.predictedPlayerState.pm_type == PM_SPECTATOR && cg.showScores == qfalse))) {
 
