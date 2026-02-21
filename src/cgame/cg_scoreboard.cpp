@@ -14,6 +14,10 @@
 #define SCORE_MINI_WIDTH	6	// MINICHAR_WIDTH * 0.7
 #define SCORE_MINI_HEIGHT	8	// MINICHAR_HEIGHT * 0.7
 
+// Header char sizes (-15%)
+#define HEADER_CHAR_WIDTH	7	// SMALLCHAR_WIDTH * 0.85
+#define HEADER_CHAR_HEIGHT	14	// SMALLCHAR_HEIGHT * 0.85
+
 vec4_t clrUiBack = { 0.f, 0.f, 0.f, .6f };
 vec4_t clrUiBar = { .16f, .2f, .17f, .8f };
 
@@ -840,24 +844,26 @@ static int WM_TeamScoreboard( int x, int y, team_t team, float fade, int maxrows
 
 	// draw player info headings - new order: Flag, Class, Name, K/D, XP, Ping
 	// "Name" header spans flag, class, and player name columns
-	CG_DrawSmallString( int(tempx), y, CG_TranslateString( "Name" ), fade );
-	tempx += INFO_FLAG_WIDTH + INFO_CLASS_WIDTH + INFO_PLAYER_WIDTH;
+	{
+		vec4_t hdrColor = { 1.0f, 1.0f, 1.0f, fade };
+		int hdrYOff = y + (SMALLCHAR_HEIGHT - HEADER_CHAR_HEIGHT) / 2;
+		CG_DrawStringExt( int(tempx), hdrYOff, CG_TranslateString( "Name" ), hdrColor, qfalse, qfalse, HEADER_CHAR_WIDTH, HEADER_CHAR_HEIGHT, 0 );
+		tempx += INFO_FLAG_WIDTH + INFO_CLASS_WIDTH + INFO_PLAYER_WIDTH;
 
-	if( cgs.gametype == GT_WOLF_LMS ) {
-		CG_DrawSmallString( int(tempx), y, CG_TranslateString( "Score" ), fade );
-		tempx += INFO_SCORE_WIDTH;
-	} else {
-		// K/D header
-		CG_DrawSmallString( int(tempx), y, "K/D", fade );
-		tempx += INFO_KD_WIDTH;
+		if( cgs.gametype == GT_WOLF_LMS ) {
+			CG_DrawStringExt( int(tempx), hdrYOff, CG_TranslateString( "Score" ), hdrColor, qfalse, qfalse, HEADER_CHAR_WIDTH, HEADER_CHAR_HEIGHT, 0 );
+			tempx += INFO_SCORE_WIDTH;
+		} else {
+			CG_DrawStringExt( int(tempx), hdrYOff, "K/D", hdrColor, qfalse, qfalse, HEADER_CHAR_WIDTH, HEADER_CHAR_HEIGHT, 0 );
+			tempx += INFO_KD_WIDTH;
 
-		// XP header
-		CG_DrawSmallString( int(tempx), y, CG_TranslateString( "XP" ), fade );
-		tempx += INFO_XP_WIDTH;
+			CG_DrawStringExt( int(tempx), hdrYOff, CG_TranslateString( "XP" ), hdrColor, qfalse, qfalse, HEADER_CHAR_WIDTH, HEADER_CHAR_HEIGHT, 0 );
+			tempx += INFO_XP_WIDTH;
+		}
+
+		CG_DrawStringExt( int(tempx), hdrYOff, CG_TranslateString( "Ping" ), hdrColor, qfalse, qfalse, HEADER_CHAR_WIDTH, HEADER_CHAR_HEIGHT, 0 );
+		tempx += INFO_LATENCY_WIDTH;
 	}
-
-	CG_DrawSmallString( int(tempx), y, CG_TranslateString( "Ping" ), fade );
-	tempx += INFO_LATENCY_WIDTH;
 	
 	// CHRUKER: b076 - The math says char height + 2 * border width (1 pixel)
 	y += SMALLCHAR_HEIGHT + 2;
@@ -971,7 +977,13 @@ static int CG_SortByKills( const void *a, const void *b ) {
 	const score_t *sb = (const score_t *)b;
 	int killsA = cgs.clientinfo[sa->client].kills;
 	int killsB = cgs.clientinfo[sb->client].kills;
-	return killsB - killsA;
+	if ( killsB != killsA )
+		return killsB - killsA;
+	// Tiebreaker: sort by XP descending
+	if ( sb->score != sa->score )
+		return sb->score - sa->score;
+	// Final tiebreaker: client number for stable ordering
+	return sa->client - sb->client;
 }
 
 /*

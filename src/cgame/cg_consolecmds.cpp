@@ -157,9 +157,9 @@ void CG_topshotsUp_f(void)
 }
 
 void CG_ScoresDown_f( void ) {
-	// Detect double-tab: if tab pressed again within 500ms, sort by kills
+	// Detect double-tab: if tab pressed again within 500ms, toggle sort by kills
 	if ( cg.lastScoresDownTime && cg.time - cg.lastScoresDownTime < 500 ) {
-		cg.scoresSortByKills = qtrue;
+		cg.scoresSortByKills = (qboolean)!cg.scoresSortByKills;
 	}
 	cg.lastScoresDownTime = cg.time;
 
