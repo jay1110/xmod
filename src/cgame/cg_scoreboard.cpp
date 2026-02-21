@@ -104,7 +104,8 @@ WM_DrawObjectives
 #define INFO_BORDER				2
 #define INFO_LINE_HEIGHT		30
 #define INFO_SPACING			3	// gap between flag, class, and name
-#define INFO_TOTAL_WIDTH		(INFO_FLAG_WIDTH + INFO_SPACING + INFO_CLASS_WIDTH + INFO_SPACING + INFO_PLAYER_WIDTH + INFO_KD_WIDTH + INFO_XP_WIDTH + INFO_LATENCY_WIDTH)
+#define INFO_RIGHT_PAD			5	// right padding after last column
+#define INFO_TOTAL_WIDTH		(INFO_FLAG_WIDTH + INFO_SPACING + INFO_CLASS_WIDTH + INFO_SPACING + INFO_PLAYER_WIDTH + INFO_KD_WIDTH + INFO_XP_WIDTH + INFO_LATENCY_WIDTH + INFO_RIGHT_PAD)
 
 int WM_DrawObjectives( int x, int y, int width, float fade ) {
 	const char *s, *str;
@@ -1051,7 +1052,12 @@ qboolean CG_DrawScoreboard( void ) {
 	x_right += cgs.wideXoffset;
 
 	// don't draw anything if the menu or console is up
-	if ( cg_paused.integer ) {
+	// Also dismiss scoreboard when ESC opens the UI menu
+	if ( cg_paused.integer || (trap_Key_GetCatcher() & KEYCATCH_UI) ) {
+		if ( cg.showScores ) {
+			cg.showScores = qfalse;
+			cg.scoreFadeTime = cg.time;
+		}
 		return qfalse;
 	}
 
