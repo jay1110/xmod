@@ -432,9 +432,13 @@ static void WM_DrawClientScore( int x, int y, score_t *score, float *color, floa
 		totalwidth = INFO_KD_WIDTH + INFO_XP_WIDTH + INFO_LATENCY_WIDTH - 8;
 
 		s = CG_TranslateString( (ci->team == TEAM_SPECTATOR && ci->shoutcaster)?"^3SHOUTCASTER":"^2CONNECTING" );
-		w = CG_DrawStrlen( s ) * SMALLCHAR_WIDTH;
+		w = CG_DrawStrlen( s ) * SCORE_CHAR_WIDTH;
 
-		CG_DrawSmallString( int(tempx + totalwidth - w), y, s, fade );
+		{
+			int sYOff = y + (SMALLCHAR_HEIGHT - SCORE_CHAR_HEIGHT) / 2;
+			vec4_t sColor = { 1.0f, 1.0f, 1.0f, fade };
+			CG_DrawStringExt( int(tempx + totalwidth - w), sYOff, s, sColor, qfalse, qfalse, SCORE_CHAR_WIDTH, SCORE_CHAR_HEIGHT, 0 );
+		}
 		return;
 	}
 
@@ -646,10 +650,13 @@ static void WM_DrawClientScore_Small( int x, int y, score_t *score, float *color
 		totalwidth = INFO_KD_WIDTH + INFO_XP_WIDTH + INFO_LATENCY_WIDTH - 8;
 
 		s = CG_TranslateString( (ci->team == TEAM_SPECTATOR && ci->shoutcaster)?"^3SHOUTCASTER":"^2CONNECTING" );
-		w = CG_DrawStrlen( s ) * MINICHAR_WIDTH;
+		w = CG_DrawStrlen( s ) * SCORE_MINI_WIDTH;
 
 		// CHRUKER: b034 - Using the mini char height (with shadow)
-		CG_DrawStringExt( int(tempx + totalwidth - w), y, s, hcolor, qfalse, qtrue, MINICHAR_WIDTH, MINICHAR_HEIGHT, 0 );
+		{
+			int sYOff = y + (MINICHAR_HEIGHT - SCORE_MINI_HEIGHT) / 2;
+			CG_DrawStringExt( int(tempx + totalwidth - w), sYOff, s, hcolor, qfalse, qtrue, SCORE_MINI_WIDTH, SCORE_MINI_HEIGHT, 0 );
+		}
 
 		return;
 	}
