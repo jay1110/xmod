@@ -480,16 +480,19 @@ static void WM_DrawClientScore( int x, int y, score_t *score, float *color, floa
 		tempx += INFO_XP_WIDTH;
 	}
 
-    // Ping - with color coding and BOT display (with shadow)
+    // Ping - with color coding and BOT display (with shadow), right-aligned
 	if (ci->botSkill > 0) {
 		// Show BOT for bots instead of ping
 		vec4_t botColor = { 0.7f, 0.7f, 0.7f, fade };
 		int yOff = y + (SMALLCHAR_HEIGHT - SCORE_CHAR_HEIGHT) / 2;
-		CG_DrawStringExt( int(tempx), yOff, " BOT", botColor, qfalse, qtrue, SCORE_CHAR_WIDTH, SCORE_CHAR_HEIGHT, 0 );
+		int botW = CG_DrawStrlen("BOT") * SCORE_CHAR_WIDTH;
+		CG_DrawStringExt( int(tempx + INFO_LATENCY_WIDTH - botW), yOff, "BOT", botColor, qfalse, qtrue, SCORE_CHAR_WIDTH, SCORE_CHAR_HEIGHT, 0 );
 	} else {
-		// Color-coded ping display
+		// Color-coded ping display - right-aligned
 		vec4_t pingColor;
 		int yOff = y + (SMALLCHAR_HEIGHT - SCORE_CHAR_HEIGHT) / 2;
+		char pingStr[16];
+		int pingW;
 		if (score->ping < PING_THRESHOLD_GOOD) {
 			VectorCopy(clrPingGreen, pingColor);
 		} else if (score->ping < PING_THRESHOLD_AVERAGE) {
@@ -498,7 +501,9 @@ static void WM_DrawClientScore( int x, int y, score_t *score, float *color, floa
 			VectorCopy(clrPingRed, pingColor);
 		}
 		pingColor[3] = fade;
-		CG_DrawStringExt( int(tempx), yOff, va( "%4i", score->ping ), pingColor, qfalse, qtrue, SCORE_CHAR_WIDTH, SCORE_CHAR_HEIGHT, 0 );
+		Com_sprintf(pingStr, sizeof(pingStr), "%i", score->ping);
+		pingW = CG_DrawStrlen(pingStr) * SCORE_CHAR_WIDTH;
+		CG_DrawStringExt( int(tempx + INFO_LATENCY_WIDTH - pingW), yOff, pingStr, pingColor, qfalse, qtrue, SCORE_CHAR_WIDTH, SCORE_CHAR_HEIGHT, 0 );
 	}
 	tempx += INFO_LATENCY_WIDTH;
 }
@@ -702,16 +707,19 @@ static void WM_DrawClientScore_Small( int x, int y, score_t *score, float *color
 		tempx += INFO_XP_WIDTH;
 	}
 
-	// Ping - with color coding and BOT display (with shadow)
+	// Ping - with color coding and BOT display (with shadow), right-aligned
 	if (ci->botSkill > 0) {
 		// Show BOT for bots instead of ping
 		vec4_t botColor = { 0.7f, 0.7f, 0.7f, fade };
 		int yOff = y + (MINICHAR_HEIGHT - SCORE_MINI_HEIGHT) / 2;
-		CG_DrawStringExt( int(tempx), yOff, " BOT", botColor, qfalse, qtrue, SCORE_MINI_WIDTH, SCORE_MINI_HEIGHT, 0 );
+		int botW = CG_DrawStrlen("BOT") * SCORE_MINI_WIDTH;
+		CG_DrawStringExt( int(tempx + INFO_LATENCY_WIDTH - botW), yOff, "BOT", botColor, qfalse, qtrue, SCORE_MINI_WIDTH, SCORE_MINI_HEIGHT, 0 );
 	} else {
-		// Color-coded ping display
+		// Color-coded ping display - right-aligned
 		vec4_t pingColor;
 		int yOff = y + (MINICHAR_HEIGHT - SCORE_MINI_HEIGHT) / 2;
+		char pingStr[16];
+		int pingW;
 		if (score->ping < PING_THRESHOLD_GOOD) {
 			VectorCopy(clrPingGreen, pingColor);
 		} else if (score->ping < PING_THRESHOLD_AVERAGE) {
@@ -720,7 +728,9 @@ static void WM_DrawClientScore_Small( int x, int y, score_t *score, float *color
 			VectorCopy(clrPingRed, pingColor);
 		}
 		pingColor[3] = fade;
-		CG_DrawStringExt( int(tempx), yOff, va( "%4i", score->ping ), pingColor, qfalse, qtrue, SCORE_MINI_WIDTH, SCORE_MINI_HEIGHT, 0 );
+		Com_sprintf(pingStr, sizeof(pingStr), "%i", score->ping);
+		pingW = CG_DrawStrlen(pingStr) * SCORE_MINI_WIDTH;
+		CG_DrawStringExt( int(tempx + INFO_LATENCY_WIDTH - pingW), yOff, pingStr, pingColor, qfalse, qtrue, SCORE_MINI_WIDTH, SCORE_MINI_HEIGHT, 0 );
 	}
 	tempx += INFO_LATENCY_WIDTH;
 }
@@ -886,7 +896,7 @@ static int WM_TeamScoreboard( int x, int y, team_t team, float fade, int maxrows
 			tempx += INFO_XP_WIDTH;
 		}
 
-		hdrOff = (INFO_LATENCY_WIDTH - CG_DrawStrlen( CG_TranslateString( "Ping" ) ) * HEADER_CHAR_WIDTH) / 2;
+		hdrOff = INFO_LATENCY_WIDTH - CG_DrawStrlen( CG_TranslateString( "Ping" ) ) * HEADER_CHAR_WIDTH;
 		CG_DrawStringExt( int(tempx + hdrOff), hdrYOff, CG_TranslateString( "Ping" ), hdrColor, qfalse, qfalse, HEADER_CHAR_WIDTH, HEADER_CHAR_HEIGHT, 0 );
 		tempx += INFO_LATENCY_WIDTH;
 	}
@@ -1041,12 +1051,7 @@ qboolean CG_DrawScoreboard( void ) {
 	x_right += cgs.wideXoffset;
 
 	// don't draw anything if the menu or console is up
-	// Also dismiss the scoreboard so it doesn't reappear when menu closes
 	if ( cg_paused.integer ) {
-		if ( cg.showScores ) {
-			cg.showScores = qfalse;
-			cg.scoreFadeTime = cg.time;
-		}
 		return qfalse;
 	}
 
