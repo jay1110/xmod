@@ -330,7 +330,7 @@ static void WM_DrawClientScore( int x, int y, score_t *score, float *color, floa
 	VectorSet( hcolor, 1, 1, 1 );
 	hcolor[3] = fade;
 
-	maxchars = 16;
+	maxchars = 23;
 	offset = 0;
 
 	// Draw country flag FIRST
@@ -361,7 +361,7 @@ static void WM_DrawClientScore( int x, int y, score_t *score, float *color, floa
 	} else {
 		// Class not shown - extra space extends player name
 		playerWidth += INFO_CLASS_WIDTH;
-		maxchars += INFO_CLASS_WIDTH / SMALLCHAR_WIDTH;
+		maxchars += INFO_CLASS_WIDTH / SCORE_CHAR_WIDTH;
 	}
 
     // Icons - draw in order: special status icons first
@@ -406,19 +406,22 @@ static void WM_DrawClientScore( int x, int y, score_t *score, float *color, floa
         }
 	}
 
-	// Draw name with SMALLCHAR (with shadow)
-	CG_DrawStringExt( int(tempx), y, ci->name, hcolor, qfalse, qtrue, SMALLCHAR_WIDTH, SMALLCHAR_HEIGHT, maxchars );
-	maxchars -= CG_DrawStrlen( ci->name );
+	// Draw name with reduced size (-30%) with shadow
+	{
+		int nameYOff = y + (SMALLCHAR_HEIGHT - SCORE_CHAR_HEIGHT) / 2;
+		CG_DrawStringExt( int(tempx), nameYOff, ci->name, hcolor, qfalse, qtrue, SCORE_CHAR_WIDTH, SCORE_CHAR_HEIGHT, maxchars );
+		maxchars -= CG_DrawStrlen( ci->name );
 
-	// Draw medals
-	buf[0] = '\0';
-	for( i = 0; i < SK_NUM_SKILLS; i++ ) {
-		for( j = 0; j < ci->medals[i]; j++ )
-			Q_strcat( buf, sizeof(buf), va( "^%c%c", COLOR_RED + i, skillNames[i][0] ) );
+		// Draw medals
+		buf[0] = '\0';
+		for( i = 0; i < SK_NUM_SKILLS; i++ ) {
+			for( j = 0; j < ci->medals[i]; j++ )
+				Q_strcat( buf, sizeof(buf), va( "^%c%c", COLOR_RED + i, skillNames[i][0] ) );
+		}
+		maxchars--;
+		if (maxchars > 0)
+			CG_DrawStringExt( int(tempx + (BG_drawStrlen(ci->name) * SCORE_CHAR_WIDTH + SCORE_CHAR_WIDTH)), nameYOff, buf, hcolor, qfalse, qtrue, SCORE_CHAR_WIDTH, SCORE_CHAR_HEIGHT, maxchars );
 	}
-	maxchars--;
-	if (maxchars > 0)
-		CG_DrawStringExt( int(tempx + (BG_drawStrlen(ci->name) * SMALLCHAR_WIDTH + SMALLCHAR_WIDTH)), y, buf, hcolor, qfalse, qtrue, SMALLCHAR_WIDTH, SMALLCHAR_HEIGHT, maxchars );
 
 	tempx += playerWidth - offset;
 
@@ -538,7 +541,7 @@ static void WM_DrawClientScore_Small( int x, int y, score_t *score, float *color
 	VectorSet( hcolor, 1, 1, 1 );
 	hcolor[3] = fade;
 
-	maxchars = 16;
+	maxchars = 23;
 	offset = 0;
 
 	// Draw country flag FIRST
@@ -568,7 +571,7 @@ static void WM_DrawClientScore_Small( int x, int y, score_t *score, float *color
 	} else {
 		// Class not shown - extra space extends player name
 		playerWidth += INFO_CLASS_WIDTH;
-		maxchars += INFO_CLASS_WIDTH / MINICHAR_WIDTH;
+		maxchars += INFO_CLASS_WIDTH / SCORE_MINI_WIDTH;
 	}
 
 	if ( ci->team != TEAM_SPECTATOR ) {
@@ -613,22 +616,25 @@ static void WM_DrawClientScore_Small( int x, int y, score_t *score, float *color
         }
 	}
 
-	// draw name (with shadow)
-	CG_DrawStringExt( int(tempx), y, ci->name, hcolor, qfalse, qtrue, MINICHAR_WIDTH, MINICHAR_HEIGHT, maxchars );
+	// draw name with reduced size (-30%) with shadow
+	{
+		int nameYOff = y + (MINICHAR_HEIGHT - SCORE_MINI_HEIGHT) / 2;
+		CG_DrawStringExt( int(tempx), nameYOff, ci->name, hcolor, qfalse, qtrue, SCORE_MINI_WIDTH, SCORE_MINI_HEIGHT, maxchars );
 
-	// CHRUKER: b033 - Added to draw medals
-	maxchars -= CG_DrawStrlen( ci->name );
+		// CHRUKER: b033 - Added to draw medals
+		maxchars -= CG_DrawStrlen( ci->name );
 	
-	buf[0] = '\0';
-	for( i = 0; i < SK_NUM_SKILLS; i++ ) {
-		for( j = 0; j < ci->medals[i]; j++ )
-			Q_strcat( buf, sizeof(buf), va( "^%c%c", COLOR_RED + i, skillNames[i][0] ) );
+		buf[0] = '\0';
+		for( i = 0; i < SK_NUM_SKILLS; i++ ) {
+			for( j = 0; j < ci->medals[i]; j++ )
+				Q_strcat( buf, sizeof(buf), va( "^%c%c", COLOR_RED + i, skillNames[i][0] ) );
+		}
+		maxchars--;
+	
+		if (maxchars > 0)
+			CG_DrawStringExt( int(tempx + (BG_drawStrlen(ci->name) * SCORE_MINI_WIDTH + SCORE_MINI_WIDTH)), nameYOff, buf, hcolor, qfalse, qtrue, SCORE_MINI_WIDTH, SCORE_MINI_HEIGHT, maxchars );
+		// b033
 	}
-	maxchars--;
-	
-	if (maxchars > 0)
-		CG_DrawStringExt( int(tempx + (BG_drawStrlen(ci->name) * MINICHAR_WIDTH + MINICHAR_WIDTH)), y, buf, hcolor, qfalse, qtrue, MINICHAR_WIDTH, MINICHAR_HEIGHT, maxchars );
-	// b033
 
 	// Jaybird
 	hcolor[0] = hcolor[1] = hcolor[2] = 1;
@@ -844,24 +850,30 @@ static int WM_TeamScoreboard( int x, int y, team_t team, float fade, int maxrows
 
 	// draw player info headings - new order: Flag, Class, Name, K/D, XP, Ping
 	// "Name" header spans flag, class, and player name columns
+	// K/D, XP, Ping headers are centered within their column widths
 	{
 		vec4_t hdrColor = { 1.0f, 1.0f, 1.0f, fade };
 		int hdrYOff = y + (SMALLCHAR_HEIGHT - HEADER_CHAR_HEIGHT) / 2;
+		int hdrOff;
 		CG_DrawStringExt( int(tempx), hdrYOff, CG_TranslateString( "Name" ), hdrColor, qfalse, qfalse, HEADER_CHAR_WIDTH, HEADER_CHAR_HEIGHT, 0 );
 		tempx += INFO_FLAG_WIDTH + INFO_CLASS_WIDTH + INFO_PLAYER_WIDTH;
 
 		if( cgs.gametype == GT_WOLF_LMS ) {
-			CG_DrawStringExt( int(tempx), hdrYOff, CG_TranslateString( "Score" ), hdrColor, qfalse, qfalse, HEADER_CHAR_WIDTH, HEADER_CHAR_HEIGHT, 0 );
+			hdrOff = (INFO_SCORE_WIDTH - CG_DrawStrlen( CG_TranslateString( "Score" ) ) * HEADER_CHAR_WIDTH) / 2;
+			CG_DrawStringExt( int(tempx + hdrOff), hdrYOff, CG_TranslateString( "Score" ), hdrColor, qfalse, qfalse, HEADER_CHAR_WIDTH, HEADER_CHAR_HEIGHT, 0 );
 			tempx += INFO_SCORE_WIDTH;
 		} else {
-			CG_DrawStringExt( int(tempx), hdrYOff, "K/D", hdrColor, qfalse, qfalse, HEADER_CHAR_WIDTH, HEADER_CHAR_HEIGHT, 0 );
+			hdrOff = (INFO_KD_WIDTH - 3 * HEADER_CHAR_WIDTH) / 2;
+			CG_DrawStringExt( int(tempx + hdrOff), hdrYOff, "K/D", hdrColor, qfalse, qfalse, HEADER_CHAR_WIDTH, HEADER_CHAR_HEIGHT, 0 );
 			tempx += INFO_KD_WIDTH;
 
-			CG_DrawStringExt( int(tempx), hdrYOff, CG_TranslateString( "XP" ), hdrColor, qfalse, qfalse, HEADER_CHAR_WIDTH, HEADER_CHAR_HEIGHT, 0 );
+			hdrOff = (INFO_XP_WIDTH - CG_DrawStrlen( CG_TranslateString( "XP" ) ) * HEADER_CHAR_WIDTH) / 2;
+			CG_DrawStringExt( int(tempx + hdrOff), hdrYOff, CG_TranslateString( "XP" ), hdrColor, qfalse, qfalse, HEADER_CHAR_WIDTH, HEADER_CHAR_HEIGHT, 0 );
 			tempx += INFO_XP_WIDTH;
 		}
 
-		CG_DrawStringExt( int(tempx), hdrYOff, CG_TranslateString( "Ping" ), hdrColor, qfalse, qfalse, HEADER_CHAR_WIDTH, HEADER_CHAR_HEIGHT, 0 );
+		hdrOff = (INFO_LATENCY_WIDTH - CG_DrawStrlen( CG_TranslateString( "Ping" ) ) * HEADER_CHAR_WIDTH) / 2;
+		CG_DrawStringExt( int(tempx + hdrOff), hdrYOff, CG_TranslateString( "Ping" ), hdrColor, qfalse, qfalse, HEADER_CHAR_WIDTH, HEADER_CHAR_HEIGHT, 0 );
 		tempx += INFO_LATENCY_WIDTH;
 	}
 	
