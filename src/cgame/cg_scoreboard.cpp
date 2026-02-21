@@ -339,7 +339,7 @@ static void WM_DrawClientScore( int x, int y, score_t *score, float *color, floa
 			// flag drawn
 		}
 	}
-	tempx += INFO_FLAG_WIDTH;
+	tempx += INFO_FLAG_WIDTH + 3;
 
 	// Draw class icon SECOND
 	// Determine if we should show class for this player
@@ -357,7 +357,7 @@ static void WM_DrawClientScore( int x, int y, score_t *score, float *color, floa
 
 	if ( showClass ) {
 		CG_DrawClassIcon(tempx + 1, y + 1, fade, score->playerClass);
-		tempx += INFO_CLASS_WIDTH;
+		tempx += INFO_CLASS_WIDTH + 3;
 	} else {
 		// Class not shown - extra space extends player name
 		playerWidth += INFO_CLASS_WIDTH;
@@ -550,7 +550,7 @@ static void WM_DrawClientScore_Small( int x, int y, score_t *score, float *color
 			// flag drawn
 		}
 	}
-	tempx += INFO_FLAG_WIDTH;
+	tempx += INFO_FLAG_WIDTH + 3;
 
 	// Draw class icon SECOND
 	// Determine if we should show class for this player
@@ -567,7 +567,7 @@ static void WM_DrawClientScore_Small( int x, int y, score_t *score, float *color
 
 	if ( showClass ) {
 		CG_DrawClassIcon(tempx + 1, y, fade, score->playerClass);
-		tempx += INFO_CLASS_WIDTH;
+		tempx += INFO_CLASS_WIDTH + 3;
 	} else {
 		// Class not shown - extra space extends player name
 		playerWidth += INFO_CLASS_WIDTH;
