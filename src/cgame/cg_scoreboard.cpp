@@ -94,12 +94,12 @@ WM_DrawObjectives
 // Total per team should be ~290 pixels to fit 4:3 aspect ratio (640 width)
 // 2 * 290 + 20 gap = 600 < 640, leaving margin
 #define INFO_FLAG_WIDTH			14
-#define INFO_PLAYER_WIDTH		134
+#define INFO_PLAYER_WIDTH		126
 #define INFO_SCORE_WIDTH		56
-#define INFO_XP_WIDTH			28
+#define INFO_XP_WIDTH			36
 #define INFO_KD_WIDTH			40
 #define INFO_CLASS_WIDTH		14
-#define INFO_LATENCY_WIDTH		32
+#define INFO_LATENCY_WIDTH		36
 #define INFO_TEAM_HEIGHT		24
 #define INFO_BORDER				2
 #define INFO_LINE_HEIGHT		30
@@ -331,7 +331,7 @@ static void WM_DrawClientScore( int x, int y, score_t *score, float *color, floa
 	VectorSet( hcolor, 1, 1, 1 );
 	hcolor[3] = fade;
 
-	maxchars = 23;
+	maxchars = 21;
 	offset = 0;
 
 	// Draw country flag FIRST
@@ -549,7 +549,7 @@ static void WM_DrawClientScore_Small( int x, int y, score_t *score, float *color
 	VectorSet( hcolor, 1, 1, 1 );
 	hcolor[3] = fade;
 
-	maxchars = 23;
+	maxchars = 21;
 	offset = 0;
 
 	// Draw country flag FIRST
@@ -788,7 +788,7 @@ static int WM_TeamScoreboard( int x, int y, team_t team, float fade, int maxrows
 	float pingStdDev = 0;
 	int numPings = 0;
 
-	width = INFO_FLAG_WIDTH + INFO_CLASS_WIDTH + INFO_PLAYER_WIDTH + INFO_KD_WIDTH + INFO_XP_WIDTH + INFO_LATENCY_WIDTH;
+	width = INFO_TOTAL_WIDTH;
 
 	// Calculate average ping
 	for( i = 0; i < cg.numScores; i++ ) {
@@ -1041,7 +1041,12 @@ qboolean CG_DrawScoreboard( void ) {
 	x_right += cgs.wideXoffset;
 
 	// don't draw anything if the menu or console is up
+	// Also dismiss the scoreboard so it doesn't reappear when menu closes
 	if ( cg_paused.integer ) {
+		if ( cg.showScores ) {
+			cg.showScores = qfalse;
+			cg.scoreFadeTime = cg.time;
+		}
 		return qfalse;
 	}
 
