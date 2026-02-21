@@ -1054,6 +1054,11 @@ qboolean CG_DrawScoreboard( void ) {
 	// don't draw anything if the menu or console is up
 	// Also dismiss scoreboard when ESC opens the UI menu
 	if ( cg_paused.integer || (trap_Key_GetCatcher() & KEYCATCH_UI) ) {
+		// Grace period: don't dismiss scores that were just opened (e.g., from menu button
+		// doing "close ingame_main; exec +scores" where KEYCATCH_UI lingers briefly)
+		if ( cg.showScores && cg.lastScoresDownTime + 500 > cg.time ) {
+			return qfalse;
+		}
 		if ( cg.showScores ) {
 			cg.showScores = qfalse;
 			cg.scoreFadeTime = cg.time;
