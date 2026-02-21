@@ -47,7 +47,7 @@ CXX.opt.static = -static-libgcc
 CXX.opt.std    = -fno-exceptions -fno-rtti
 
 CXX.ldopts.exe =
-CXX.ldopts.so  = -shared -Wl,-z,defs -Wl,-z,relro -Wl,-z,now -Wl,-Bsymbolic
+CXX.ldopts.so  = -shared -Wl,-z,defs -Wl,-z,relro -Wl,-z,now -Wl,-Bsymbolic,-lcurl,-ljsoncpp
 
 ###############################################################################
 

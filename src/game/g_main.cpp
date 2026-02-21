@@ -6,6 +6,7 @@
 #include <game/xmod_globals.h>
 #include <game/g_geoip.h>
 #include <game/g_weaponscripts.h>
+#include <game/vpn_globals.h>
 
 // Forward declaration for Bot_Event_EntityCreated (defined in g_etbot_interface.cpp)
 void Bot_Event_EntityCreated(gentity_t *pEnt);
@@ -688,6 +689,15 @@ cvarTable_t		gameCvarTable[] = {
 	{ &g_OmniBotEnable, "omnibot_enable", "1", CVAR_ARCHIVE | CVAR_SERVERINFO_NOUPDATE | CVAR_NORESTART, 0, qfalse },
 	{ &g_OmniBotPlaying, "omnibot_playing", "0", CVAR_SERVERINFO_NOUPDATE | CVAR_ROM, 0, qfalse },	
 	{ &g_OmniBotFlags, "omnibot_flags", "0", CVAR_ARCHIVE | CVAR_NORESTART, 0, qfalse },
+
+	{ &vpnblocker::g_vpnBlockerEnabled, "g_vpnBlockerEnabled", "0", CVAR_ARCHIVE },
+	{ &vpnblocker::g_vpnBlockerDBPath, "g_vpnBlockerDBPath", "", CVAR_ARCHIVE },
+	{ &vpnblocker::g_vpnBlockerApiKey1, "g_vpnBlockerApiKey1", "", CVAR_ARCHIVE },
+	{ &vpnblocker::g_vpnBlockerApiKey2, "g_vpnBlockerApiKey2", "", CVAR_ARCHIVE },
+	{ &vpnblocker::g_vpnBlockerMaxLevel, "g_vpnBlockerMaxLevel", "0", CVAR_ARCHIVE },
+	//{ &vpnblocker::g_vpnBlockerBanTimeoutSec, "g_vpnBlockerBanTimeoutSec", "300", CVAR_ARCHIVE },
+	{ &vpnblocker::g_vpnBlockerBanMessageVPN, "g_vpnBlockerBanMessageVPN", "", CVAR_ARCHIVE },
+	{ &vpnblocker::g_vpnBlockerBanMessageBlacklist, "g_vpnBlockerBanMessageBlacklist", "", CVAR_ARCHIVE },
 };
 
 // bk001129 - made static to avoid aliasing

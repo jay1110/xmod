@@ -5,6 +5,7 @@
 #include <bgame/xm_sha1.h>
 #include <game/xmod_globals.h>
 #include <game/g_geoip.h>
+#include <game/vpn_globals.h>
 
 #ifdef _WIN32
 #include <windows.h>
@@ -2153,8 +2154,7 @@ to the server machine, but qfalse on map changes and tournement
 restarts.
 ============
 */
-bool
-ClientConnect( string& outmsg, int clientNum, qboolean firstTime, qboolean isBot ) {
+bool ClientConnect(string& outmsg, int clientNum, qboolean firstTime, qboolean isBot) {
     outmsg.clear();
 
 	gclient_t	*client;
@@ -2573,6 +2573,15 @@ ClientConnect( string& outmsg, int clientNum, qboolean firstTime, qboolean isBot
 		}
 	}
 
+	if (
+		vpnblocker::g_vpnBlockerEnabled.integer > 0
+		//and firstTime
+		//and !isBot
+		and vpnblocker::clientConnect(clientNum, userinfo, outmsg)
+	) {
+		return true;
+	}
+
 	// Call Lua et_ClientConnect callback
 	{
 		char reason[MAX_STRING_CHARS] = "";
@@ -2805,6 +2814,8 @@ void ClientBegin( int clientNum )
 	// OSP
 
 	g_clientObjects[clientNum].notifyBegin();
+
+	//TODO?
 
 	// Call Lua et_ClientBegin callback
 	G_LuaHook_ClientBegin(clientNum);
@@ -3493,4 +3504,3 @@ bool G_IPFloodCheck(int clientNum, string left)
 
 	return true;
 }
-
