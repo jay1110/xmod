@@ -470,9 +470,12 @@ static void WM_DrawClientScore( int x, int y, score_t *score, float *color, floa
 		CG_DrawStringExt( slashPos + SCORE_CHAR_WIDTH, yOff, deathStr, deathColor, qfalse, qtrue, SCORE_CHAR_WIDTH, SCORE_CHAR_HEIGHT, 0 );
 		tempx += INFO_KD_WIDTH;
 
-		// XP
+		// XP - right-aligned within column
 		vec4_t xpColor = { 1.0f, 1.0f, 1.0f, fade };
-		CG_DrawStringExt( int(tempx), yOff, va( "%4i", score->score ), xpColor, qfalse, qfalse, SCORE_CHAR_WIDTH, SCORE_CHAR_HEIGHT, 0 );
+		char xpStr[16];
+		Com_sprintf(xpStr, sizeof(xpStr), "%i", score->score);
+		int xpWidth = CG_DrawStrlen(xpStr) * SCORE_CHAR_WIDTH;
+		CG_DrawStringExt( int(tempx + INFO_XP_WIDTH - xpWidth), yOff, xpStr, xpColor, qfalse, qfalse, SCORE_CHAR_WIDTH, SCORE_CHAR_HEIGHT, 0 );
 		tempx += INFO_XP_WIDTH;
 	}
 
@@ -690,8 +693,11 @@ static void WM_DrawClientScore_Small( int x, int y, score_t *score, float *color
 		CG_DrawStringExt( slashPos + SCORE_MINI_WIDTH, yOff, deathStr, deathColor, qfalse, qtrue, SCORE_MINI_WIDTH, SCORE_MINI_HEIGHT, 0 );
 		tempx += INFO_KD_WIDTH;
 
-		// XP (with shadow)
-		CG_DrawStringExt( int(tempx), yOff, va( "%4i", score->score ), hcolor, qfalse, qtrue, SCORE_MINI_WIDTH, SCORE_MINI_HEIGHT, 0 );
+		// XP - right-aligned within column (with shadow)
+		char xpStr[16];
+		Com_sprintf(xpStr, sizeof(xpStr), "%i", score->score);
+		int xpWidth = CG_DrawStrlen(xpStr) * SCORE_MINI_WIDTH;
+		CG_DrawStringExt( int(tempx + INFO_XP_WIDTH - xpWidth), yOff, xpStr, hcolor, qfalse, qtrue, SCORE_MINI_WIDTH, SCORE_MINI_HEIGHT, 0 );
 		tempx += INFO_XP_WIDTH;
 	}
 
@@ -863,18 +869,18 @@ static int WM_TeamScoreboard( int x, int y, team_t team, float fade, int maxrows
 		int hdrYOff = y + (SMALLCHAR_HEIGHT - HEADER_CHAR_HEIGHT) / 2;
 		int hdrOff;
 		CG_DrawStringExt( int(tempx), hdrYOff, CG_TranslateString( "Name" ), hdrColor, qfalse, qfalse, HEADER_CHAR_WIDTH, HEADER_CHAR_HEIGHT, 0 );
-		tempx += INFO_FLAG_WIDTH + INFO_CLASS_WIDTH + INFO_PLAYER_WIDTH;
+		tempx += INFO_FLAG_WIDTH + 3 + INFO_CLASS_WIDTH + 3 + INFO_PLAYER_WIDTH;
 
 		if( cgs.gametype == GT_WOLF_LMS ) {
 			hdrOff = (INFO_SCORE_WIDTH - CG_DrawStrlen( CG_TranslateString( "Score" ) ) * HEADER_CHAR_WIDTH) / 2;
 			CG_DrawStringExt( int(tempx + hdrOff), hdrYOff, CG_TranslateString( "Score" ), hdrColor, qfalse, qfalse, HEADER_CHAR_WIDTH, HEADER_CHAR_HEIGHT, 0 );
 			tempx += INFO_SCORE_WIDTH;
 		} else {
-			hdrOff = (INFO_KD_WIDTH - 3 * HEADER_CHAR_WIDTH) / 2;
+			hdrOff = (INFO_KD_WIDTH - CG_DrawStrlen("K/D") * HEADER_CHAR_WIDTH) / 2;
 			CG_DrawStringExt( int(tempx + hdrOff), hdrYOff, "K/D", hdrColor, qfalse, qfalse, HEADER_CHAR_WIDTH, HEADER_CHAR_HEIGHT, 0 );
 			tempx += INFO_KD_WIDTH;
 
-			hdrOff = (INFO_XP_WIDTH - CG_DrawStrlen( CG_TranslateString( "XP" ) ) * HEADER_CHAR_WIDTH) / 2;
+			hdrOff = INFO_XP_WIDTH - CG_DrawStrlen( CG_TranslateString( "XP" ) ) * HEADER_CHAR_WIDTH;
 			CG_DrawStringExt( int(tempx + hdrOff), hdrYOff, CG_TranslateString( "XP" ), hdrColor, qfalse, qfalse, HEADER_CHAR_WIDTH, HEADER_CHAR_HEIGHT, 0 );
 			tempx += INFO_XP_WIDTH;
 		}
