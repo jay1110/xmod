@@ -157,6 +157,18 @@ void CG_topshotsUp_f(void)
 }
 
 void CG_ScoresDown_f( void ) {
+	// Double-tab detection (ET: Legacy pattern):
+	// Toggle sort when: scoreboard not shown (tab was released), last press within 250ms,
+	// and at least 500ms cooldown since last toggle
+	if ( !cg.showScores && cg.lastScoresDownTime + 250 > cg.time && cg.scoreToggleTime < (cg.time - 500) ) {
+		cg.scoresSortByKills = (qboolean)!cg.scoresSortByKills;
+		cg.scoreToggleTime = cg.time;
+		// Force new score request so server sends fresh data
+		// (needed when switching back to XP sort since local array is still kill-sorted)
+		cg.scoresRequestTime = 0;
+	}
+	cg.lastScoresDownTime = cg.time;
+
 	if ( cg.scoresRequestTime + 2000 < cg.time ) {
 		// the scores are more than two seconds out of data,
 		// so request new ones

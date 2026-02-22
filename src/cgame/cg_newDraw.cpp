@@ -865,6 +865,8 @@ void CG_EventHandling( int type, qboolean fForced )
 		cg.showGameView = qtrue;
 		CG_LimboPanel_Setup();
 		trap_Key_SetCatcher(KEYCATCH_CGAME);
+		// Dismiss scoreboard when ESC opens the limbo panel
+		CG_ScoresUp_f();
 	} else if( type == CGAME_EVENT_FIRETEAMMSG ) {
 		cgs.ftMenuPos = -1;
 		cgs.ftMenuMode = 0;

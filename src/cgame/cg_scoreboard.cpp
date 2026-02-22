@@ -8,6 +8,16 @@
 #define PING_THRESHOLD_GOOD		100		// 0-99: Green
 #define PING_THRESHOLD_AVERAGE	251		// 100-250: Yellow, 251+: Red
 
+// Reduced char sizes for K/D, XP, Ping columns (-30%)
+#define SCORE_CHAR_WIDTH	6	// SMALLCHAR_WIDTH * 0.7
+#define SCORE_CHAR_HEIGHT	11	// SMALLCHAR_HEIGHT * 0.7
+#define SCORE_MINI_WIDTH	6	// MINICHAR_WIDTH * 0.7
+#define SCORE_MINI_HEIGHT	8	// MINICHAR_HEIGHT * 0.7
+
+// Header char sizes (-15%)
+#define HEADER_CHAR_WIDTH	7	// SMALLCHAR_WIDTH * 0.85
+#define HEADER_CHAR_HEIGHT	14	// SMALLCHAR_HEIGHT * 0.85
+
 vec4_t clrUiBack = { 0.f, 0.f, 0.f, .6f };
 vec4_t clrUiBar = { .16f, .2f, .17f, .8f };
 
@@ -84,16 +94,18 @@ WM_DrawObjectives
 // Total per team should be ~290 pixels to fit 4:3 aspect ratio (640 width)
 // 2 * 290 + 20 gap = 600 < 640, leaving margin
 #define INFO_FLAG_WIDTH			14
-#define INFO_PLAYER_WIDTH		140
+#define INFO_PLAYER_WIDTH		126
 #define INFO_SCORE_WIDTH		56
-#define INFO_XP_WIDTH			28
+#define INFO_XP_WIDTH			36
 #define INFO_KD_WIDTH			40
 #define INFO_CLASS_WIDTH		14
-#define INFO_LATENCY_WIDTH		32
+#define INFO_LATENCY_WIDTH		36
 #define INFO_TEAM_HEIGHT		24
 #define INFO_BORDER				2
 #define INFO_LINE_HEIGHT		30
-#define INFO_TOTAL_WIDTH		(INFO_FLAG_WIDTH + INFO_CLASS_WIDTH + INFO_PLAYER_WIDTH + INFO_KD_WIDTH + INFO_XP_WIDTH + INFO_LATENCY_WIDTH)
+#define INFO_SPACING			3	// gap between flag, class, and name
+#define INFO_RIGHT_PAD			5	// right padding after last column
+#define INFO_TOTAL_WIDTH		(INFO_FLAG_WIDTH + INFO_SPACING + INFO_CLASS_WIDTH + INFO_SPACING + INFO_PLAYER_WIDTH + INFO_KD_WIDTH + INFO_XP_WIDTH + INFO_LATENCY_WIDTH + INFO_RIGHT_PAD)
 
 int WM_DrawObjectives( int x, int y, int width, float fade ) {
 	const char *s, *str;
@@ -305,7 +317,7 @@ static void WM_DrawClientScore( int x, int y, score_t *score, float *color, floa
     // Highlight background of your slot - continuous highlight without separators
 	if ( score->client == cg.snap->ps.clientNum ) {
 		tempx = x;
-		int totalWidth = INFO_FLAG_WIDTH + INFO_CLASS_WIDTH + INFO_PLAYER_WIDTH + INFO_KD_WIDTH + INFO_XP_WIDTH + INFO_LATENCY_WIDTH;
+		int totalWidth = INFO_TOTAL_WIDTH;
 
 		hcolor[3] = fade * 0.3;
 		VectorSet( hcolor, .5f, .5f, .2f );			// DARK-YELLOW
@@ -320,7 +332,7 @@ static void WM_DrawClientScore( int x, int y, score_t *score, float *color, floa
 	VectorSet( hcolor, 1, 1, 1 );
 	hcolor[3] = fade;
 
-	maxchars = 16;
+	maxchars = 21;
 	offset = 0;
 
 	// Draw country flag FIRST
@@ -329,7 +341,7 @@ static void WM_DrawClientScore( int x, int y, score_t *score, float *color, floa
 			// flag drawn
 		}
 	}
-	tempx += INFO_FLAG_WIDTH;
+	tempx += INFO_FLAG_WIDTH + INFO_SPACING;
 
 	// Draw class icon SECOND
 	// Determine if we should show class for this player
@@ -347,11 +359,11 @@ static void WM_DrawClientScore( int x, int y, score_t *score, float *color, floa
 
 	if ( showClass ) {
 		CG_DrawClassIcon(tempx + 1, y + 1, fade, score->playerClass);
-		tempx += INFO_CLASS_WIDTH;
+		tempx += INFO_CLASS_WIDTH + INFO_SPACING;
 	} else {
 		// Class not shown - extra space extends player name
-		playerWidth += INFO_CLASS_WIDTH;
-		maxchars += INFO_CLASS_WIDTH / SMALLCHAR_WIDTH;
+		playerWidth += INFO_CLASS_WIDTH + INFO_SPACING;
+		maxchars += (INFO_CLASS_WIDTH + INFO_SPACING) / SCORE_CHAR_WIDTH;
 	}
 
     // Icons - draw in order: special status icons first
@@ -396,19 +408,22 @@ static void WM_DrawClientScore( int x, int y, score_t *score, float *color, floa
         }
 	}
 
-	// Draw name with SMALLCHAR (with shadow)
-	CG_DrawStringExt( int(tempx), y, ci->name, hcolor, qfalse, qtrue, SMALLCHAR_WIDTH, SMALLCHAR_HEIGHT, maxchars );
-	maxchars -= CG_DrawStrlen( ci->name );
+	// Draw name with reduced size (-30%) with shadow
+	{
+		int nameYOff = y + (SMALLCHAR_HEIGHT - SCORE_CHAR_HEIGHT) / 2;
+		CG_DrawStringExt( int(tempx), nameYOff, ci->name, hcolor, qfalse, qtrue, SCORE_CHAR_WIDTH, SCORE_CHAR_HEIGHT, maxchars );
+		maxchars -= CG_DrawStrlen( ci->name );
 
-	// Draw medals
-	buf[0] = '\0';
-	for( i = 0; i < SK_NUM_SKILLS; i++ ) {
-		for( j = 0; j < ci->medals[i]; j++ )
-			Q_strcat( buf, sizeof(buf), va( "^%c%c", COLOR_RED + i, skillNames[i][0] ) );
+		// Draw medals
+		buf[0] = '\0';
+		for( i = 0; i < SK_NUM_SKILLS; i++ ) {
+			for( j = 0; j < ci->medals[i]; j++ )
+				Q_strcat( buf, sizeof(buf), va( "^%c%c", COLOR_RED + i, skillNames[i][0] ) );
+		}
+		maxchars--;
+		if (maxchars > 0)
+			CG_DrawStringExt( int(tempx + (BG_drawStrlen(ci->name) * SCORE_CHAR_WIDTH + SCORE_CHAR_WIDTH)), nameYOff, buf, hcolor, qfalse, qtrue, SCORE_CHAR_WIDTH, SCORE_CHAR_HEIGHT, maxchars );
 	}
-	maxchars--;
-	if (maxchars > 0)
-		CG_DrawStringExt( int(tempx + (BG_drawStrlen(ci->name) * SMALLCHAR_WIDTH + SMALLCHAR_WIDTH)), y, buf, hcolor, qfalse, qtrue, SMALLCHAR_WIDTH, SMALLCHAR_HEIGHT, maxchars );
 
 	tempx += playerWidth - offset;
 
@@ -420,9 +435,13 @@ static void WM_DrawClientScore( int x, int y, score_t *score, float *color, floa
 		totalwidth = INFO_KD_WIDTH + INFO_XP_WIDTH + INFO_LATENCY_WIDTH - 8;
 
 		s = CG_TranslateString( (ci->team == TEAM_SPECTATOR && ci->shoutcaster)?"^3SHOUTCASTER":"^2CONNECTING" );
-		w = CG_DrawStrlen( s ) * SMALLCHAR_WIDTH;
+		w = CG_DrawStrlen( s ) * SCORE_CHAR_WIDTH;
 
-		CG_DrawSmallString( int(tempx + totalwidth - w), y, s, fade );
+		{
+			int sYOff = y + (SMALLCHAR_HEIGHT - SCORE_CHAR_HEIGHT) / 2;
+			vec4_t sColor = { 1.0f, 1.0f, 1.0f, fade };
+			CG_DrawStringExt( int(tempx + totalwidth - w), sYOff, s, sColor, qfalse, qfalse, SCORE_CHAR_WIDTH, SCORE_CHAR_HEIGHT, 0 );
+		}
 		return;
 	}
 
@@ -438,33 +457,43 @@ static void WM_DrawClientScore( int x, int y, score_t *score, float *color, floa
 		vec4_t deathColor = { 0.9f, 0.2f, 0.2f, fade };
 		char killStr[16], deathStr[16];
 		int killWidth;
-		int slashPos = int(tempx) + INFO_KD_WIDTH / 2 - SMALLCHAR_WIDTH / 2;
+		int slashPos = int(tempx) + INFO_KD_WIDTH / 2 - SCORE_CHAR_WIDTH / 2;
+		int yOff = y + (SMALLCHAR_HEIGHT - SCORE_CHAR_HEIGHT) / 2;
 
 		Com_sprintf(killStr, sizeof(killStr), "%i", ci->kills);
 		Com_sprintf(deathStr, sizeof(deathStr), "%i", ci->deaths);
 
 		// Right-align kills before the slash
-		killWidth = CG_DrawStrlen(killStr) * SMALLCHAR_WIDTH;
-		CG_DrawStringExt( slashPos - killWidth, y, killStr, killColor, qfalse, qtrue, SMALLCHAR_WIDTH, SMALLCHAR_HEIGHT, 0 );
+		killWidth = CG_DrawStrlen(killStr) * SCORE_CHAR_WIDTH;
+		CG_DrawStringExt( slashPos - killWidth, yOff, killStr, killColor, qfalse, qtrue, SCORE_CHAR_WIDTH, SCORE_CHAR_HEIGHT, 0 );
 		// Slash at fixed position
-		CG_DrawStringExt( slashPos, y, "/", slashColor, qfalse, qtrue, SMALLCHAR_WIDTH, SMALLCHAR_HEIGHT, 0 );
+		CG_DrawStringExt( slashPos, yOff, "/", slashColor, qfalse, qtrue, SCORE_CHAR_WIDTH, SCORE_CHAR_HEIGHT, 0 );
 		// Left-align deaths after the slash
-		CG_DrawStringExt( slashPos + SMALLCHAR_WIDTH, y, deathStr, deathColor, qfalse, qtrue, SMALLCHAR_WIDTH, SMALLCHAR_HEIGHT, 0 );
+		CG_DrawStringExt( slashPos + SCORE_CHAR_WIDTH, yOff, deathStr, deathColor, qfalse, qtrue, SCORE_CHAR_WIDTH, SCORE_CHAR_HEIGHT, 0 );
 		tempx += INFO_KD_WIDTH;
 
-		// XP
-		CG_DrawSmallString( int(tempx), y, va( "%4i", score->score ), fade );
+		// XP - right-aligned within column
+		vec4_t xpColor = { 1.0f, 1.0f, 1.0f, fade };
+		char xpStr[16];
+		Com_sprintf(xpStr, sizeof(xpStr), "%i", score->score);
+		int xpWidth = CG_DrawStrlen(xpStr) * SCORE_CHAR_WIDTH;
+		CG_DrawStringExt( int(tempx + INFO_XP_WIDTH - xpWidth), yOff, xpStr, xpColor, qfalse, qfalse, SCORE_CHAR_WIDTH, SCORE_CHAR_HEIGHT, 0 );
 		tempx += INFO_XP_WIDTH;
 	}
 
-    // Ping - with color coding and BOT display (with shadow)
+    // Ping - with color coding and BOT display (with shadow), right-aligned
 	if (ci->botSkill > 0) {
 		// Show BOT for bots instead of ping
 		vec4_t botColor = { 0.7f, 0.7f, 0.7f, fade };
-		CG_DrawStringExt( int(tempx), y, " BOT", botColor, qfalse, qtrue, SMALLCHAR_WIDTH, SMALLCHAR_HEIGHT, 0 );
+		int yOff = y + (SMALLCHAR_HEIGHT - SCORE_CHAR_HEIGHT) / 2;
+		int botW = CG_DrawStrlen("BOT") * SCORE_CHAR_WIDTH;
+		CG_DrawStringExt( int(tempx + INFO_LATENCY_WIDTH - botW), yOff, "BOT", botColor, qfalse, qtrue, SCORE_CHAR_WIDTH, SCORE_CHAR_HEIGHT, 0 );
 	} else {
-		// Color-coded ping display
+		// Color-coded ping display - right-aligned
 		vec4_t pingColor;
+		int yOff = y + (SMALLCHAR_HEIGHT - SCORE_CHAR_HEIGHT) / 2;
+		char pingStr[16];
+		int pingW;
 		if (score->ping < PING_THRESHOLD_GOOD) {
 			VectorCopy(clrPingGreen, pingColor);
 		} else if (score->ping < PING_THRESHOLD_AVERAGE) {
@@ -473,7 +502,9 @@ static void WM_DrawClientScore( int x, int y, score_t *score, float *color, floa
 			VectorCopy(clrPingRed, pingColor);
 		}
 		pingColor[3] = fade;
-		CG_DrawStringExt( int(tempx), y, va( "%4i", score->ping ), pingColor, qfalse, qtrue, SMALLCHAR_WIDTH, SMALLCHAR_HEIGHT, 0 );
+		Com_sprintf(pingStr, sizeof(pingStr), "%i", score->ping);
+		pingW = CG_DrawStrlen(pingStr) * SCORE_CHAR_WIDTH;
+		CG_DrawStringExt( int(tempx + INFO_LATENCY_WIDTH - pingW), yOff, pingStr, pingColor, qfalse, qtrue, SCORE_CHAR_WIDTH, SCORE_CHAR_HEIGHT, 0 );
 	}
 	tempx += INFO_LATENCY_WIDTH;
 }
@@ -509,7 +540,7 @@ static void WM_DrawClientScore_Small( int x, int y, score_t *score, float *color
 	// Highlight background of your slot - continuous highlight without separators
 	if ( score->client == cg.snap->ps.clientNum ) {
 		tempx = x;
-		int totalWidth = INFO_FLAG_WIDTH + INFO_CLASS_WIDTH + INFO_PLAYER_WIDTH + INFO_KD_WIDTH + INFO_XP_WIDTH + INFO_LATENCY_WIDTH;
+		int totalWidth = INFO_TOTAL_WIDTH;
 
 		hcolor[3] = fade * 0.3;
 		VectorSet( hcolor, .5f, .5f, .2f );			// DARK-YELLOW
@@ -524,7 +555,7 @@ static void WM_DrawClientScore_Small( int x, int y, score_t *score, float *color
 	VectorSet( hcolor, 1, 1, 1 );
 	hcolor[3] = fade;
 
-	maxchars = 16;
+	maxchars = 21;
 	offset = 0;
 
 	// Draw country flag FIRST
@@ -533,7 +564,7 @@ static void WM_DrawClientScore_Small( int x, int y, score_t *score, float *color
 			// flag drawn
 		}
 	}
-	tempx += INFO_FLAG_WIDTH;
+	tempx += INFO_FLAG_WIDTH + INFO_SPACING;
 
 	// Draw class icon SECOND
 	// Determine if we should show class for this player
@@ -550,11 +581,11 @@ static void WM_DrawClientScore_Small( int x, int y, score_t *score, float *color
 
 	if ( showClass ) {
 		CG_DrawClassIcon(tempx + 1, y, fade, score->playerClass);
-		tempx += INFO_CLASS_WIDTH;
+		tempx += INFO_CLASS_WIDTH + INFO_SPACING;
 	} else {
 		// Class not shown - extra space extends player name
-		playerWidth += INFO_CLASS_WIDTH;
-		maxchars += INFO_CLASS_WIDTH / MINICHAR_WIDTH;
+		playerWidth += INFO_CLASS_WIDTH + INFO_SPACING;
+		maxchars += (INFO_CLASS_WIDTH + INFO_SPACING) / SCORE_MINI_WIDTH;
 	}
 
 	if ( ci->team != TEAM_SPECTATOR ) {
@@ -599,22 +630,25 @@ static void WM_DrawClientScore_Small( int x, int y, score_t *score, float *color
         }
 	}
 
-	// draw name (with shadow)
-	CG_DrawStringExt( int(tempx), y, ci->name, hcolor, qfalse, qtrue, MINICHAR_WIDTH, MINICHAR_HEIGHT, maxchars );
+	// draw name with reduced size (-30%) with shadow
+	{
+		int nameYOff = y + (MINICHAR_HEIGHT - SCORE_MINI_HEIGHT) / 2;
+		CG_DrawStringExt( int(tempx), nameYOff, ci->name, hcolor, qfalse, qtrue, SCORE_MINI_WIDTH, SCORE_MINI_HEIGHT, maxchars );
 
-	// CHRUKER: b033 - Added to draw medals
-	maxchars -= CG_DrawStrlen( ci->name );
+		// CHRUKER: b033 - Added to draw medals
+		maxchars -= CG_DrawStrlen( ci->name );
 	
-	buf[0] = '\0';
-	for( i = 0; i < SK_NUM_SKILLS; i++ ) {
-		for( j = 0; j < ci->medals[i]; j++ )
-			Q_strcat( buf, sizeof(buf), va( "^%c%c", COLOR_RED + i, skillNames[i][0] ) );
+		buf[0] = '\0';
+		for( i = 0; i < SK_NUM_SKILLS; i++ ) {
+			for( j = 0; j < ci->medals[i]; j++ )
+				Q_strcat( buf, sizeof(buf), va( "^%c%c", COLOR_RED + i, skillNames[i][0] ) );
+		}
+		maxchars--;
+	
+		if (maxchars > 0)
+			CG_DrawStringExt( int(tempx + (BG_drawStrlen(ci->name) * SCORE_MINI_WIDTH + SCORE_MINI_WIDTH)), nameYOff, buf, hcolor, qfalse, qtrue, SCORE_MINI_WIDTH, SCORE_MINI_HEIGHT, maxchars );
+		// b033
 	}
-	maxchars--;
-	
-	if (maxchars > 0)
-		CG_DrawStringExt( int(tempx + (BG_drawStrlen(ci->name) * MINICHAR_WIDTH + MINICHAR_WIDTH)), y, buf, hcolor, qfalse, qtrue, MINICHAR_WIDTH, MINICHAR_HEIGHT, maxchars );
-	// b033
 
 	// Jaybird
 	hcolor[0] = hcolor[1] = hcolor[2] = 1;
@@ -628,10 +662,13 @@ static void WM_DrawClientScore_Small( int x, int y, score_t *score, float *color
 		totalwidth = INFO_KD_WIDTH + INFO_XP_WIDTH + INFO_LATENCY_WIDTH - 8;
 
 		s = CG_TranslateString( (ci->team == TEAM_SPECTATOR && ci->shoutcaster)?"^3SHOUTCASTER":"^2CONNECTING" );
-		w = CG_DrawStrlen( s ) * MINICHAR_WIDTH;
+		w = CG_DrawStrlen( s ) * SCORE_MINI_WIDTH;
 
 		// CHRUKER: b034 - Using the mini char height (with shadow)
-		CG_DrawStringExt( int(tempx + totalwidth - w), y, s, hcolor, qfalse, qtrue, MINICHAR_WIDTH, MINICHAR_HEIGHT, 0 );
+		{
+			int sYOff = y + (MINICHAR_HEIGHT - SCORE_MINI_HEIGHT) / 2;
+			CG_DrawStringExt( int(tempx + totalwidth - w), sYOff, s, hcolor, qfalse, qtrue, SCORE_MINI_WIDTH, SCORE_MINI_HEIGHT, 0 );
+		}
 
 		return;
 	}
@@ -648,33 +685,42 @@ static void WM_DrawClientScore_Small( int x, int y, score_t *score, float *color
 		vec4_t deathColor = { 0.9f, 0.2f, 0.2f, fade };
 		char killStr[16], deathStr[16];
 		int killWidth;
-		int slashPos = int(tempx) + INFO_KD_WIDTH / 2 - MINICHAR_WIDTH / 2;
+		int slashPos = int(tempx) + INFO_KD_WIDTH / 2 - SCORE_MINI_WIDTH / 2;
+		int yOff = y + (MINICHAR_HEIGHT - SCORE_MINI_HEIGHT) / 2;
 
 		Com_sprintf(killStr, sizeof(killStr), "%i", ci->kills);
 		Com_sprintf(deathStr, sizeof(deathStr), "%i", ci->deaths);
 
 		// Right-align kills before the slash
-		killWidth = CG_DrawStrlen(killStr) * MINICHAR_WIDTH;
-		CG_DrawStringExt( slashPos - killWidth, y, killStr, killColor, qfalse, qtrue, MINICHAR_WIDTH, MINICHAR_HEIGHT, 0 );
+		killWidth = CG_DrawStrlen(killStr) * SCORE_MINI_WIDTH;
+		CG_DrawStringExt( slashPos - killWidth, yOff, killStr, killColor, qfalse, qtrue, SCORE_MINI_WIDTH, SCORE_MINI_HEIGHT, 0 );
 		// Slash at fixed position
-		CG_DrawStringExt( slashPos, y, "/", slashColor, qfalse, qtrue, MINICHAR_WIDTH, MINICHAR_HEIGHT, 0 );
+		CG_DrawStringExt( slashPos, yOff, "/", slashColor, qfalse, qtrue, SCORE_MINI_WIDTH, SCORE_MINI_HEIGHT, 0 );
 		// Left-align deaths after the slash
-		CG_DrawStringExt( slashPos + MINICHAR_WIDTH, y, deathStr, deathColor, qfalse, qtrue, MINICHAR_WIDTH, MINICHAR_HEIGHT, 0 );
+		CG_DrawStringExt( slashPos + SCORE_MINI_WIDTH, yOff, deathStr, deathColor, qfalse, qtrue, SCORE_MINI_WIDTH, SCORE_MINI_HEIGHT, 0 );
 		tempx += INFO_KD_WIDTH;
 
-		// XP (with shadow)
-		CG_DrawStringExt( int(tempx), y, va( "%4i", score->score ), hcolor, qfalse, qtrue, MINICHAR_WIDTH, MINICHAR_HEIGHT, 0 );
+		// XP - right-aligned within column (with shadow)
+		char xpStr[16];
+		Com_sprintf(xpStr, sizeof(xpStr), "%i", score->score);
+		int xpWidth = CG_DrawStrlen(xpStr) * SCORE_MINI_WIDTH;
+		CG_DrawStringExt( int(tempx + INFO_XP_WIDTH - xpWidth), yOff, xpStr, hcolor, qfalse, qtrue, SCORE_MINI_WIDTH, SCORE_MINI_HEIGHT, 0 );
 		tempx += INFO_XP_WIDTH;
 	}
 
-	// Ping - with color coding and BOT display (with shadow)
+	// Ping - with color coding and BOT display (with shadow), right-aligned
 	if (ci->botSkill > 0) {
 		// Show BOT for bots instead of ping
 		vec4_t botColor = { 0.7f, 0.7f, 0.7f, fade };
-		CG_DrawStringExt( int(tempx), y, " BOT", botColor, qfalse, qtrue, MINICHAR_WIDTH, MINICHAR_HEIGHT, 0 );
+		int yOff = y + (MINICHAR_HEIGHT - SCORE_MINI_HEIGHT) / 2;
+		int botW = CG_DrawStrlen("BOT") * SCORE_MINI_WIDTH;
+		CG_DrawStringExt( int(tempx + INFO_LATENCY_WIDTH - botW), yOff, "BOT", botColor, qfalse, qtrue, SCORE_MINI_WIDTH, SCORE_MINI_HEIGHT, 0 );
 	} else {
-		// Color-coded ping display
+		// Color-coded ping display - right-aligned
 		vec4_t pingColor;
+		int yOff = y + (MINICHAR_HEIGHT - SCORE_MINI_HEIGHT) / 2;
+		char pingStr[16];
+		int pingW;
 		if (score->ping < PING_THRESHOLD_GOOD) {
 			VectorCopy(clrPingGreen, pingColor);
 		} else if (score->ping < PING_THRESHOLD_AVERAGE) {
@@ -683,7 +729,9 @@ static void WM_DrawClientScore_Small( int x, int y, score_t *score, float *color
 			VectorCopy(clrPingRed, pingColor);
 		}
 		pingColor[3] = fade;
-		CG_DrawStringExt( int(tempx), y, va( "%4i", score->ping ), pingColor, qfalse, qtrue, MINICHAR_WIDTH, MINICHAR_HEIGHT, 0 );
+		Com_sprintf(pingStr, sizeof(pingStr), "%i", score->ping);
+		pingW = CG_DrawStrlen(pingStr) * SCORE_MINI_WIDTH;
+		CG_DrawStringExt( int(tempx + INFO_LATENCY_WIDTH - pingW), yOff, pingStr, pingColor, qfalse, qtrue, SCORE_MINI_WIDTH, SCORE_MINI_HEIGHT, 0 );
 	}
 	tempx += INFO_LATENCY_WIDTH;
 }
@@ -751,7 +799,7 @@ static int WM_TeamScoreboard( int x, int y, team_t team, float fade, int maxrows
 	float pingStdDev = 0;
 	int numPings = 0;
 
-	width = INFO_FLAG_WIDTH + INFO_CLASS_WIDTH + INFO_PLAYER_WIDTH + INFO_KD_WIDTH + INFO_XP_WIDTH + INFO_LATENCY_WIDTH;
+	width = INFO_TOTAL_WIDTH;
 
 	// Calculate average ping
 	for( i = 0; i < cg.numScores; i++ ) {
@@ -827,24 +875,32 @@ static int WM_TeamScoreboard( int x, int y, team_t team, float fade, int maxrows
 
 	// draw player info headings - new order: Flag, Class, Name, K/D, XP, Ping
 	// "Name" header spans flag, class, and player name columns
-	CG_DrawSmallString( int(tempx), y, CG_TranslateString( "Name" ), fade );
-	tempx += INFO_FLAG_WIDTH + INFO_CLASS_WIDTH + INFO_PLAYER_WIDTH;
+	// K/D, XP, Ping headers are centered within their column widths
+	{
+		vec4_t hdrColor = { 1.0f, 1.0f, 1.0f, fade };
+		int hdrYOff = y + (SMALLCHAR_HEIGHT - HEADER_CHAR_HEIGHT) / 2;
+		int hdrOff;
+		CG_DrawStringExt( int(tempx), hdrYOff, CG_TranslateString( "Name" ), hdrColor, qfalse, qfalse, HEADER_CHAR_WIDTH, HEADER_CHAR_HEIGHT, 0 );
+		tempx += INFO_FLAG_WIDTH + INFO_SPACING + INFO_CLASS_WIDTH + INFO_SPACING + INFO_PLAYER_WIDTH;
 
-	if( cgs.gametype == GT_WOLF_LMS ) {
-		CG_DrawSmallString( int(tempx), y, CG_TranslateString( "Score" ), fade );
-		tempx += INFO_SCORE_WIDTH;
-	} else {
-		// K/D header
-		CG_DrawSmallString( int(tempx), y, "K/D", fade );
-		tempx += INFO_KD_WIDTH;
+		if( cgs.gametype == GT_WOLF_LMS ) {
+			hdrOff = (INFO_SCORE_WIDTH - CG_DrawStrlen( CG_TranslateString( "Score" ) ) * HEADER_CHAR_WIDTH) / 2;
+			CG_DrawStringExt( int(tempx + hdrOff), hdrYOff, CG_TranslateString( "Score" ), hdrColor, qfalse, qfalse, HEADER_CHAR_WIDTH, HEADER_CHAR_HEIGHT, 0 );
+			tempx += INFO_SCORE_WIDTH;
+		} else {
+			hdrOff = (INFO_KD_WIDTH - CG_DrawStrlen("K/D") * HEADER_CHAR_WIDTH) / 2;
+			CG_DrawStringExt( int(tempx + hdrOff), hdrYOff, "K/D", hdrColor, qfalse, qfalse, HEADER_CHAR_WIDTH, HEADER_CHAR_HEIGHT, 0 );
+			tempx += INFO_KD_WIDTH;
 
-		// XP header
-		CG_DrawSmallString( int(tempx), y, CG_TranslateString( "XP" ), fade );
-		tempx += INFO_XP_WIDTH;
+			hdrOff = INFO_XP_WIDTH - CG_DrawStrlen( CG_TranslateString( "XP" ) ) * HEADER_CHAR_WIDTH;
+			CG_DrawStringExt( int(tempx + hdrOff), hdrYOff, CG_TranslateString( "XP" ), hdrColor, qfalse, qfalse, HEADER_CHAR_WIDTH, HEADER_CHAR_HEIGHT, 0 );
+			tempx += INFO_XP_WIDTH;
+		}
+
+		hdrOff = INFO_LATENCY_WIDTH - CG_DrawStrlen( CG_TranslateString( "Ping" ) ) * HEADER_CHAR_WIDTH;
+		CG_DrawStringExt( int(tempx + hdrOff), hdrYOff, CG_TranslateString( "Ping" ), hdrColor, qfalse, qfalse, HEADER_CHAR_WIDTH, HEADER_CHAR_HEIGHT, 0 );
+		tempx += INFO_LATENCY_WIDTH;
 	}
-
-	CG_DrawSmallString( int(tempx), y, CG_TranslateString( "Ping" ), fade );
-	tempx += INFO_LATENCY_WIDTH;
 	
 	// CHRUKER: b076 - The math says char height + 2 * border width (1 pixel)
 	y += SMALLCHAR_HEIGHT + 2;
@@ -953,6 +1009,20 @@ static int WM_TeamScoreboard( int x, int y, team_t team, float fade, int maxrows
 }
 // -NERVE - SMF
 
+static int CG_SortByKills( const void *a, const void *b ) {
+	const score_t *sa = (const score_t *)a;
+	const score_t *sb = (const score_t *)b;
+	int killsA = cgs.clientinfo[sa->client].kills;
+	int killsB = cgs.clientinfo[sb->client].kills;
+	if ( killsB != killsA )
+		return killsB - killsA;
+	// Tiebreaker: sort by XP descending
+	if ( sb->score != sa->score )
+		return sb->score - sa->score;
+	// Final tiebreaker: client number for stable ordering
+	return sa->client - sb->client;
+}
+
 /*
 =================
 CG_DrawScoreboard
@@ -984,6 +1054,31 @@ qboolean CG_DrawScoreboard( void ) {
 	// don't draw anything if the menu or console is up
 	if ( cg_paused.integer ) {
 		return qfalse;
+	}
+
+	// Dismiss scoreboard when ESC opens the UI menu, but NOT when
+	// a menu button does "close ingame_main; exec +scores"
+	{
+		static int uiActiveTime = 0;
+		if ( trap_Key_GetCatcher() & KEYCATCH_UI ) {
+			// Track when UI first became active
+			if ( uiActiveTime == 0 ) {
+				uiActiveTime = cg.time;
+			}
+			// If scores were opened AFTER the UI appeared (menu button),
+			// don't dismiss - just hide until UI closes
+			if ( cg.showScores && cg.lastScoresDownTime >= uiActiveTime ) {
+				return qfalse;
+			}
+			// Scores were showing BEFORE UI appeared (ESC pressed) - dismiss
+			if ( cg.showScores ) {
+				cg.showScores = qfalse;
+				cg.scoreFadeTime = cg.time;
+			}
+			return qfalse;
+		} else {
+			uiActiveTime = 0;
+		}
 	}
 
 	// don't draw scoreboard during death while warmup up
@@ -1018,6 +1113,11 @@ qboolean CG_DrawScoreboard( void ) {
 	CG_DrawRect_FixedBorder( x - 10, 0, width + 15, 480, 2, borderColor );
 
 	y = WM_DrawObjectives( x, y, width, fade );
+
+	// Sort scores by kills if double-tab was activated
+	if ( cg.scoresSortByKills && cg.numScores > 0 ) {
+		qsort( cg.scores, cg.numScores, sizeof(score_t), CG_SortByKills );
+	}
 
 	if ( cgs.gametype == GT_WOLF_STOPWATCH && ( cg.snap->ps.pm_type == PM_INTERMISSION ) ) {
 		y = WM_DrawInfoLine( x, 155, fade );
