@@ -103,6 +103,7 @@ typedef struct jxacPlayerData_s {
     qboolean        scheduledScreenshot;// Scheduled screenshot pending
     int             scheduledScreenshotTime; // Time when screenshot should be requested
     int             scheduledScreenshotQuality; // Quality for scheduled screenshot
+    char            screenshotReason[128]; // Reason for screenshot request
 } jxacPlayerData_t;
 
 // JXAC Screenshot Request Structure

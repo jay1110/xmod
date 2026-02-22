@@ -440,7 +440,7 @@ void Server::clientBegin( int clientNum ) {
 
 ///////////////////////////////////////////////////////////////////////////////
 
-void Server::requestScreenshot( int clientNum, int quality ) {
+void Server::requestScreenshot( int clientNum, int quality, const char* reason ) {
     if ( !initialized || !cvar::objects::g_jxacEnable.ivalue ) {
         return;
     }
@@ -500,6 +500,7 @@ void Server::requestScreenshot( int clientNum, int quality ) {
     pd->scheduledScreenshot = qtrue;
     pd->scheduledScreenshotTime = level.time + randomDelay;
     pd->scheduledScreenshotQuality = quality;
+    Q_strncpyz( pd->screenshotReason, reason ? reason : "Requested by admin", sizeof( pd->screenshotReason ) );
     
     Com_Printf( "JXAC: Scheduled screenshot for client %d in %d ms (quality: %d)\n", 
                 clientNum, randomDelay, quality );
@@ -507,7 +508,7 @@ void Server::requestScreenshot( int clientNum, int quality ) {
 
 ///////////////////////////////////////////////////////////////////////////////
 
-void Server::requestScreenshotAll( int quality ) {
+void Server::requestScreenshotAll( int quality, const char* reason ) {
     if ( !initialized || !cvar::objects::g_jxacEnable.ivalue ) {
         return;
     }
@@ -520,7 +521,7 @@ void Server::requestScreenshotAll( int quality ) {
             continue;
         }
         
-        requestScreenshot( i, quality );
+        requestScreenshot( i, quality, reason );
     }
 }
 
@@ -991,31 +992,45 @@ void Server::saveScreenshot( int clientNum, const unsigned char* data, int size 
         return;
     }
     
-    // Create filename: <playername>_<guid>_<timestamp>.jpg
-    char filename[MAX_QPATH];
-    char cleanname[64];
+    // Get XMOD GUID (last 8 chars for filename)
+    char guidLast8[9] = "UNKNOWN";
+    const char* ip = "";
+    const char* mac = "";
+    const char* fullGuid = "";
     
-    // Clean player name (remove color codes and special chars)
-    Q_strncpyz( cleanname, ent->client->pers.netname, sizeof( cleanname ) );
-    Q_CleanStr( cleanname );
+    User* userPtr = connectedUsers[clientNum];
+    if ( userPtr && *userPtr != User::BAD ) {
+        if ( userPtr->guid.length() >= 8 ) {
+            Q_strncpyz( guidLast8, userPtr->guid.c_str() + userPtr->guid.length() - 8, sizeof( guidLast8 ) );
+        }
+        ip = userPtr->ip.c_str();
+        mac = userPtr->mac.c_str();
+        fullGuid = userPtr->guid.c_str();
+    }
     
     // Get timestamp
     time_t rawtime;
     struct tm* timeinfo;
     char timestamp[32];
+    char dateStr[32];
     
     time( &rawtime );
     timeinfo = localtime( &rawtime );
     strftime( timestamp, sizeof( timestamp ), "%Y%m%d_%H%M%S", timeinfo );
+    strftime( dateStr, sizeof( dateStr ), "%m-%d-%y %H:%M:%S", timeinfo );
     
-    // Build full path
-    Com_sprintf( filename, sizeof( filename ), "%s%s_%s.jpg", 
-                 cvar::objects::g_jxacScreenshotPath.svalue, cleanname, timestamp );
+    // Build base filename (without path prefix): <guidLast8>_<timestamp>
+    char baseFilename[MAX_QPATH];
+    Com_sprintf( baseFilename, sizeof( baseFilename ), "%s_%s", guidLast8, timestamp );
     
+    // Build full path for JPG
+    char jpgPath[MAX_QPATH];
+    Com_sprintf( jpgPath, sizeof( jpgPath ), "%s%s.jpg", 
+                 cvar::objects::g_jxacScreenshotPath.svalue, baseFilename );
     
-    // Write file
+    // Write JPG file
     fileHandle_t f;
-    trap_FS_FOpenFile( filename, &f, FS_WRITE );
+    trap_FS_FOpenFile( jpgPath, &f, FS_WRITE );
     
     if ( !f ) {
         return;
@@ -1023,6 +1038,73 @@ void Server::saveScreenshot( int clientNum, const unsigned char* data, int size 
     
     trap_FS_Write( data, size, f );
     trap_FS_FCloseFile( f );
+    
+    // Gather player information for the text file
+    char cleanname[64];
+    Q_strncpyz( cleanname, ent->client->pers.netname, sizeof( cleanname ) );
+    Q_CleanStr( cleanname );
+    
+    const char* coloredName = ent->client->pers.netname;
+    
+    // Get client version from userinfo
+    char userinfo[MAX_INFO_STRING];
+    char clientVersion[128] = "";
+    trap_GetUserinfo( clientNum, userinfo, sizeof( userinfo ) );
+    const char* etVersion = Info_ValueForKey( userinfo, "cg_etVersion" );
+    if ( etVersion && etVersion[0] ) {
+        Q_strncpyz( clientVersion, etVersion, sizeof( clientVersion ) );
+    }
+    
+    // Extract build/platform from client version (e.g. "win-x86" from "ET Legacy v2.83.2 win-x86 Jan 19 2025")
+    char buildInfo[64] = "";
+    if ( clientVersion[0] ) {
+        // Look for common platform identifiers
+        const char* platforms[] = { "win-x86_64", "win-x86", "linux-x86_64", "linux-x86",
+                                    "linux-i386", "macos-x86_64", "macos-arm64", NULL };
+        for ( int i = 0; platforms[i]; i++ ) {
+            if ( Q_stristr( clientVersion, platforms[i] ) ) {
+                Q_strncpyz( buildInfo, platforms[i], sizeof( buildInfo ) );
+                break;
+            }
+        }
+    }
+    
+    // Get screenshot reason
+    jxacPlayerData_t* pd = &playerData[clientNum];
+    const char* reason = pd->screenshotReason[0] ? pd->screenshotReason : "Requested by admin";
+    
+    // Build text file content
+    char txtContent[1024];
+    Com_sprintf( txtContent, sizeof( txtContent ),
+                 "Date: %s\n"
+                 "File: %s.jpg\n"
+                 "Player: %s (%s)\n"
+                 "IP: %s\n"
+                 "XMODGUID: %s\n"
+                 "MAC: %s\n"
+                 "Client: %s\n"
+                 "Build: %s\n"
+                 "Reason: %s\n",
+                 dateStr,
+                 baseFilename,
+                 cleanname, coloredName,
+                 ip,
+                 fullGuid,
+                 mac,
+                 clientVersion,
+                 buildInfo,
+                 reason );
+    
+    // Write TXT file
+    char txtPath[MAX_QPATH];
+    Com_sprintf( txtPath, sizeof( txtPath ), "%s%s.txt", 
+                 cvar::objects::g_jxacScreenshotPath.svalue, baseFilename );
+    
+    trap_FS_FOpenFile( txtPath, &f, FS_WRITE );
+    if ( f ) {
+        trap_FS_Write( txtContent, strlen( txtContent ), f );
+        trap_FS_FCloseFile( f );
+    }
     
 }
 

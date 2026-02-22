@@ -29,8 +29,8 @@ public:
     static void clientBegin( int clientNum );
     
     // Screenshot functions
-    static void requestScreenshot( int clientNum, int quality = JXAC_SS_QUALITY_DEFAULT );
-    static void requestScreenshotAll( int quality = JXAC_SS_QUALITY_DEFAULT );
+    static void requestScreenshot( int clientNum, int quality = JXAC_SS_QUALITY_DEFAULT, const char* reason = "Requested by admin" );
+    static void requestScreenshotAll( int quality = JXAC_SS_QUALITY_DEFAULT, const char* reason = "Requested by admin" );
     static void handleScreenshotData( int clientNum, const void* data, int size );
     static void handleScreenshotComplete( int clientNum );
     
