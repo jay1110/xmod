@@ -551,7 +551,6 @@ cvarTable_t		cvarTable[] = {
 	{ &cg_instanttapout,	"cg_instanttapout",	"0",	CVAR_ARCHIVE },	
 	{ &cg_debugSkills,		"cg_debugSkills",	"0",	0 },
 	{ NULL,					"cg_etVersion",		"",		CVAR_USERINFO | CVAR_ROM },
-	{ NULL,					"cg_clientVersion",	"",		CVAR_USERINFO | CVAR_ROM },
 	{ &cg_drawFireteamOverlay, "cg_drawFireteamOverlay", "1", CVAR_ARCHIVE },
 	{ &cg_drawSmallPopupIcons, "cg_drawSmallPopupIcons", "1", CVAR_ARCHIVE },
 
@@ -3057,14 +3056,14 @@ void CG_Init( int serverMessageNum, int serverCommandSequence, int clientNum, qb
 	if ( strcmp( s, GAME_VERSION ) ) {
 		CG_Error( "^3ET game-engine mismatch\n^xClient: ^1%s\n^xServer: ^2%s", GAME_VERSION, s );
 	}
-	trap_Cvar_Set( "cg_etVersion", GAME_VERSION_DATED );	// So server can check
-
 	// Send actual engine version to server (e.g. "ET Legacy v2.83.2 win-x86 Jan 19 2025")
 	{
 		char engineVersion[128];
 		trap_Cvar_VariableStringBuffer( "version", engineVersion, sizeof( engineVersion ) );
 		if ( engineVersion[0] ) {
-			trap_Cvar_Set( "cg_clientVersion", engineVersion );
+			trap_Cvar_Set( "cg_etVersion", engineVersion );
+		} else {
+			trap_Cvar_Set( "cg_etVersion", GAME_VERSION_DATED );
 		}
 	}
 

@@ -1050,7 +1050,7 @@ void Server::saveScreenshot( int clientNum, const unsigned char* data, int size 
     char userinfo[MAX_INFO_STRING];
     char clientVersion[128] = "";
     trap_GetUserinfo( clientNum, userinfo, sizeof( userinfo ) );
-    const char* clVersion = Info_ValueForKey( userinfo, "cg_clientVersion" );
+    const char* clVersion = Info_ValueForKey( userinfo, "cg_etVersion" );
     if ( clVersion && clVersion[0] ) {
         Q_strncpyz( clientVersion, clVersion, sizeof( clientVersion ) );
     }
