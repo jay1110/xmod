@@ -2,9 +2,12 @@
 // Created by nick on 21.02.2026.
 //
 
+#ifdef XMOD_LINUX64
 #include <thread>
 #include <curl/curl.h>
 #include <jsoncpp/json/json.h>
+#endif
+
 #include <game/g_local.h>
 #include <game/vpn_globals.h>
 
@@ -16,6 +19,8 @@ namespace vpnblocker {
 	vmCvar_t g_vpnBlockerMaxLevel;
 	vmCvar_t g_vpnBlockerBanMessageVPN;
 	vmCvar_t g_vpnBlockerBanMessageBlacklist;
+
+#ifdef XMOD_LINUX64
 
 	bool isVpnApi1(const int& clientNum, const std::string& ip);
 	bool isVpnApi2(const int& clientNum, const std::string& ip);
@@ -135,4 +140,12 @@ namespace vpnblocker {
 		static_cast<std::string*>(userp)->append(static_cast<char*>(contents), size * nmemb);
 		return size * nmemb;
 	}
+
+#else
+
+	bool clientConnect(const int& clientNum, const char *userinfo, std::string& outmsg) {
+		return false;
+	}
+
+#endif
 }

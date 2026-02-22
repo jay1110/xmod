@@ -31,7 +31,7 @@ jobs:
       - name: Install dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y build-essential python3 zip m4
+          sudo apt-get install -y build-essential python3 zip m4 libcurl4-gnutls-dev libjsoncpp-dev
       
       - name: Ensure scripts are executable
         run: chmod +x project/info.py
