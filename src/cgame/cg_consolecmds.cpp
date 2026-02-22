@@ -163,6 +163,9 @@ void CG_ScoresDown_f( void ) {
 	if ( !cg.showScores && cg.lastScoresDownTime + 250 > cg.time && cg.scoreToggleTime < (cg.time - 500) ) {
 		cg.scoresSortByKills = (qboolean)!cg.scoresSortByKills;
 		cg.scoreToggleTime = cg.time;
+		// Force new score request so server sends fresh data
+		// (needed when switching back to XP sort since local array is still kill-sorted)
+		cg.scoresRequestTime = 0;
 	}
 	cg.lastScoresDownTime = cg.time;
 
