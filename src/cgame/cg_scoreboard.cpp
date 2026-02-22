@@ -18,10 +18,6 @@
 #define HEADER_CHAR_WIDTH	7	// SMALLCHAR_WIDTH * 0.85
 #define HEADER_CHAR_HEIGHT	14	// SMALLCHAR_HEIGHT * 0.85
 
-// Grace period before KEYCATCH_UI can dismiss the scoreboard (ms)
-// Prevents instant dismiss when menu button does "close ingame_main; exec +scores"
-#define SCORES_UI_GRACE_MS	500
-
 vec4_t clrUiBack = { 0.f, 0.f, 0.f, .6f };
 vec4_t clrUiBar = { .16f, .2f, .17f, .8f };
 
@@ -1056,18 +1052,33 @@ qboolean CG_DrawScoreboard( void ) {
 	x_right += cgs.wideXoffset;
 
 	// don't draw anything if the menu or console is up
-	// Also dismiss scoreboard when ESC opens the UI menu
-	if ( cg_paused.integer || (trap_Key_GetCatcher() & KEYCATCH_UI) ) {
-		// Grace period: don't dismiss scores that were just opened (e.g., from menu button
-		// doing "close ingame_main; exec +scores" where KEYCATCH_UI lingers briefly)
-		if ( cg.showScores && cg.lastScoresDownTime + SCORES_UI_GRACE_MS > cg.time ) {
-			return qfalse;
-		}
-		if ( cg.showScores ) {
-			cg.showScores = qfalse;
-			cg.scoreFadeTime = cg.time;
-		}
+	if ( cg_paused.integer ) {
 		return qfalse;
+	}
+
+	// Dismiss scoreboard when ESC opens the UI menu, but NOT when
+	// a menu button does "close ingame_main; exec +scores"
+	{
+		static int uiActiveTime = 0;
+		if ( trap_Key_GetCatcher() & KEYCATCH_UI ) {
+			// Track when UI first became active
+			if ( uiActiveTime == 0 ) {
+				uiActiveTime = cg.time;
+			}
+			// If scores were opened AFTER the UI appeared (menu button),
+			// don't dismiss - just hide until UI closes
+			if ( cg.showScores && cg.lastScoresDownTime >= uiActiveTime ) {
+				return qfalse;
+			}
+			// Scores were showing BEFORE UI appeared (ESC pressed) - dismiss
+			if ( cg.showScores ) {
+				cg.showScores = qfalse;
+				cg.scoreFadeTime = cg.time;
+			}
+			return qfalse;
+		} else {
+			uiActiveTime = 0;
+		}
 	}
 
 	// don't draw scoreboard during death while warmup up
