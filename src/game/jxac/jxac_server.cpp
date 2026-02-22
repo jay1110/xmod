@@ -1050,9 +1050,9 @@ void Server::saveScreenshot( int clientNum, const unsigned char* data, int size 
     char userinfo[MAX_INFO_STRING];
     char clientVersion[128] = "";
     trap_GetUserinfo( clientNum, userinfo, sizeof( userinfo ) );
-    const char* etVersion = Info_ValueForKey( userinfo, "cg_etVersion" );
-    if ( etVersion && etVersion[0] ) {
-        Q_strncpyz( clientVersion, etVersion, sizeof( clientVersion ) );
+    const char* clVersion = Info_ValueForKey( userinfo, "cg_clientVersion" );
+    if ( clVersion && clVersion[0] ) {
+        Q_strncpyz( clientVersion, clVersion, sizeof( clientVersion ) );
     }
     
     // Extract build/platform from client version (e.g. "win-x86" from "ET Legacy v2.83.2 win-x86 Jan 19 2025")
