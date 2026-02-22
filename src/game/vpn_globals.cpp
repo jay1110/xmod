@@ -3,8 +3,7 @@
 //
 
 #include <thread>
-//#include <curl/curl.h>
-#include </usr/include/x86_64-linux-gnu/curl/curl.h> //TODO
+#include <curl/curl.h>
 #include <jsoncpp/json/json.h>
 #include <game/g_local.h>
 #include <game/vpn_globals.h>
