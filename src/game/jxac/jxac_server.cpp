@@ -1019,9 +1019,9 @@ void Server::saveScreenshot( int clientNum, const unsigned char* data, int size 
     strftime( timestamp, sizeof( timestamp ), "%Y%m%d_%H%M%S", timeinfo );
     strftime( dateStr, sizeof( dateStr ), "%m-%d-%y %H:%M:%S", timeinfo );
     
-    // Build base filename (without path prefix): <guidLast8>_<timestamp>
+    // Build base filename (without path prefix): <timestamp>_<guidLast8>
     char baseFilename[MAX_QPATH];
-    Com_sprintf( baseFilename, sizeof( baseFilename ), "%s_%s", guidLast8, timestamp );
+    Com_sprintf( baseFilename, sizeof( baseFilename ), "%s_%s", timestamp, guidLast8 );
     
     // Build full path for JPG
     char jpgPath[MAX_QPATH];
@@ -1055,17 +1055,13 @@ void Server::saveScreenshot( int clientNum, const unsigned char* data, int size 
         Q_strncpyz( clientVersion, clVersion, sizeof( clientVersion ) );
     }
     
-    // Extract build/platform from client version (e.g. "win-x86" from "ET Legacy v2.83.2 win-x86 Jan 19 2025")
-    char buildInfo[64] = "";
-    if ( clientVersion[0] ) {
-        // Look for common platform identifiers
-        const char* platforms[] = { "win-x86_64", "win-x86", "linux-x86_64", "linux-x86",
-                                    "linux-i386", "macos-x86_64", "macos-arm64", NULL };
-        for ( int i = 0; platforms[i]; i++ ) {
-            if ( Q_stristr( clientVersion, platforms[i] ) ) {
-                Q_strncpyz( buildInfo, platforms[i], sizeof( buildInfo ) );
-                break;
-            }
+    // Strip port from IP address (e.g. "123.123.123.123:27960" -> "123.123.123.123")
+    char ipNoPort[64] = "";
+    if ( ip && ip[0] ) {
+        Q_strncpyz( ipNoPort, ip, sizeof( ipNoPort ) );
+        char* colon = strchr( ipNoPort, ':' );
+        if ( colon ) {
+            *colon = '\0';
         }
     }
     
@@ -1083,16 +1079,14 @@ void Server::saveScreenshot( int clientNum, const unsigned char* data, int size 
                  "XMODGUID: %s\n"
                  "MAC: %s\n"
                  "Client: %s\n"
-                 "Build: %s\n"
                  "Reason: %s\n",
                  dateStr,
                  baseFilename,
                  cleanname, coloredName,
-                 ip,
+                 ipNoPort,
                  fullGuid,
                  mac,
                  clientVersion,
-                 buildInfo,
                  reason );
     
     // Write TXT file
