@@ -24,6 +24,7 @@ MODULE.GAME.pdb      = $(BUILD/)game/
 
 MODULE.GAME.CXX.I< += $(BUILD/)game
 MODULE.GAME.CXX.I< += $(PROJECT/)src/sqlite3
+MODULE.GAME.CXX.I< += $(PROJECT/)src/jsoncpp
 MODULE.GAME.CXX.D  += GAMEDLL
 MODULE.GAME.CXX.l  += $(DYNLOAD.l) $(MATH.l) $(WS2_32.l)
 

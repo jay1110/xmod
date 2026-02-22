@@ -5,7 +5,7 @@
 #ifdef XMOD_LINUX64
 #include <thread>
 #include <curl/curl.h>
-#include <jsoncpp/json/json.h>
+#include <json/json.h>
 #endif
 
 #include <game/g_local.h>

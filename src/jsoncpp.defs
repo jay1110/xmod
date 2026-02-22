@@ -1,0 +1,14 @@
+# JsonCpp amalgamation (MIT License)
+MODULE.JSONCPP.srcs = \
+	$(PROJECT/)src/jsoncpp/jsoncpp.cpp
+
+MODULE.JSONCPP.objs    = $(MODULE.JSONCPP.srcs:$(PROJECT/)src/%.cpp=$(BUILD/)%.o)
+MODULE.JSONCPP.a       = $(BUILD/)jsoncpp/libjsoncpp$(STATICLIB.suffix)
+MODULE.JSONCPP.CXX.I   = $(PROJECT/)src/jsoncpp
+MODULE.JSONCPP.CXX.vis = 0
+MODULE.JSONCPP.pdb     = $(BUILD/)jsoncpp/
+
+###############################################################################
+
+BUILD.output += $(MODULE.JSONCPP.objs)
+BUILD.output += $(MODULE.JSONCPP.a)

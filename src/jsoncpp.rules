@@ -1,0 +1,17 @@
+all:: MODULE.JSONCPP.build
+
+MODULE.JSONCPP.build: CXX.inherit=MODULE.JSONCPP
+MODULE.JSONCPP.build: $(MODULE.JSONCPP.a)
+
+$(MODULE.JSONCPP.objs): $(BUILD/)%.o: $(PROJECT/)src/%.cpp
+	$(call print.COMMAND.normal,$(CXX),$(2),$(strip \
+	$(CXX) \
+	$(foreach i,pipe BIT PIC O,$(foreach j,$(CXX.$(i)),$(CXX.opt.$(i)))) \
+	-I$(PROJECT/)src/jsoncpp \
+	-c $< -o $@ \
+	))
+
+$(MODULE.JSONCPP.a): $(MODULE.JSONCPP.objs)
+	$(call CXX.fnCompileStatic,$@,$^)
+	$(call CXX.fnRanlib,$@)
+
