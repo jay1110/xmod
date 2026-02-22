@@ -3056,15 +3056,15 @@ void CG_Init( int serverMessageNum, int serverCommandSequence, int clientNum, qb
 	if ( strcmp( s, GAME_VERSION ) ) {
 		CG_Error( "^3ET game-engine mismatch\n^xClient: ^1%s\n^xServer: ^2%s", GAME_VERSION, s );
 	}
-	// Send actual engine version to server (e.g. "ET Legacy v2.83.2 win-x86 Jan 19 2025")
+	// Send actual engine version to server
+	// Try "etversion" first (ET Legacy provides this), then "version", then fallback
 	{
-		char engineVersion[128];
-		trap_Cvar_VariableStringBuffer( "version", engineVersion, sizeof( engineVersion ) );
-		if ( engineVersion[0] ) {
-			trap_Cvar_Set( "cg_etVersion", engineVersion );
-		} else {
-			trap_Cvar_Set( "cg_etVersion", GAME_VERSION_DATED );
+		char engineVersion[128] = "";
+		trap_Cvar_VariableStringBuffer( "etversion", engineVersion, sizeof( engineVersion ) );
+		if ( !engineVersion[0] ) {
+			trap_Cvar_VariableStringBuffer( "version", engineVersion, sizeof( engineVersion ) );
 		}
+		trap_Cvar_Set( "cg_etVersion", engineVersion[0] ? engineVersion : GAME_VERSION_DATED );
 	}
 
     // Version check is now deferred to when "xcs 1" server command is received
