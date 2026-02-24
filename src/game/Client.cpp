@@ -794,6 +794,10 @@ Client::xpBackup()
     if (user.fakeguid || !g_xpSave.integer)
         return;
 
+    // Skip XP save for bots if OBF_DONT_XPSAVE flag is set
+    if ((gentity.r.svFlags & SVF_BOT) && (g_OmniBotFlags.integer & OBF_DONT_XPSAVE))
+        return;
+
     // Save XP to xmod.db only (not legacy user.db)
     if (xmod::g_database && xmod::g_database->isOpened()) {
         // Copy current XP to array
@@ -870,6 +874,10 @@ Client::xpRestore()
     User& user = *connectedUsers[slot];
 
     if (user.fakeguid || !g_xpSave.integer)
+        return;
+
+    // Skip XP restore for bots if OBF_DONT_XPSAVE flag is set
+    if ((gentity.r.svFlags & SVF_BOT) && (g_OmniBotFlags.integer & OBF_DONT_XPSAVE))
         return;
 
     const int timeout = str::toSeconds( g_xpSaveTimeout.string );
