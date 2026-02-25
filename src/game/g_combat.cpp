@@ -542,11 +542,14 @@ void player_die( gentity_t *self, gentity_t *inflictor, gentity_t *attacker, int
 	//////////////////////////////////////////////////////////////////////////
 
 	// broadcast the death event to everyone
-	ent = G_TempEntity( vec3_origin, EV_OBITUARY );
-	ent->s.eventParm = meansOfDeath;
-	ent->s.otherEntityNum = self->s.number;
-	ent->s.otherEntityNum2 = killer;
-	ent->r.svFlags = SVF_BROADCAST;	// send to everyone
+	// Skip obituary for bot self-kills (suicide, /kill, etc.)
+	if (!((self->r.svFlags & SVF_BOT) && killer == self->s.number)) {
+		ent = G_TempEntity( vec3_origin, EV_OBITUARY );
+		ent->s.eventParm = meansOfDeath;
+		ent->s.otherEntityNum = self->s.number;
+		ent->s.otherEntityNum2 = killer;
+		ent->r.svFlags = SVF_BROADCAST;	// send to everyone
+	}
 
 	// Process kill assistances
 	G_ProcessKillAssistance(self, attacker, meansOfDeath);
