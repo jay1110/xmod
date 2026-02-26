@@ -88,14 +88,26 @@ void G_SendScore( gentity_t *ent ) {
 			}
 
 			if( g_gametype.integer == GT_WOLF_LMS ) {
-				Com_sprintf (entry, sizeof(entry), " %i %i %i %i %i %i %i %i %i", level.sortedClients[i], cl->ps.persistant[PERS_SCORE], ping, 
+				int score = cl->ps.persistant[PERS_SCORE];
+
+				// Hide score for spectators to prevent revealing who they are spectating
+				if( cl->sess.sessionTeam == TEAM_SPECTATOR ) {
+					score = 0;
+				}
+
+				Com_sprintf (entry, sizeof(entry), " %i %i %i %i %i %i %i %i %i", level.sortedClients[i], score, ping, 
 					(level.time - cl->pers.enterTime) / 60000, g_entities[level.sortedClients[i]].s.powerups, playerClass, respawnsLeft,
 					cl->sess.kills, cl->sess.deaths );
 			} else {
 				int j, totalXP;
 
-				for( totalXP = 0, j = 0; j < SK_NUM_SKILLS; j++ ) {
-					totalXP += int( cl->sess.skillpoints[j] );
+				// Hide XP for spectators to prevent revealing who they are spectating
+				if( cl->sess.sessionTeam == TEAM_SPECTATOR ) {
+					totalXP = 0;
+				} else {
+					for( totalXP = 0, j = 0; j < SK_NUM_SKILLS; j++ ) {
+						totalXP += int( cl->sess.skillpoints[j] );
+					}
 				}
 
 				Com_sprintf (entry, sizeof(entry), " %i %i %i %i %i %i %i %i %i", level.sortedClients[i], totalXP, ping, 
