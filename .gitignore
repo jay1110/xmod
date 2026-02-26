@@ -61,3 +61,4 @@ Release_x64/
 # NitMod decompiled reference files (not part of build)
 nitmod_*.c
 nitmod_*.h
+build_output.log
