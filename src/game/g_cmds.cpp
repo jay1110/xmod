@@ -800,7 +800,7 @@ qboolean SetTeam( gentity_t* ent, const char* teamName, qboolean force, weapon_t
 	client->pers.lastReinforceTime = 0;
 
 	// (l)users will spam spec messages... honest!
-	if(team != oldTeam) {
+	if(team != oldTeam && !(g_entities[clientNum].r.svFlags & SVF_BOT)) {
 		gentity_t* tent = G_PopupMessage( PM_TEAM );
 		tent->s.effect2Time = team;
 		tent->s.effect3Time = clientNum;

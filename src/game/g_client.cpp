@@ -2570,6 +2570,15 @@ ClientConnect( string& outmsg, int clientNum, qboolean firstTime, qboolean isBot
 			xmod::g_sessions[clientNum]->onGuidReceived(botGuid, botHwid);
 			G_Printf("[SQLite] Bot %d (%s) authenticated with session\n", 
 			         clientNum, client->pers.netname);
+
+			// Restore XP for bot now that we have the correct SHA1 GUID
+			// G_InitSessionData() was called earlier (line ~2452) with the initial
+			// BOT GUID before the SHA1 GUID was set up, so xpRestore() failed.
+			// This mirrors the regular player flow in xm_main_ext.cpp where
+			// xpRestore() is called again after authentication provides the real GUID.
+			if (g_xpSave.integer) {
+				g_clientObjects[clientNum].xpRestore();
+			}
 		}
 	}
 

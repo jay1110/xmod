@@ -2,6 +2,7 @@
 #include <game/xmod_database.h>
 #include <game/xmod_globals.h>
 #include <game/g_weaponscripts.h>
+#include <omnibot/et/g_etbot_interface.h>
 
 /*
 ====================
@@ -775,6 +776,10 @@ qboolean G_PushPlayer(gentity_t *ent, gentity_t *victim)
     // Feature disabled
 	if (!g_shove.integer)
 		return qfalse;
+
+    // Bots cannot use shove unless OBF_SHOVING flag is set
+    if ((ent->r.svFlags & SVF_BOT) && !(g_OmniBotFlags.integer & OBF_SHOVING))
+        return qfalse;
 
     // No playdead or dead players
     if (ent->client->ps.eFlags & (EF_PLAYDEAD | EF_DEAD))
