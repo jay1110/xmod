@@ -40,6 +40,10 @@
             <entry>2</entry>
             <entry>Enable - nitmod style. The delay between pressing second time jumping is endless.</entry>
         </row>
+        <row>
+            <entry>3</entry>
+            <entry>Enable - etpub style. Prevent double jump based on velocity (only allowed when going up).</entry>
+        </row>
     </tbody>
 </tgroup>
 </table>
