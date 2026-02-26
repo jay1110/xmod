@@ -2002,8 +2002,11 @@ void SpectatorClientEndFrame( gentity_t *ent )
 					ent->client->ps.powerups[PW_MVCLIENTLIST] = savedMVList;
 					ent->client->ps.stats[STAT_PLAYER_CLASS] = savedClass;			// NERVE - SMF - put player class back
 				} else {
+					int savedScore = ent->client->ps.persistant[PERS_SCORE];
+
 					ent->client->ps = cl->ps;
 					ent->client->ps.pm_flags |= PMF_FOLLOW;
+					ent->client->ps.persistant[PERS_SCORE] = savedScore;			// put score back
 				}
 
 				// DHM - Nerve :: carry flags over
