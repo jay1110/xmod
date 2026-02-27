@@ -5339,37 +5339,20 @@ void PM_UpdateLean(playerState_t *ps, usercmd_t *cmd, pmove_t *tpm) {
 	leanofs = ps->leanf;
 
 
-	if(!leaning) {	// go back to center position
-		if ( leanofs > 0 ) {		// right
-			//FIXME: play lean anim backwards?
-			leanofs -= (((float)pml.msec/(float)LEAN_TIME_FR)*LEAN_MAX);
-			if ( leanofs < 0 )
-				leanofs = 0;
-		}
-		else if ( leanofs < 0 ) {	// left
-			//FIXME: play lean anim backwards?
-			leanofs += (((float)pml.msec/(float)LEAN_TIME_FR)*LEAN_MAX);
-			if ( leanofs > 0 )
-				leanofs = 0;
-		}
-	}
+	{
+		float targetLean = 0;
+		if(leaning > 0) targetLean = LEAN_MAX;
+		else if(leaning < 0) targetLean = -LEAN_MAX;
 
-	if(leaning) {
-		if(leaning > 0) {	// right
-			if(leanofs < LEAN_MAX)
-				leanofs += (((float)pml.msec/(float)LEAN_TIME_TO)*LEAN_MAX);
+		if(leanofs != targetLean) {
+			float leanTime = leaning ? LEAN_TIME_TO : LEAN_TIME_FR;
+			// Exponential smoothing: tau = leanTime/3 so ~95% reached in leanTime
+			float tau = leanTime / 3.0f;
+			float frac = 1.0f - exp(-(float)pml.msec / tau);
+			leanofs += (targetLean - leanofs) * frac;
 
-			if(leanofs > LEAN_MAX)
-				leanofs = LEAN_MAX;
-
-		}
-		else {				// left
-			if(leanofs > -LEAN_MAX)
-				leanofs -= (((float)pml.msec/(float)LEAN_TIME_TO)*LEAN_MAX);
-
-			if(leanofs < -LEAN_MAX)
-				leanofs = -LEAN_MAX;
-
+			if(fabs(leanofs - targetLean) < 0.1f)
+				leanofs = targetLean;
 		}
 	}
 
