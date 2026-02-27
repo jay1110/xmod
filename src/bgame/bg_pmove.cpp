@@ -815,8 +815,8 @@ PM_CheckDoubleJump
 */
 static qboolean PM_CheckDoubleJump( void ) {
 
-	// Check if double jump is enabled (g_doubleJump: 0=disabled, 1=xmod style, 2=nitmod style)
-	if ( cvars::bg_doubleJump.ivalue == DJUMP_DISABLED ) {
+	// Check if double jump is enabled (g_doubleJump: 0=disabled, 1=xmod style, 2=nitmod style, 3=etpub style)
+	if ( cvars::bg_doubleJump.ivalue < 1 || cvars::bg_doubleJump.ivalue > 3 ) {
 		return qfalse;
 	}
 
@@ -828,13 +828,18 @@ static qboolean PM_CheckDoubleJump( void ) {
 		return qfalse;
 	}
 
-	// For xmod style (mode 1), check the 850ms time window
-	// For nitmod style (mode 2), the delay is endless - no time check
 	if( cvars::bg_doubleJump.ivalue == DJUMP_XMOD ) {
+		// xmod style: prevent double jump after a short period
 		if( pm->cmd.serverTime - pm->pmext->jumpTime >= 850 ) {
 			return qfalse;
 		}
+	} else if( cvars::bg_doubleJump.ivalue == DJUMP_ETPUB ) {
+		// etpub style: only allow double jump when still going up
+		if( pm->ps->velocity[2] <= 0 ) {
+			return qfalse;
+		}
 	}
+	// else nitmod style (2), no check
 
 	if ( pm->ps->pm_flags & PMF_RESPAWNED ) {
 		return qfalse;		// don't allow jump until all buttons are up
