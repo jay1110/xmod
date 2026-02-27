@@ -111,7 +111,7 @@
 #define DJUMP_DISABLED        0      // disabled
 #define DJUMP_XMOD            1      // xmod style (850ms window)
 #define DJUMP_NITMOD          2      // nitmod style (endless delay)
-#define DJUMP_ETPUB           3      // etpub style (velocity-based)
+#define DJUMP_ETPUB           3      // etpub style (850ms window, same as xmod)
 
 // userinfo JayFlags
 //#define	JAYFLAGS_KILLSPREESOUNDS	1

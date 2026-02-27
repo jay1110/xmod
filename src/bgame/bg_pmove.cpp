@@ -828,16 +828,9 @@ static qboolean PM_CheckDoubleJump( void ) {
 		return qfalse;
 	}
 
-	if( cvars::bg_doubleJump.ivalue == DJUMP_XMOD ) {
-		// xmod style: prevent double jump after a short period
+	if( cvars::bg_doubleJump.ivalue == DJUMP_XMOD || cvars::bg_doubleJump.ivalue == DJUMP_ETPUB ) {
+		// xmod/etpub style: prevent double jump after a short period
 		if( pm->cmd.serverTime - pm->pmext->jumpTime >= 850 ) {
-			return qfalse;
-		}
-	} else if( cvars::bg_doubleJump.ivalue == DJUMP_ETPUB ) {
-		// etpub style: prevent double jump based on velocity
-		// Allow double jump while still rising or just beginning to fall;
-		// block once falling faster than half the initial jump velocity.
-		if( pm->ps->velocity[2] < -(JUMP_VELOCITY / 2) ) {
 			return qfalse;
 		}
 	}

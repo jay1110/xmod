@@ -42,7 +42,7 @@
         </row>
         <row>
             <entry>3</entry>
-            <entry>Enable - etpub style. Prevent double jump based on velocity (blocked once falling fast).</entry>
+            <entry>Enable - etpub style. Player must press jump within 850ms of the first jump (same window as xmod).</entry>
         </row>
     </tbody>
 </tgroup>
