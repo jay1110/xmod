@@ -82,6 +82,13 @@ namespace objects {
     Cvar bg_djHeight        ( "cg_djHeight",           "1.4", CVAR_ROM );
     Cvar bg_weaponsenable   ( "cg_weaponsenable",      "0",   CVAR_ROM );
 
+    // Lean tuning cvars (synced from server via XMODINFO2)
+    Cvar bg_leanAngle       ( "cg_leanAngle",          "60",  CVAR_ROM );
+    Cvar bg_leanTimeTo      ( "cg_leanTimeTo",         "400", CVAR_ROM );
+    Cvar bg_leanTimeFrom    ( "cg_leanTimeFrom",       "500", CVAR_ROM );
+    Cvar bg_leanEaseRatio   ( "cg_leanEaseRatio",      "0.3", CVAR_ROM );
+    Cvar bg_leanEaseMin     ( "cg_leanEaseMin",        "0.3", CVAR_ROM );
+
     // g_noReload and g_noCharge synced from server
     Cvar g_noReload         ( "cg_noReload",           "0",   CVAR_ROM );
     Cvar g_noCharge         ( "cg_noCharge",           "0",   CVAR_ROM );

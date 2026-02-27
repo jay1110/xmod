@@ -1169,6 +1169,8 @@ static void CG_PlayerAngles( centity_t *cent, vec3_t legs[3], vec3_t torso[3], v
 		float leanf = cent->currentState.angles2[ROLL];
 		// Apply lean to torso roll - use full lean value for visible lean animation
 		torsoAngles[ROLL] += leanf;
+		// Head follows the lean angle so it doesn't stay unnaturally straight
+		headAngles[ROLL] += leanf * 0.5f;
 	}
 
 	// pain twitch

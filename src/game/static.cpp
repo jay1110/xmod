@@ -81,6 +81,13 @@ namespace objects {
     Cvar bg_djHeight           ( "g_djHeight",            "1.4", CVAR_XMODINFO );
     Cvar bg_weaponsenable      ( "g_weaponsenable",       "0",   CVAR_XMODINFO );
 
+    // Lean tuning cvars (synced via XMODINFO2)
+    Cvar bg_leanAngle          ( "g_leanAngle",           "60",  CVAR_XMODINFO );
+    Cvar bg_leanTimeTo         ( "g_leanTimeTo",          "400", CVAR_XMODINFO );
+    Cvar bg_leanTimeFrom       ( "g_leanTimeFrom",        "500", CVAR_XMODINFO );
+    Cvar bg_leanEaseRatio      ( "g_leanEaseRatio",       "0.3", CVAR_XMODINFO );
+    Cvar bg_leanEaseMin        ( "g_leanEaseMin",         "0.3", CVAR_XMODINFO );
+
     // g_noReload and g_noCharge are synced via CVAR_XMODINFO for bgame use
     Cvar g_noReload            ( "g_noReload",            "0",   CVAR_XMODINFO );
     Cvar g_noCharge            ( "g_noCharge",            "0",   CVAR_XMODINFO );
