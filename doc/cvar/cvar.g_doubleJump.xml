@@ -42,7 +42,7 @@
         </row>
         <row>
             <entry>3</entry>
-            <entry>Enable - etpub style. Prevent double jump based on velocity (only allowed when going up).</entry>
+            <entry>Enable - etpub style. Prevent double jump based on velocity (blocked once falling fast).</entry>
         </row>
     </tbody>
 </tgroup>

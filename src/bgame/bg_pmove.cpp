@@ -834,8 +834,10 @@ static qboolean PM_CheckDoubleJump( void ) {
 			return qfalse;
 		}
 	} else if( cvars::bg_doubleJump.ivalue == DJUMP_ETPUB ) {
-		// etpub style: only allow double jump when going up
-		if( pm->ps->velocity[2] <= 0 ) {
+		// etpub style: prevent double jump based on velocity
+		// Allow double jump while still rising or just beginning to fall;
+		// block once falling faster than half the initial jump velocity.
+		if( pm->ps->velocity[2] < -(JUMP_VELOCITY / 2) ) {
 			return qfalse;
 		}
 	}
