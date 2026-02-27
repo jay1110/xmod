@@ -828,9 +828,20 @@ static qboolean PM_CheckDoubleJump( void ) {
 		return qfalse;
 	}
 
-	if( cvars::bg_doubleJump.ivalue == DJUMP_XMOD || cvars::bg_doubleJump.ivalue == DJUMP_ETPUB ) {
-		// xmod/etpub style: prevent double jump after a short period
+	if( cvars::bg_doubleJump.ivalue == DJUMP_XMOD ) {
+		// xmod style: prevent double jump after a short period
 		if( pm->cmd.serverTime - pm->pmext->jumpTime >= 850 ) {
+			return qfalse;
+		}
+	} else if( cvars::bg_doubleJump.ivalue == DJUMP_ETPUB ) {
+		// etpub style: velocity-based double jump window that scales with gravity.
+		// Compute expected velocity deterministically from time since jump
+		// instead of reading actual velocity[2] which can differ between
+		// client and server prediction due to frame-by-frame accumulation.
+		// Formula: v(t) = JUMP_VELOCITY - gravity * t
+		// Block when v(t) < -(JUMP_VELOCITY / 2), rearranged to integer math:
+		int msSinceJump = pm->cmd.serverTime - pm->pmext->jumpTime;
+		if( pm->ps->gravity * msSinceJump > (JUMP_VELOCITY + JUMP_VELOCITY / 2) * 1000 ) {
 			return qfalse;
 		}
 	}

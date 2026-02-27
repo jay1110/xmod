@@ -42,7 +42,7 @@
         </row>
         <row>
             <entry>3</entry>
-            <entry>Enable - etpub style. Player must press jump within 850ms of the first jump (same window as xmod).</entry>
+            <entry>Enable - etpub style. Velocity-based double jump window that scales with gravity. Uses deterministic computation to avoid client-server prediction mismatches.</entry>
         </row>
     </tbody>
 </tgroup>
