@@ -5299,6 +5299,8 @@ static void PM_DropTimers( void ) {
 #define LEAN_MAX	28.0f
 #define LEAN_TIME_TO	200.0f	// time to get to/from full lean
 #define LEAN_TIME_FR	300.0f	// time to get to/from full lean
+#define LEAN_EASE_RATIO	0.3f	// fraction of LEAN_MAX where easing applies (near center)
+#define LEAN_EASE_MIN	0.4f	// minimum speed multiplier at center position
 
 /*
 ==============
@@ -5338,21 +5340,47 @@ void PM_UpdateLean(playerState_t *ps, usercmd_t *cmd, pmove_t *tpm) {
 
 	leanofs = ps->leanf;
 
-
+	// Smooth speed modifier: ease-in when starting to lean, ease-out when returning to center
 	{
-		float targetLean = 0;
-		if(leaning > 0) targetLean = LEAN_MAX;
-		else if(leaning < 0) targetLean = -LEAN_MAX;
+		float easeZone = LEAN_MAX * LEAN_EASE_RATIO;
+		float centerDist = (float)fabs(leanofs);
+		float speedMod = 1.0f;
+		if(centerDist < easeZone) {
+			speedMod = LEAN_EASE_MIN + (1.0f - LEAN_EASE_MIN) * (centerDist / easeZone);
+		}
 
-		if(leanofs != targetLean) {
-			float leanTime = leaning ? LEAN_TIME_TO : LEAN_TIME_FR;
-			// Exponential smoothing: tau = leanTime/3 so ~95% reached in leanTime
-			float tau = leanTime / 3.0f;
-			float frac = 1.0f - exp(-(float)pml.msec / tau);
-			leanofs += (targetLean - leanofs) * frac;
+		if(!leaning) {	// go back to center position
+			if ( leanofs > 0 ) {		// right
+				//FIXME: play lean anim backwards?
+				leanofs -= (((float)pml.msec/(float)LEAN_TIME_FR)*LEAN_MAX) * speedMod;
+				if ( leanofs < 0 )
+					leanofs = 0;
+			}
+			else if ( leanofs < 0 ) {	// left
+				//FIXME: play lean anim backwards?
+				leanofs += (((float)pml.msec/(float)LEAN_TIME_FR)*LEAN_MAX) * speedMod;
+				if ( leanofs > 0 )
+					leanofs = 0;
+			}
+		}
 
-			if(fabs(leanofs - targetLean) < 0.1f)
-				leanofs = targetLean;
+		if(leaning) {
+			if(leaning > 0) {	// right
+				if(leanofs < LEAN_MAX)
+					leanofs += (((float)pml.msec/(float)LEAN_TIME_TO)*LEAN_MAX) * speedMod;
+
+				if(leanofs > LEAN_MAX)
+					leanofs = LEAN_MAX;
+
+			}
+			else {				// left
+				if(leanofs > -LEAN_MAX)
+					leanofs -= (((float)pml.msec/(float)LEAN_TIME_TO)*LEAN_MAX) * speedMod;
+
+				if(leanofs < -LEAN_MAX)
+					leanofs = -LEAN_MAX;
+
+			}
 		}
 	}
 
