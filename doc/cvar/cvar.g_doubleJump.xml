@@ -42,7 +42,7 @@
         </row>
         <row>
             <entry>3</entry>
-            <entry>Enable - etpub style. Velocity-based double jump window that scales with gravity. Uses deterministic computation to avoid client-server prediction mismatches.</entry>
+            <entry>Enable - etpub style. Double jump only allowed while still moving upward after the first jump.</entry>
         </row>
     </tbody>
 </tgroup>

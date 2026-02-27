@@ -834,14 +834,8 @@ static qboolean PM_CheckDoubleJump( void ) {
 			return qfalse;
 		}
 	} else if( cvars::bg_doubleJump.ivalue == DJUMP_ETPUB ) {
-		// etpub style: velocity-based double jump window that scales with gravity.
-		// Compute expected velocity deterministically from time since jump
-		// instead of reading actual velocity[2] which can differ between
-		// client and server prediction due to frame-by-frame accumulation.
-		// Formula: v(t) = JUMP_VELOCITY - gravity * t
-		// Block when v(t) < -(JUMP_VELOCITY / 2), rearranged to integer math:
-		int msSinceJump = pm->cmd.serverTime - pm->pmext->jumpTime;
-		if( pm->ps->gravity * msSinceJump > (JUMP_VELOCITY + JUMP_VELOCITY / 2) * 1000 ) {
+		// etpub style: only allow double jump when still going up
+		if( pm->ps->velocity[2] <= 0 ) {
 			return qfalse;
 		}
 	}
