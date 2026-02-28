@@ -102,6 +102,13 @@ BasicHitModel::doStateRun()
         VectorMA( v, 18.0f, up, v );
         VectorAdd( origin, v, origin );
 
+        // Apply lean offset to head position
+        if (client.gclient.ps.leanf) {
+            vec3_t right;
+            AngleVectors(client.gclient.ps.viewangles, NULL, right, NULL);
+            VectorMA(origin, client.gclient.ps.leanf, right, origin);
+        }
+
         VectorSet( _headBox.mins, -6, -6, -2 );
         VectorAdd( _headBox.mins, origin, _headBox.mins );
 

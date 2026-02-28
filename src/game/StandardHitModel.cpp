@@ -57,6 +57,13 @@ StandardHitModel::doStateRun()
         orientation_t orient;
         mdx_head_position( &client.gentity, &re, orient.origin );
 
+        // Apply lean offset to head position
+        if (client.gclient.ps.leanf) {
+            vec3_t right;
+            AngleVectors(client.gclient.ps.viewangles, NULL, right, NULL);
+            VectorMA(orient.origin, client.gclient.ps.leanf, right, orient.origin);
+        }
+
         VectorSet( _headBox.mins, -6.0f, -6.0f, -6.0f );
         VectorSet( _headBox.maxs,  6.0f,  6.0f,  6.0f );
 
