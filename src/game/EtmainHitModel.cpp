@@ -87,11 +87,29 @@ EtmainHitModel::doStateRun()
         VectorMA( v, 18.0f, up, v );
         VectorAdd( origin, v, origin );
 
-        // Apply lean offset to head position
+        // Apply lean rotation to head position (rotate around player base)
         if (client.gclient.ps.leanf) {
-            vec3_t right;
-            AngleVectors(client.gclient.ps.viewangles, NULL, right, NULL);
-            VectorMA(origin, client.gclient.ps.leanf, right, origin);
+            float leanDeg = (client.gclient.ps.leanf > 0)
+                ? (client.gclient.ps.leanf * 50.0f / 28.0f)
+                : (client.gclient.ps.leanf * 65.0f / 28.0f);
+            float rad = DEG2RAD(leanDeg);
+            float sinA = sinf(rad);
+            float cosA = cosf(rad);
+
+            vec3_t flatAngles, fwd, right, up;
+            VectorSet(flatAngles, 0, client.gclient.ps.viewangles[YAW], 0);
+            AngleVectors(flatAngles, fwd, right, up);
+
+            vec3_t offset;
+            VectorSubtract(origin, client.gentity.r.currentOrigin, offset);
+            float r = DotProduct(offset, right);
+            float u = DotProduct(offset, up);
+            float f = DotProduct(offset, fwd);
+            float nr = r * cosA + u * sinA;
+            float nu = -r * sinA + u * cosA;
+            origin[0] = client.gentity.r.currentOrigin[0] + f * fwd[0] + nr * right[0] + nu * up[0];
+            origin[1] = client.gentity.r.currentOrigin[1] + f * fwd[1] + nr * right[1] + nu * up[1];
+            origin[2] = client.gentity.r.currentOrigin[2] + f * fwd[2] + nr * right[2] + nu * up[2];
         }
 
         VectorSet( _headBox.mins, -6, -6, -2 );
