@@ -5296,11 +5296,11 @@ static void PM_DropTimers( void ) {
 
 
 
-#define LEAN_MAX_DEFAULT	60.0f
-#define LEAN_TIME_TO_DEFAULT	400.0f	// time to get to full lean
-#define LEAN_TIME_FR_DEFAULT	500.0f	// time to return from full lean
-#define LEAN_EASE_RATIO_DEFAULT	0.3f	// fraction of lean_max where easing applies
-#define LEAN_EASE_MIN_DEFAULT	0.3f	// minimum speed multiplier at center position
+#define LEAN_MAX	28.0f
+#define LEAN_TIME_TO	200.0f	// time to get to/from full lean
+#define LEAN_TIME_FR	300.0f	// time to get to/from full lean
+#define LEAN_EASE_RATIO	0.3f	// fraction of LEAN_MAX where easing applies (near center)
+#define LEAN_EASE_MIN	0.4f	// minimum speed multiplier at center position
 
 /*
 ==============
@@ -5340,34 +5340,25 @@ void PM_UpdateLean(playerState_t *ps, usercmd_t *cmd, pmove_t *tpm) {
 
 	leanofs = ps->leanf;
 
-	// Read lean parameters from cvars (synced from server), with fallback to defaults
+	// Smooth speed modifier: ease-in when starting to lean, ease-out when returning to center
 	{
-		float leanMax    = cvars::bg_leanAngle.fvalue > 0 ? cvars::bg_leanAngle.fvalue : LEAN_MAX_DEFAULT;
-		float leanTimeTo = cvars::bg_leanTimeTo.fvalue > 0 ? cvars::bg_leanTimeTo.fvalue : LEAN_TIME_TO_DEFAULT;
-		float leanTimeFr = cvars::bg_leanTimeFrom.fvalue > 0 ? cvars::bg_leanTimeFrom.fvalue : LEAN_TIME_FR_DEFAULT;
-		float easeRatio  = cvars::bg_leanEaseRatio.fvalue;
-		float easeMin    = cvars::bg_leanEaseMin.fvalue;
-
-		// Clamp ease parameters to sane values
-		if(easeRatio <= 0 || easeRatio > 1.0f) easeRatio = LEAN_EASE_RATIO_DEFAULT;
-		if(easeMin < 0 || easeMin > 1.0f) easeMin = LEAN_EASE_MIN_DEFAULT;
-
-		// Smooth speed modifier: ease-in when starting to lean, ease-out when returning to center
-		float easeZone = leanMax * easeRatio;
+		float easeZone = LEAN_MAX * LEAN_EASE_RATIO;
 		float centerDist = (float)fabs(leanofs);
 		float speedMod = 1.0f;
 		if(centerDist < easeZone) {
-			speedMod = easeMin + (1.0f - easeMin) * (centerDist / easeZone);
+			speedMod = LEAN_EASE_MIN + (1.0f - LEAN_EASE_MIN) * (centerDist / easeZone);
 		}
 
 		if(!leaning) {	// go back to center position
 			if ( leanofs > 0 ) {		// right
-				leanofs -= (((float)pml.msec/leanTimeFr)*leanMax) * speedMod;
+				//FIXME: play lean anim backwards?
+				leanofs -= (((float)pml.msec/(float)LEAN_TIME_FR)*LEAN_MAX) * speedMod;
 				if ( leanofs < 0 )
 					leanofs = 0;
 			}
 			else if ( leanofs < 0 ) {	// left
-				leanofs += (((float)pml.msec/leanTimeFr)*leanMax) * speedMod;
+				//FIXME: play lean anim backwards?
+				leanofs += (((float)pml.msec/(float)LEAN_TIME_FR)*LEAN_MAX) * speedMod;
 				if ( leanofs > 0 )
 					leanofs = 0;
 			}
@@ -5375,19 +5366,19 @@ void PM_UpdateLean(playerState_t *ps, usercmd_t *cmd, pmove_t *tpm) {
 
 		if(leaning) {
 			if(leaning > 0) {	// right
-				if(leanofs < leanMax)
-					leanofs += (((float)pml.msec/leanTimeTo)*leanMax) * speedMod;
+				if(leanofs < LEAN_MAX)
+					leanofs += (((float)pml.msec/(float)LEAN_TIME_TO)*LEAN_MAX) * speedMod;
 
-				if(leanofs > leanMax)
-					leanofs = leanMax;
+				if(leanofs > LEAN_MAX)
+					leanofs = LEAN_MAX;
 
 			}
 			else {				// left
-				if(leanofs > -leanMax)
-					leanofs -= (((float)pml.msec/leanTimeTo)*leanMax) * speedMod;
+				if(leanofs > -LEAN_MAX)
+					leanofs -= (((float)pml.msec/(float)LEAN_TIME_TO)*LEAN_MAX) * speedMod;
 
-				if(leanofs < -leanMax)
-					leanofs = -leanMax;
+				if(leanofs < -LEAN_MAX)
+					leanofs = -LEAN_MAX;
 
 			}
 		}
