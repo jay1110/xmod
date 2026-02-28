@@ -1184,8 +1184,10 @@ static void CG_PlayerAngles( centity_t *cent, vec3_t legs[3], vec3_t torso[3], v
 		}
 
 		if (rawLean != 0) {
-			// Scale from physics lean (max 28) to visual lean angle (45°)
-			float visualLean = rawLean * (45.0f / 28.0f);
+			// Scale from physics lean (max 28) to visual lean angle
+			// Asymmetric: right lean (positive) = 50°, left lean (negative) = 60°
+			float leanAngle = (rawLean > 0) ? 50.0f : 60.0f;
+			float visualLean = rawLean * (leanAngle / 28.0f);
 
 			// Apply visual lean to torso
 			torsoAngles[ROLL] += visualLean;
