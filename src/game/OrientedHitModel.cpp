@@ -37,6 +37,15 @@ OrientedHitModel::doRun()
     orientation_t orients[MRP_MAX];
     mdx_advanced_positions( client.gentity, re, origins, orients );
 
+    // Apply lean offset to all bone positions so hitboxes follow the lean
+    if (client.gclient.ps.leanf) {
+        vec3_t right;
+        AngleVectors(client.gclient.ps.viewangles, NULL, right, NULL);
+        for (int i = 0; i < MRP_MAX; i++) {
+            VectorMA(origins[i], client.gclient.ps.leanf, right, origins[i]);
+        }
+    }
+
     // Apply world axis to local axis we need for this function body.
     {
         vec3_t axis[3];
