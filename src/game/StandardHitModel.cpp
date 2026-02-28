@@ -57,7 +57,7 @@ StandardHitModel::doStateRun()
         orientation_t orient;
         mdx_head_position( &client.gentity, &re, orient.origin );
 
-        // Apply lean rotation to head position (rotate around player origin)
+        // Apply lean rotation to head position (rotate around waist pivot)
         if (client.gclient.ps.leanf) {
             float leanDeg = (client.gclient.ps.leanf > 0)
                 ? (client.gclient.ps.leanf * 50.0f / 28.0f)
@@ -70,16 +70,21 @@ StandardHitModel::doStateRun()
             VectorSet(flatAngles, 0, client.gclient.ps.viewangles[YAW], 0);
             AngleVectors(flatAngles, fwd, right, up);
 
+            // Use waist height as pivot to match visual torso lean
+            vec3_t pivot;
+            VectorCopy(client.gentity.r.currentOrigin, pivot);
+            pivot[2] += client.gentity.r.maxs[2] * 0.5f;
+
             vec3_t offset;
-            VectorSubtract(orient.origin, client.gentity.r.currentOrigin, offset);
+            VectorSubtract(orient.origin, pivot, offset);
             float r = DotProduct(offset, right);
             float u = DotProduct(offset, up);
             float f = DotProduct(offset, fwd);
             float nr = r * cosA + u * sinA;
             float nu = -r * sinA + u * cosA;
-            orient.origin[0] = client.gentity.r.currentOrigin[0] + f * fwd[0] + nr * right[0] + nu * up[0];
-            orient.origin[1] = client.gentity.r.currentOrigin[1] + f * fwd[1] + nr * right[1] + nu * up[1];
-            orient.origin[2] = client.gentity.r.currentOrigin[2] + f * fwd[2] + nr * right[2] + nu * up[2];
+            orient.origin[0] = pivot[0] + f * fwd[0] + nr * right[0] + nu * up[0];
+            orient.origin[1] = pivot[1] + f * fwd[1] + nr * right[1] + nu * up[1];
+            orient.origin[2] = pivot[2] + f * fwd[2] + nr * right[2] + nu * up[2];
         }
 
         VectorSet( _headBox.mins, -6.0f, -6.0f, -6.0f );
