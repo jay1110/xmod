@@ -1184,19 +1184,14 @@ static void CG_PlayerAngles( centity_t *cent, vec3_t legs[3], vec3_t torso[3], v
 		}
 
 		if (rawLean != 0) {
-			// Scale from physics lean (max 28) to visual lean angle (g_leanAngle, default 60)
-			float leanAngle = cvars::bg_leanAngle.fvalue > 0 ? cvars::bg_leanAngle.fvalue : 60.0f;
-			float visualLean = rawLean * (leanAngle / 28.0f);
+			// Scale from physics lean (max 28) to visual lean angle (45°)
+			float visualLean = rawLean * (45.0f / 28.0f);
 
 			// Apply visual lean to torso
 			torsoAngles[ROLL] += visualLean;
 
 			// Head follows the lean so it doesn't stay unnaturally straight
-			// headRatio 1.0 = head fully follows torso lean, 0.0 = head stays vertical
-			float headRatio = cvars::bg_leanHeadRatio.fvalue;
-			if (headRatio < 0) headRatio = 0;
-			if (headRatio > 2.0f) headRatio = 2.0f;
-			headAngles[ROLL] += visualLean * headRatio;
+			headAngles[ROLL] += visualLean * 0.9f;
 		}
 	}
 

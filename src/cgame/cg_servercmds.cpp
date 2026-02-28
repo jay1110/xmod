@@ -366,9 +366,6 @@ void CG_ParseXmodinfo2( void) {
     // Custom class max HP
     cgs.sv_customClassMaxHP = atoi( Info_ValueForKey( info, "M" ) );
 
-    // Lean visual tuning cvars (third-person animation only)
-    cvars::bg_leanAngle.set     ( Info_ValueForKey( info, "N" ));
-    cvars::bg_leanHeadRatio.set ( Info_ValueForKey( info, "O" ));
 }
 
 /*

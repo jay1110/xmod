@@ -101,10 +101,6 @@ namespace objects {
     extern Cvar bg_djHeight;
     extern Cvar bg_weaponsenable;
 
-    // Lean visual tuning cvars (third-person animation only, synced from server)
-    extern Cvar bg_leanAngle;
-    extern Cvar bg_leanHeadRatio;
-
     extern Cvar gameState;
 
     // g_noReload and g_noCharge are server-synced via SERVERINFO

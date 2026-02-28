@@ -1428,9 +1428,6 @@ static void G_BuildXmodCS( char* cs, int csSize, char* cs2, int cs2Size ) {
         Info_SetValueForKey( cs2, "M", va("%i", hasCustom) );
     }
 
-    // Lean visual tuning cvars (third-person animation only)
-    Info_SetValueForKey( cs2, "N", cvars::bg_leanAngle.svalue );
-    Info_SetValueForKey( cs2, "O", cvars::bg_leanHeadRatio.svalue );
 }
 
 void G_UpdateXmodCS() {
