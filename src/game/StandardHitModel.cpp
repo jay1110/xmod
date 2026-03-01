@@ -66,9 +66,13 @@ StandardHitModel::doStateRun()
             float sinA = sinf(rad);
             float cosA = cosf(rad);
 
-            vec3_t flatAngles, fwd, right, up;
-            VectorSet(flatAngles, 0, client.gclient.ps.viewangles[YAW], 0);
-            AngleVectors(flatAngles, fwd, right, up);
+            // Use the actual absolute torso orientation for the lean rotation axis
+            vec3_t absoluteTorsoAxis[3];
+            MatrixMultiply(re.torsoAxis, re.axis, absoluteTorsoAxis);
+            vec3_t fwd, right, up;
+            VectorCopy(absoluteTorsoAxis[0], fwd);
+            VectorCopy(absoluteTorsoAxis[1], right);
+            VectorCopy(absoluteTorsoAxis[2], up);
 
             // Get actual pelvis (tag_torso) position from MDX for correct pivot
             vec3_t        boneOrigins[MRP_MAX];

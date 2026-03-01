@@ -62,58 +62,6 @@ AdvancedHitModel::doRun()
     orientation_t orients[MRP_MAX];
     mdx_advanced_positions( client.gentity, re, origins, orients );
 
-    // Apply lean rotation to upper body bones so hitboxes follow the visual lean.
-    // The visual lean applies ROLL to the torso around the pelvis, so we rotate
-    // upper body bone positions (and orientations) around the pelvis origin.
-    if (client.gclient.ps.leanf) {
-        // Match the visual lean angle from cg_players.cpp CG_PlayerAngles
-        float leanDeg = (client.gclient.ps.leanf > 0)
-            ? (client.gclient.ps.leanf * 50.0f / 28.0f)   // right lean: 50°
-            : (client.gclient.ps.leanf * 65.0f / 28.0f);   // left lean: 65°
-        float rad = DEG2RAD(leanDeg);
-        float sinA = sinf(rad);
-        float cosA = cosf(rad);
-
-        // Get the player's flat forward/right/up for the rotation plane
-        vec3_t flatAngles, fwd, right, up;
-        VectorSet(flatAngles, 0, client.gclient.ps.viewangles[YAW], 0);
-        AngleVectors(flatAngles, fwd, right, up);
-
-        // Rotate upper body bones around pelvis (legs stay in place)
-        vec3_t pivot;
-        VectorCopy(origins[MRP_PELVIS], pivot);
-
-        for (int i = 0; i < MRP_MAX; i++) {
-            // Skip leg bones - they don't lean visually
-            if (i == MRP_PELVIS || i == MRP_KNEE_LEFT || i == MRP_KNEE_RIGHT ||
-                i == MRP_ANKLE_LEFT || i == MRP_ANKLE_RIGHT)
-                continue;
-
-            vec3_t offset;
-            VectorSubtract(origins[i], pivot, offset);
-            float r = DotProduct(offset, right);
-            float u = DotProduct(offset, up);
-            float f = DotProduct(offset, fwd);
-            float nr = r * cosA + u * sinA;
-            float nu = -r * sinA + u * cosA;
-            origins[i][0] = pivot[0] + f * fwd[0] + nr * right[0] + nu * up[0];
-            origins[i][1] = pivot[1] + f * fwd[1] + nr * right[1] + nu * up[1];
-            origins[i][2] = pivot[2] + f * fwd[2] + nr * right[2] + nu * up[2];
-
-            // Also rotate bone orientations so offset-based hitboxes tilt correctly
-            for (int a = 0; a < 3; a++) {
-                r = DotProduct(orients[i].axis[a], right);
-                u = DotProduct(orients[i].axis[a], up);
-                f = DotProduct(orients[i].axis[a], fwd);
-                nr = r * cosA + u * sinA;
-                nu = -r * sinA + u * cosA;
-                orients[i].axis[a][0] = f * fwd[0] + nr * right[0] + nu * up[0];
-                orients[i].axis[a][1] = f * fwd[1] + nr * right[1] + nu * up[1];
-                orients[i].axis[a][2] = f * fwd[2] + nr * right[2] + nu * up[2];
-            }
-        }
-    }
-
     // Apply world axis to local axis we need for this function body.
     {
         vec3_t axis[3];
@@ -125,6 +73,61 @@ AdvancedHitModel::doRun()
 
         MatrixMultiply( re.torsoAxis, orients[MRP_CHEST].axis, axis );
         MatrixMultiply( axis, re.axis, orients[MRP_CHEST].axis );
+    }
+
+    // Apply lean rotation to upper body bones so hitboxes follow the visual lean.
+    // The visual lean applies ROLL to the torso around its forward axis, so we
+    // rotate upper body bone positions and orientations around the pelvis.
+    // This must happen AFTER world-axis transforms so orientations are in world space.
+    if (client.gclient.ps.leanf) {
+        float leanDeg = (client.gclient.ps.leanf > 0)
+            ? (client.gclient.ps.leanf * 50.0f / 28.0f)
+            : (client.gclient.ps.leanf * 65.0f / 28.0f);
+        float rad = DEG2RAD(leanDeg);
+        float sinA = sinf(rad);
+        float cosA = cosf(rad);
+
+        // Use the actual absolute torso orientation for the lean rotation axis
+        // (accounts for torso yaw swing and pitch when looking up/down)
+        vec3_t absoluteTorsoAxis[3];
+        MatrixMultiply(re.torsoAxis, re.axis, absoluteTorsoAxis);
+        vec3_t fwd, right, up;
+        VectorCopy(absoluteTorsoAxis[0], fwd);
+        VectorCopy(absoluteTorsoAxis[1], right);
+        VectorCopy(absoluteTorsoAxis[2], up);
+
+        vec3_t pivot;
+        VectorCopy(origins[MRP_PELVIS], pivot);
+
+        for (int i = 0; i < MRP_MAX; i++) {
+            if (i == MRP_PELVIS || i == MRP_KNEE_LEFT || i == MRP_KNEE_RIGHT ||
+                i == MRP_ANKLE_LEFT || i == MRP_ANKLE_RIGHT)
+                continue;
+
+            // Rotate position
+            vec3_t offset;
+            VectorSubtract(origins[i], pivot, offset);
+            float r = DotProduct(offset, right);
+            float u = DotProduct(offset, up);
+            float f = DotProduct(offset, fwd);
+            float nr = r * cosA + u * sinA;
+            float nu = -r * sinA + u * cosA;
+            origins[i][0] = pivot[0] + f * fwd[0] + nr * right[0] + nu * up[0];
+            origins[i][1] = pivot[1] + f * fwd[1] + nr * right[1] + nu * up[1];
+            origins[i][2] = pivot[2] + f * fwd[2] + nr * right[2] + nu * up[2];
+
+            // Rotate orientation (now in world space after world-axis transforms)
+            for (int a = 0; a < 3; a++) {
+                r = DotProduct(orients[i].axis[a], right);
+                u = DotProduct(orients[i].axis[a], up);
+                f = DotProduct(orients[i].axis[a], fwd);
+                nr = r * cosA + u * sinA;
+                nu = -r * sinA + u * cosA;
+                orients[i].axis[a][0] = f * fwd[0] + nr * right[0] + nu * up[0];
+                orients[i].axis[a][1] = f * fwd[1] + nr * right[1] + nu * up[1];
+                orients[i].axis[a][2] = f * fwd[2] + nr * right[2] + nu * up[2];
+            }
+        }
     }
 
     const float fat = cvars::g_hitmodeFat.fvalue;

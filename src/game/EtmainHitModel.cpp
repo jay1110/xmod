@@ -100,20 +100,20 @@ EtmainHitModel::doStateRun()
             float sinA = sinf(rad);
             float cosA = cosf(rad);
 
-            vec3_t flatAngles, fwd, right, up;
-            VectorSet(flatAngles, 0, client.gclient.ps.viewangles[YAW], 0);
-            AngleVectors(flatAngles, fwd, right, up);
+            // Use the torso's actual orientation (with pitch) for correct lean rotation
+            vec3_t fwd, right, leanUp;
+            AngleVectors(angles, fwd, right, leanUp);
 
             vec3_t offset;
             VectorSubtract(origin, pivot, offset);
             float r = DotProduct(offset, right);
-            float u = DotProduct(offset, up);
+            float u = DotProduct(offset, leanUp);
             float f = DotProduct(offset, fwd);
             float nr = r * cosA + u * sinA;
             float nu = -r * sinA + u * cosA;
-            origin[0] = pivot[0] + f * fwd[0] + nr * right[0] + nu * up[0];
-            origin[1] = pivot[1] + f * fwd[1] + nr * right[1] + nu * up[1];
-            origin[2] = pivot[2] + f * fwd[2] + nr * right[2] + nu * up[2];
+            origin[0] = pivot[0] + f * fwd[0] + nr * right[0] + nu * leanUp[0];
+            origin[1] = pivot[1] + f * fwd[1] + nr * right[1] + nu * leanUp[1];
+            origin[2] = pivot[2] + f * fwd[2] + nr * right[2] + nu * leanUp[2];
         }
 
         VectorSet( _headBox.mins, -6, -6, -2 );
