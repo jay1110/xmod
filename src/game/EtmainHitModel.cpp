@@ -130,6 +130,16 @@ EtmainHitModel::doStateRun()
 
         VectorCopy( client.gentity.r.currentOrigin, _torsoBox.maxs );
         VectorAdd( _torsoBox.maxs, client.gentity.r.maxs, _torsoBox.maxs );
+
+        // When leaning, extend torso box to encompass the head box
+        if (client.gclient.ps.leanf) {
+            for (int i = 0; i < 3; i++) {
+                if (_headBox.mins[i] < _torsoBox.mins[i])
+                    _torsoBox.mins[i] = _headBox.mins[i];
+                if (_headBox.maxs[i] > _torsoBox.maxs[i])
+                    _torsoBox.maxs[i] = _headBox.maxs[i];
+            }
+        }
     }
 
     // Update legs box.
