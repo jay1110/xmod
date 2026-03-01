@@ -64,7 +64,7 @@ AdvancedHitModel::doRun()
 
     // Apply lean rotation to upper body bones so hitboxes follow the visual lean.
     // The visual lean applies ROLL to the torso around the pelvis, so we rotate
-    // upper body bone positions around the pelvis origin.
+    // upper body bone positions (and orientations) around the pelvis origin.
     if (client.gclient.ps.leanf) {
         // Match the visual lean angle from cg_players.cpp CG_PlayerAngles
         float leanDeg = (client.gclient.ps.leanf > 0)
@@ -99,6 +99,18 @@ AdvancedHitModel::doRun()
             origins[i][0] = pivot[0] + f * fwd[0] + nr * right[0] + nu * up[0];
             origins[i][1] = pivot[1] + f * fwd[1] + nr * right[1] + nu * up[1];
             origins[i][2] = pivot[2] + f * fwd[2] + nr * right[2] + nu * up[2];
+
+            // Also rotate bone orientations so offset-based hitboxes tilt correctly
+            for (int a = 0; a < 3; a++) {
+                r = DotProduct(orients[i].axis[a], right);
+                u = DotProduct(orients[i].axis[a], up);
+                f = DotProduct(orients[i].axis[a], fwd);
+                nr = r * cosA + u * sinA;
+                nu = -r * sinA + u * cosA;
+                orients[i].axis[a][0] = f * fwd[0] + nr * right[0] + nu * up[0];
+                orients[i].axis[a][1] = f * fwd[1] + nr * right[1] + nu * up[1];
+                orients[i].axis[a][2] = f * fwd[2] + nr * right[2] + nu * up[2];
+            }
         }
     }
 
