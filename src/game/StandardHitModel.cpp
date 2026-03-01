@@ -57,7 +57,7 @@ StandardHitModel::doStateRun()
         orientation_t orient;
         mdx_head_position( &client.gentity, &re, orient.origin );
 
-        // Apply lean rotation to head position (rotate around waist pivot)
+        // Apply lean rotation to head position (rotate around pelvis like modes 5-6)
         if (client.gclient.ps.leanf) {
             float leanDeg = (client.gclient.ps.leanf > 0)
                 ? (client.gclient.ps.leanf * 50.0f / 28.0f)
@@ -70,10 +70,13 @@ StandardHitModel::doStateRun()
             VectorSet(flatAngles, 0, client.gclient.ps.viewangles[YAW], 0);
             AngleVectors(flatAngles, fwd, right, up);
 
-            // Use waist height as pivot to match visual torso lean
+            // Get actual pelvis (tag_torso) position from MDX for correct pivot
+            vec3_t        boneOrigins[MRP_MAX];
+            orientation_t boneOrients[MRP_MAX];
+            mdx_advanced_positions( client.gentity, re, boneOrigins, boneOrients );
+
             vec3_t pivot;
-            VectorCopy(client.gentity.r.currentOrigin, pivot);
-            pivot[2] += client.gentity.r.maxs[2] * 0.5f;
+            VectorCopy(boneOrigins[MRP_PELVIS], pivot);
 
             vec3_t offset;
             VectorSubtract(orient.origin, pivot, offset);

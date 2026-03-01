@@ -97,12 +97,16 @@ BasicHitModel::doStateRun()
         vec3_t forward, up;
         AngleVectors( angles, forward, NULL, up );
 
+        // Save body-center position as pivot before applying head offset
+        vec3_t pivot;
+        VectorCopy( origin, pivot );
+
         vec3_t v;
         VectorScale( forward, tiltfactor, v );
         VectorMA( v, 18.0f, up, v );
         VectorAdd( origin, v, origin );
 
-        // Apply lean rotation to head position (rotate around waist pivot)
+        // Apply lean rotation to head position (rotate around body center)
         if (client.gclient.ps.leanf) {
             float leanDeg = (client.gclient.ps.leanf > 0)
                 ? (client.gclient.ps.leanf * 50.0f / 28.0f)
@@ -114,11 +118,6 @@ BasicHitModel::doStateRun()
             vec3_t flatAngles, fwd, right, up;
             VectorSet(flatAngles, 0, client.gclient.ps.viewangles[YAW], 0);
             AngleVectors(flatAngles, fwd, right, up);
-
-            // Use waist height as pivot to match visual torso lean
-            vec3_t pivot;
-            VectorCopy(client.gentity.r.currentOrigin, pivot);
-            pivot[2] += client.gentity.r.maxs[2] * 0.5f;
 
             vec3_t offset;
             VectorSubtract(origin, pivot, offset);
