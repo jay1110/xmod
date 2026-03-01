@@ -74,6 +74,60 @@ OrientedHitModel::doRun()
         MatrixMultiply( axis, re.axis, orients[MRP_ANKLE_RIGHT].axis );
     }
 
+    // Apply lean rotation to upper body bones so hitboxes follow the visual lean.
+    // The visual lean applies ROLL to the torso around its forward axis, so we
+    // rotate upper body bone positions and orientations around the pelvis.
+    // This must happen AFTER world-axis transforms so orientations are in world space.
+    if (client.gclient.ps.leanf) {
+        float leanDeg = (client.gclient.ps.leanf > 0)
+            ? (client.gclient.ps.leanf * 50.0f / 28.0f)
+            : (client.gclient.ps.leanf * 65.0f / 28.0f);
+        float rad = DEG2RAD(leanDeg);
+        float sinA = sinf(rad);
+        float cosA = cosf(rad);
+
+        // Use the actual absolute torso orientation for the lean rotation axis
+        vec3_t absoluteTorsoAxis[3];
+        MatrixMultiply(re.torsoAxis, re.axis, absoluteTorsoAxis);
+        vec3_t fwd, right, up;
+        VectorCopy(absoluteTorsoAxis[0], fwd);
+        VectorNegate(absoluteTorsoAxis[1], right); // axis[1] is LEFT; negate to get RIGHT
+        VectorCopy(absoluteTorsoAxis[2], up);
+
+        vec3_t pivot;
+        VectorCopy(origins[MRP_PELVIS], pivot);
+
+        for (int i = 0; i < MRP_MAX; i++) {
+            if (i == MRP_PELVIS || i == MRP_KNEE_LEFT || i == MRP_KNEE_RIGHT ||
+                i == MRP_ANKLE_LEFT || i == MRP_ANKLE_RIGHT)
+                continue;
+
+            // Rotate position
+            vec3_t offset;
+            VectorSubtract(origins[i], pivot, offset);
+            float r = DotProduct(offset, right);
+            float u = DotProduct(offset, up);
+            float f = DotProduct(offset, fwd);
+            float nr = r * cosA + u * sinA;
+            float nu = -r * sinA + u * cosA;
+            origins[i][0] = pivot[0] + f * fwd[0] + nr * right[0] + nu * up[0];
+            origins[i][1] = pivot[1] + f * fwd[1] + nr * right[1] + nu * up[1];
+            origins[i][2] = pivot[2] + f * fwd[2] + nr * right[2] + nu * up[2];
+
+            // Rotate orientation (now in world space after world-axis transforms)
+            for (int a = 0; a < 3; a++) {
+                r = DotProduct(orients[i].axis[a], right);
+                u = DotProduct(orients[i].axis[a], up);
+                f = DotProduct(orients[i].axis[a], fwd);
+                nr = r * cosA + u * sinA;
+                nu = -r * sinA + u * cosA;
+                orients[i].axis[a][0] = f * fwd[0] + nr * right[0] + nu * up[0];
+                orients[i].axis[a][1] = f * fwd[1] + nr * right[1] + nu * up[1];
+                orients[i].axis[a][2] = f * fwd[2] + nr * right[2] + nu * up[2];
+            }
+        }
+    }
+
     vec3_t shoulderLeftOrigin;
     VectorMA( origins[MRP_CHEST], 6.0f, orients[MRP_CHEST].axis[2], shoulderLeftOrigin );
     VectorMA( shoulderLeftOrigin, 8.0f, orients[MRP_CHEST].axis[1], shoulderLeftOrigin );

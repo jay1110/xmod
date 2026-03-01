@@ -1164,11 +1164,38 @@ static void CG_PlayerAngles( centity_t *cent, vec3_t legs[3], vec3_t torso[3], v
 	}
 
 	// Apply lean animation from other players (received via angles2[ROLL])
-	// The lean value is sent from BG_PlayerStateToEntityState
-	if (cent->currentState.angles2[ROLL] != 0) {
-		float leanf = cent->currentState.angles2[ROLL];
-		// Apply lean to torso roll - use full lean value for visible lean animation
-		torsoAngles[ROLL] += leanf;
+	// The lean value is sent from BG_PlayerStateToEntityState (leanf range: -28..+28)
+	{
+		float rawLean = cent->currentState.angles2[ROLL];
+
+		// Smooth interpolation for third-person lean animation
+		static float smoothedLean[MAX_GENTITIES];
+		int idx = cent->currentState.number;
+		if (idx >= 0 && idx < MAX_GENTITIES) {
+			float dt = cg.frametime / 1000.0f;
+			if (dt > 0 && dt < 0.5f) {
+				float alpha = 8.0f * dt; // smooth tracking (~125ms time constant)
+				if (alpha > 1.0f) alpha = 1.0f;
+				smoothedLean[idx] += (rawLean - smoothedLean[idx]) * alpha;
+			} else {
+				smoothedLean[idx] = rawLean; // snap on first frame or large dt
+			}
+			rawLean = smoothedLean[idx];
+		}
+
+		if (rawLean != 0) {
+			// Scale from physics lean (max 28) to visual lean angle
+			// Asymmetric: right lean (positive) = 50°, left lean (negative) = 65°
+			float leanAngle = (rawLean > 0) ? 50.0f : 65.0f;
+			float headRatio = (rawLean > 0) ? 0.9f : 1.0f;
+			float visualLean = rawLean * (leanAngle / 28.0f);
+
+			// Apply visual lean to torso
+			torsoAngles[ROLL] += visualLean;
+
+			// Head follows the lean so it doesn't stay unnaturally straight
+			headAngles[ROLL] += visualLean * headRatio;
+		}
 	}
 
 	// pain twitch

@@ -82,10 +82,39 @@ EtmainHitModel::doStateRun()
         vec3_t forward, up;
         AngleVectors( angles, forward, NULL, up );
 
+        // Save body-center position as pivot before applying head offset
+        vec3_t pivot;
+        VectorCopy( origin, pivot );
+
         vec3_t v;
         VectorScale( forward, tiltfactor, v );
         VectorMA( v, 18.0f, up, v );
         VectorAdd( origin, v, origin );
+
+        // Apply lean rotation to head position (rotate around body center)
+        if (client.gclient.ps.leanf) {
+            float leanDeg = (client.gclient.ps.leanf > 0)
+                ? (client.gclient.ps.leanf * 50.0f / 28.0f)
+                : (client.gclient.ps.leanf * 65.0f / 28.0f);
+            float rad = DEG2RAD(leanDeg);
+            float sinA = sinf(rad);
+            float cosA = cosf(rad);
+
+            // Use the torso's actual orientation (with pitch) for correct lean rotation
+            vec3_t fwd, right, leanUp;
+            AngleVectors(angles, fwd, right, leanUp);
+
+            vec3_t offset;
+            VectorSubtract(origin, pivot, offset);
+            float r = DotProduct(offset, right);
+            float u = DotProduct(offset, leanUp);
+            float f = DotProduct(offset, fwd);
+            float nr = r * cosA + u * sinA;
+            float nu = -r * sinA + u * cosA;
+            origin[0] = pivot[0] + f * fwd[0] + nr * right[0] + nu * leanUp[0];
+            origin[1] = pivot[1] + f * fwd[1] + nr * right[1] + nu * leanUp[1];
+            origin[2] = pivot[2] + f * fwd[2] + nr * right[2] + nu * leanUp[2];
+        }
 
         VectorSet( _headBox.mins, -6, -6, -2 );
         VectorAdd( _headBox.mins, origin, _headBox.mins );
@@ -101,6 +130,16 @@ EtmainHitModel::doStateRun()
 
         VectorCopy( client.gentity.r.currentOrigin, _torsoBox.maxs );
         VectorAdd( _torsoBox.maxs, client.gentity.r.maxs, _torsoBox.maxs );
+
+        // When leaning, extend torso box to encompass the head box
+        if (client.gclient.ps.leanf) {
+            for (int i = 0; i < 3; i++) {
+                if (_headBox.mins[i] < _torsoBox.mins[i])
+                    _torsoBox.mins[i] = _headBox.mins[i];
+                if (_headBox.maxs[i] > _torsoBox.maxs[i])
+                    _torsoBox.maxs[i] = _headBox.maxs[i];
+            }
+        }
     }
 
     // Update legs box.

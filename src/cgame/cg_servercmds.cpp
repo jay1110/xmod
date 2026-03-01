@@ -365,6 +365,7 @@ void CG_ParseXmodinfo2( void) {
 
     // Custom class max HP
     cgs.sv_customClassMaxHP = atoi( Info_ValueForKey( info, "M" ) );
+
 }
 
 /*

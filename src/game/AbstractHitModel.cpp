@@ -678,7 +678,6 @@ AbstractHitModel::traceWorld( TraceContext& trx )
     bitset<MAX_CLIENTS> unlinked;
 
     // Ready players in world for trace.
-    const bool antilag = trx.client && cvars::g_hitmodeAntilag.ivalue && trx.client->gclient.pers.antilag;
     for (int i = 0; i < MAX_CLIENTS; i++) {
         Client& client = g_clientObjects[i];
 
@@ -687,11 +686,8 @@ AbstractHitModel::traceWorld( TraceContext& trx )
          */
         client.hitModel->_contextHitModel = client.hitModel;
 
-        if (!antilag)
-            continue;
-
         // Skip self.
-        if (trx.client->slot == client.slot)
+        if (trx.client && trx.client->slot == client.slot)
             continue;
 
         if (!client.isReconcileSafe())
@@ -742,11 +738,9 @@ AbstractHitModel::traceWorld( TraceContext& trx )
     }
 
     // Restore reconciled players in world after trace.
-    if (antilag) {
-        for (int i = 0; i < MAX_CLIENTS; i++) {
-            if (reconciled[i])
-                g_clientObjects[i].hitModel->tracePlayerEnd( trx );
-        }
+    for (int i = 0; i < MAX_CLIENTS; i++) {
+        if (reconciled[i])
+            g_clientObjects[i].hitModel->tracePlayerEnd( trx );
     }
 
     // Relink unlinked players.
