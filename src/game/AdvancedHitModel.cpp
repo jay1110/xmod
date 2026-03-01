@@ -93,7 +93,7 @@ AdvancedHitModel::doRun()
         MatrixMultiply(re.torsoAxis, re.axis, absoluteTorsoAxis);
         vec3_t fwd, right, up;
         VectorCopy(absoluteTorsoAxis[0], fwd);
-        VectorCopy(absoluteTorsoAxis[1], right);
+        VectorNegate(absoluteTorsoAxis[1], right); // axis[1] is LEFT; negate to get RIGHT
         VectorCopy(absoluteTorsoAxis[2], up);
 
         vec3_t pivot;
