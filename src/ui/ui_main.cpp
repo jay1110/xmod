@@ -7426,6 +7426,20 @@ void _UI_Init( qboolean inGameLoad ) {
 	// cache redundant calulations
 	trap_GetGlconfig( &uiInfo.uiDC.glconfig );
 
+	// Widescreen support: ensure windowAspect is correct
+	// Some older ET engines may not report windowAspect correctly
+	if (uiInfo.uiDC.glconfig.windowAspect <= 0.0f) {
+		uiInfo.uiDC.glconfig.windowAspect = (float)uiInfo.uiDC.glconfig.vidWidth / (float)uiInfo.uiDC.glconfig.vidHeight;
+	}
+	{
+		float computedAspect = (float)uiInfo.uiDC.glconfig.vidWidth / (float)uiInfo.uiDC.glconfig.vidHeight;
+		float diff = computedAspect - uiInfo.uiDC.glconfig.windowAspect;
+		if (diff < 0) diff = -diff;
+		if (diff > 0.01f) {
+			uiInfo.uiDC.glconfig.windowAspect = computedAspect;
+		}
+	}
+
 	UI_ParseGLConfig();
 
 	// for 640x480 virtualized screen
