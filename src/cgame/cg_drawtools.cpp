@@ -107,9 +107,7 @@ bool CG_IsScreenWidthRestricted()
 ================
 CG_AdjustFrom640
 
-Adjusted for resolution
-Note: xmod uses dynamic SCREEN_WIDTH that already accounts for aspect ratio,
-so we don't need additional r43da scaling like ETLegacy does.
+Adjusted for resolution and screen aspect ratio
 ================
 */
 void CG_AdjustFrom640( float *x, float *y, float *w, float *h ) {
@@ -118,6 +116,11 @@ void CG_AdjustFrom640( float *x, float *y, float *w, float *h ) {
 	*y *= cgs.screenYScale;
 	*w *= cgs.screenXScale;
 	*h *= cgs.screenYScale;
+	// adjust x-coordinate and width for widescreen aspect ratio (ETLegacy)
+	if (!Ccg_Is43Screen()) {
+		*x *= cgs.r43da;    // * ((4/3) / aspectratio)
+		*w *= cgs.r43da;    // * ((4/3) / aspectratio)
+	}
 }
 
 /*
@@ -1191,7 +1194,8 @@ static void UI_DrawBannerString2( int x, int y, const char* str, vec4_t color )
 	// draw the colored text
 	trap_R_SetColor( color );
 	
-	ax = x * cgs.screenXScale + cgs.screenXBias;
+	float xAdj = Ccg_Is43Screen() ? 1.0f : cgs.r43da;
+	ax = x * cgs.screenXScale * xAdj + cgs.screenXBias;
 	ay = y * cgs.screenYScale;
 
 	s = str;
@@ -1199,7 +1203,7 @@ static void UI_DrawBannerString2( int x, int y, const char* str, vec4_t color )
 	{
 		ch = *s & 127;
 		if ( ch == ' ' ) {
-			ax += ((float)PROPB_SPACE_WIDTH + (float)PROPB_GAP_WIDTH)* cgs.screenXScale;
+			ax += ((float)PROPB_SPACE_WIDTH + (float)PROPB_GAP_WIDTH)* cgs.screenXScale * xAdj;
 		}
 		else if ( ch >= 'A' && ch <= 'Z' ) {
 			ch -= 'A';
@@ -1207,10 +1211,10 @@ static void UI_DrawBannerString2( int x, int y, const char* str, vec4_t color )
 			frow = (float)propMapB[ch][1] / 256.0f;
 			fwidth = (float)propMapB[ch][2] / 256.0f;
 			fheight = (float)PROPB_HEIGHT / 256.0f;
-			aw = (float)propMapB[ch][2] * cgs.screenXScale;
+			aw = (float)propMapB[ch][2] * cgs.screenXScale * xAdj;
 			ah = (float)PROPB_HEIGHT * cgs.screenYScale;
 			trap_R_DrawStretchPic( ax, ay, aw, ah, fcol, frow, fcol+fwidth, frow+fheight, cgs.media.charsetPropB );
-			ax += (aw + (float)PROPB_GAP_WIDTH * cgs.screenXScale);
+			ax += (aw + (float)PROPB_GAP_WIDTH * cgs.screenXScale * xAdj);
 		}
 		s++;
 	}
@@ -1301,7 +1305,8 @@ static void UI_DrawProportionalString2( int x, int y, const char* str, vec4_t co
 	// draw the colored text
 	trap_R_SetColor( color );
 	
-	ax = x * cgs.screenXScale + cgs.screenXBias;
+	float xAdj = Ccg_Is43Screen() ? 1.0f : cgs.r43da;
+	ax = x * cgs.screenXScale * xAdj + cgs.screenXBias;
 	ay = y * cgs.screenYScale;
 
 	s = str;
@@ -1309,20 +1314,20 @@ static void UI_DrawProportionalString2( int x, int y, const char* str, vec4_t co
 	{
 		ch = *s & 127;
 		if ( ch == ' ' ) {
-			aw = (float)PROP_SPACE_WIDTH * cgs.screenXScale * sizeScale;
+			aw = (float)PROP_SPACE_WIDTH * cgs.screenXScale * xAdj * sizeScale;
 		} else if ( propMap[ch][2] != -1 ) {
 			fcol = (float)propMap[ch][0] / 256.0f;
 			frow = (float)propMap[ch][1] / 256.0f;
 			fwidth = (float)propMap[ch][2] / 256.0f;
 			fheight = (float)PROP_HEIGHT / 256.0f;
-			aw = (float)propMap[ch][2] * cgs.screenXScale * sizeScale;
+			aw = (float)propMap[ch][2] * cgs.screenXScale * xAdj * sizeScale;
 			ah = (float)PROP_HEIGHT * cgs.screenYScale * sizeScale;
 			trap_R_DrawStretchPic( ax, ay, aw, ah, fcol, frow, fcol+fwidth, frow+fheight, charset );
 		} else {
 			aw = 0;
 		}
 
-		ax += (aw + (float)PROP_GAP_WIDTH * cgs.screenXScale * sizeScale);
+		ax += (aw + (float)PROP_GAP_WIDTH * cgs.screenXScale * xAdj * sizeScale);
 		s++;
 	}
 

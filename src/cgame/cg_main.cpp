@@ -2963,16 +2963,13 @@ void CG_Init( int serverMessageNum, int serverCommandSequence, int clientNum, qb
 
 	// get the rendering configuration from the client system
 	trap_GetGlconfig( &cgs.glconfig );
-	cgs.screenYScale = cgs.glconfig.vidHeight / 480.0;
-	cgs.screenXScale = cgs.glconfig.vidWidth / (float)SCREEN_WIDTH;
-	
-	// Initialize widescreen aspect ratio values (ETLegacy approach)
-	// r43da = RATIO43 / windowAspect - used for scaling in AdjustFrom640
-	// adr43 = windowAspect / RATIO43 - used for WideX coordinate expansion
-	cgs.r43da = RATIO43 / cgs.glconfig.windowAspect;
-	cgs.adr43 = cgs.glconfig.windowAspect / RATIO43;
-	// wideXoffset = horizontal offset for centering elements on widescreen
-	cgs.wideXoffset = Ccg_WideXoffset();
+	cgs.screenXScale = cgs.glconfig.vidWidth / 640.0f;
+	cgs.screenYScale = cgs.glconfig.vidHeight / 480.0f;
+
+	// screen support (ETLegacy approach)
+	cgs.adr43 = cgs.glconfig.windowAspect * RPRATIO43;          // aspectratio / (4/3)
+	cgs.r43da = RATIO43 * 1.0f / cgs.glconfig.windowAspect;     // (4/3) / aspectratio
+	cgs.wideXoffset = (cgs.glconfig.windowAspect > RATIO43) ? (640.0f * cgs.adr43 - 640.0f) * 0.5f : 0.0f;
 
 	// RF, init the anim scripting
 	cgs.animScriptData.soundIndex = CG_SoundScriptPrecache;

@@ -2555,7 +2555,7 @@ qboolean CG_LimboPanel_Draw( void ) {
 
 	// Draw widescreen side bars (like ETLegacy approach for connect screen)
 	if( cgs.glconfig.windowAspect != RATIO43 ) {
-		float xoffset = Ccg_WideXoffset() * cgs.screenXScale;
+		float xoffset = Ccg_WideXoffset() * cgs.screenXScale * cgs.r43da;
 		if( !cgs.media.backTileShader ) {
 			cgs.media.backTileShader = trap_R_RegisterShaderNoMip( "gfx/2d/backtile" );
 		}

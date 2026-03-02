@@ -362,6 +362,9 @@ static void CG_DrawGrid( float x, float y, float w, float h, mapScissor_t *sciss
 			line[0] *= cgs.screenXScale;
 			line[1] *= cgs.screenYScale;
 			line[3] *= cgs.screenYScale;
+			if (!Ccg_Is43Screen()) {
+				line[0] *= cgs.r43da;
+			}
 			trap_R_DrawStretchPic( line[0], line[1], line[2], line[3], 0, 0, 0, 1, cgs.media.whiteShader );
 		}
 
@@ -389,6 +392,10 @@ static void CG_DrawGrid( float x, float y, float w, float h, mapScissor_t *sciss
 			line[0] *= cgs.screenXScale;
 			line[1] *= cgs.screenYScale;
 			line[2] *= cgs.screenXScale;
+			if (!Ccg_Is43Screen()) {
+				line[0] *= cgs.r43da;
+				line[2] *= cgs.r43da;
+			}
 			trap_R_DrawStretchPic( line[0], line[1], line[2], line[3], 0, 0, 0, 1, cgs.media.whiteShader );
 		}
 		trap_R_SetColor( NULL );
@@ -439,6 +446,9 @@ static void CG_DrawGrid( float x, float y, float w, float h, mapScissor_t *sciss
 			line[0] *= cgs.screenXScale;
 			line[1] *= cgs.screenYScale;
 			line[3] *= cgs.screenYScale;
+			if (!Ccg_Is43Screen()) {
+				line[0] *= cgs.r43da;
+			}
 			trap_R_DrawStretchPic( line[0], line[1], line[2], line[3], 0, 0, 0, 1, cgs.media.whiteShader );
 		}
 
@@ -456,6 +466,10 @@ static void CG_DrawGrid( float x, float y, float w, float h, mapScissor_t *sciss
 			line[0] *= cgs.screenXScale;
 			line[1] *= cgs.screenYScale;
 			line[2] *= cgs.screenXScale;
+			if (!Ccg_Is43Screen()) {
+				line[0] *= cgs.r43da;
+				line[2] *= cgs.r43da;
+			}
 			trap_R_DrawStretchPic( line[0], line[1], line[2], line[3], 0, 0, 0, 1, cgs.media.whiteShader );
 		}
 		trap_R_SetColor( NULL );

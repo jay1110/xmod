@@ -72,7 +72,7 @@ void CG_DrawInformation( qboolean forcerefresh ) {
 			cgs.media.backTileShader = trap_R_RegisterShaderNoMip( "gfx/2d/backtile" );
 		}
 		if( cgs.glconfig.windowAspect != RATIO43 ) {
-			float xoffset = Ccg_WideXoffset() * cgs.screenXScale;
+			float xoffset = Ccg_WideXoffset() * cgs.screenXScale * cgs.r43da;
 			trap_R_DrawStretchPic( 0, 0, xoffset, cgs.glconfig.vidHeight, 0, 0, 1, 1, cgs.media.backTileShader );  // left side
 			trap_R_DrawStretchPic( cgs.glconfig.vidWidth - xoffset, 0, xoffset, cgs.glconfig.vidHeight, 0, 0, 1, 1, cgs.media.backTileShader );  // right side
 		}

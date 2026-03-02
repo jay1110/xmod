@@ -404,13 +404,12 @@ static void CG_DrawGameState() {
         colorText[2] = 0.0f;
         colorText[3] = 1.0f;
 
-        const vec4_t box = {
-            cgs.screenXScale * (SCREEN_WIDTH - iconSize[0]),
-            0,
-            cgs.screenXScale * iconSize[0],
-            cgs.screenYScale * iconSize[1],
-
-        };
+        float bx = SCREEN_WIDTH - iconSize[0];
+        float by = 0;
+        float bw = iconSize[0];
+        float bh = iconSize[1];
+        CG_AdjustFrom640( &bx, &by, &bw, &bh );
+        const vec4_t box = { bx, by, bw, bh };
 
         trap_R_SetColor( colorCorner );
         trap_R_DrawStretchPic( box[0], box[1], box[2], box[3], 0.0f, 0.0f, 1.0f, 1.0f, shaderCorner );
@@ -505,18 +504,20 @@ static void CG_DrawGameState() {
             return;
     }
 
-    const vec4_t box = {
-        cgs.screenXScale * (SCREEN_WIDTH - iconSize[0]),
-        0,
-        cgs.screenXScale * iconSize[0],
-        cgs.screenYScale * iconSize[1],
-    };
+    {
+        float bx = SCREEN_WIDTH - iconSize[0];
+        float by = 0;
+        float bw = iconSize[0];
+        float bh = iconSize[1];
+        CG_AdjustFrom640( &bx, &by, &bw, &bh );
+        const vec4_t box = { bx, by, bw, bh };
 
-    trap_R_SetColor( colorCorner );
-    trap_R_DrawStretchPic( box[0], box[1], box[2], box[3], 0.0f, 0.0f, 1.0f, 1.0f, shaderCorner );
+        trap_R_SetColor( colorCorner );
+        trap_R_DrawStretchPic( box[0], box[1], box[2], box[3], 0.0f, 0.0f, 1.0f, 1.0f, shaderCorner );
 
-    trap_R_SetColor( colorText );
-    trap_R_DrawStretchPic( box[0], box[1], box[2], box[3], 0.0f, 0.0f, 1.0f, 1.0f, shaderText );
+        trap_R_SetColor( colorText );
+        trap_R_DrawStretchPic( box[0], box[1], box[2], box[3], 0.0f, 0.0f, 1.0f, 1.0f, shaderText );
+    }
 
     if (countDown < 0)
         return;
@@ -525,10 +526,12 @@ static void CG_DrawGameState() {
         countDown = 999;
 
     // compute center point (0.1875 each icon dimension in from top right of icon size)
-    const vec2_t cp = {
-        cgs.screenXScale * (0.1875f * iconSize[0]),
-        cgs.screenYScale * (0.1875f * iconSize[1]),
-    };
+    float cpx = 0.1875f * iconSize[0];
+    float cpy = 0.1875f * iconSize[1];
+    float cpw = 0;
+    float cph = 0;
+    CG_AdjustFrom640( &cpx, &cpy, &cpw, &cph );
+    const vec2_t cp = { cpx, cpy };
 
     ostringstream oss;
     oss << countDown;
@@ -5853,7 +5856,7 @@ void CG_ShoutcasterDynamite( int num ) {
 		return;
 	}
 
-	cg.scItems[cg.numSCItems].position[0] = position[0] / cgs.screenXScale;
+	cg.scItems[cg.numSCItems].position[0] = Ccg_Is43Screen() ? position[0] / cgs.screenXScale : position[0] / (cgs.screenXScale * cgs.r43da);
 	cg.scItems[cg.numSCItems].position[1] = position[1] / cgs.screenYScale;
 
 	// Distance to player
@@ -5915,7 +5918,7 @@ void CG_ShoutcasterPlayer( int num ) {
 	}
 
 	// Set up the Shoutcaster item
-	cg.scItems[cg.numSCItems].position[0] = position[0] / cgs.screenXScale;
+	cg.scItems[cg.numSCItems].position[0] = Ccg_Is43Screen() ? position[0] / cgs.screenXScale : position[0] / (cgs.screenXScale * cgs.r43da);
 	cg.scItems[cg.numSCItems].position[1] = position[1] / cgs.screenYScale;
 
 	// Distance to player
