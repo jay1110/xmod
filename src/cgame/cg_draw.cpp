@@ -5715,9 +5715,9 @@ void CG_DrawActive( stereoFrame_t stereoView ) {
 		// the limbopanel is horizontally centered (ETLegacy widescreen)
 		x += cgs.wideXoffset;
 
-		CG_RestrictScreenWidth(true);
+		CG_RestrictScreenWidth(true);	// no-op with fixed SCREEN_WIDTH, kept for clarity
  		CG_AdjustFrom640( &x, &y, &w, &h );
-		CG_RestrictScreenWidth(false);
+		CG_RestrictScreenWidth(false);	// no-op with fixed SCREEN_WIDTH, kept for clarity
 
  		cg.refdef_current->x = int(x);
  		cg.refdef_current->y = int(y);

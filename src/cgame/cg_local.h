@@ -103,7 +103,7 @@
 
 // MV overlay
 #define MVINFO_TEXTSIZE		10
-#define MVINFO_RIGHT		640 - 3
+#define MVINFO_RIGHT		(int)(Ccg_WideX(640) - 3)
 #define MVINFO_TOP			100
 
 #define MAX_WINDOW_COUNT		10
