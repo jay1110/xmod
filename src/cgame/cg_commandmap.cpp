@@ -1450,7 +1450,7 @@ void CG_DrawExpandedAutoMap( void ) {
 	float b_x, b_y, b_w, b_h;
 	float s1, t1, s2, t2;
 
-	x = SCREEN_WIDTH + 10.f;
+	x = Ccg_WideX(SCREEN_WIDTH) + 10.f;
 	y = 20.f;
 
 	w = CC_2D_W;
@@ -1461,11 +1461,11 @@ void CG_DrawExpandedAutoMap( void ) {
 		if( cg.time - cgs.autoMapExpandTime < 250.f ) {
 			x -= ( ( cg.time - cgs.autoMapExpandTime ) / 250.f ) * ( w + 30.f );
 		} else {
-			x = SCREEN_WIDTH - w - 20.f;
+			x = Ccg_WideX(SCREEN_WIDTH) - w - 20.f;
 		}
 	} else {
 		if( cg.time - cgs.autoMapExpandTime < 250.f ) {
-			x = ( SCREEN_WIDTH - w - 20.f ) + ( ( cg.time - cgs.autoMapExpandTime ) / 250.f ) * ( w + 30.f );
+			x = ( Ccg_WideX(SCREEN_WIDTH) - w - 20.f ) + ( ( cg.time - cgs.autoMapExpandTime ) / 250.f ) * ( w + 30.f );
 		} else {
 			return;
 		}

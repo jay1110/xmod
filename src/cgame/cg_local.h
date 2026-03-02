@@ -3675,7 +3675,7 @@ qboolean CG_CommandCentreSpawnPointClick( void );
 #define CC_2D_H 352
 
 // Jaybird - some defines for the compass
-#define CM_DEFAULT_X    (SCREEN_WIDTH - 120)
+#define CM_DEFAULT_X    (Ccg_WideX(SCREEN_WIDTH) - 120)
 #define CM_DEFAULT_Y    20
 #define CM_DEFAULT_W    100
 #define CM_DEFAULT_H    100
