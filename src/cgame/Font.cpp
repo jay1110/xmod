@@ -89,7 +89,7 @@ Font::drawLine( int x, int y, const string& text, vec4_t& color )
         charAdv = charWidth * cgs.r43da;
     }
 
-    float fx = (float)x;  // use float for sub-pixel accuracy
+    float fx = (float)x;  // use float for smoother character advancement
 
     const string::size_type max = text.length();
     for (string::size_type i = 0; i < max; i++) {

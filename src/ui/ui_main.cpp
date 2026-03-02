@@ -7428,6 +7428,7 @@ void _UI_Init( qboolean inGameLoad ) {
 
 	// Widescreen support: ensure windowAspect is correct
 	// Some older ET engines may not report windowAspect correctly
+	// NOTE: This is duplicated from cg_main.cpp because cgame and UI are separate modules
 	if (uiInfo.uiDC.glconfig.windowAspect <= 0.0f) {
 		uiInfo.uiDC.glconfig.windowAspect = (float)uiInfo.uiDC.glconfig.vidWidth / (float)uiInfo.uiDC.glconfig.vidHeight;
 	}
