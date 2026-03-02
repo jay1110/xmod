@@ -1520,7 +1520,7 @@ void CG_DebriefingPlayerList_Draw( panel_button_t* button ) {
 
 		if( cgs.dbSelectedClient == cgs.dbSortedClients[i + cgs.dbPlayerListOffset] ) {
 			vec4_t clr = { 1.f, 1.f, 1.f, 0.3f };
-			CG_FillRect( button->rect.x, y - 10, 640 - 10 - 8 - 16 - button->rect.x, 12, clr );
+			CG_FillRect( button->rect.x, y - 10, (640 + cgs.wideXoffset) - 10 - 8 - 16 - button->rect.x, 12, clr );
 		}
 
 		CG_Text_Paint_Ext( DB_RANK_X, y, button->font->scalex, button->font->scaley, button->font->colour, CG_Debriefing_RankNameForClientInfo( ci ), 0, 0, 0, button->font->font );

@@ -933,7 +933,7 @@ _UI_Refresh
 
 void UI_DrawCenteredPic(qhandle_t image, int w, int h) {
   int x, y;
-  x = (SCREEN_WIDTH - w) / 2;
+  x = (int)(Cui_WideX(SCREEN_WIDTH) - w) / 2;
   y = (SCREEN_HEIGHT - h) / 2;
   UI_DrawHandlePic(x, y, w, h, image);
 }

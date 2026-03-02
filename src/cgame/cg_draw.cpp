@@ -4366,7 +4366,7 @@ void CG_Draw2D2(void) {
 
 	trap_R_SetColor( NULL );
 
-	CG_DrawPic( 0,480, 640, -70, cgs.media.hud1Shader );
+	CG_DrawPic( 0,480, Ccg_WideX(SCREEN_WIDTH), -70, cgs.media.hud1Shader );
 
 	if(!BG_PlayerMounted(cg.snap->ps.eFlags) ) {
 		switch (cg.snap->ps.weapon) {
