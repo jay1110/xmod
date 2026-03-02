@@ -2005,12 +2005,14 @@ static void CG_DrawWeapReticle(void) {
 	}
 
 	if(fg) {
-		// ETLegacy widescreen scope: 80 is the 4:3 side margin, wideXoffset adds extra for widescreen
+		// ETLegacy widescreen scope: 80 is the 4:3 side margin (480/2 = 240, (640-480)/2 = 80)
+		// wideXoffset adds extra for widescreen. 560 = SCREEN_WIDTH - 80.
 		float sideMargin = 80 + cgs.wideXoffset;
+		float rightEdge = (SCREEN_WIDTH - 80) + cgs.wideXoffset;
 
 		// sides
 		CG_FillRect (0, 0, sideMargin, 480, color);
-		CG_FillRect (560 + cgs.wideXoffset, 0, sideMargin, 480, color);
+		CG_FillRect (rightEdge, 0, sideMargin, 480, color);
 
 		// center
 		if(cgs.media.reticleShaderSimple)
@@ -2029,7 +2031,7 @@ static void CG_DrawWeapReticle(void) {
 		// 407
 		CG_FillRect (sideMargin + 4, SCREEN_HEIGHT/2 - 1, 150, 3, color);	// left
 		CG_FillRect (sideMargin + 4 + 150, SCREEN_HEIGHT/2, 173, 1, color);	// horiz center
-		CG_FillRect (560 + cgs.wideXoffset - 3 - 150, SCREEN_HEIGHT/2 - 1, 150, 3, color);	// right
+		CG_FillRect (rightEdge - 3 - 150, SCREEN_HEIGHT/2 - 1, 150, 3, color);	// right
 
 		CG_FillRect (320 + cgs.wideXoffset - 1, 2,   3, 151, color);	// top center top
 		CG_FillRect (320 + cgs.wideXoffset, 153, 1, 114, color);	// top center bot
@@ -2039,10 +2041,11 @@ static void CG_DrawWeapReticle(void) {
 	} else if(garand || k43) {
 		// ETLegacy widescreen scope
 		float sideMargin = 80 + cgs.wideXoffset;
+		float rightEdge = (SCREEN_WIDTH - 80) + cgs.wideXoffset;
 
 		// sides
 		CG_FillRect (0, 0, sideMargin, 480, color);
-		CG_FillRect (560 + cgs.wideXoffset, 0, sideMargin, 480, color);
+		CG_FillRect (rightEdge, 0, sideMargin, 480, color);
 
 		// center
 		if(cgs.media.reticleShaderSimple)
@@ -2052,7 +2055,7 @@ static void CG_DrawWeapReticle(void) {
 		CG_FillRect (sideMargin + 4, SCREEN_HEIGHT/2 - 1, 177, 2, color);	// left
 		CG_FillRect (320 + cgs.wideXoffset, SCREEN_HEIGHT/2 + 2, 1, 58, color);	// center top
 		CG_FillRect (320 + cgs.wideXoffset - 1, SCREEN_HEIGHT/2 + 60, 2, 178, color);	// center bot
-		CG_FillRect (560 + cgs.wideXoffset - 3 - 177, SCREEN_HEIGHT/2 - 1, 177, 2, color);	// right
+		CG_FillRect (rightEdge - 3 - 177, SCREEN_HEIGHT/2 - 1, 177, 2, color);	// right
 	/*
 	} else if (k43) {
 		// sides
