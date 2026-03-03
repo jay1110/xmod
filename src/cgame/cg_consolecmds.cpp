@@ -1042,7 +1042,7 @@ static void CG_DemoWallHack_f( void ) {
 		return;
 	}
 
-	cg.demoWallHack = (qboolean)!cg.demoWallHack;
+	cg.demoWallHack = cg.demoWallHack ? qfalse : qtrue;
 	CG_Printf( "demo_wallHack %s\n", cg.demoWallHack ? "ON" : "OFF" );
 }
 
