@@ -2963,16 +2963,42 @@ void CG_Init( int serverMessageNum, int serverCommandSequence, int clientNum, qb
 
 	// get the rendering configuration from the client system
 	trap_GetGlconfig( &cgs.glconfig );
-	cgs.screenYScale = cgs.glconfig.vidHeight / 480.0;
-	cgs.screenXScale = cgs.glconfig.vidWidth / (float)SCREEN_WIDTH;
-	
-	// Initialize widescreen aspect ratio values (ETLegacy approach)
-	// r43da = RATIO43 / windowAspect - used for scaling in AdjustFrom640
-	// adr43 = windowAspect / RATIO43 - used for WideX coordinate expansion
-	cgs.r43da = RATIO43 / cgs.glconfig.windowAspect;
-	cgs.adr43 = cgs.glconfig.windowAspect / RATIO43;
-	// wideXoffset = horizontal offset for centering elements on widescreen
-	cgs.wideXoffset = Ccg_WideXoffset();
+
+	// Widescreen support: ensure windowAspect is correct
+	// Some older ET engines (2.60b) may report incorrect windowAspect.
+	// If windowAspect looks wrong (zero or default 4:3 on a clearly widescreen resolution),
+	// compute it from the actual pixel dimensions.
+	if (cgs.glconfig.windowAspect <= 0.0f) {
+		cgs.glconfig.windowAspect = (float)cgs.glconfig.vidWidth / (float)cgs.glconfig.vidHeight;
+	}
+	// If engine reports exactly 4:3 but the pixel ratio says otherwise (e.g. 1920x1080),
+	// override with the actual computed aspect ratio for correct widescreen rendering.
+	{
+		float computedAspect = (float)cgs.glconfig.vidWidth / (float)cgs.glconfig.vidHeight;
+		float diff = computedAspect - cgs.glconfig.windowAspect;
+		if (diff < 0) diff = -diff;
+		// If the engine aspect differs significantly from computed (tolerance 0.01),
+		// trust the computed value from actual resolution
+		if (diff > 0.01f) {
+			cgs.glconfig.windowAspect = computedAspect;
+		}
+	}
+
+	cgs.screenXScale = cgs.glconfig.vidWidth / 640.0f;
+	cgs.screenYScale = cgs.glconfig.vidHeight / 480.0f;
+
+	// Widescreen aspect ratio values (ETLegacy approach)
+	cgs.adr43 = cgs.glconfig.windowAspect * RPRATIO43;          // aspectratio / (4/3)
+	cgs.r43da = RATIO43 * 1.0f / cgs.glconfig.windowAspect;     // (4/3) / aspectratio
+	cgs.wideXoffset = (cgs.glconfig.windowAspect > RATIO43) ? (640.0f * cgs.adr43 - 640.0f) * 0.5f : 0.0f;
+
+	// screenXBias: pixel offset to center 4:3 content on widescreen
+	// Used by UI_DrawBannerString2 / UI_DrawProportionalString2 which bypass CG_AdjustFrom640
+	if (cgs.glconfig.vidWidth * 480 > cgs.glconfig.vidHeight * 640) {
+		cgs.screenXBias = 0.5f * (cgs.glconfig.vidWidth - (cgs.glconfig.vidHeight * (640.0f / 480.0f)));
+	} else {
+		cgs.screenXBias = 0.0f;
+	}
 
 	// RF, init the anim scripting
 	cgs.animScriptData.soundIndex = CG_SoundScriptPrecache;

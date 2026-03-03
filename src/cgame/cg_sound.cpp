@@ -629,7 +629,8 @@ static void CG_RenderScriptSpeakers( void )
 		closest = -1;
 		minDist = Square( 32.f );
 
-		r = -(cg.refdef_current->fov_x / 90.f) * (float)(cgs.cursorX - 320) / 320;
+		float cursorCenterX = Ccg_WideX(640) / 2;
+		r = -(cg.refdef_current->fov_x / 90.f) * (float)(cgs.cursorX - cursorCenterX) / cursorCenterX;
 		u = -(cg.refdef_current->fov_y / 90.f) * (float)(cgs.cursorY - 240) / 240;
 
 		for( i = 0; i < 3; i++ ) {
@@ -1822,7 +1823,8 @@ void CG_SpeakerEditor_KeyHandling( int key, qboolean down )
 							closest = -1;
 							minDist = Square( 16.f );
 
-							r = -(cg.refdef_current->fov_x / 90.f) * (float)(cgs.cursorX - 320) / 320;
+							float cursorCenterX = Ccg_WideX(640) / 2;
+							r = -(cg.refdef_current->fov_x / 90.f) * (float)(cgs.cursorX - cursorCenterX) / cursorCenterX;
 							u = -(cg.refdef_current->fov_y / 90.f) * (float)(cgs.cursorY - 240) / 240;
 
 							for( i = 0; i < 3; i++ ) {
@@ -1872,15 +1874,16 @@ void CG_SpeakerEditorMouseMove_Handling( int x, int y )
 
 	if( editSpeakerActive ) {
 		if( editSpeakerHandle.activeAxis >= 0 ) {
+			float cursorCenterX = Ccg_WideX(640) / 2;
 			if( editSpeakerHandle.activeAxis == 0 ) {
 				// this one and the next one are quite nasty, so do it the hacky way
-				if( cgs.cursorX - x < 320 ) {
+				if( cgs.cursorX - x < cursorCenterX ) {
 					editSpeaker->origin[0] -= x;
 				} else {
 					editSpeaker->origin[0] += x;
 				}
 			} else if( editSpeakerHandle.activeAxis == 1 ) {
-				if( cgs.cursorX - x < 320 ) {
+				if( cgs.cursorX - x < cursorCenterX ) {
 					editSpeaker->origin[1] -= x;
 				} else {
 					editSpeaker->origin[1] += x;

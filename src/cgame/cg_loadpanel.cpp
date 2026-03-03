@@ -263,10 +263,8 @@ void CG_DrawConnectScreen( qboolean interactive, qboolean forcerefresh ) {
 		bg_loadscreeninited = qtrue;
 	}
 
-	CG_RestrictScreenWidth(true);
-
-	// Black out the background
-	CG_FillRect( -10, -10, 650, 490, colorBlack );
+	// Black out the background (use full widescreen width)
+	CG_FillRect( -10, -10, Ccg_WideX(SCREEN_WIDTH) + 20, 490, colorBlack );
 
 	BG_PanelButtonsRender( loadpanelButtons );
 
@@ -393,8 +391,6 @@ void CG_DrawConnectScreen( qboolean interactive, qboolean forcerefresh ) {
 	}
 
 	inside = qfalse;
-
-	CG_RestrictScreenWidth(false);
 }
 
 void CG_LoadPanel_RenderLoadingBar( panel_button_t* button ) {

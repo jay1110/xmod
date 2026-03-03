@@ -362,6 +362,9 @@ static void CG_DrawGrid( float x, float y, float w, float h, mapScissor_t *sciss
 			line[0] *= cgs.screenXScale;
 			line[1] *= cgs.screenYScale;
 			line[3] *= cgs.screenYScale;
+			if (!Ccg_Is43Screen()) {
+				line[0] *= cgs.r43da;
+			}
 			trap_R_DrawStretchPic( line[0], line[1], line[2], line[3], 0, 0, 0, 1, cgs.media.whiteShader );
 		}
 
@@ -389,6 +392,10 @@ static void CG_DrawGrid( float x, float y, float w, float h, mapScissor_t *sciss
 			line[0] *= cgs.screenXScale;
 			line[1] *= cgs.screenYScale;
 			line[2] *= cgs.screenXScale;
+			if (!Ccg_Is43Screen()) {
+				line[0] *= cgs.r43da;
+				line[2] *= cgs.r43da;
+			}
 			trap_R_DrawStretchPic( line[0], line[1], line[2], line[3], 0, 0, 0, 1, cgs.media.whiteShader );
 		}
 		trap_R_SetColor( NULL );
@@ -439,6 +446,9 @@ static void CG_DrawGrid( float x, float y, float w, float h, mapScissor_t *sciss
 			line[0] *= cgs.screenXScale;
 			line[1] *= cgs.screenYScale;
 			line[3] *= cgs.screenYScale;
+			if (!Ccg_Is43Screen()) {
+				line[0] *= cgs.r43da;
+			}
 			trap_R_DrawStretchPic( line[0], line[1], line[2], line[3], 0, 0, 0, 1, cgs.media.whiteShader );
 		}
 
@@ -456,6 +466,10 @@ static void CG_DrawGrid( float x, float y, float w, float h, mapScissor_t *sciss
 			line[0] *= cgs.screenXScale;
 			line[1] *= cgs.screenYScale;
 			line[2] *= cgs.screenXScale;
+			if (!Ccg_Is43Screen()) {
+				line[0] *= cgs.r43da;
+				line[2] *= cgs.r43da;
+			}
 			trap_R_DrawStretchPic( line[0], line[1], line[2], line[3], 0, 0, 0, 1, cgs.media.whiteShader );
 		}
 		trap_R_SetColor( NULL );
@@ -1436,7 +1450,7 @@ void CG_DrawExpandedAutoMap( void ) {
 	float b_x, b_y, b_w, b_h;
 	float s1, t1, s2, t2;
 
-	x = SCREEN_WIDTH + 10.f;
+	x = Ccg_WideX(SCREEN_WIDTH) + 10.f;
 	y = 20.f;
 
 	w = CC_2D_W;
@@ -1447,11 +1461,11 @@ void CG_DrawExpandedAutoMap( void ) {
 		if( cg.time - cgs.autoMapExpandTime < 250.f ) {
 			x -= ( ( cg.time - cgs.autoMapExpandTime ) / 250.f ) * ( w + 30.f );
 		} else {
-			x = SCREEN_WIDTH - w - 20.f;
+			x = Ccg_WideX(SCREEN_WIDTH) - w - 20.f;
 		}
 	} else {
 		if( cg.time - cgs.autoMapExpandTime < 250.f ) {
-			x = ( SCREEN_WIDTH - w - 20.f ) + ( ( cg.time - cgs.autoMapExpandTime ) / 250.f ) * ( w + 30.f );
+			x = ( Ccg_WideX(SCREEN_WIDTH) - w - 20.f ) + ( ( cg.time - cgs.autoMapExpandTime ) / 250.f ) * ( w + 30.f );
 		} else {
 			return;
 		}

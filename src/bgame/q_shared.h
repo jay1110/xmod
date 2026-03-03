@@ -411,15 +411,10 @@ extern	vec3_t	bytedirs[NUMVERTEXNORMALS];
 
 // all drawing is done to a 640*480 virtual screen size
 // and will be automatically scaled to the real resolution
-#ifdef CGAMEDLL
-#define	SCREEN_WIDTH		CG_GetScreenWidth()
-#else
+// For widescreen, use Ccg_WideX(SCREEN_WIDTH) / Cui_WideX(SCREEN_WIDTH) for expanded width
 #define	SCREEN_WIDTH		640
-#endif
 #define	SCREEN_HEIGHT		480
-#define SCREEN_CENTER		(SCREEN_WIDTH / 2)
-// Horizontal offset for wide screen monitors
-#define SCREEN_X_OFFSET		((SCREEN_WIDTH - 640) / 2)
+#define SCREEN_CENTER		(SCREEN_WIDTH / 2)	// 4:3 center; for widescreen center use Ccg_WideX(SCREEN_WIDTH)/2
 
 // Jaybird - see if these look better
 #define TINYCHAR_WIDTH		6

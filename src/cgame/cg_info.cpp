@@ -72,7 +72,7 @@ void CG_DrawInformation( qboolean forcerefresh ) {
 			cgs.media.backTileShader = trap_R_RegisterShaderNoMip( "gfx/2d/backtile" );
 		}
 		if( cgs.glconfig.windowAspect != RATIO43 ) {
-			float xoffset = Ccg_WideXoffset() * cgs.screenXScale;
+			float xoffset = Ccg_WideXoffset() * cgs.screenXScale * cgs.r43da;
 			trap_R_DrawStretchPic( 0, 0, xoffset, cgs.glconfig.vidHeight, 0, 0, 1, 1, cgs.media.backTileShader );  // left side
 			trap_R_DrawStretchPic( cgs.glconfig.vidWidth - xoffset, 0, xoffset, cgs.glconfig.vidHeight, 0, 0, 1, 1, cgs.media.backTileShader );  // right side
 		}
@@ -376,7 +376,7 @@ qboolean CG_ViewingDraw()
 
 
 
-#define GS_X	(166 + SCREEN_X_OFFSET)
+#define GS_X	(166 + cgs.wideXoffset)
 #define GS_Y	10
 #define GS_W	308
 
@@ -586,7 +586,7 @@ void CG_TopShotsDraw()
 		return;
 
 	} else {
-		int i, x = SCREEN_WIDTH + TS_X - TS_W, y = SCREEN_HEIGHT, h;
+		int i, x = Ccg_WideX(SCREEN_WIDTH) + TS_X - TS_W, y = SCREEN_HEIGHT, h;
 		topshotStats_t *ts = &cgs.topshots;
 
 		vec4_t bgColor		= COLOR_BG;			// window
@@ -685,7 +685,7 @@ void CG_TopShotsDraw()
 		x += 32;
 		CG_Text_Paint_Ext(x, y, hScale2, hScaleY2, hdrColor, "Player", 0.0f, 0, hStyle2, hFont2);
 
-		x = SCREEN_WIDTH + TS_X - TS_W + 4;
+		x = Ccg_WideX(SCREEN_WIDTH) + TS_X - TS_W + 4;
 		y += 1;
 		
 		if(ts->cWeapons == 0) {
@@ -765,7 +765,7 @@ void CG_DemoHelpDraw()
 
 		// FIXME: Should compute this beforehand
 		w = DH_W + ((cg.mvTotalClients > 1) ? 12 : 0);
-		x = SCREEN_WIDTH + DH_X - w;
+		x = Ccg_WideX(SCREEN_WIDTH) + DH_X - w;
 		h = 2 + tSpacing + 2 +									// Header
 			2 + 1 +
 			tSpacing * (2 + (sizeof(help) + ((cg.mvTotalClients > 1) ? sizeof(mvhelp) : 0)) / sizeof(char *)) +

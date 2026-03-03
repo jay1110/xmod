@@ -49,15 +49,20 @@ Font::~Font()
 ///////////////////////////////////////////////////////////////////////////////
 
 /*
- * Draw char at native screen resolution.
+ * Draw char at native screen resolution with widescreen correction.
  */ 
 void
 Font::drawChar( int x, int y, int c )
 {
+    // Apply widescreen correction to prevent horizontal stretching
+    float w = charWidth;
+    if (!Ccg_Is43Screen()) {
+        w *= cgs.r43da;  // compress width by (4:3 / actual aspect)
+    }
     trap_R_DrawStretchPic(
         x,
         y,
-        charWidth,
+        w,
         charHeight,
         _charTable[c][0],
         _charTable[c][1],
@@ -70,12 +75,21 @@ Font::drawChar( int x, int y, int c )
 
 /*
  * Draw text at native screen resolution, and no linefeed or line wrap.
+ * Character advancement is widescreen-corrected to prevent stretching.
  */
 int
 Font::drawLine( int x, int y, const string& text, vec4_t& color )
 {
     int nchars = 0;
     trap_R_SetColor( color );
+
+    // Widescreen-corrected character width for advancement
+    float charAdv = charWidth;
+    if (!Ccg_Is43Screen()) {
+        charAdv = charWidth * cgs.r43da;
+    }
+
+    float fx = (float)x;  // use float for smoother character advancement
 
     const string::size_type max = text.length();
     for (string::size_type i = 0; i < max; i++) {
@@ -88,10 +102,10 @@ Font::drawLine( int x, int y, const string& text, vec4_t& color )
         }
 
         if (c > 32 && c < 127)
-            drawChar( x, y, c - 33 );
+            drawChar( (int)fx, y, c - 33 );
 
-        x += charWidth;
-        if ((x + charWidth) > cgs.glconfig.vidWidth)
+        fx += charAdv;
+        if ((fx + charAdv) > cgs.glconfig.vidWidth)
             break;
     }
 

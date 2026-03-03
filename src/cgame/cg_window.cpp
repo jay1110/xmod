@@ -603,8 +603,8 @@ void CG_windowNormalizeOnText(cg_window_t *w)
 	w->w += 10;
 	w->h += 3;
 
-	// Set up bottom alignment
-	if(w->x < 0) w->x += 640 - w->w;
+	// Set up bottom alignment (use widescreen-expanded width for right alignment)
+	if(w->x < 0) w->x += Ccg_WideX(640) - w->w;
 	if(w->y < 0) w->y += 480 - w->h;
 }
 
@@ -734,7 +734,7 @@ void CG_cursorUpdate(void)
 		// Allow for limbo'd updates as well
 		trap_GetUserCmd(trap_GetCurrentCmdNumber(), &cg_pmove.cmd);
 
-		nx = 640.0 * (65536.0 - cg_pmove.cmd.angles[1]) / 65536.0;
+		nx = Ccg_WideX(640) * (65536.0 - cg_pmove.cmd.angles[1]) / 65536.0;
 		ny = 480.0 / 65536.0 * ((int_m_pitch.value < 0.0) ? (65536.0 - cg_pmove.cmd.angles[0]) : cg_pmove.cmd.angles[0]);
 
 		fSelect = ((cg_pmove.cmd.buttons & BUTTON_ATTACK) != 0) ? qtrue : qfalse;
@@ -788,7 +788,7 @@ void CG_cursorUpdate(void)
 					if(w->m_x > 0 && w->m_y > 0) {
 						if(fResize) {
 							w->w += nx - w->m_x;
-							if(w->x + w->w > 640-2) w->w = 640 - 2 - w->x;
+							if(w->x + w->w > Ccg_WideX(640)-2) w->w = Ccg_WideX(640) - 2 - w->x;
 							if(w->w < 64) w->w = 64;
 
 							w->h += ny - w->m_y;
@@ -796,7 +796,7 @@ void CG_cursorUpdate(void)
 							if(w->h < 48) w->h = 48;
 						} else {
 							w->x += nx - w->m_x;
-							if(w->x + w->w > 640-2) w->x = 640 - 2 - w->w;
+							if(w->x + w->w > Ccg_WideX(640)-2) w->x = Ccg_WideX(640) - 2 - w->w;
 							if(w->x < 2) w->x = 2;
 
 							w->y += ny - w->m_y;

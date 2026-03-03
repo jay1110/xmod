@@ -2555,7 +2555,7 @@ qboolean CG_LimboPanel_Draw( void ) {
 
 	// Draw widescreen side bars (like ETLegacy approach for connect screen)
 	if( cgs.glconfig.windowAspect != RATIO43 ) {
-		float xoffset = Ccg_WideXoffset() * cgs.screenXScale;
+		float xoffset = Ccg_WideXoffset() * cgs.screenXScale * cgs.r43da;
 		if( !cgs.media.backTileShader ) {
 			cgs.media.backTileShader = trap_R_RegisterShaderNoMip( "gfx/2d/backtile" );
 		}
@@ -2563,7 +2563,7 @@ qboolean CG_LimboPanel_Draw( void ) {
 		trap_R_DrawStretchPic( cgs.glconfig.vidWidth - xoffset, 0, xoffset, cgs.glconfig.vidHeight, 0, 0, 1, 1, cgs.media.backTileShader );  // right side
 	}
 
-	CG_RestrictScreenWidth(true);
+	CG_RestrictScreenWidth(true);	// no-op with fixed SCREEN_WIDTH, kept for clarity
 
 	hilight = BG_PanelButtonsGetHighlightButton( limboPanelButtons );
 	if( hilight && hilight != lastHighlight ) {
@@ -2597,7 +2597,7 @@ qboolean CG_LimboPanel_Draw( void ) {
 		}
 	}
 
-	CG_RestrictScreenWidth(false);
+	CG_RestrictScreenWidth(false);	// no-op with fixed SCREEN_WIDTH, kept for clarity
 
 	return qtrue;
 }

@@ -933,7 +933,7 @@ _UI_Refresh
 
 void UI_DrawCenteredPic(qhandle_t image, int w, int h) {
   int x, y;
-  x = (SCREEN_WIDTH - w) / 2;
+  x = (int)(Cui_WideX(SCREEN_WIDTH) - w) / 2;
   y = (SCREEN_HEIGHT - h) / 2;
   UI_DrawHandlePic(x, y, w, h, image);
 }
@@ -7425,6 +7425,21 @@ void _UI_Init( qboolean inGameLoad ) {
 
 	// cache redundant calulations
 	trap_GetGlconfig( &uiInfo.uiDC.glconfig );
+
+	// Widescreen support: ensure windowAspect is correct
+	// Some older ET engines may not report windowAspect correctly
+	// NOTE: This is duplicated from cg_main.cpp because cgame and UI are separate modules
+	if (uiInfo.uiDC.glconfig.windowAspect <= 0.0f) {
+		uiInfo.uiDC.glconfig.windowAspect = (float)uiInfo.uiDC.glconfig.vidWidth / (float)uiInfo.uiDC.glconfig.vidHeight;
+	}
+	{
+		float computedAspect = (float)uiInfo.uiDC.glconfig.vidWidth / (float)uiInfo.uiDC.glconfig.vidHeight;
+		float diff = computedAspect - uiInfo.uiDC.glconfig.windowAspect;
+		if (diff < 0) diff = -diff;
+		if (diff > 0.01f) {
+			uiInfo.uiDC.glconfig.windowAspect = computedAspect;
+		}
+	}
 
 	UI_ParseGLConfig();
 

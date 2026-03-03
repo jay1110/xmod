@@ -1292,7 +1292,18 @@ qboolean CG_Debriefing_Draw( void ) {
 
 	CG_Debriefing_InfoRequests();
 
-//	CG_FillRect( 0, 0, 640, 480, colorBlack );
+	// Draw widescreen side bars (like limbo panel)
+	if( cgs.glconfig.windowAspect != RATIO43 ) {
+		float xoffset = Ccg_WideXoffset() * cgs.screenXScale * cgs.r43da;
+		if( !cgs.media.backTileShader ) {
+			cgs.media.backTileShader = trap_R_RegisterShaderNoMip( "gfx/2d/backtile" );
+		}
+		trap_R_DrawStretchPic( 0, 0, xoffset, cgs.glconfig.vidHeight, 0, 0, 1, 1, cgs.media.backTileShader );
+		trap_R_DrawStretchPic( cgs.glconfig.vidWidth - xoffset, 0, xoffset, cgs.glconfig.vidHeight, 0, 0, 1, 1, cgs.media.backTileShader );
+	}
+
+	// Fill background with black (full widescreen width)
+	CG_FillRect( -10, -10, Ccg_WideX(SCREEN_WIDTH) + 20, 490, colorBlack );
 
 	if( trap_Key_GetCatcher() & KEYCATCH_UI ) {
 		return qtrue;
@@ -1302,7 +1313,7 @@ qboolean CG_Debriefing_Draw( void ) {
 		trap_Key_SetCatcher( KEYCATCH_CGAME );
 	}
 
-	CG_RestrictScreenWidth(true);
+	CG_RestrictScreenWidth(true);	// no-op with fixed SCREEN_WIDTH, kept for clarity
 
 	switch( cgs.dbMode ) {
 		case 1:
@@ -1334,7 +1345,7 @@ qboolean CG_Debriefing_Draw( void ) {
 			break;
 	}
 
-	CG_RestrictScreenWidth(false);
+	CG_RestrictScreenWidth(false);	// no-op with fixed SCREEN_WIDTH, kept for clarity
 
 	return qtrue;
 }
@@ -1509,7 +1520,7 @@ void CG_DebriefingPlayerList_Draw( panel_button_t* button ) {
 
 		if( cgs.dbSelectedClient == cgs.dbSortedClients[i + cgs.dbPlayerListOffset] ) {
 			vec4_t clr = { 1.f, 1.f, 1.f, 0.3f };
-			CG_FillRect( button->rect.x, y - 10, 640 - 10 - 8 - 16 - button->rect.x, 12, clr );
+			CG_FillRect( button->rect.x, y - 10, (640 + cgs.wideXoffset) - 10 - 8 - 16 - button->rect.x, 12, clr );
 		}
 
 		CG_Text_Paint_Ext( DB_RANK_X, y, button->font->scalex, button->font->scaley, button->font->colour, CG_Debriefing_RankNameForClientInfo( ci ), 0, 0, 0, button->font->font );

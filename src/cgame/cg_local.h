@@ -103,7 +103,7 @@
 
 // MV overlay
 #define MVINFO_TEXTSIZE		10
-#define MVINFO_RIGHT		640 - 3
+#define MVINFO_RIGHT		(int)(Ccg_WideX(640) - 3)
 #define MVINFO_TOP			100
 
 #define MAX_WINDOW_COUNT		10
@@ -3675,7 +3675,7 @@ qboolean CG_CommandCentreSpawnPointClick( void );
 #define CC_2D_H 352
 
 // Jaybird - some defines for the compass
-#define CM_DEFAULT_X    (SCREEN_WIDTH - 120)
+#define CM_DEFAULT_X    (Ccg_WideX(SCREEN_WIDTH) - 120)
 #define CM_DEFAULT_Y    20
 #define CM_DEFAULT_W    100
 #define CM_DEFAULT_H    100
