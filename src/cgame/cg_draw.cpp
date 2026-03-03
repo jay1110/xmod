@@ -4171,6 +4171,8 @@ static void CG_DrawObjectiveIndicators( void ) {
 		if ( eType != ET_EXPLOSIVE_INDICATOR &&
 		     eType != ET_CONSTRUCTIBLE_INDICATOR &&
 		     eType != ET_TANK_INDICATOR &&
+		     eType != ET_TANK_INDICATOR_DEAD &&
+		     eType != ET_TRAP &&
 		     eType != ET_WOLF_OBJECTIVE ) {
 			continue;
 		}
@@ -4185,9 +4187,10 @@ static void CG_DrawObjectiveIndicators( void ) {
 			continue;
 
 		// Determine icon
-		if ( eType == ET_WOLF_OBJECTIVE ) {
+		if ( eType == ET_WOLF_OBJECTIVE || eType == ET_TRAP ) {
 			// Capture point / checkpoint flag.
-			// s.frame animation states (WCP_ANIM_* from g_team.cpp):
+			// ET_WOLF_OBJECTIVE: wolf objective state marker (team in s.teamNum)
+			// ET_TRAP: Capture-and-Hold checkpoint flag (WCP_ANIM_* in s.frame):
 			//   0 = NOFLAG        - neutral, no team owns it
 			//   1 = RAISE_AXIS    - axis is raising their flag
 			//   2 = RAISE_AMERICAN- allies is raising their flag
@@ -4213,8 +4216,15 @@ static void CG_DrawObjectiveIndicators( void ) {
 			} else {
 				icon = cgs.media.compassDestroyShader;     // capture / attack
 			}
+		} else if ( eType == ET_TANK_INDICATOR_DEAD ) {
+			// Destroyed tank: same-team engineers can repair it.
+			if ( (int)cent->currentState.teamNum != playerTeam ) {
+				// Enemy tank is destroyed — nothing actionable, skip indicator
+				continue;
+			}
+			icon = cgs.media.compassConstructShader;   // repair/rebuild
 		} else {
-			// Explosive / constructible / tank
+			// Explosive / constructible / live tank
 			if ( (int)cent->currentState.teamNum != playerTeam ) {
 				icon = cgs.media.compassDestroyShader;
 			} else {
