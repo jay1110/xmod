@@ -1036,6 +1036,16 @@ static void CG_Minimize_f( void ) {
 	CG_MinimizeWindow();
 }
 
+static void CG_DemoWallHack_f( void ) {
+	if ( !cg.demoPlayback ) {
+		CG_Printf( "demo_wallHack is only available during demo playback.\n" );
+		return;
+	}
+
+	cg.demoWallHack = (qboolean)!cg.demoWallHack;
+	CG_Printf( "demo_wallHack %s\n", cg.demoWallHack ? "ON" : "OFF" );
+}
+
 typedef struct {
 	char	*cmd;
 	void	(*function)(void);
@@ -1148,6 +1158,7 @@ static consoleCommand_t	commands[] =
 	{ "forcetapout", CG_ForceTapOut_f },
 	{ "campaigninfo", CG_CampaignInfo_f },
 	{ "minimize", CG_Minimize_f },
+	{ "demo_wallHack", CG_DemoWallHack_f },
 };
 
 

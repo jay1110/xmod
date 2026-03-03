@@ -1736,6 +1736,28 @@ void CG_AddRefEntityWithPowerups( refEntity_t *ent, int powerups, int team, enti
 			trap_S_AddLoopingSound( ent->origin, vec3_origin, cgs.media.flameCrackSound, (int)(255.0*alpha), 0 );
 	} 
 
+	// Demo wallhack: render a colored glow visible through walls
+	if ( cg.demoWallHack && cg.demoPlayback ) {
+		ent->customShader = cgs.media.wallhackShader;
+		if ( team == TEAM_AXIS ) {
+			ent->shaderRGBA[0] = 255;
+			ent->shaderRGBA[1] = 0;
+			ent->shaderRGBA[2] = 0;
+			ent->shaderRGBA[3] = 128;
+		} else if ( team == TEAM_ALLIES ) {
+			ent->shaderRGBA[0] = 0;
+			ent->shaderRGBA[1] = 0;
+			ent->shaderRGBA[2] = 255;
+			ent->shaderRGBA[3] = 128;
+		} else {
+			ent->shaderRGBA[0] = 255;
+			ent->shaderRGBA[1] = 255;
+			ent->shaderRGBA[2] = 255;
+			ent->shaderRGBA[3] = 128;
+		}
+		trap_R_AddRefEntityToScene( ent );
+	}
+
 	*ent = backupRefEnt;
 }
 

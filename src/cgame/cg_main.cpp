@@ -3031,6 +3031,7 @@ void CG_Init( int serverMessageNum, int serverCommandSequence, int clientNum, qb
 	cgs.media.menucharsetShader = trap_R_RegisterShader( "gfx/2d/hudchars" );
 	// END JOSEPH
 	cgs.media.whiteShader       = trap_R_RegisterShader( "white" );
+	cgs.media.wallhackShader    = trap_R_RegisterShader( "xmod/wallhack" );
 
 	cgs.media.bulletVolumeShader = trap_R_RegisterShaderNoMip( "sprites/bulletVolume" );
 
