@@ -4135,8 +4135,9 @@ static qboolean CG_WorldCoordToScreenCoordFloat( vec3_t point, float *x, float *
 =================
 CG_DrawObjectiveIndicators
 
-Draws world-space icons for active objectives (explosives, constructibles, tanks).
-Icons are shown through walls at reduced alpha, and at full alpha when in line of sight.
+Draws world-space icons for active objectives (explosives, constructibles, tanks,
+capture points). Icons are shown through walls at reduced alpha, and at full alpha
+when in line of sight. Set cg_objectiveIndicatorMaxDist > 0 to limit visibility range.
 =================
 */
 static void CG_DrawObjectiveIndicators( void ) {
@@ -4149,7 +4150,10 @@ static void CG_DrawObjectiveIndicators( void ) {
 	trace_t       trace;
 	int           playerTeam;
 	float         dist;
+	float         maxDist;
 	vec3_t        dir;
+	int           eType;
+	int           objTeam;
 
 	if ( !cg.snap )
 		return;
@@ -4158,23 +4162,64 @@ static void CG_DrawObjectiveIndicators( void ) {
 	if ( playerTeam != TEAM_AXIS && playerTeam != TEAM_ALLIES )
 		return;
 
+	maxDist = cg_objectiveIndicatorMaxDist.value;
+
 	for ( num = 0; num < cg.snap->numEntities; num++ ) {
 		cent = &cg_entities[cg.snap->entities[num].number];
+		eType = cent->currentState.eType;
 
-		if ( cent->currentState.eType != ET_EXPLOSIVE_INDICATOR &&
-		     cent->currentState.eType != ET_CONSTRUCTIBLE_INDICATOR &&
-		     cent->currentState.eType != ET_TANK_INDICATOR ) {
+		if ( eType != ET_EXPLOSIVE_INDICATOR &&
+		     eType != ET_CONSTRUCTIBLE_INDICATOR &&
+		     eType != ET_TANK_INDICATOR &&
+		     eType != ET_WOLF_OBJECTIVE ) {
 			continue;
 		}
+
+		// Distance check
+		VectorSubtract( cent->lerpOrigin, cg.refdef.vieworg, dir );
+		dist = VectorLength( dir );
+		if ( maxDist > 0.f && dist > maxDist )
+			continue;
 
 		if ( !CG_WorldCoordToScreenCoordFloat( cent->lerpOrigin, &sx, &sy ) )
 			continue;
 
-		// Determine icon: enemy objective = attack, friendly = defend
-		if ( (int)cent->currentState.teamNum != playerTeam ) {
-			icon = cgs.media.compassDestroyShader;
+		// Determine icon
+		if ( eType == ET_WOLF_OBJECTIVE ) {
+			// Capture point / checkpoint flag.
+			// s.frame animation states (WCP_ANIM_* from g_team.cpp):
+			//   0 = NOFLAG        - neutral, no team owns it
+			//   1 = RAISE_AXIS    - axis is raising their flag
+			//   2 = RAISE_AMERICAN- allies is raising their flag
+			//   3 = AXIS_RAISED   - axis flag is raised (axis owns it)
+			//   4 = AMERICAN_RAISED - allied flag is raised (allies own it)
+			//   5 = AXIS_TO_AMERICAN - transitioning from axis to allied
+			//   6 = AMERICAN_TO_AXIS - transitioning from allied to axis
+			//   7 = AXIS_FALLING  - axis flag is falling
+			//   8 = AMERICAN_FALLING - allied flag is falling
+			int frame = cent->currentState.frame;
+			if ( frame == 1 || frame == 3 || frame == 7 ) {
+				// Axis owns or is raising/falling their flag
+				objTeam = TEAM_AXIS;
+			} else if ( frame == 2 || frame == 4 || frame == 8 ) {
+				// Allies own or is raising/falling their flag
+				objTeam = TEAM_ALLIES;
+			} else {
+				// Neutral or transitioning — capturable by either team
+				objTeam = TEAM_FREE;
+			}
+			if ( objTeam == playerTeam ) {
+				icon = cgs.media.compassConstructShader;   // defend our flag
+			} else {
+				icon = cgs.media.compassDestroyShader;     // capture / attack
+			}
 		} else {
-			icon = cgs.media.compassConstructShader;
+			// Explosive / constructible / tank
+			if ( (int)cent->currentState.teamNum != playerTeam ) {
+				icon = cgs.media.compassDestroyShader;
+			} else {
+				icon = cgs.media.compassConstructShader;
+			}
 		}
 
 		// Line-of-sight trace
@@ -4186,8 +4231,6 @@ static void CG_DrawObjectiveIndicators( void ) {
 		}
 
 		// Distance-based scale: base 24px, clamped [12, 32]
-		VectorSubtract( cent->lerpOrigin, cg.refdef.vieworg, dir );
-		dist = VectorLength( dir );
 		size = 24.0f * ( 300.0f / ( dist > 1.0f ? dist : 1.0f ) );
 		if ( size < 12.0f ) size = 12.0f;
 		if ( size > 32.0f ) size = 32.0f;

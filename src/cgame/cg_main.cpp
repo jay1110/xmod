@@ -215,6 +215,7 @@ vmCvar_t	cg_animState;
 
 vmCvar_t	cg_drawCompass;
 vmCvar_t	cg_drawObjectiveIndicators;
+vmCvar_t	cg_objectiveIndicatorMaxDist;
 vmCvar_t	cg_drawNotifyText;
 vmCvar_t	cg_quickMessageAlt;
 vmCvar_t	cg_popupLimboMenu;
@@ -494,6 +495,7 @@ cvarTable_t		cvarTable[] = {
 	{ &cg_animState, "cg_animState", "0", CVAR_CHEAT},
 	{ &cg_drawCompass, "cg_drawCompass", "1", CVAR_ARCHIVE },
 	{ &cg_drawObjectiveIndicators, "cg_drawObjectiveIndicators", "1", CVAR_ARCHIVE },
+	{ &cg_objectiveIndicatorMaxDist, "cg_objectiveIndicatorMaxDist", "0", CVAR_ARCHIVE },
 	{ &cg_drawNotifyText, "cg_drawNotifyText", "1", CVAR_ARCHIVE },
 	{ &cg_quickMessageAlt, "cg_quickMessageAlt", "0", CVAR_ARCHIVE },
 	{ &cg_popupLimboMenu, "cg_popupLimboMenu", "1", CVAR_ARCHIVE },

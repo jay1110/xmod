@@ -2391,6 +2391,7 @@ extern vmCvar_t			cg_animState;
 
 extern vmCvar_t			cg_drawCompass;
 extern vmCvar_t			cg_drawObjectiveIndicators;
+extern vmCvar_t			cg_objectiveIndicatorMaxDist;
 extern vmCvar_t			cg_drawNotifyText;
 extern vmCvar_t			cg_quickMessageAlt;
 extern vmCvar_t			cg_popupLimboMenu;
