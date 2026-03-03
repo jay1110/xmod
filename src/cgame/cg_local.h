@@ -1493,6 +1493,9 @@ typedef struct {
 	qhandle_t	compassShader;
 	qhandle_t	compass2Shader;
 
+	qhandle_t	objectiveIndicatorAttackShader;
+	qhandle_t	objectiveIndicatorDefendShader;
+
 	// Rafael
 	qhandle_t	snowShader;
 	qhandle_t	oilParticle;
@@ -2387,6 +2390,7 @@ extern vmCvar_t			cg_movespeed;
 extern vmCvar_t			cg_animState;
 
 extern vmCvar_t			cg_drawCompass;
+extern vmCvar_t			cg_drawObjectiveIndicators;
 extern vmCvar_t			cg_drawNotifyText;
 extern vmCvar_t			cg_quickMessageAlt;
 extern vmCvar_t			cg_popupLimboMenu;

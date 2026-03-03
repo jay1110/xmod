@@ -214,6 +214,7 @@ vmCvar_t	cg_voiceSpriteTime;	// DHM - Nerve
 vmCvar_t	cg_animState;
 
 vmCvar_t	cg_drawCompass;
+vmCvar_t	cg_drawObjectiveIndicators;
 vmCvar_t	cg_drawNotifyText;
 vmCvar_t	cg_quickMessageAlt;
 vmCvar_t	cg_popupLimboMenu;
@@ -492,6 +493,7 @@ cvarTable_t		cvarTable[] = {
 	{ &cg_movespeed, "g_movespeed", "76", 0 }, // actual movespeed of player
 	{ &cg_animState, "cg_animState", "0", CVAR_CHEAT},
 	{ &cg_drawCompass, "cg_drawCompass", "1", CVAR_ARCHIVE },
+	{ &cg_drawObjectiveIndicators, "cg_drawObjectiveIndicators", "1", CVAR_ARCHIVE },
 	{ &cg_drawNotifyText, "cg_drawNotifyText", "1", CVAR_ARCHIVE },
 	{ &cg_quickMessageAlt, "cg_quickMessageAlt", "0", CVAR_ARCHIVE },
 	{ &cg_popupLimboMenu, "cg_popupLimboMenu", "1", CVAR_ARCHIVE },
@@ -1670,6 +1672,9 @@ static void CG_RegisterGraphics( void ) {
 	cgs.media.compass2Shader =				trap_R_RegisterShaderNoMip( "gfx/2d/compass2.tga" );
 	cgs.media.compassShader =				trap_R_RegisterShaderNoMip( "gfx/2d/compass.tga" );
 	cgs.media.buddyShader =					trap_R_RegisterShaderNoMip( "sprites/buddy.tga" );
+
+	cgs.media.objectiveIndicatorAttackShader = trap_R_RegisterShaderNoMip( "sprites/obj_attack" );
+	cgs.media.objectiveIndicatorDefendShader = trap_R_RegisterShaderNoMip( "sprites/obj_defend" );
 
 	for ( i = 0 ; i < NUM_CROSSHAIRS ; i++ ) {
 		cgs.media.crosshairShader[i] = trap_R_RegisterShader( va("gfx/2d/crosshair%c", 'a'+i) );

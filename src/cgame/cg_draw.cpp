@@ -4093,6 +4093,119 @@ static void CG_DrawFlashBlend( void ) {
 	CG_DrawFlashDamage();
 }
 
+/*
+=================
+CG_WorldCoordToScreenCoordFloat
+
+Projects a 3D world point to 2D screen coordinates.
+Returns qtrue if the point is in front of the camera.
+=================
+*/
+static qboolean CG_WorldCoordToScreenCoordFloat( vec3_t point, float *x, float *y ) {
+	vec3_t trans;
+	float  xc, yc;
+	float  px, py;
+	float  z;
+
+	px = tanf( DEG2RAD( cg.refdef.fov_x ) * 0.5f );
+	py = tanf( DEG2RAD( cg.refdef.fov_y ) * 0.5f );
+
+	VectorSubtract( point, cg.refdef.vieworg, trans );
+
+	xc = 640.0f * 0.5f;
+	yc = 480.0f * 0.5f;
+
+	z = DotProduct( trans, cg.refdef.viewaxis[0] );
+	if ( z < 0.1f )
+		return qfalse;
+
+	px *= z;
+	py *= z;
+	if ( px == 0.f || py == 0.f )
+		return qfalse;
+
+	*x = xc - ( DotProduct( trans, cg.refdef.viewaxis[1] ) * xc ) / px;
+	*y = yc - ( DotProduct( trans, cg.refdef.viewaxis[2] ) * yc ) / py;
+	*x = Ccg_WideX( *x );
+
+	return qtrue;
+}
+
+/*
+=================
+CG_DrawObjectiveIndicators
+
+Draws world-space icons for active objectives (explosives, constructibles, tanks).
+Icons are shown through walls at reduced alpha, and at full alpha when in line of sight.
+=================
+*/
+static void CG_DrawObjectiveIndicators( void ) {
+	int           num;
+	centity_t     *cent;
+	float         sx, sy;
+	float         alpha, size;
+	vec4_t        color;
+	qhandle_t     icon;
+	trace_t       trace;
+	int           playerTeam;
+	float         dist;
+	vec3_t        dir;
+
+	if ( !cg.snap )
+		return;
+
+	playerTeam = cg.snap->ps.persistant[PERS_TEAM];
+	if ( playerTeam != TEAM_AXIS && playerTeam != TEAM_ALLIES )
+		return;
+
+	for ( num = 0; num < cg.snap->numEntities; num++ ) {
+		cent = &cg_entities[cg.snap->entities[num].number];
+
+		if ( cent->currentState.eType != ET_EXPLOSIVE_INDICATOR &&
+		     cent->currentState.eType != ET_CONSTRUCTIBLE_INDICATOR &&
+		     cent->currentState.eType != ET_TANK_INDICATOR ) {
+			continue;
+		}
+
+		if ( !CG_WorldCoordToScreenCoordFloat( cent->lerpOrigin, &sx, &sy ) )
+			continue;
+
+		// Determine icon: enemy objective = attack, friendly = defend
+		if ( (int)cent->currentState.teamNum != playerTeam ) {
+			icon = cgs.media.compassDestroyShader;
+		} else {
+			icon = cgs.media.compassConstructShader;
+		}
+
+		// Line-of-sight trace
+		CG_Trace( &trace, cg.refdef.vieworg, NULL, NULL, cent->lerpOrigin, -1, CONTENTS_SOLID );
+		if ( trace.fraction >= 1.0f ) {
+			alpha = 1.0f;
+		} else {
+			alpha = 0.35f;
+		}
+
+		// Distance-based scale: base 24px, clamped [12, 32]
+		VectorSubtract( cent->lerpOrigin, cg.refdef.vieworg, dir );
+		dist = VectorLength( dir );
+		size = 24.0f * ( 300.0f / ( dist > 1.0f ? dist : 1.0f ) );
+		if ( size < 12.0f ) size = 12.0f;
+		if ( size > 32.0f ) size = 32.0f;
+
+		// Subtle pulse
+		alpha *= 0.8f + 0.2f * sinf( cg.time * 0.003f );
+
+		color[0] = 1.0f;
+		color[1] = 1.0f;
+		color[2] = 1.0f;
+		color[3] = alpha;
+
+		trap_R_SetColor( color );
+		CG_DrawPic( sx - size * 0.5f, sy - size * 0.5f, size, size, icon );
+		trap_R_SetColor( NULL );
+	}
+}
+
 // NERVE - SMF
 /*
 =================
@@ -5366,6 +5479,12 @@ static void CG_Draw2D( void ) {
 
 		if ( cg_drawCompass.integer ) {
 			CG_DrawNewCompass();
+		}
+
+		if ( cg_drawObjectiveIndicators.integer &&
+		     cg.snap->ps.persistant[PERS_TEAM] != TEAM_SPECTATOR &&
+		     ( cg.snap->ps.stats[STAT_HEALTH] > 0 || (cg.snap->ps.pm_flags & PMF_FOLLOW) ) ) {
+			CG_DrawObjectiveIndicators();
 		}
 
 		CG_DrawObjectiveInfo();
