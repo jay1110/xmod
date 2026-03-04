@@ -4233,13 +4233,15 @@ static void CG_DrawObjectiveIndicators( void ) {
 				icon = cgs.media.objectiveIndicatorDestroyShader;   // blow it up
 			}
 		} else {
-			// ET_EXPLOSIVE_INDICATOR: dynamite planted somewhere
+			// ET_EXPLOSIVE_INDICATOR: teamNum = team that OWNS the targeted constructible.
+			// If it's ours → enemy placed dynamite on our objective → DEFUSE it.
+			// If it's theirs → our team placed dynamite on their objective → press the attack.
 			if ( (int)cent->currentState.teamNum == playerTeam ) {
-				// Our team planted it — we're attacking with it
-				icon = cgs.media.objectiveIndicatorAttackShader;
+				// Enemy placed dynamite on our objective — defuse it
+				icon = cgs.media.objectiveIndicatorDefendShader;
 			} else {
-				// Enemy planted it on our objective — defuse it
-				icon = cgs.media.objectiveIndicatorDestroyShader;
+				// Our team placed dynamite on enemy objective — keep attacking
+				icon = cgs.media.objectiveIndicatorAttackShader;
 			}
 		}
 
@@ -4247,10 +4249,10 @@ static void CG_DrawObjectiveIndicators( void ) {
 		CG_Trace( &trace, cg.refdef.vieworg, NULL, NULL, cent->lerpOrigin, -1, CONTENTS_SOLID );
 		alpha = ( trace.fraction >= 1.0f ) ? 1.0f : 0.35f;
 
-		// Distance-based scale: base 24px, clamped [12, 32]
-		size = 24.0f * ( 300.0f / ( dist > 1.0f ? dist : 1.0f ) );
-		if ( size < 12.0f ) size = 12.0f;
-		if ( size > 32.0f ) size = 32.0f;
+		// Distance-based scale: base 18px, clamped [10, 24]
+		size = 18.0f * ( 300.0f / ( dist > 1.0f ? dist : 1.0f ) );
+		if ( size < 10.0f ) size = 10.0f;
+		if ( size > 24.0f ) size = 24.0f;
 
 		// Subtle pulse
 		alpha *= 0.8f + 0.2f * sinf( cg.time * 0.003f );
@@ -4264,16 +4266,18 @@ static void CG_DrawObjectiveIndicators( void ) {
 		CG_DrawPic( sx - size * 0.5f, sy - size * 0.5f, size, size, icon );
 		trap_R_SetColor( NULL );
 
-		// Distance label below the icon (in meters; 1m ≈ 52.5 game units)
-		Com_sprintf( distStr, sizeof( distStr ), "%im", (int)( dist / OBJIND_UNITS_PER_METER + 0.5f ) );
-		textScale = size * 0.011f;   // scale text proportionally to icon
-		if ( textScale < OBJIND_DIST_TEXT_MIN ) textScale = OBJIND_DIST_TEXT_MIN;
-		if ( textScale > OBJIND_DIST_TEXT_MAX ) textScale = OBJIND_DIST_TEXT_MAX;
-		textW = (float)CG_Text_Width( distStr, textScale, 0 );
-		color[3] = alpha;
-		trap_R_SetColor( color );
-		CG_Text_Paint( sx - textW * 0.5f, sy + size * 0.5f + 2.0f, textScale, color, distStr, 0, 0, 0 );
-		trap_R_SetColor( NULL );
+		// Distance label below the icon — only when cvar >= 2 (in meters; 1m ≈ 52.5 game units)
+		if ( cg_drawObjectiveIndicators.integer >= 2 ) {
+			Com_sprintf( distStr, sizeof( distStr ), "%im", (int)( dist / OBJIND_UNITS_PER_METER + 0.5f ) );
+			textScale = size * 0.011f;   // scale text proportionally to icon
+			if ( textScale < OBJIND_DIST_TEXT_MIN ) textScale = OBJIND_DIST_TEXT_MIN;
+			if ( textScale > OBJIND_DIST_TEXT_MAX ) textScale = OBJIND_DIST_TEXT_MAX;
+			textW = (float)CG_Text_Width( distStr, textScale, 0 );
+			color[3] = alpha;
+			trap_R_SetColor( color );
+			CG_Text_Paint( sx - textW * 0.5f, sy + size * 0.5f + 2.0f, textScale, color, distStr, 0, 0, 0 );
+			trap_R_SetColor( NULL );
+		}
 	}
 }
 

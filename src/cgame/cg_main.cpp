@@ -494,7 +494,7 @@ cvarTable_t		cvarTable[] = {
 	{ &cg_movespeed, "g_movespeed", "76", 0 }, // actual movespeed of player
 	{ &cg_animState, "cg_animState", "0", CVAR_CHEAT},
 	{ &cg_drawCompass, "cg_drawCompass", "1", CVAR_ARCHIVE },
-	{ &cg_drawObjectiveIndicators, "cg_drawObjectiveIndicators", "1", CVAR_ARCHIVE },
+	{ &cg_drawObjectiveIndicators, "cg_drawObjectiveIndicators", "2", CVAR_ARCHIVE },
 	{ &cg_objectiveIndicatorMaxDist, "cg_objectiveIndicatorMaxDist", "0", CVAR_ARCHIVE },
 	{ &cg_drawNotifyText, "cg_drawNotifyText", "1", CVAR_ARCHIVE },
 	{ &cg_quickMessageAlt, "cg_quickMessageAlt", "0", CVAR_ARCHIVE },
