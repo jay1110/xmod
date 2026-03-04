@@ -4140,6 +4140,10 @@ capture points). Icons are shown through walls at reduced alpha, and at full alp
 when in line of sight. Set cg_objectiveIndicatorMaxDist > 0 to limit visibility range.
 =================
 */
+#define OBJIND_UNITS_PER_METER   52.5f
+#define OBJIND_DIST_TEXT_MIN     0.12f
+#define OBJIND_DIST_TEXT_MAX     0.20f
+
 static void CG_DrawObjectiveIndicators( void ) {
 	int           num;
 	centity_t     *cent;
@@ -4154,6 +4158,9 @@ static void CG_DrawObjectiveIndicators( void ) {
 	vec3_t        dir;
 	int           eType;
 	int           objTeam;
+	char          distStr[16];
+	float         textScale;
+	float         textW;
 
 	if ( !cg.snap )
 		return;
@@ -4186,59 +4193,59 @@ static void CG_DrawObjectiveIndicators( void ) {
 		if ( !CG_WorldCoordToScreenCoordFloat( cent->lerpOrigin, &sx, &sy ) )
 			continue;
 
-		// Determine icon
+		// Determine icon per objective type
 		if ( eType == ET_WOLF_OBJECTIVE || eType == ET_TRAP ) {
-			// Capture point / checkpoint flag.
-			// ET_WOLF_OBJECTIVE: wolf objective state marker (team in s.teamNum)
-			// ET_TRAP: Capture-and-Hold checkpoint flag (WCP_ANIM_* in s.frame):
-			//   0 = NOFLAG        - neutral, no team owns it
-			//   1 = RAISE_AXIS    - axis is raising their flag
-			//   2 = RAISE_AMERICAN- allies is raising their flag
-			//   3 = AXIS_RAISED   - axis flag is raised (axis owns it)
-			//   4 = AMERICAN_RAISED - allied flag is raised (allies own it)
-			//   5 = AXIS_TO_AMERICAN - transitioning from axis to allied
-			//   6 = AMERICAN_TO_AXIS - transitioning from allied to axis
-			//   7 = AXIS_FALLING  - axis flag is falling
-			//   8 = AMERICAN_FALLING - allied flag is falling
+			// Capture-and-Hold checkpoint flag. WCP_ANIM_* states in s.frame:
+			//   0 = NOFLAG (neutral)   1/3/7 = axis owns   2/4/8 = allies owns
+			//   5/6 = transitioning (both can capture)
 			int frame = cent->currentState.frame;
 			if ( frame == 1 || frame == 3 || frame == 7 ) {
-				// Axis owns or is raising/falling their flag
 				objTeam = TEAM_AXIS;
 			} else if ( frame == 2 || frame == 4 || frame == 8 ) {
-				// Allies own or is raising/falling their flag
 				objTeam = TEAM_ALLIES;
 			} else {
-				// Neutral or transitioning — capturable by either team
-				objTeam = TEAM_FREE;
+				objTeam = TEAM_FREE;   // neutral / transitioning
 			}
-			if ( objTeam == playerTeam ) {
-				icon = cgs.media.compassConstructShader;   // defend our flag
+			if ( objTeam == TEAM_FREE ) {
+				icon = cgs.media.objectiveIndicatorRegroupShader;  // capture it
+			} else if ( objTeam == playerTeam ) {
+				icon = cgs.media.objectiveIndicatorDefendShader;   // defend ours
 			} else {
-				icon = cgs.media.compassDestroyShader;     // capture / attack
+				icon = cgs.media.objectiveIndicatorAttackShader;   // take theirs
 			}
 		} else if ( eType == ET_TANK_INDICATOR_DEAD ) {
-			// Destroyed tank: same-team engineers can repair it.
+			// Destroyed tank: only relevant to same-team engineers (repair it).
 			if ( (int)cent->currentState.teamNum != playerTeam ) {
-				// Enemy tank is destroyed — nothing actionable, skip indicator
-				continue;
+				continue;  // nothing actionable for the enemy
 			}
-			icon = cgs.media.compassConstructShader;   // repair/rebuild
-		} else {
-			// Explosive / constructible / live tank
-			if ( (int)cent->currentState.teamNum != playerTeam ) {
-				icon = cgs.media.compassDestroyShader;
+			icon = cgs.media.objectiveIndicatorConstructShader;  // repair/rebuild
+		} else if ( eType == ET_TANK_INDICATOR ) {
+			if ( (int)cent->currentState.teamNum == playerTeam ) {
+				icon = cgs.media.objectiveIndicatorEscortShader;   // escort our tank
 			} else {
-				icon = cgs.media.compassConstructShader;
+				icon = cgs.media.objectiveIndicatorDestroyShader;  // destroy enemy tank
+			}
+		} else if ( eType == ET_CONSTRUCTIBLE_INDICATOR ) {
+			if ( (int)cent->currentState.teamNum == playerTeam ||
+			     (int)cent->currentState.teamNum == 3 /* both teams */ ) {
+				icon = cgs.media.objectiveIndicatorConstructShader; // build it
+			} else {
+				icon = cgs.media.objectiveIndicatorDestroyShader;   // blow it up
+			}
+		} else {
+			// ET_EXPLOSIVE_INDICATOR: dynamite planted somewhere
+			if ( (int)cent->currentState.teamNum == playerTeam ) {
+				// Our team planted it — we're attacking with it
+				icon = cgs.media.objectiveIndicatorAttackShader;
+			} else {
+				// Enemy planted it on our objective — defuse it
+				icon = cgs.media.objectiveIndicatorDestroyShader;
 			}
 		}
 
-		// Line-of-sight trace
+		// Line-of-sight trace: full alpha if visible, reduced if through wall
 		CG_Trace( &trace, cg.refdef.vieworg, NULL, NULL, cent->lerpOrigin, -1, CONTENTS_SOLID );
-		if ( trace.fraction >= 1.0f ) {
-			alpha = 1.0f;
-		} else {
-			alpha = 0.35f;
-		}
+		alpha = ( trace.fraction >= 1.0f ) ? 1.0f : 0.35f;
 
 		// Distance-based scale: base 24px, clamped [12, 32]
 		size = 24.0f * ( 300.0f / ( dist > 1.0f ? dist : 1.0f ) );
@@ -4255,6 +4262,17 @@ static void CG_DrawObjectiveIndicators( void ) {
 
 		trap_R_SetColor( color );
 		CG_DrawPic( sx - size * 0.5f, sy - size * 0.5f, size, size, icon );
+		trap_R_SetColor( NULL );
+
+		// Distance label below the icon (in meters; 1m ≈ 52.5 game units)
+		Com_sprintf( distStr, sizeof( distStr ), "%im", (int)( dist / OBJIND_UNITS_PER_METER + 0.5f ) );
+		textScale = size * 0.011f;   // scale text proportionally to icon
+		if ( textScale < OBJIND_DIST_TEXT_MIN ) textScale = OBJIND_DIST_TEXT_MIN;
+		if ( textScale > OBJIND_DIST_TEXT_MAX ) textScale = OBJIND_DIST_TEXT_MAX;
+		textW = (float)CG_Text_Width( distStr, textScale, 0 );
+		color[3] = alpha;
+		trap_R_SetColor( color );
+		CG_Text_Paint( sx - textW * 0.5f, sy + size * 0.5f + 2.0f, textScale, color, distStr, 0, 0, 0 );
 		trap_R_SetColor( NULL );
 	}
 }

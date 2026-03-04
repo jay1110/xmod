@@ -1675,8 +1675,12 @@ static void CG_RegisterGraphics( void ) {
 	cgs.media.compassShader =				trap_R_RegisterShaderNoMip( "gfx/2d/compass.tga" );
 	cgs.media.buddyShader =					trap_R_RegisterShaderNoMip( "sprites/buddy.tga" );
 
-	cgs.media.objectiveIndicatorAttackShader = trap_R_RegisterShaderNoMip( "sprites/obj_attack" );
-	cgs.media.objectiveIndicatorDefendShader = trap_R_RegisterShaderNoMip( "sprites/obj_defend" );
+	cgs.media.objectiveIndicatorAttackShader   = trap_R_RegisterShaderNoMip( "sprites/obj_attack" );
+	cgs.media.objectiveIndicatorDefendShader   = trap_R_RegisterShaderNoMip( "sprites/obj_defend" );
+	cgs.media.objectiveIndicatorConstructShader = trap_R_RegisterShaderNoMip( "sprites/obj_construct" );
+	cgs.media.objectiveIndicatorDestroyShader  = trap_R_RegisterShaderNoMip( "sprites/obj_destroy" );
+	cgs.media.objectiveIndicatorEscortShader   = trap_R_RegisterShaderNoMip( "sprites/obj_escort" );
+	cgs.media.objectiveIndicatorRegroupShader  = trap_R_RegisterShaderNoMip( "sprites/obj_regroup" );
 
 	for ( i = 0 ; i < NUM_CROSSHAIRS ; i++ ) {
 		cgs.media.crosshairShader[i] = trap_R_RegisterShader( va("gfx/2d/crosshair%c", 'a'+i) );

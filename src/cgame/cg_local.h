@@ -1495,6 +1495,10 @@ typedef struct {
 
 	qhandle_t	objectiveIndicatorAttackShader;
 	qhandle_t	objectiveIndicatorDefendShader;
+	qhandle_t	objectiveIndicatorConstructShader;
+	qhandle_t	objectiveIndicatorDestroyShader;
+	qhandle_t	objectiveIndicatorEscortShader;
+	qhandle_t	objectiveIndicatorRegroupShader;
 
 	// Rafael
 	qhandle_t	snowShader;
