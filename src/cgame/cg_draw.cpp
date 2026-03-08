@@ -4272,11 +4272,9 @@ static void CG_DrawObjectiveIndicators( void ) {
 			textScale = size * 0.011f;   // scale text proportionally to icon
 			if ( textScale < OBJIND_DIST_TEXT_MIN ) textScale = OBJIND_DIST_TEXT_MIN;
 			if ( textScale > OBJIND_DIST_TEXT_MAX ) textScale = OBJIND_DIST_TEXT_MAX;
-			textW = (float)CG_Text_Width( distStr, textScale, 0 );
+			textW = (float)CG_Text_Width_Ext( distStr, textScale, 0, &cgs.media.limboFont2 );
 			color[3] = alpha;
-			trap_R_SetColor( color );
-			CG_Text_Paint( sx - textW * 0.5f, sy + size * 0.5f + 2.0f, textScale, color, distStr, 0, 0, 0 );
-			trap_R_SetColor( NULL );
+			CG_Text_Paint_Ext( sx - textW * 0.5f, sy + size * 0.5f + 2.0f, textScale, textScale, color, distStr, 0, 0, ITEM_TEXTSTYLE_SHADOWED, &cgs.media.limboFont2 );
 		}
 	}
 }
@@ -4753,6 +4751,59 @@ static void CG_DrawNewCompass( void ) {
 		}
 
 		CG_DrawCompassIcon( basex, basey, basew, baseh, cg.predictedPlayerState.origin, ent->pos.trBase, cgs.media.buddyShader );
+	}
+
+	// Objective indicator icons on compass
+	if ( cg_drawObjectiveIndicators.integer ) {
+		int playerTeam = cg.predictedPlayerState.persistant[PERS_TEAM];
+		if ( playerTeam == TEAM_AXIS || playerTeam == TEAM_ALLIES ) {
+			for ( int i = 0; i < snap->numEntities; i++ ) {
+				entityState_t *ent2  = &snap->entities[i];
+				centity_t     *cent2 = &cg_entities[ent2->number];
+				qhandle_t      icon  = 0;
+				int            eTeam = (int)ent2->teamNum;
+
+				switch ( ent2->eType ) {
+				case ET_EXPLOSIVE_INDICATOR:
+					icon = ( eTeam == playerTeam )
+					       ? cgs.media.objectiveIndicatorDefendShader
+					       : cgs.media.objectiveIndicatorAttackShader;
+					break;
+				case ET_CONSTRUCTIBLE_INDICATOR:
+					icon = ( eTeam == playerTeam || eTeam == 3 )
+					       ? cgs.media.objectiveIndicatorConstructShader
+					       : cgs.media.objectiveIndicatorDestroyShader;
+					break;
+				case ET_TANK_INDICATOR:
+					icon = ( eTeam == playerTeam )
+					       ? cgs.media.objectiveIndicatorEscortShader
+					       : cgs.media.objectiveIndicatorDestroyShader;
+					break;
+				case ET_TANK_INDICATOR_DEAD:
+					if ( eTeam == playerTeam )
+						icon = cgs.media.objectiveIndicatorConstructShader;
+					break;
+				case ET_WOLF_OBJECTIVE:
+				case ET_TRAP:
+				{
+					int frame = ent2->frame;
+					int objTeam;
+					if ( frame == 1 || frame == 3 || frame == 7 )      objTeam = TEAM_AXIS;
+					else if ( frame == 2 || frame == 4 || frame == 8 ) objTeam = TEAM_ALLIES;
+					else                                                objTeam = TEAM_FREE;
+					if ( objTeam == TEAM_FREE )         icon = cgs.media.objectiveIndicatorRegroupShader;
+					else if ( objTeam == playerTeam )   icon = cgs.media.objectiveIndicatorDefendShader;
+					else                                icon = cgs.media.objectiveIndicatorAttackShader;
+					break;
+				}
+				default:
+					break;
+				}
+
+				if ( icon )
+					CG_DrawCompassIcon( basex, basey, basew, baseh, cg.predictedPlayerState.origin, cent2->lerpOrigin, icon );
+			}
+		}
 	}
 }
 
