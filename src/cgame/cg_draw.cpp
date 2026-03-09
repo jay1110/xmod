@@ -4198,6 +4198,7 @@ static void CG_DrawObjectiveIndicators( void ) {
 			// Capture-and-Hold checkpoint flag. WCP_ANIM_* states in s.frame:
 			//   0 = NOFLAG (neutral)   1/3/7 = axis owns   2/4/8 = allies owns
 			//   5/6 = transitioning (both can capture)
+			// Icon logic matches ET:Legacy: own team holds it → regroup; enemy holds → defend; neutral → regroup
 			int frame = cent->currentState.frame;
 			if ( frame == 1 || frame == 3 || frame == 7 ) {
 				objTeam = TEAM_AXIS;
@@ -4207,11 +4208,11 @@ static void CG_DrawObjectiveIndicators( void ) {
 				objTeam = TEAM_FREE;   // neutral / transitioning
 			}
 			if ( objTeam == TEAM_FREE ) {
-				icon = cgs.media.objectiveIndicatorRegroupShader;  // capture it
+				icon = cgs.media.objectiveIndicatorRegroupShader;  // neutral: go capture
 			} else if ( objTeam == playerTeam ) {
-				icon = cgs.media.objectiveIndicatorDefendShader;   // defend ours
+				icon = cgs.media.objectiveIndicatorRegroupShader;  // ours: rally/hold it
 			} else {
-				icon = cgs.media.objectiveIndicatorAttackShader;   // take theirs
+				icon = cgs.media.objectiveIndicatorDefendShader;   // enemy holds: go fight for it
 			}
 		} else if ( eType == ET_TANK_INDICATOR_DEAD ) {
 			// Destroyed tank: only relevant to same-team engineers (repair it).
@@ -4274,7 +4275,8 @@ static void CG_DrawObjectiveIndicators( void ) {
 			if ( textScale > OBJIND_DIST_TEXT_MAX ) textScale = OBJIND_DIST_TEXT_MAX;
 			textW = (float)CG_Text_Width_Ext( distStr, textScale, 0, &cgs.media.limboFont2 );
 			color[3] = alpha;
-			CG_Text_Paint_Ext( sx - textW * 0.5f, sy + size * 0.5f + 2.0f, textScale, textScale, color, distStr, 0, 0, ITEM_TEXTSTYLE_SHADOWED, &cgs.media.limboFont2 );
+			// +8px gap below icon bottom so text doesn't overlap with the icon
+			CG_Text_Paint_Ext( sx - textW * 0.5f, sy + size * 0.5f + 8.0f, textScale, textScale, color, distStr, 0, 0, ITEM_TEXTSTYLE_SHADOWED, &cgs.media.limboFont2 );
 		}
 	}
 }
@@ -4791,9 +4793,9 @@ static void CG_DrawNewCompass( void ) {
 					if ( frame == 1 || frame == 3 || frame == 7 )      objTeam = TEAM_AXIS;
 					else if ( frame == 2 || frame == 4 || frame == 8 ) objTeam = TEAM_ALLIES;
 					else                                                objTeam = TEAM_FREE;
-					if ( objTeam == TEAM_FREE )         icon = cgs.media.objectiveIndicatorRegroupShader;
-					else if ( objTeam == playerTeam )   icon = cgs.media.objectiveIndicatorDefendShader;
-					else                                icon = cgs.media.objectiveIndicatorAttackShader;
+					// ET:Legacy logic: own team holds → regroup; enemy holds → defend; neutral → regroup
+					if ( objTeam == TEAM_FREE || objTeam == playerTeam ) icon = cgs.media.objectiveIndicatorRegroupShader;
+					else                                                  icon = cgs.media.objectiveIndicatorDefendShader;
 					break;
 				}
 				default:
