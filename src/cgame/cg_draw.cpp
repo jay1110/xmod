@@ -4198,7 +4198,6 @@ static void CG_DrawObjectiveIndicators( void ) {
 			// Capture-and-Hold checkpoint flag. WCP_ANIM_* states in s.frame:
 			//   0 = NOFLAG (neutral)   1/3/7 = axis owns   2/4/8 = allies owns
 			//   5/6 = transitioning (both can capture)
-			// Icon logic matches ET:Legacy: own team holds it → regroup; enemy holds → defend; neutral → regroup
 			int frame = cent->currentState.frame;
 			if ( frame == 1 || frame == 3 || frame == 7 ) {
 				objTeam = TEAM_AXIS;
@@ -4210,9 +4209,9 @@ static void CG_DrawObjectiveIndicators( void ) {
 			if ( objTeam == TEAM_FREE ) {
 				icon = cgs.media.objectiveIndicatorRegroupShader;  // neutral: go capture
 			} else if ( objTeam == playerTeam ) {
-				icon = cgs.media.objectiveIndicatorRegroupShader;  // ours: rally/hold it
+				icon = cgs.media.objectiveIndicatorDefendShader;   // ours: defend it
 			} else {
-				icon = cgs.media.objectiveIndicatorDefendShader;   // enemy holds: go fight for it
+				icon = cgs.media.objectiveIndicatorAttackShader;   // enemy holds: go take it
 			}
 		} else if ( eType == ET_TANK_INDICATOR_DEAD ) {
 			// Destroyed tank: only relevant to same-team engineers (repair it).
@@ -4227,11 +4226,10 @@ static void CG_DrawObjectiveIndicators( void ) {
 				icon = cgs.media.objectiveIndicatorDestroyShader;  // destroy enemy tank
 			}
 		} else if ( eType == ET_CONSTRUCTIBLE_INDICATOR ) {
-			if ( (int)cent->currentState.teamNum == playerTeam ||
-			     (int)cent->currentState.teamNum == 3 /* both teams */ ) {
-				icon = cgs.media.objectiveIndicatorConstructShader; // build it
+			if ( (int)cent->currentState.teamNum == playerTeam ) {
+				icon = cgs.media.objectiveIndicatorConstructShader; // build/repair ours
 			} else {
-				icon = cgs.media.objectiveIndicatorDestroyShader;   // blow it up
+				icon = cgs.media.objectiveIndicatorDestroyShader;   // blow up theirs
 			}
 		} else {
 			// ET_EXPLOSIVE_INDICATOR: teamNum = team that OWNS the targeted constructible.
@@ -4772,7 +4770,7 @@ static void CG_DrawNewCompass( void ) {
 					       : cgs.media.objectiveIndicatorAttackShader;
 					break;
 				case ET_CONSTRUCTIBLE_INDICATOR:
-					icon = ( eTeam == playerTeam || eTeam == 3 )
+					icon = ( eTeam == playerTeam )
 					       ? cgs.media.objectiveIndicatorConstructShader
 					       : cgs.media.objectiveIndicatorDestroyShader;
 					break;
@@ -4793,9 +4791,9 @@ static void CG_DrawNewCompass( void ) {
 					if ( frame == 1 || frame == 3 || frame == 7 )      objTeam = TEAM_AXIS;
 					else if ( frame == 2 || frame == 4 || frame == 8 ) objTeam = TEAM_ALLIES;
 					else                                                objTeam = TEAM_FREE;
-					// ET:Legacy logic: own team holds → regroup; enemy holds → defend; neutral → regroup
-					if ( objTeam == TEAM_FREE || objTeam == playerTeam ) icon = cgs.media.objectiveIndicatorRegroupShader;
-					else                                                  icon = cgs.media.objectiveIndicatorDefendShader;
+					if ( objTeam == TEAM_FREE )         icon = cgs.media.objectiveIndicatorRegroupShader;
+					else if ( objTeam == playerTeam )   icon = cgs.media.objectiveIndicatorDefendShader;
+					else                                icon = cgs.media.objectiveIndicatorAttackShader;
 					break;
 				}
 				default:
