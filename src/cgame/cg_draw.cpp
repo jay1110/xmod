@@ -4133,16 +4133,114 @@ static qboolean CG_WorldCoordToScreenCoordFloat( vec3_t point, float *x, float *
 
 /*
 =================
-CG_DrawObjectiveIndicators
-
-Draws world-space icons for active objectives (explosives, constructibles, tanks,
-capture points). Icons are shown through walls at reduced alpha, and at full alpha
-when in line of sight. Set cg_objectiveIndicatorMaxDist > 0 to limit visibility range.
+CG_DrawObjectiveIndicators / CG_WorldCoordToScreenCoordForObjective constants
 =================
 */
 #define OBJIND_UNITS_PER_METER   52.5f
 #define OBJIND_DIST_TEXT_MIN     0.12f
 #define OBJIND_DIST_TEXT_MAX     0.20f
+#define OBJIND_EDGE_MARGIN       18.0f  // px from screen border for edge-pinned indicators
+
+/*
+=================
+CG_WorldCoordToScreenCoordForObjective
+
+Like CG_WorldCoordToScreenCoordFloat but also handles objectives that are behind
+the camera:
+ - In front (z > 0):  normal projection, result clamped to screen edge with margin.
+ - Behind  (z <= 0):  the 2D screen-plane direction to the objective is used to
+                      find the screen-edge intersection, so the icon always appears
+                      on the correct edge (e.g. behind-left → left edge).
+Sets *onEdge = qtrue when the result was clamped/pinned to a screen border.
+When *onEdge is true the caller should skip distance text (it would be misleading
+on an edge arrow).
+Returns qfalse only when the vector is degenerate (player standing inside entity).
+=================
+*/
+
+static qboolean CG_WorldCoordToScreenCoordForObjective( vec3_t point, float *x, float *y, qboolean *onEdge ) {
+	vec3_t trans;
+	float  xc, yc, screenW;
+	float  px, py, z;
+
+	px = tanf( DEG2RAD( cg.refdef.fov_x ) * 0.5f );
+	py = tanf( DEG2RAD( cg.refdef.fov_y ) * 0.5f );
+	if ( px == 0.f || py == 0.f )
+		return qfalse;
+
+	VectorSubtract( point, cg.refdef.vieworg, trans );
+	if ( VectorLength( trans ) < 0.1f )
+		return qfalse;
+
+	xc      = 640.0f * 0.5f;
+	yc      = 480.0f * 0.5f;
+	screenW = Ccg_WideX( 640.0f );
+	*onEdge = qfalse;
+
+	z = DotProduct( trans, cg.refdef.viewaxis[0] );
+
+	if ( z > 0.1f ) {
+		// Normal in-front projection
+		*x = Ccg_WideX( xc - ( DotProduct( trans, cg.refdef.viewaxis[1] ) * xc ) / ( px * z ) );
+		*y = yc           - ( DotProduct( trans, cg.refdef.viewaxis[2] ) * yc ) / ( py * z );
+	} else {
+		// Behind camera: derive direction from the 2D screen-plane components.
+		// viewaxis[1] points LEFT, viewaxis[2] points UP.
+		// Map to screen-right/down: dx = -(left), dy = -(up)
+		float s   = DotProduct( trans, cg.refdef.viewaxis[1] );
+		float u   = DotProduct( trans, cg.refdef.viewaxis[2] );
+		float dx  = -s;
+		float dy  = -u;
+		float len = sqrtf( dx * dx + dy * dy );
+
+		if ( len < 0.01f ) {
+			// Directly behind with no lateral offset: default to bottom-centre
+			*x = screenW * 0.5f;
+			*y = 480.0f - OBJIND_EDGE_MARGIN;
+			*onEdge = qtrue;
+			return qtrue;
+		}
+
+		dx /= len;
+		dy /= len;
+
+		// Find the t that first hits the horizontal or vertical screen edge
+		float hHalf = screenW * 0.5f - OBJIND_EDGE_MARGIN;
+		float vHalf = yc - OBJIND_EDGE_MARGIN;
+		float tx    = ( fabsf( dx ) > 0.001f ) ? hHalf / fabsf( dx ) : 1e9f;
+		float ty    = ( fabsf( dy ) > 0.001f ) ? vHalf / fabsf( dy ) : 1e9f;
+		float t     = ( tx < ty ) ? tx : ty;
+
+		*x = screenW * 0.5f + t * dx;
+		*y = 480.0f  * 0.5f + t * dy;
+		*onEdge = qtrue;
+		return qtrue;
+	}
+
+	// Clamp in-front coords that project outside the viewport
+	{
+		float xmin = OBJIND_EDGE_MARGIN, xmax = screenW - OBJIND_EDGE_MARGIN;
+		float ymin = OBJIND_EDGE_MARGIN, ymax = 480.0f - OBJIND_EDGE_MARGIN;
+		if ( *x < xmin ) { *x = xmin; *onEdge = qtrue; }
+		if ( *x > xmax ) { *x = xmax; *onEdge = qtrue; }
+		if ( *y < ymin ) { *y = ymin; *onEdge = qtrue; }
+		if ( *y > ymax ) { *y = ymax; *onEdge = qtrue; }
+	}
+
+	return qtrue;
+}
+
+/*
+=================
+CG_DrawObjectiveIndicators
+
+Draws world-space icons for active objectives (explosives, constructibles, tanks,
+capture points). Icons are shown through walls at reduced alpha, and at full alpha
+when in line of sight. Set cg_objectiveIndicatorMaxDist > 0 to limit visibility range.
+Indicators are hidden within 1 metre of the player. When an objective is behind the
+player the icon is pinned to the nearest screen edge.
+=================
+*/
 
 static void CG_DrawObjectiveIndicators( void ) {
 	int           num;
@@ -4161,6 +4259,7 @@ static void CG_DrawObjectiveIndicators( void ) {
 	char          distStr[16];
 	float         textScale;
 	float         textW;
+	qboolean      onEdge;
 
 	if ( !cg.snap )
 		return;
@@ -4187,10 +4286,13 @@ static void CG_DrawObjectiveIndicators( void ) {
 		// Distance check
 		VectorSubtract( cent->lerpOrigin, cg.refdef.vieworg, dir );
 		dist = VectorLength( dir );
+		// Hide when closer than 1 metre — the icon would just clutter the screen
+		if ( dist < OBJIND_UNITS_PER_METER )
+			continue;
 		if ( maxDist > 0.f && dist > maxDist )
 			continue;
 
-		if ( !CG_WorldCoordToScreenCoordFloat( cent->lerpOrigin, &sx, &sy ) )
+		if ( !CG_WorldCoordToScreenCoordForObjective( cent->lerpOrigin, &sx, &sy, &onEdge ) )
 			continue;
 
 		// Determine icon per objective type
@@ -4265,8 +4367,8 @@ static void CG_DrawObjectiveIndicators( void ) {
 		CG_DrawPic( sx - size * 0.5f, sy - size * 0.5f, size, size, icon );
 		trap_R_SetColor( NULL );
 
-		// Distance label below the icon — only when cvar >= 2 (in meters; 1m ≈ 52.5 game units)
-		if ( cg_drawObjectiveIndicators.integer >= 2 ) {
+		// Distance label below the icon — only when cvar >= 2 and not edge-pinned
+		if ( cg_drawObjectiveIndicators.integer >= 2 && !onEdge ) {
 			Com_sprintf( distStr, sizeof( distStr ), "%im", (int)( dist / OBJIND_UNITS_PER_METER + 0.5f ) );
 			textScale = size * 0.011f;   // scale text proportionally to icon
 			if ( textScale < OBJIND_DIST_TEXT_MIN ) textScale = OBJIND_DIST_TEXT_MIN;
