@@ -1775,6 +1775,9 @@ static void CG_RegisterGraphics( void ) {
 
 	cgs.media.objectiveShader = trap_R_RegisterShader( "sprites/objective" );
     cgs.media.objectiveShaderCM = trap_R_RegisterShader( "sprites/objective_cm" );
+	cgs.media.objectiveBlueShader = trap_R_RegisterShaderNoMip( "sprites/objective_blue" );
+	cgs.media.objectiveRedShader  = trap_R_RegisterShaderNoMip( "sprites/objective_red" );
+	cgs.media.disguisedShader     = trap_R_RegisterShader( "sprites/undercover" );
 
 	cgs.media.bloodExplosionShader = trap_R_RegisterShader( "bloodExplosion" );
 
@@ -2114,6 +2117,9 @@ static void CG_RegisterGraphics( void ) {
 	// medic icon for commandmap
 	cgs.media.medicIcon = trap_R_RegisterShaderNoMip("sprites/voiceMedic");
     cgs.media.medicIconCM = trap_R_RegisterShaderNoMip("sprites/voicemedic_cm");
+	// ammo icon for commandmap
+	cgs.media.ammoIcon = trap_R_RegisterShaderNoMip("sprites/voiceAmmo");
+	cgs.media.ammoIconCM = trap_R_RegisterShaderNoMip("sprites/cm_ammo_icon");
 
 	trap_R_RegisterFont( "ariblk", 27, &cgs.media.limboFont1 );
 	trap_R_RegisterFont( "ariblk", 16, &cgs.media.limboFont1_lo );	

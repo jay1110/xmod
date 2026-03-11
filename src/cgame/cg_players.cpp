@@ -1412,9 +1412,15 @@ static void CG_PlayerSprites( centity_t *cent ) {
 	}
 
 	// forty - show no shoot icon to teammates 
-	if( cent->currentState.powerups & (1<<PW_OPS_DISGUISED) && cg.snap->ps.persistant[PERS_TEAM] == team ) { 
-		CG_PlayerFloatSprite( cent, cgs.media.friendShader, 56 ); 
-		return; 
+	if( cent->currentState.powerups & (1<<PW_OPS_DISGUISED) ) {
+		if ( cg.snap->ps.persistant[PERS_TEAM] == team ) {
+			CG_PlayerFloatSprite( cent, cgs.media.friendShader, 56 ); 
+			return; 
+		} else if ( cg.snap->ps.persistant[PERS_TEAM] == TEAM_SPECTATOR && cgs.clientinfo[cg.snap->ps.clientNum].shoutcaster ) {
+			// Shoutcasters can see disguised enemy covert ops
+			CG_PlayerFloatSprite( cent, cgs.media.disguisedShader, 56 );
+			return;
+		}
 	} 
 
 	{

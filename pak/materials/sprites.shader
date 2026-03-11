@@ -159,3 +159,47 @@ sprites/voiceMedic
 		rgbgen vertex
 	}
 }
+
+sprites/voiceAmmo
+{
+	nocompress
+	nopicmip
+	{
+		map sprites/voiceAmmo.tga
+		blendFunc GL_SRC_ALPHA GL_ONE_MINUS_SRC_ALPHA
+		rgbgen vertex
+	}
+}
+
+sprites/objective_blue
+{
+	nocompress
+	nopicmip
+	{
+		map sprites/objective_blue.tga
+		blendFunc GL_SRC_ALPHA GL_ONE_MINUS_SRC_ALPHA
+		rgbgen vertex
+	}
+}
+
+sprites/objective_red
+{
+	nocompress
+	nopicmip
+	{
+		map sprites/objective_red.tga
+		blendFunc GL_SRC_ALPHA GL_ONE_MINUS_SRC_ALPHA
+		rgbgen vertex
+	}
+}
+
+sprites/undercover
+{
+	nocompress
+	nopicmip
+	{
+		map sprites/undercover.tga
+		blendFunc GL_SRC_ALPHA GL_ONE_MINUS_SRC_ALPHA
+		rgbgen vertex
+	}
+}

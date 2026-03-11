@@ -1374,6 +1374,9 @@ typedef struct {
 
 	qhandle_t	vehicleShader;
 	qhandle_t	destroyShader;
+	qhandle_t	disguisedShader;
+	qhandle_t	objectiveBlueShader;
+	qhandle_t	objectiveRedShader;
 
 //	qhandle_t	selectShader;
 	qhandle_t	viewBloodShader;
@@ -1792,6 +1795,8 @@ typedef struct {
 	// Gordon: for commandmap
 	qhandle_t	medicIcon;
     qhandle_t   medicIconCM;
+	qhandle_t	ammoIcon;
+	qhandle_t	ammoIconCM;
 
 	qhandle_t	hWeaponSnd;
 	qhandle_t	hWeaponEchoSnd;

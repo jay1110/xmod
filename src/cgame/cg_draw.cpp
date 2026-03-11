@@ -4855,6 +4855,36 @@ static void CG_DrawNewCompass( void ) {
 		CG_DrawCompassIcon( basex, basey, basew, baseh, cg.predictedPlayerState.origin, ent->pos.trBase, cgs.media.buddyShader );
 	}
 
+	// Dropped flag (objective item) icons on compass
+	{
+		int playerTeam = cg.predictedPlayerState.persistant[PERS_TEAM];
+		if ( playerTeam == TEAM_AXIS || playerTeam == TEAM_ALLIES ) {
+			for (int i = 0; i < snap->numEntities; i++) {
+				entityState_t *ent = &snap->entities[i];
+				if ( ent->eType != ET_ITEM )
+					continue;
+				if ( ent->modelindex <= 0 || ent->modelindex >= bg_numItems )
+					continue;
+
+				gitem_t *item = &bg_itemlist[ ent->modelindex ];
+				if ( item->giType != IT_TEAM )
+					continue;
+
+				qhandle_t icon = 0;
+				if ( item->giTag == PW_BLUEFLAG ) {
+					icon = ( playerTeam == TEAM_AXIS ) ? cgs.media.objectiveBlueShader : cgs.media.objectiveRedShader;
+				} else if ( item->giTag == PW_REDFLAG ) {
+					icon = ( playerTeam == TEAM_ALLIES ) ? cgs.media.objectiveBlueShader : cgs.media.objectiveRedShader;
+				}
+
+				if ( icon ) {
+					centity_t *cent2 = &cg_entities[ent->number];
+					CG_DrawCompassIcon( basex, basey, basew, baseh, cg.predictedPlayerState.origin, cent2->lerpOrigin, icon );
+				}
+			}
+		}
+	}
+
 	// Objective indicator icons on compass
 	if ( cg_drawObjectiveIndicators.integer ) {
 		int playerTeam = cg.predictedPlayerState.persistant[PERS_TEAM];
