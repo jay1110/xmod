@@ -1024,7 +1024,7 @@ void script_mover_aas_blocking( gentity_t *ent ) {
 
 void script_mover_spawn(gentity_t *ent) {
 	if (ent->spawnflags & 128) {		
-		if(!ent->tagBuffer) {
+		if(!*ent->tagBuffer) {
 			ent->nextTrain = ent;
 		} else {
 			gentity_t* tent = G_FindByTargetname( &g_entities[MAX_CLIENTS - 1], ent->tagBuffer);

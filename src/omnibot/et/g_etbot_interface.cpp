@@ -3507,6 +3507,7 @@ public:
 					else if (e->target_ent->s.eType == ET_EXPLOSIVE)
 					{
 						obUserData bud;
+						bud.udata.m_Int = 0;
 						switch(e->target_ent->constructibleStats.weaponclass)
 						{
 						case 1:
@@ -4089,7 +4090,7 @@ public:
 		case GEN_MSG_GOTOWAYPOINT:
 			{
 				OB_GETMSG(Msg_GotoWaypoint);
-				if(pMsg && pMsg->m_Origin && g_cheats.integer)
+				if(pMsg && g_cheats.integer)
 				{
 					char * cmd = va("setviewpos %f %f %f %f", pMsg->m_Origin[0], pMsg->m_Origin[1], pMsg->m_Origin[2], 0.f);
 					trap_SendConsoleCommand(EXEC_NOW, cmd);

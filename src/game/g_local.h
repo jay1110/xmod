@@ -682,7 +682,7 @@ typedef struct {
 
 	// Jaybird
 	int			shoutcaster;		// Shoutcaster
-	qboolean	disoriented[2];		// Disorientation state handling
+	qboolean	disoriented[3];		// Disorientation state handling
 	int			revives;			// Stats - Number of revives
 	int			headshots;			// Stats - Number of headshots
 	int			holdable[16];

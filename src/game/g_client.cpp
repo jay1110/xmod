@@ -704,7 +704,6 @@ reinforce
 */
 void reinforce(gentity_t *ent) {
 	int p, team;// numDeployable=0, finished=0; // TTimo unused
-	char *classname;
 	gclient_t *rclient;
 
 	if (!(ent->client->ps.pm_flags & PMF_LIMBO)) {
@@ -719,14 +718,7 @@ void reinforce(gentity_t *ent) {
 
 	// get team to deploy from passed entity
 	team = ent->client->sess.sessionTeam;
-
-	// find number active team spawnpoints
-	if (team == TEAM_AXIS)
-		classname = "team_CTF_redspawn";
-	else if (team == TEAM_ALLIES)
-		classname = "team_CTF_bluespawn";
-	else
-		assert(0);
+	(void)team;
 
 	// DHM - Nerve :: restore persistant data now that we're out of Limbo
 	rclient = ent->client;
@@ -1833,7 +1825,6 @@ void ClientUserinfoChanged( int clientNum ) {
     int     i;
     char    skillStr[16] = "";
     char    medalStr[16] = "";
-    int     characterIndex;
     string  mac;
 
     // No need to unindex/reindex - SQLite database is the source of truth
@@ -2001,11 +1992,7 @@ void ClientUserinfoChanged( int clientNum ) {
 
     // check for custom character
     s = Info_ValueForKey( userinfo, "ch" );
-    if( *s ) {
-        characterIndex = atoi(s);
-    } else {
-        characterIndex = -1;
-    }
+    (void)s;
 
     // To communicate it to cgame
     client->ps.stats[ STAT_PLAYER_CLASS ] = client->sess.playerType;
