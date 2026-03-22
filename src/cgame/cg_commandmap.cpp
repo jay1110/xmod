@@ -667,6 +667,10 @@ static void CG_DrawPlayerEntity( mapEntityData_t* mEnt, float x, float y, float 
             cmVoiceChatIcon = cgs.media.medicIconCM;
         else if ( voiceChatIcon == cgs.media.ammoIcon && cgs.media.ammoIconCM )
             cmVoiceChatIcon = cgs.media.ammoIconCM;
+        else if ( voiceChatIcon == cgs.media.voiceChatShader && cgs.media.ccVoiceChatShader )
+            cmVoiceChatIcon = cgs.media.ccVoiceChatShader;
+        else if ( voiceChatIcon == cgs.media.voiceChatOrangeShader && cgs.media.ccVoiceChatOrangeShader )
+            cmVoiceChatIcon = cgs.media.ccVoiceChatOrangeShader;
 
         // Jaybird - check for culling
         if (scissor) {

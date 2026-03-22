@@ -5283,6 +5283,76 @@ static void CG_DrawPlayerRank ( void ) {
 	CG_Text_Paint_Ext( Ccg_WideX(SCREEN_WIDTH) - 27 - w, SCREEN_HEIGHT - 92 + (3 * (h + 3)), 0.2f, 0.2f, colorWhite, str, 0, 0, ITEM_TEXTSTYLE_SHADOWED, &cgs.media.limboFont1 );
 }
 
+/*
+=================
+CG_DrawObjectiveStatus
+Draw flag/objective status indicator - shows when flags are being carried, dropped, etc.
+Ported from ET:Legacy cg_draw_hud.c
+=================
+*/
+static void CG_DrawObjectiveStatus( void ) {
+	playerState_t *ps = &cg.snap->ps;
+	float x = 4 + cgs.wideXoffset;
+	float y = SCREEN_HEIGHT - 136;
+	float w = 36;
+	float h = 36;
+	float flagIconWidth        = w * 0.333f;
+	float flagIconHeight       = h * 0.222f;
+	float flagIconHeightOffset = h * 0.777f;
+
+	if ( ps->persistant[PERS_TEAM] == TEAM_SPECTATOR )
+		return;
+
+	if ( !(cg.flagIndicator & (1 << PW_REDFLAG)) && !(cg.flagIndicator & (1 << PW_BLUEFLAG)) && !(cg.flagIndicator & (1 << PW_NUM_POWERUPS)) )
+		return;
+
+	vec4_t color = { 1.f, 1.f, 1.f, 1.f };
+	color[3] *= 0.67f + 0.33f * sin(cg.time / 200.0);
+	trap_R_SetColor(color);
+
+	if ( (cg.flagIndicator & (1 << PW_REDFLAG) && cg.flagIndicator & (1 << PW_BLUEFLAG)) || cg.flagIndicator & (1 << PW_NUM_POWERUPS) ) {
+		if ( cg.redFlagCounter > 0 && cg.blueFlagCounter > 0 ) {
+			CG_DrawPic(x, y, w, h, cgs.media.objectiveBothTEShader);
+		} else if ( cg.redFlagCounter > 0 && !cg.blueFlagCounter ) {
+			CG_DrawPic(x, y, w, h, ps->persistant[PERS_TEAM] == TEAM_AXIS ? cgs.media.objectiveBothTDShader : cgs.media.objectiveBothDEShader);
+		} else if ( !cg.redFlagCounter && cg.blueFlagCounter > 0 ) {
+			CG_DrawPic(x, y, w, h, ps->persistant[PERS_TEAM] == TEAM_ALLIES ? cgs.media.objectiveBothTDShader : cgs.media.objectiveBothDEShader);
+		} else {
+			CG_DrawPic(x, y, w, h, cgs.media.objectiveDroppedShader);
+		}
+		trap_R_SetColor(NULL);
+		color[3] = 1.f;
+		trap_R_SetColor(color);
+		CG_DrawPic(x, y + flagIconHeightOffset, flagIconWidth, flagIconHeight,
+			ps->persistant[PERS_TEAM] == TEAM_AXIS ? cgs.media.axisFlag : cgs.media.alliedFlag);
+		CG_DrawPic(x + w - flagIconWidth, y + flagIconHeightOffset, flagIconWidth, flagIconHeight,
+			ps->persistant[PERS_TEAM] == TEAM_AXIS ? cgs.media.alliedFlag : cgs.media.axisFlag);
+		cg.flagIndicator &= ~(1 << PW_NUM_POWERUPS);
+	} else if ( cg.flagIndicator & (1 << PW_REDFLAG) ) {
+		if ( cg.redFlagCounter > 0 ) {
+			CG_DrawPic(x, y, w, h, ps->persistant[PERS_TEAM] == TEAM_ALLIES ? cgs.media.objectiveTeamShader : cgs.media.objectiveEnemyShader);
+		} else {
+			CG_DrawPic(x, y, w, h, cgs.media.objectiveDroppedShader);
+		}
+		trap_R_SetColor(NULL);
+		color[3] = 1.f;
+		trap_R_SetColor(color);
+		CG_DrawPic(x + (ps->persistant[PERS_TEAM] == TEAM_AXIS ? w - flagIconWidth : 0), y + flagIconHeightOffset, flagIconWidth, flagIconHeight, cgs.media.alliedFlag);
+	} else if ( cg.flagIndicator & (1 << PW_BLUEFLAG) ) {
+		if ( cg.blueFlagCounter > 0 ) {
+			CG_DrawPic(x, y, w, h, ps->persistant[PERS_TEAM] == TEAM_AXIS ? cgs.media.objectiveTeamShader : cgs.media.objectiveEnemyShader);
+		} else {
+			CG_DrawPic(x, y, w, h, cgs.media.objectiveDroppedShader);
+		}
+		trap_R_SetColor(NULL);
+		color[3] = 1.f;
+		trap_R_SetColor(color);
+		CG_DrawPic(x + (ps->persistant[PERS_TEAM] == TEAM_ALLIES ? w - flagIconWidth : 0), y + flagIconHeightOffset, flagIconWidth, flagIconHeight, cgs.media.axisFlag);
+	}
+
+	trap_R_SetColor(NULL);
+}
+
 static void CG_DrawPlayerStatus( void ) {
 	int				value, value2, value3;
 	char			buffer[32];
@@ -5694,6 +5764,7 @@ static void CG_Draw2D( void ) {
 			if( cg.snap->ps.stats[STAT_HEALTH] > 0 ) {
 				CG_DrawPlayerStatusHead();
 				CG_DrawPlayerStatus();
+				CG_DrawObjectiveStatus();
 				CG_DrawPlayerStats();
 			}
 

@@ -321,6 +321,16 @@ void Team_ResetFlag( gentity_t *ent )
 		if( ent->s.density == 1 )
 			RespawnItem(ent);
 
+		// update flag indicator
+		if (ent->item && ent->item->giTag == PW_REDFLAG) {
+			if (level.redFlagCounter > 0) level.redFlagCounter--;
+			if (!level.redFlagCounter) level.flagIndicator &= ~(1 << PW_REDFLAG);
+		} else if (ent->item && ent->item->giTag == PW_BLUEFLAG) {
+			if (level.blueFlagCounter > 0) level.blueFlagCounter--;
+			if (!level.blueFlagCounter) level.flagIndicator &= ~(1 << PW_BLUEFLAG);
+		}
+		G_globalFlagIndicator();
+
 		Bot_Util_SendTrigger(ent, NULL, va("Flag returned %s!", _GetEntityName(ent)), "returned");
 	}
 }
@@ -368,6 +378,14 @@ void Team_ResetFlags(void)
 	while ((ent = G_Find (ent, FOFS(classname), "team_CTF_blueflag")) != NULL) {
 		Team_ResetFlag( ent );
 	}
+}
+
+void G_globalFlagIndicator(void) {
+	gentity_t *te = G_TempEntity(vec3_origin, EV_FLAG_INDICATOR);
+	te->s.eventParm       = level.flagIndicator;
+	te->s.otherEntityNum  = level.redFlagCounter;
+	te->s.otherEntityNum2 = level.blueFlagCounter;
+	te->r.svFlags        |= SVF_BROADCAST;
 }
 
 void Team_ReturnFlagSound(gentity_t *ent, int team)
@@ -562,9 +580,14 @@ int Team_TouchEnemyFlag( gentity_t *ent, gentity_t *other, int team ) {
 
 	if(team == TEAM_AXIS) {
 		cl->ps.powerups[PW_REDFLAG] = INT_MAX;
+		level.flagIndicator  |= (1 << PW_REDFLAG);
+		level.redFlagCounter += 1;
 	} else {
 		cl->ps.powerups[PW_BLUEFLAG] = INT_MAX;
+		level.flagIndicator   |= (1 << PW_BLUEFLAG);
+		level.blueFlagCounter += 1;
 	} // flags never expire
+	G_globalFlagIndicator();
 
 	// store the entitynum of our original flag spawner
 	if( ent->flags & FL_DROPPED_ITEM )

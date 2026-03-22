@@ -2121,6 +2121,36 @@ static void CG_RegisterGraphics( void ) {
 	cgs.media.ammoIcon = trap_R_RegisterShaderNoMip("sprites/voiceAmmo");
 	cgs.media.ammoIconCM = trap_R_RegisterShaderNoMip("sprites/cm_ammo_icon");
 
+	// Objective status shaders (ET:Legacy parity)
+	cgs.media.objectiveTeamShader    = trap_R_RegisterShaderNoMip("sprites/objective_team");
+	cgs.media.objectiveDroppedShader = trap_R_RegisterShaderNoMip("sprites/objective_dropped");
+	cgs.media.objectiveEnemyShader   = trap_R_RegisterShaderNoMip("sprites/objective_enemy");
+	cgs.media.objectiveBothTEShader  = trap_R_RegisterShaderNoMip("sprites/objective_both_te");
+	cgs.media.objectiveBothTDShader  = trap_R_RegisterShaderNoMip("sprites/objective_both_td");
+	cgs.media.objectiveBothDEShader  = trap_R_RegisterShaderNoMip("sprites/objective_both_de");
+
+	// Team flag icons
+	cgs.media.axisFlag   = trap_R_RegisterShaderNoMip("gfx/limbo/flag_axis");
+	cgs.media.alliedFlag = trap_R_RegisterShaderNoMip("gfx/limbo/flag_allied");
+
+	// Voice chat sprite variants
+	cgs.media.medicReviveShader2    = trap_R_RegisterShader("sprites/medic_revive2");
+	cgs.media.voiceChatOrangeShader = trap_R_RegisterShader("sprites/voicechat_orange");
+	cgs.media.greenTick             = trap_R_RegisterShader("sprites/greentick");
+	cgs.media.redCross              = trap_R_RegisterShader("sprites/redcross");
+
+	// Command map specific icons
+	cgs.media.ccFriendShader          = trap_R_RegisterShaderNoMip("sprites/cm_friendlycross");
+	cgs.media.ccMedicIcon             = trap_R_RegisterShaderNoMip("sprites/cm_medic_icon");
+	cgs.media.ccMedicReviveShader     = trap_R_RegisterShaderNoMip("sprites/cm_medic_revive");
+	cgs.media.ccVoiceChatShader       = trap_R_RegisterShaderNoMip("sprites/cm_voicechat_icon");
+	cgs.media.ccVoiceChatOrangeShader = trap_R_RegisterShaderNoMip("sprites/cm_voicechat_orange_icon");
+	cgs.media.ccskillPics[SK_EXPLOSIVES_AND_CONSTRUCTION]              = trap_R_RegisterShaderNoMip("gfx/limbo/cm_ic_engineer");
+	cgs.media.ccskillPics[SK_FIRST_AID]                                = trap_R_RegisterShaderNoMip("gfx/limbo/cm_ic_medic");
+	cgs.media.ccskillPics[SK_SIGNALS]                                  = trap_R_RegisterShaderNoMip("gfx/limbo/cm_ic_fieldops");
+	cgs.media.ccskillPics[SK_HEAVY_WEAPONS]                            = trap_R_RegisterShaderNoMip("gfx/limbo/cm_ic_soldier");
+	cgs.media.ccskillPics[SK_MILITARY_INTELLIGENCE_AND_SCOPED_WEAPONS] = trap_R_RegisterShaderNoMip("gfx/limbo/cm_ic_covertops");
+
 	trap_R_RegisterFont( "ariblk", 27, &cgs.media.limboFont1 );
 	trap_R_RegisterFont( "ariblk", 16, &cgs.media.limboFont1_lo );	
 	trap_R_RegisterFont( "courbd", 30, &cgs.media.limboFont2 );

@@ -1274,6 +1274,11 @@ typedef struct {
     
     // Rate-limit underwater nofire sound to prevent flooding during prediction
     int nextNofireSoundTime;
+
+	// objective/flag status indicator (ET:Legacy parity)
+	int         flagIndicator;
+	int         redFlagCounter;
+	int         blueFlagCounter;
 } cg_t;
 
 extern bool needClientFlagsUpdated;
@@ -1918,6 +1923,28 @@ typedef struct {
 
 	// Country Flags
 	qhandle_t		countryFlags;
+
+	// objective status shaders (flag carrier/dropped state)
+	qhandle_t   objectiveTeamShader;
+	qhandle_t   objectiveDroppedShader;
+	qhandle_t   objectiveEnemyShader;
+	qhandle_t   objectiveBothTEShader;
+	qhandle_t   objectiveBothTDShader;
+	qhandle_t   objectiveBothDEShader;
+
+	// voice chat sprite variants
+	qhandle_t   medicReviveShader2;
+	qhandle_t   voiceChatOrangeShader;
+	qhandle_t   greenTick;
+	qhandle_t   redCross;
+
+	// command map specific icons
+	qhandle_t   ccFriendShader;
+	qhandle_t   ccMedicIcon;
+	qhandle_t   ccMedicReviveShader;
+	qhandle_t   ccVoiceChatShader;
+	qhandle_t   ccVoiceChatOrangeShader;
+	qhandle_t   ccskillPics[SK_NUM_SKILLS];
 } cgMedia_t;
 
 typedef struct {
