@@ -5306,6 +5306,7 @@ static void CG_DrawObjectiveStatus( void ) {
 	if ( !(cg.flagIndicator & (1 << PW_REDFLAG)) && !(cg.flagIndicator & (1 << PW_BLUEFLAG)) && !(cg.flagIndicator & (1 << PW_NUM_POWERUPS)) )
 		return;
 
+	// Pulsing alpha: base 0.67 + amplitude 0.33, period ~1.26s (ET:Legacy parity)
 	vec4_t color = { 1.f, 1.f, 1.f, 1.f };
 	color[3] *= 0.67f + 0.33f * sin(cg.time / 200.0);
 	trap_R_SetColor(color);
@@ -5327,6 +5328,7 @@ static void CG_DrawObjectiveStatus( void ) {
 			ps->persistant[PERS_TEAM] == TEAM_AXIS ? cgs.media.axisFlag : cgs.media.alliedFlag);
 		CG_DrawPic(x + w - flagIconWidth, y + flagIconHeightOffset, flagIconWidth, flagIconHeight,
 			ps->persistant[PERS_TEAM] == TEAM_AXIS ? cgs.media.alliedFlag : cgs.media.axisFlag);
+		// clear debug/sentinel bit after display (intentional side effect, matches ET:Legacy)
 		cg.flagIndicator &= ~(1 << PW_NUM_POWERUPS);
 	} else if ( cg.flagIndicator & (1 << PW_REDFLAG) ) {
 		if ( cg.redFlagCounter > 0 ) {
