@@ -5292,7 +5292,11 @@ Ported from ET:Legacy cg_draw_hud.c
 */
 static void CG_DrawObjectiveStatus( void ) {
 	playerState_t *ps = &cg.snap->ps;
-	float x = 4 + cgs.wideXoffset;
+	// x=4 matches ET:Legacy default (no wideXoffset): keeps indicator at the absolute
+	// left edge of the widescreen canvas, safely to the left of all HUD elements in
+	// both normal HUD (cg_althud=0, skills/bars start at x>=24) and alt HUD
+	// (cg_althud=1, skill icons at x=44, compass at x=59) so there is no overlap.
+	float x = 4;
 	float y = SCREEN_HEIGHT - 136;
 	float w = 36;
 	float h = 36;
