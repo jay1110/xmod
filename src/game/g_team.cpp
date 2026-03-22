@@ -322,10 +322,11 @@ void Team_ResetFlag( gentity_t *ent )
 			RespawnItem(ent);
 
 		// update flag indicator
-		if (ent->item && ent->item->giTag == PW_REDFLAG) {
+		int flagType = (ent->item) ? ent->item->giTag : 0;
+		if (flagType == PW_REDFLAG) {
 			if (level.redFlagCounter > 0) level.redFlagCounter--;
 			if (!level.redFlagCounter) level.flagIndicator &= ~(1 << PW_REDFLAG);
-		} else if (ent->item && ent->item->giTag == PW_BLUEFLAG) {
+		} else if (flagType == PW_BLUEFLAG) {
 			if (level.blueFlagCounter > 0) level.blueFlagCounter--;
 			if (!level.blueFlagCounter) level.flagIndicator &= ~(1 << PW_BLUEFLAG);
 		}
