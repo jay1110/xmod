@@ -7546,8 +7546,6 @@ void _UI_Init( qboolean inGameLoad ) {
 
 	uiInfo.campaignMap = trap_R_RegisterShaderNoMip( "gfx/loading/camp_map.tga" );
 
-	start = trap_Milliseconds();
-
 	uiInfo.teamCount = 0;
 	uiInfo.characterCount = 0;
 	uiInfo.aliasCount = 0;
