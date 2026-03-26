@@ -436,10 +436,12 @@ CG_PyroSmokeTrail
 void CG_PyroSmokeTrail( centity_t *ent, const weaponInfo_t *wi ) {
 	int		step;
 	vec3_t	origin, lastPos, dir;
-	int		startTime;
+	int		contents;
+	int		lastContents, startTime;
 	entityState_t	*es;
 	int		t;
 	float rnd;
+	localEntity_t	*le;
 	team_t	team;
 
 	switch (ent->currentState.weapon) {
@@ -491,8 +493,10 @@ void CG_PyroSmokeTrail( centity_t *ent, const weaponInfo_t *wi ) {
 	t = step * ( (startTime + step) / step );
 
 	BG_EvaluateTrajectory( &es->pos, cg.time, origin, qfalse, es->effect2Time );
+	contents = CG_PointContents( origin, -1 );
 
 	BG_EvaluateTrajectory( &es->pos, ent->trailTime, lastPos, qfalse, es->effect2Time );
+	lastContents = CG_PointContents( lastPos, -1 );
 
 	ent->trailTime = cg.time;
 
@@ -540,7 +544,7 @@ void CG_PyroSmokeTrail( centity_t *ent, const weaponInfo_t *wi ) {
 		}
 
 		if( team == TEAM_ALLIES ) { // allied team, generate blue smoke
-			CG_SmokePuff( origin, dir, 
+			le = CG_SmokePuff( origin, dir, 
 				  25+rnd*110,	// width
 				  rnd*0.5+0.5, rnd*0.5+0.5, 1, 0.5,
 				  4800+(rand()%2800), // duration was 2800+
@@ -549,7 +553,7 @@ void CG_PyroSmokeTrail( centity_t *ent, const weaponInfo_t *wi ) {
 				  0,
 				  cgs.media.smokePuffShader);
 		} else {
-			CG_SmokePuff( origin, dir, 
+			le = CG_SmokePuff( origin, dir, 
 				  25+rnd*110,	// width
 				  1.0, rnd*0.5+0.5, rnd*0.5+0.5, 0.5,
 				  4800+(rand()%2800), // duration was 2800+
@@ -2185,6 +2189,10 @@ void CG_AddPlayerWeapon( refEntity_t *parent, playerState_t *ps, centity_t *cent
 	qboolean	drawpart;
 	int			i;
 	qboolean	isPlayer;
+
+	bg_playerclass_t* classInfo;
+
+	classInfo = BG_GetPlayerClassInfo(cgs.clientinfo[cent->currentState.clientNum].team, cgs.clientinfo[cent->currentState.clientNum].cls);
 
 	// (SA) might as well have this check consistant throughout the routine
 	isPlayer = (qboolean)(cent->currentState.clientNum == cg.snap->ps.clientNum);
@@ -4012,6 +4020,8 @@ CG_LastWeaponUsed_f
 ==============
 */
 void CG_LastWeaponUsed_f( void ) {
+	int lastweap;
+
 	//fretn - #447
 	//osp-rtcw & et pause bug
 	if (cg.snap->ps.pm_type == PM_FREEZE ) {
@@ -4037,6 +4047,7 @@ void CG_LastWeaponUsed_f( void ) {
 	}
 
 	if(CG_WeaponSelectable(cg.switchbackWeapon)) {
+		lastweap = cg.weaponSelect;
 		CG_FinishWeaponChange(cg.weaponSelect, cg.switchbackWeapon);
 	} else {	// switchback no longer selectable, reset cycle
 		cg.switchbackWeapon = 0;
@@ -5213,8 +5224,8 @@ void CG_MissileHitWall( int weapon, int clientNum, vec3_t origin, vec3_t dir, in
 	qhandle_t		mod, mark, shader;
 	sfxHandle_t		sfx, sfx2;
 	localEntity_t	*le;
-	qboolean		isSprite;
-	int				duration, lightOverdraw, i, j, markDuration, volume;
+	qboolean		isSprite, alphaFade = qfalse;
+	int				r, duration, lightOverdraw, i, j, markDuration, volume;
 	trace_t			trace;
 	vec3_t			lightColor, tmpv, tmpv2, sprOrg, sprVel;
 	float			radius, light, sfx2range = 0;
@@ -5284,6 +5295,7 @@ void CG_MissileHitWall( int weapon, int clientNum, vec3_t origin, vec3_t dir, in
 	case WP_K43_SCOPE:
 	case WP_M97:
 		// actually yeah.  meant that.  very rare.
+		r = (rand() & 3) + 1; // JPW NERVE increased spark frequency so players can tell where rounds are coming from in MP
 
 		volume = 64;
 
@@ -5352,6 +5364,7 @@ void CG_MissileHitWall( int weapon, int clientNum, vec3_t origin, vec3_t dir, in
 				// mark and sound can potentially use the surface for override values
 
 				mark = cgs.media.bulletMarkShader;	// default
+				alphaFade = qtrue;		// max made the bullet mark alpha (he'll make everything in the game out of 1024 textures, all with alpha blend funcs yet...)
 				//%	radius = 1.5f + rand()%2;	// slightly larger for DM
 				radius = 1.0f + 0.5f * (rand() % 2);
 
@@ -5359,16 +5372,20 @@ void CG_MissileHitWall( int weapon, int clientNum, vec3_t origin, vec3_t dir, in
 				if(surfFlags & SURF_METAL || surfFlags & SURF_ROOF) {
 					sfx = cgs.media.sfx_bullet_metalhit[rand() % MAX_IMPACT_SOUNDS];
 					mark = cgs.media.bulletMarkShaderMetal;
+					alphaFade = qtrue;
 				} else if(surfFlags & SURF_WOOD) {
 					sfx = cgs.media.sfx_bullet_woodhit[rand() % MAX_IMPACT_SOUNDS];
 					mark = cgs.media.bulletMarkShaderWood;
+					alphaFade = qtrue;
 					radius += 0.4f;	// experimenting with different mark sizes per surface
 				} else if(surfFlags & SURF_GLASS) {
 					sfx = cgs.media.sfx_bullet_glasshit[rand() % MAX_IMPACT_SOUNDS];
 					mark = cgs.media.bulletMarkShaderGlass;
+					alphaFade = qtrue;
 				} else {
 					sfx = cgs.media.sfx_bullet_stonehit[rand() % MAX_IMPACT_SOUNDS];
 					mark = cgs.media.bulletMarkShader;
+					alphaFade = qtrue;					
 				}
 				
 				// ydnar: set mark duration
@@ -5943,6 +5960,7 @@ CG_Tracer
 void CG_Tracer( vec3_t source, vec3_t dest, int sparks ) {
 	float		len, begin, end;
 	vec3_t		start, finish;
+	vec3_t		midpoint;
 	vec3_t		forward;
 
 	// tracer
@@ -5962,6 +5980,10 @@ void CG_Tracer( vec3_t source, vec3_t dest, int sparks ) {
 	VectorMA( source, end, forward, finish );
 
 	CG_DrawTracer( start, finish );
+
+	midpoint[0] = ( start[0] + finish[0] ) * 0.5;
+	midpoint[1] = ( start[1] + finish[1] ) * 0.5;
+	midpoint[2] = ( start[2] + finish[2] ) * 0.5;
 }
 
 
@@ -6213,6 +6235,7 @@ void CG_Bullet( vec3_t end, int sourceEntityNum, vec3_t normal, qboolean flesh, 
 	// impact splash and mark
 	if ( flesh ) {
 		vec3_t origin;
+		localEntity_t *le; // JPW NERVE
 		float rnd, tmpf; // JPW NERVE
 		vec3_t smokedir, tmpv, tmpv2; // JPW NERVE
 		int i,headshot; // JPW NERVE
@@ -6247,7 +6270,7 @@ void CG_Bullet( vec3_t end, int sourceEntityNum, vec3_t normal, qboolean flesh, 
 				VectorScale(tmpv2,35,tmpv2); // was 75, before that 55
 				tmpv2[2] = 0;
 				VectorAdd(tmpv,tmpv2,tmpv);
-				CG_SmokePuff( origin, tmpv, 5+rnd*10, 1, rnd*0.8, rnd*0.8, 0.5, 500+(rand()%800), cg.time, 0, 0, cgs.media.fleshSmokePuffShader);
+				le = CG_SmokePuff( origin, tmpv, 5+rnd*10, 1, rnd*0.8, rnd*0.8, 0.5, 500+(rand()%800), cg.time, 0, 0, cgs.media.fleshSmokePuffShader);
 			}
 		} else {
 			// puff out the front (more dust no blood)
@@ -6261,7 +6284,7 @@ void CG_Bullet( vec3_t end, int sourceEntityNum, vec3_t normal, qboolean flesh, 
 				VectorScale(tmpv2,35,tmpv2); // was 75, before that 55
 				tmpv2[2] = 0;
 				VectorAdd(tmpv,tmpv2,tmpv);
-				CG_SmokePuff( origin, tmpv, 5+rnd*10,	rnd*0.3f+0.5f, rnd*0.3f+0.5f, rnd*0.3f+0.5f, 0.125f, 500+(rand()%300), cg.time, 0, 0, cgs.media.smokePuffShader);
+				le = CG_SmokePuff( origin, tmpv, 5+rnd*10,	rnd*0.3f+0.5f, rnd*0.3f+0.5f, rnd*0.3f+0.5f, 0.125f, 500+(rand()%300), cg.time, 0, 0, cgs.media.smokePuffShader);
 			}
 		}
 // jpw

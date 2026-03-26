@@ -730,7 +730,7 @@ static int _et_gentity_get(lua_State* L)
             lua_pushinteger(L, client->sess.playerWeapon);
         } else if (!Q_stricmp(fieldname, "ps.stats")) {
             // Return as table
-            int arrayindex = (int)luaL_optinteger(L, 3, 0);
+            int i, arrayindex = (int)luaL_optinteger(L, 3, 0);
             if (arrayindex >= 0 && arrayindex < MAX_STATS) {
                 lua_pushinteger(L, client->ps.stats[arrayindex]);
             } else {

@@ -682,7 +682,7 @@ typedef struct {
 
 	// Jaybird
 	int			shoutcaster;		// Shoutcaster
-	qboolean	disoriented[3];		// Disorientation state handling
+	qboolean	disoriented[2];		// Disorientation state handling
 	int			revives;			// Stats - Number of revives
 	int			headshots;			// Stats - Number of headshots
 	int			holdable[16];
@@ -1321,10 +1321,6 @@ typedef struct {
 	char		rpcsFilterCams[32];
 	char		rpcsEndgameStats[MAX_INFO_STRING];
 
-	int         flagIndicator;
-	int         redFlagCounter;
-	int         blueFlagCounter;
-
 } level_locals_t;
 
 typedef struct {
@@ -1371,7 +1367,6 @@ void Cmd_Score_f (gentity_t *ent);
 void StopFollowing( gentity_t *ent );
 //void BroadcastTeamChange( gclient_t *client, int oldTeam );
 void G_TeamDataForString( const char* teamstr, int clientNum, team_t* team, spectatorState_t* sState, int* specClient );
-void G_globalFlagIndicator( void );
 qboolean SetTeam( gentity_t* ent, const char* teamName, qboolean force, weapon_t w1, weapon_t w2, qboolean setweapons );
 void G_SetClientWeapons( gentity_t* ent, weapon_t w1, weapon_t w2, qboolean updateclient );
 void Cmd_FollowCycle_f( gentity_t *ent, int dir );

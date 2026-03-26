@@ -130,7 +130,7 @@ qboolean COM_BitCheck( const int array[], int bitNum ) {
 	//      "Fixed the Com_BitSet() with ridiculous bit number in the 
 	//       anim  condition code."
 	//       Is this what causes the glider/transmitter crashes?
-	if (i >= sizeof(void*)) return qfalse;
+	if (i >= sizeof(array)) return qfalse;
 
 	return (qboolean)((array[i] & (1 << bitNum) ) != 0);	// (SA) heh, whoops. :)
 }
@@ -155,7 +155,7 @@ void COM_BitSet( int array[], int bitNum ) {
 	//      "Fixed the Com_BitSet() with ridiculous bit number in the 
 	//       anim  condition code."
 	//       Is this what causes the glider/transmitter crashes?
-	if(i >= sizeof(void*)) return;
+	if(i >= sizeof(array)) return;
 
 	array[i] |= (1 << bitNum);
 }
@@ -180,7 +180,7 @@ void COM_BitClear( int array[], int bitNum ) {
 	//      "Fixed the Com_BitSet() with ridiculous bit number in the 
 	//       anim  condition code."
 	//       Is this what causes the glider/transmitter crashes?
-	if(i >= sizeof(void*)) return;
+	if(i >= sizeof(array)) return;
 
 	array[i] &= ~(1 << bitNum);
 }
@@ -429,10 +429,11 @@ static char *SkipWhitespace( char *data, qboolean *hasNewLines ) {
 
 int COM_Compress( char *data_p ) {
 	char *datai, *datao;
-	int c, size;
+	int c, pc, size;
 	qboolean ws = qfalse;
 
 	size = 0;
+	pc = 0;
 	datai = datao = data_p;
 	if (datai) {
 		while ((c = *datai) != 0) {
@@ -440,6 +441,7 @@ int COM_Compress( char *data_p ) {
 				*datao = c;
 				datao++;
 				ws = qfalse;
+				pc = c;
 				datai++;
 				size++;
 			// skip double slash comments
@@ -469,6 +471,7 @@ int COM_Compress( char *data_p ) {
 				datao++;
 				datai++;
 				ws = qfalse;
+				pc = c;
 				size++;
 			}
 		}
@@ -896,7 +899,8 @@ void Q_strncpyz( char *dest, const char *src, int destsize ) {
 		Com_Error(ERR_FATAL,"Q_strncpyz: destsize < 1" ); 
 	}
 
-	snprintf( dest, destsize, "%s", src );
+	strncpy( dest, src, destsize-1 );
+    dest[destsize-1] = 0;
 }
                  
 int Q_stricmpn (const char *s1, const char *s2, int n) {

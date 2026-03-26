@@ -90,7 +90,7 @@ static qboolean getServerInfo(char* ip, int ipSize, int* port) {
     if (colonPos) {
         int ipLen = colonPos - serverAddr;
         if (ipLen >= ipSize) ipLen = ipSize - 1;
-        memcpy(ip, serverAddr, ipLen);
+        strncpy(ip, serverAddr, ipLen);
         ip[ipLen] = '\0';
         *port = atoi(colonPos + 1);
     } else {

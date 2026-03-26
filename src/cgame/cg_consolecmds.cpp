@@ -788,10 +788,6 @@ static void CG_ToggleAutomap_f( void ) {
 	cgs.autoMapOff = cgs.autoMapOff ? qfalse : qtrue;
 }
 
-static void CG_ToggleObjIndicators_f( void ) {
-	trap_Cvar_Set( "cg_drawObjectiveIndicators", cg_drawObjectiveIndicators.integer ? "0" : "1" );
-}
-
 // OSP
 const char *aMonths[12] = {
 	"Jan", "Feb", "Mar", "Apr", "May", "Jun",
@@ -1143,7 +1139,6 @@ static consoleCommand_t	commands[] =
 	{ "generateTracemap", CG_GenerateTracemap },
 	// xkan, 11/27/2002, toggle automap on/off
 	{ "ToggleAutoMap", CG_ToggleAutomap_f },
-	{ "toggleObjIndicators", CG_ToggleObjIndicators_f },
 
 	{ "editSpeakers", CG_EditSpeakers_f },
 	{ "dumpSpeaker", CG_DumpSpeaker_f },

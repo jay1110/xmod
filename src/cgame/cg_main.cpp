@@ -214,8 +214,6 @@ vmCvar_t	cg_voiceSpriteTime;	// DHM - Nerve
 vmCvar_t	cg_animState;
 
 vmCvar_t	cg_drawCompass;
-vmCvar_t	cg_drawObjectiveIndicators;
-vmCvar_t	cg_objectiveIndicatorMaxDist;
 vmCvar_t	cg_drawNotifyText;
 vmCvar_t	cg_quickMessageAlt;
 vmCvar_t	cg_popupLimboMenu;
@@ -494,8 +492,6 @@ cvarTable_t		cvarTable[] = {
 	{ &cg_movespeed, "g_movespeed", "76", 0 }, // actual movespeed of player
 	{ &cg_animState, "cg_animState", "0", CVAR_CHEAT},
 	{ &cg_drawCompass, "cg_drawCompass", "1", CVAR_ARCHIVE },
-	{ &cg_drawObjectiveIndicators, "cg_drawObjectiveIndicators", "2", CVAR_ARCHIVE },
-	{ &cg_objectiveIndicatorMaxDist, "cg_objectiveIndicatorMaxDist", "0", CVAR_ARCHIVE },
 	{ &cg_drawNotifyText, "cg_drawNotifyText", "1", CVAR_ARCHIVE },
 	{ &cg_quickMessageAlt, "cg_quickMessageAlt", "0", CVAR_ARCHIVE },
 	{ &cg_popupLimboMenu, "cg_popupLimboMenu", "1", CVAR_ARCHIVE },
@@ -1675,13 +1671,6 @@ static void CG_RegisterGraphics( void ) {
 	cgs.media.compassShader =				trap_R_RegisterShaderNoMip( "gfx/2d/compass.tga" );
 	cgs.media.buddyShader =					trap_R_RegisterShaderNoMip( "sprites/buddy.tga" );
 
-	cgs.media.objectiveIndicatorAttackShader    = trap_R_RegisterShaderNoMip( "sprites/waypoint_attack" );
-	cgs.media.objectiveIndicatorDefendShader    = trap_R_RegisterShaderNoMip( "sprites/waypoint_defend" );
-	cgs.media.objectiveIndicatorConstructShader = trap_R_RegisterShaderNoMip( "sprites/construct" );
-	cgs.media.objectiveIndicatorDestroyShader   = trap_R_RegisterShaderNoMip( "sprites/destroy" );
-	cgs.media.objectiveIndicatorEscortShader    = trap_R_RegisterShaderNoMip( "sprites/escort" );
-	cgs.media.objectiveIndicatorRegroupShader   = trap_R_RegisterShaderNoMip( "sprites/waypoint_regroup" );
-
 	for ( i = 0 ; i < NUM_CROSSHAIRS ; i++ ) {
 		cgs.media.crosshairShader[i] = trap_R_RegisterShader( va("gfx/2d/crosshair%c", 'a'+i) );
 		cg.crosshairShaderAlt[i] = trap_R_RegisterShader( va("gfx/2d/crosshair%c_alt", 'a'+i) );
@@ -1775,9 +1764,6 @@ static void CG_RegisterGraphics( void ) {
 
 	cgs.media.objectiveShader = trap_R_RegisterShader( "sprites/objective" );
     cgs.media.objectiveShaderCM = trap_R_RegisterShader( "sprites/objective_cm" );
-	cgs.media.objectiveBlueShader = trap_R_RegisterShaderNoMip( "sprites/objective_blue" );
-	cgs.media.objectiveRedShader  = trap_R_RegisterShaderNoMip( "sprites/objective_red" );
-	cgs.media.disguisedShader     = trap_R_RegisterShader( "sprites/undercover" );
 
 	cgs.media.bloodExplosionShader = trap_R_RegisterShader( "bloodExplosion" );
 
@@ -2117,39 +2103,6 @@ static void CG_RegisterGraphics( void ) {
 	// medic icon for commandmap
 	cgs.media.medicIcon = trap_R_RegisterShaderNoMip("sprites/voiceMedic");
     cgs.media.medicIconCM = trap_R_RegisterShaderNoMip("sprites/voicemedic_cm");
-	// ammo icon for commandmap
-	cgs.media.ammoIcon = trap_R_RegisterShaderNoMip("sprites/voiceAmmo");
-	cgs.media.ammoIconCM = trap_R_RegisterShaderNoMip("sprites/cm_ammo_icon");
-
-	// Objective status shaders (ET:Legacy parity)
-	cgs.media.objectiveTeamShader    = trap_R_RegisterShaderNoMip("sprites/objective_team");
-	cgs.media.objectiveDroppedShader = trap_R_RegisterShaderNoMip("sprites/objective_dropped");
-	cgs.media.objectiveEnemyShader   = trap_R_RegisterShaderNoMip("sprites/objective_enemy");
-	cgs.media.objectiveBothTEShader  = trap_R_RegisterShaderNoMip("sprites/objective_both_te");
-	cgs.media.objectiveBothTDShader  = trap_R_RegisterShaderNoMip("sprites/objective_both_td");
-	cgs.media.objectiveBothDEShader  = trap_R_RegisterShaderNoMip("sprites/objective_both_de");
-
-	// Team flag icons
-	cgs.media.axisFlag   = trap_R_RegisterShaderNoMip("gfx/limbo/flag_axis");
-	cgs.media.alliedFlag = trap_R_RegisterShaderNoMip("gfx/limbo/flag_allied");
-
-	// Voice chat sprite variants
-	cgs.media.medicReviveShader2    = trap_R_RegisterShader("sprites/medic_revive2");
-	cgs.media.voiceChatOrangeShader = trap_R_RegisterShader("sprites/voicechat_orange");
-	cgs.media.greenTick             = trap_R_RegisterShader("sprites/greentick");
-	cgs.media.redCross              = trap_R_RegisterShader("sprites/redcross");
-
-	// Command map specific icons
-	cgs.media.ccFriendShader          = trap_R_RegisterShaderNoMip("sprites/cm_friendlycross");
-	cgs.media.ccMedicIcon             = trap_R_RegisterShaderNoMip("sprites/cm_medic_icon");
-	cgs.media.ccMedicReviveShader     = trap_R_RegisterShaderNoMip("sprites/cm_medic_revive");
-	cgs.media.ccVoiceChatShader       = trap_R_RegisterShaderNoMip("sprites/cm_voicechat_icon");
-	cgs.media.ccVoiceChatOrangeShader = trap_R_RegisterShaderNoMip("sprites/cm_voicechat_orange_icon");
-	cgs.media.ccskillPics[SK_EXPLOSIVES_AND_CONSTRUCTION]              = trap_R_RegisterShaderNoMip("gfx/limbo/cm_ic_engineer");
-	cgs.media.ccskillPics[SK_FIRST_AID]                                = trap_R_RegisterShaderNoMip("gfx/limbo/cm_ic_medic");
-	cgs.media.ccskillPics[SK_SIGNALS]                                  = trap_R_RegisterShaderNoMip("gfx/limbo/cm_ic_fieldops");
-	cgs.media.ccskillPics[SK_HEAVY_WEAPONS]                            = trap_R_RegisterShaderNoMip("gfx/limbo/cm_ic_soldier");
-	cgs.media.ccskillPics[SK_MILITARY_INTELLIGENCE_AND_SCOPED_WEAPONS] = trap_R_RegisterShaderNoMip("gfx/limbo/cm_ic_covertops");
 
 	trap_R_RegisterFont( "ariblk", 27, &cgs.media.limboFont1 );
 	trap_R_RegisterFont( "ariblk", 16, &cgs.media.limboFont1_lo );	

@@ -108,8 +108,8 @@ WM_DrawObjectives
 #define INFO_TOTAL_WIDTH		(INFO_FLAG_WIDTH + INFO_SPACING + INFO_CLASS_WIDTH + INFO_SPACING + INFO_PLAYER_WIDTH + INFO_KD_WIDTH + INFO_XP_WIDTH + INFO_LATENCY_WIDTH + INFO_RIGHT_PAD)
 
 int WM_DrawObjectives( int x, int y, int width, float fade ) {
-	const char *s;
-	int rows;
+	const char *s, *str;
+	int tempy, rows;
 	int msec, mins, seconds, tens; // JPW NERVE
 	vec4_t tclr =	{ 0.6f,		0.6f,		0.6f,		1.0f };
 
@@ -148,9 +148,10 @@ int WM_DrawObjectives( int x, int y, int width, float fade ) {
 		s = CG_ConfigString( CS_MULTI_MAPWINNER );
 		buf = Info_ValueForKey( s, "winner" );
 
-		if ( atoi( buf ) == -1 ) {
-			// tie
-		} else if ( atoi( buf ) ) {
+		if ( atoi( buf ) == -1 )
+			str = "ITS A TIE!";
+		else if ( atoi( buf ) ) {
+			str = "ALLIES";
 //			shader = "ui/assets/portraits/allies_win";
 			flagshader = "ui/assets/portraits/allies_win_flag.tga";
 			nameshader = "ui/assets/portraits/text_allies.tga";
@@ -161,7 +162,8 @@ int WM_DrawObjectives( int x, int y, int width, float fade ) {
 			}*/
 		}
 		else {
-			//			shader = "ui/assets/portraits/axis_win";
+			str = "AXIS";
+//			shader = "ui/assets/portraits/axis_win";
 			flagshader = "ui/assets/portraits/axis_win_flag.tga";
 			nameshader = "ui/assets/portraits/text_axis.tga";
 
@@ -188,6 +190,7 @@ int WM_DrawObjectives( int x, int y, int width, float fade ) {
 	}
 // JPW NERVE -- mission time & reinforce time
 	else {
+		tempy = y;
 		rows = 1;
 		int reinfSeconds = 0;
 		int totalTimelimit = 0;
