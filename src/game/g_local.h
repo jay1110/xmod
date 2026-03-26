@@ -1321,6 +1321,11 @@ typedef struct {
 	char		rpcsFilterCams[32];
 	char		rpcsEndgameStats[MAX_INFO_STRING];
 
+	// Flag indicator (ET:Legacy parity)
+	int			flagIndicator;
+	int			redFlagCounter;
+	int			blueFlagCounter;
+
 } level_locals_t;
 
 typedef struct {

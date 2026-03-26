@@ -1765,6 +1765,14 @@ static void CG_RegisterGraphics( void ) {
 	cgs.media.objectiveShader = trap_R_RegisterShader( "sprites/objective" );
     cgs.media.objectiveShaderCM = trap_R_RegisterShader( "sprites/objective_cm" );
 
+	// ET:Legacy flag status indicator shaders
+	cgs.media.objectiveTeamShader    = trap_R_RegisterShaderNoMip( "sprites/objective_team" );
+	cgs.media.objectiveDroppedShader = trap_R_RegisterShaderNoMip( "sprites/objective_dropped" );
+	cgs.media.objectiveEnemyShader   = trap_R_RegisterShaderNoMip( "sprites/objective_enemy" );
+	cgs.media.objectiveBothTEShader  = trap_R_RegisterShaderNoMip( "sprites/objective_both_te" );
+	cgs.media.objectiveBothTDShader  = trap_R_RegisterShaderNoMip( "sprites/objective_both_td" );
+	cgs.media.objectiveBothDEShader  = trap_R_RegisterShaderNoMip( "sprites/objective_both_de" );
+
 	cgs.media.bloodExplosionShader = trap_R_RegisterShader( "bloodExplosion" );
 
 	//cgs.media.bleedExplosionShader = trap_R_RegisterShader( "bleedExplosion" );
@@ -2103,6 +2111,7 @@ static void CG_RegisterGraphics( void ) {
 	// medic icon for commandmap
 	cgs.media.medicIcon = trap_R_RegisterShaderNoMip("sprites/voiceMedic");
     cgs.media.medicIconCM = trap_R_RegisterShaderNoMip("sprites/voicemedic_cm");
+	cgs.media.ammoIconHUD = trap_R_RegisterShaderNoMip("sprites/voiceAmmo");
 
 	trap_R_RegisterFont( "ariblk", 27, &cgs.media.limboFont1 );
 	trap_R_RegisterFont( "ariblk", 16, &cgs.media.limboFont1_lo );	

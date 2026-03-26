@@ -1398,10 +1398,22 @@ static void CG_PlayerSprites( centity_t *cent ) {
 	}
 
 	// DHM - Nerve :: show voice chat signal so players know who's talking
+	// ET:Legacy parity: only show medic/ammo requests to the relevant class
 	if( cent->voiceChatSpriteTime > cg.time && 
 		(cg.snap->ps.persistant[PERS_TEAM] == team || (cg.snap->ps.persistant[PERS_TEAM] == TEAM_SPECTATOR && cgs.clientinfo[cg.snap->ps.clientNum].shoutcaster ))) {
-		CG_PlayerFloatSprite( cent, cent->voiceChatSprite, 56 );
-		return;
+		qboolean showSprite = qtrue;
+
+		// Filter: medic icon only shown to medics, ammo icon only shown to field ops
+		if( cent->voiceChatSprite == (int)cgs.media.medicIcon && cg.snap->ps.stats[STAT_PLAYER_CLASS] != PC_MEDIC ) {
+			showSprite = qfalse;
+		} else if( cent->voiceChatSprite == (int)cgs.media.ammoIconHUD && cg.snap->ps.stats[STAT_PLAYER_CLASS] != PC_FIELDOPS ) {
+			showSprite = qfalse;
+		}
+
+		if( showSprite ) {
+			CG_PlayerFloatSprite( cent, cent->voiceChatSprite, 56 );
+			return;
+		}
 	}
 
 	// DHM - Nerve :: only show talk icon to team-mates

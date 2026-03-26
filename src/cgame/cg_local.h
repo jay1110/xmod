@@ -1274,6 +1274,11 @@ typedef struct {
     
     // Rate-limit underwater nofire sound to prevent flooding during prediction
     int nextNofireSoundTime;
+
+    // Flag indicator (ET:Legacy parity)
+    int flagIndicator;
+    int redFlagCounter;
+    int blueFlagCounter;
 } cg_t;
 
 extern bool needClientFlagsUpdated;
@@ -1371,6 +1376,14 @@ typedef struct {
     qhandle_t   mutedShader;
 	qhandle_t	objectiveShader;
     qhandle_t   objectiveShaderCM;
+
+	// ET:Legacy flag status indicator shaders
+	qhandle_t	objectiveTeamShader;
+	qhandle_t	objectiveDroppedShader;
+	qhandle_t	objectiveEnemyShader;
+	qhandle_t	objectiveBothTEShader;
+	qhandle_t	objectiveBothTDShader;
+	qhandle_t	objectiveBothDEShader;
 
 	qhandle_t	vehicleShader;
 	qhandle_t	destroyShader;
@@ -1785,6 +1798,7 @@ typedef struct {
 	// Gordon: for commandmap
 	qhandle_t	medicIcon;
     qhandle_t   medicIconCM;
+	qhandle_t	ammoIconHUD;  // voice ammo sprite (ET:Legacy parity)
 
 	qhandle_t	hWeaponSnd;
 	qhandle_t	hWeaponEchoSnd;

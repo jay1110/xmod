@@ -4738,6 +4738,11 @@ static void CG_DrawPlayerStatusHead( void ) {
 
 	CG_DrawPlayerHead( &headRect, character, headcharacter, 180, 0, cg.snap->ps.eFlags & EF_HEADSHOT ? qfalse : qtrue, anim, painshader, cgs.clientinfo[ cg.snap->ps.clientNum ].rank, qfalse );
 
+	// Spawn invulnerability shield overlay (ET:Legacy parity)
+	if ( cg.snap->ps.powerups[PW_INVULNERABLE] > cg.time && !(cg.snap->ps.pm_flags & PMF_LIMBO) ) {
+		CG_DrawPic( headRect.x, headRect.y, headRect.w, headRect.h, cgs.media.spawnInvincibleShader );
+	}
+
 //	CG_DrawKeyHint( &headHintRect, "openlimbomenu" );
 }
 
@@ -5132,6 +5137,90 @@ static void CG_DrawPlayerStats( void ) {
 	}
 }
 
+/*
+=================
+CG_DrawObjectiveStatus
+
+Draw the objective/flag status indicator at x=4, y=SCREEN_HEIGHT-136.
+Ported from ET:Legacy cg_draw_hud.c CG_DrawObjectiveStatus.
+=================
+*/
+static void CG_DrawObjectiveStatus( void ) {
+	playerState_t *ps = &cg.snap->ps;
+	float x = 4;
+	float y = SCREEN_HEIGHT - 136;
+	float w = 36;
+	float h = 36;
+	float flagIconWidth        = w * 0.333f;
+	float flagIconHeight       = h * 0.222f;
+	float flagIconHeightOffset = h * 0.777f;
+
+	if( ps->persistant[PERS_TEAM] == TEAM_SPECTATOR )
+		return;
+
+	if( !(cg.flagIndicator & (1 << PW_REDFLAG)) && !(cg.flagIndicator & (1 << PW_BLUEFLAG)) )
+		return;
+
+	// pulsating alpha
+	vec4_t color = { 1.f, 1.f, 1.f, 1.f };
+	color[3] = (float)(0.67 + 0.33 * sin( cg.time / 200.0 ));
+	trap_R_SetColor( color );
+
+	if( (cg.flagIndicator & (1 << PW_REDFLAG)) && (cg.flagIndicator & (1 << PW_BLUEFLAG)) ) {
+		// both flags are out
+		if( cg.redFlagCounter > 0 && cg.blueFlagCounter > 0 ) {
+			// both stolen (carried)
+			CG_DrawPic( x, y, w, h, cgs.media.objectiveBothTEShader );
+		} else if( cg.redFlagCounter > 0 && !cg.blueFlagCounter ) {
+			CG_DrawPic( x, y, w, h, ps->persistant[PERS_TEAM] == TEAM_AXIS ? cgs.media.objectiveBothTDShader : cgs.media.objectiveBothDEShader );
+		} else if( !cg.redFlagCounter && cg.blueFlagCounter > 0 ) {
+			CG_DrawPic( x, y, w, h, ps->persistant[PERS_TEAM] == TEAM_ALLIES ? cgs.media.objectiveBothTDShader : cgs.media.objectiveBothDEShader );
+		} else {
+			// both dropped
+			CG_DrawPic( x, y, w, h, cgs.media.objectiveDroppedShader );
+		}
+		trap_R_SetColor( NULL );
+
+		// display team flags
+		color[3] = 1.f;
+		trap_R_SetColor( color );
+		CG_DrawPic( x, y + flagIconHeightOffset, flagIconWidth, flagIconHeight, ps->persistant[PERS_TEAM] == TEAM_AXIS ? cgs.media.axisFlag : cgs.media.alliedFlag );
+		CG_DrawPic( x + w - flagIconWidth, y + flagIconHeightOffset, flagIconWidth, flagIconHeight, ps->persistant[PERS_TEAM] == TEAM_AXIS ? cgs.media.alliedFlag : cgs.media.axisFlag );
+	} else if( cg.flagIndicator & (1 << PW_REDFLAG) ) {
+		if( cg.redFlagCounter > 0 ) {
+			CG_DrawPic( x, y, w, h, ps->persistant[PERS_TEAM] == TEAM_ALLIES ? cgs.media.objectiveTeamShader : cgs.media.objectiveEnemyShader );
+		} else {
+			CG_DrawPic( x, y, w, h, cgs.media.objectiveDroppedShader );
+		}
+		trap_R_SetColor( NULL );
+
+		color[3] = 1.f;
+		trap_R_SetColor( color );
+		CG_DrawPic( x + (ps->persistant[PERS_TEAM] == TEAM_AXIS ? w - flagIconWidth : 0), y + flagIconHeightOffset, flagIconWidth, flagIconHeight, cgs.media.alliedFlag );
+	} else if( cg.flagIndicator & (1 << PW_BLUEFLAG) ) {
+		if( cg.blueFlagCounter > 0 ) {
+			CG_DrawPic( x, y, w, h, ps->persistant[PERS_TEAM] == TEAM_AXIS ? cgs.media.objectiveTeamShader : cgs.media.objectiveEnemyShader );
+		} else {
+			CG_DrawPic( x, y, w, h, cgs.media.objectiveDroppedShader );
+		}
+		trap_R_SetColor( NULL );
+
+		color[3] = 1.f;
+		trap_R_SetColor( color );
+		CG_DrawPic( x + (ps->persistant[PERS_TEAM] == TEAM_ALLIES ? w - flagIconWidth : 0), y + flagIconHeightOffset, flagIconWidth, flagIconHeight, cgs.media.axisFlag );
+	}
+
+	trap_R_SetColor( NULL );
+
+	// draw counter text if more than 1 flag
+	if( cg.redFlagCounter > 1 ) {
+		CG_Text_Paint_Ext( x + (ps->persistant[PERS_TEAM] == TEAM_ALLIES ? flagIconWidth * 0.5f : w - flagIconWidth * 0.5f), y + h, 0.2f, 0.2f, colorWhite, va("%i", cg.redFlagCounter), 0, 0, ITEM_TEXTSTYLE_SHADOWED, &cgs.media.limboFont1 );
+	}
+	if( cg.blueFlagCounter > 1 ) {
+		CG_Text_Paint_Ext( x + (ps->persistant[PERS_TEAM] == TEAM_AXIS ? flagIconWidth * 0.5f : w - flagIconWidth * 0.5f), y + h, 0.2f, 0.2f, colorWhite, va("%i", cg.blueFlagCounter), 0, 0, ITEM_TEXTSTYLE_SHADOWED, &cgs.media.limboFont1 );
+	}
+}
+
 static char statsDebugStrings[6][512];
 static int statsDebugTime[6];
 static int statsDebugTextWidth[6];
@@ -5369,6 +5458,8 @@ static void CG_Draw2D( void ) {
 		}
 
 		CG_DrawObjectiveInfo();
+
+		CG_DrawObjectiveStatus();
 
 		CG_DrawSpectatorMessage();
 

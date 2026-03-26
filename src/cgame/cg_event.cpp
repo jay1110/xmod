@@ -3182,6 +3182,13 @@ void CG_EntityEvent( centity_t *cent, vec3_t position ) {
         trap_S_StartSoundVControl( NULL, cg.snap->ps.clientNum, CHAN_AUTO, cgs.media.molotovBonk, 200 );
         break;
 
+	case EV_FLAG_INDICATOR:
+		DEBUGNAME("EV_FLAG_INDICATOR");
+		cg.flagIndicator   = es->eventParm;
+		cg.redFlagCounter  = es->otherEntityNum;
+		cg.blueFlagCounter = es->otherEntityNum2;
+		break;
+
 	default:
 		DEBUGNAME("UNKNOWN");
 		CG_Error( "Unknown event: %i", event );
