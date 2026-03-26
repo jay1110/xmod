@@ -432,7 +432,8 @@ void CG_DrawPMItems( void ) {
 	float t;
 	int i, size;
 	pmListItem_t* listItem = cg_pmOldList;
-	float y = 360;
+	// base y=320: bottom of icon (320+size) stays above objective indicator at y=344
+	float y = 320;
 
 	if( cg_drawSmallPopupIcons.integer ) {
 		size = PM_ICON_SIZE_SMALL;

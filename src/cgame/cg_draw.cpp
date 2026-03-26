@@ -5109,6 +5109,11 @@ static void CG_DrawPlayerStatusHead( void ) {
 
 	CG_DrawPlayerHead( &headRect, character, headcharacter, 180, 0, cg.snap->ps.eFlags & EF_HEADSHOT ? qfalse : qtrue, anim, painshader, cgs.clientinfo[ cg.snap->ps.clientNum ].rank, qfalse );
 
+	// Spawn invulnerability shield overlay
+	if ( cg.snap->ps.powerups[PW_INVULNERABLE] > 0 && !(cg.snap->ps.pm_flags & PMF_LIMBO) ) {
+		CG_DrawPic( headRect.x, headRect.y, headRect.w, headRect.h, cgs.media.spawnInvincibleShader );
+	}
+
 //	CG_DrawKeyHint( &headHintRect, "openlimbomenu" );
 }
 
@@ -5292,9 +5297,8 @@ Ported from ET:Legacy cg_draw_hud.c
 */
 static void CG_DrawObjectiveStatus( void ) {
 	playerState_t *ps = &cg.snap->ps;
-	// Place below the lagometer at the right edge
-	float x = Ccg_WideX(SCREEN_WIDTH) - 48;
-	float y = SCREEN_HEIGHT - 152;  // lagometer bottom: (SCREEN_HEIGHT-200) + 48 = SCREEN_HEIGHT-152
+	float x = 4;
+	float y = SCREEN_HEIGHT - 136;
 	float w = 36;
 	float h = 36;
 	float flagIconWidth        = w * 0.333f;
