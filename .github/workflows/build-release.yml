@@ -16,7 +16,7 @@ jobs:
   build-linux64:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       
       - name: Install dependencies
         run: |
@@ -30,7 +30,7 @@ jobs:
         run: PLATFORM=linux64 make release
       
       - name: Upload Linux 64-bit artifacts
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: xmod-linux64
           path: |
@@ -41,7 +41,7 @@ jobs:
   build-linux32:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       
       - name: Install dependencies
         run: |
@@ -55,7 +55,7 @@ jobs:
         run: PLATFORM=linux make release
       
       - name: Upload Linux 32-bit artifacts
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: xmod-linux32
           path: |
@@ -66,7 +66,7 @@ jobs:
   build-windows:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       
       - name: Install dependencies
         run: |
@@ -83,7 +83,7 @@ jobs:
         run: PLATFORM=mingw64 make release
       
       - name: Upload Windows 32-bit artifacts
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: xmod-windows32
           path: |
@@ -92,7 +92,7 @@ jobs:
             build.mingw-release/ui/ui_mp_x86.dll
       
       - name: Upload Windows 64-bit artifacts
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: xmod-windows64
           path: |
@@ -103,7 +103,7 @@ jobs:
   build-pak-data:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       
       - name: Install dependencies
         run: |
@@ -128,7 +128,7 @@ jobs:
           echo "Total files: $(find pak-data -type f | wc -l)"
       
       - name: Upload pak data
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: xmod-pak-data
           path: pak-data/
@@ -139,10 +139,10 @@ jobs:
     runs-on: ubuntu-latest
     if: always()
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       
       - name: Download all artifacts
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           path: artifacts
       

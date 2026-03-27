@@ -954,9 +954,7 @@ void Touch_Item( gentity_t *ent, gentity_t *other, trace_t *trace ) {
 		return;
 	}
 
-	if(cvars::gameState.ivalue == GS_PLAYING) {
-		G_LogPrintf( "Item: %i %s\n", other->s.number, ent->item->classname );
-	} else {
+	if(cvars::gameState.ivalue != GS_PLAYING) {
 		// OSP - Don't let them pickup winning stuff in warmup
 		if(ent->item->giType != IT_WEAPON &&
 		   ent->item->giType != IT_AMMO &&
@@ -986,6 +984,10 @@ void Touch_Item( gentity_t *ent, gentity_t *other, trace_t *trace ) {
 
 	if (!respawn)
 		return;
+
+	if(cvars::gameState.ivalue == GS_PLAYING) {
+		G_LogPrintf( "Item: %i %s\n", other->s.number, ent->item->classname );
+	}
 
 	// play sounds 
 	if( ent->noise_index ) {

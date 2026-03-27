@@ -26,7 +26,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
       
       - name: Install dependencies
         run: |
@@ -42,7 +42,7 @@ jobs:
           make PLATFORM=linux64 VARIANT=release all MODULES="src/lua src/sqlite3 src/base src/game"
       
       - name: Upload Linux 64-bit qagame
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: qagame-linux64
           path: |
@@ -54,7 +54,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
       
       - name: Install dependencies
         run: |
@@ -75,7 +75,7 @@ jobs:
           make PLATFORM=mingw64 VARIANT=release all MODULES="src/lua src/sqlite3 src/base src/cgame src/ui"
       
       - name: Upload Windows 32-bit cgame/ui
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: cgame-ui-windows32
           path: |
@@ -84,7 +84,7 @@ jobs:
           retention-days: 7
       
       - name: Upload Windows 64-bit cgame/ui
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: cgame-ui-windows64
           path: |

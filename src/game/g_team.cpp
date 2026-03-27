@@ -10,30 +10,10 @@ typedef struct teamgame_s
 teamgame_t teamgame;
 static int numobjectives = 0; // TTimo - number of objectives in the map
 
-/*
-=================
-G_globalFlagIndicator
-
-Broadcast flag indicator event to all clients (ET:Legacy parity).
-=================
-*/
-static void G_globalFlagIndicator( void ) {
-	gentity_t *te = G_TempEntity( vec3_origin, EV_FLAG_INDICATOR );
-	te->s.eventParm       = level.flagIndicator;
-	te->s.otherEntityNum  = level.redFlagCounter;
-	te->s.otherEntityNum2 = level.blueFlagCounter;
-	te->r.svFlags        |= SVF_BROADCAST;
-}
-
 void Team_InitGame(void)
 {
 	memset(&teamgame, 0, sizeof teamgame);
 	numobjectives = 0;
-
-	// reset flag indicator
-	level.flagIndicator   = 0;
-	level.redFlagCounter  = 0;
-	level.blueFlagCounter = 0;
 }
 
 int OtherTeam(int team) {
@@ -341,6 +321,17 @@ void Team_ResetFlag( gentity_t *ent )
 		if( ent->s.density == 1 )
 			RespawnItem(ent);
 
+		// update flag indicator
+		int flagType = (ent->item) ? ent->item->giTag : 0;
+		if (flagType == PW_REDFLAG) {
+			if (level.redFlagCounter > 0) level.redFlagCounter--;
+			if (!level.redFlagCounter) level.flagIndicator &= ~(1 << PW_REDFLAG);
+		} else if (flagType == PW_BLUEFLAG) {
+			if (level.blueFlagCounter > 0) level.blueFlagCounter--;
+			if (!level.blueFlagCounter) level.flagIndicator &= ~(1 << PW_BLUEFLAG);
+		}
+		G_globalFlagIndicator();
+
 		Bot_Util_SendTrigger(ent, NULL, va("Flag returned %s!", _GetEntityName(ent)), "returned");
 	}
 }
@@ -390,6 +381,14 @@ void Team_ResetFlags(void)
 	}
 }
 
+void G_globalFlagIndicator(void) {
+	gentity_t *te = G_TempEntity(vec3_origin, EV_FLAG_INDICATOR);
+	te->s.eventParm       = level.flagIndicator;
+	te->s.otherEntityNum  = level.redFlagCounter;
+	te->s.otherEntityNum2 = level.blueFlagCounter;
+	te->r.svFlags        |= SVF_BROADCAST;
+}
+
 void Team_ReturnFlagSound(gentity_t *ent, int team)
 {
 	// play powerup spawn sound to all clients
@@ -419,18 +418,6 @@ void Team_ReturnFlag(gentity_t *ent)
 	Team_ReturnFlagSound(ent, team);
 	Team_ResetFlag(ent);
 	PrintMsg(NULL, "The %s flag has returned!\n", TeamName(team));
-
-	// update objective indicator
-	if( ent->item->giTag == PW_REDFLAG ) {
-		level.redFlagCounter--;
-		if( !level.redFlagCounter )
-			level.flagIndicator &= ~(1 << PW_REDFLAG);
-	} else {
-		level.blueFlagCounter--;
-		if( !level.blueFlagCounter )
-			level.flagIndicator &= ~(1 << PW_BLUEFLAG);
-	}
-	G_globalFlagIndicator();
 }
 
 /*
@@ -453,12 +440,6 @@ void Team_DroppedFlagThink(gentity_t *ent) {
 			G_Script_ScriptEvent( level.gameManager, "trigger", "axis_object_returned" );
 		}
 
-		// update objective indicator
-		level.redFlagCounter--;
-		if( !level.redFlagCounter )
-			level.flagIndicator &= ~(1 << PW_REDFLAG);
-		G_globalFlagIndicator();
-
 		// CHRUKER: b058 - This is all handled in the map script.
 		//trap_SendServerCommand(-1, "cp \"Axis have returned the objective!\" 2");
 	} else if( ent->item->giTag == PW_BLUEFLAG ) {
@@ -471,12 +452,6 @@ void Team_DroppedFlagThink(gentity_t *ent) {
 			G_Script_ScriptEvent( level.gameManager, "trigger", "allied_object_returned" );
 		}
 
-		// update objective indicator
-		level.blueFlagCounter--;
-		if( !level.blueFlagCounter )
-			level.flagIndicator &= ~(1 << PW_BLUEFLAG);
-		G_globalFlagIndicator();
-
 //		trap_SendServerCommand(-1, "cp \"Allies have returned the objective!\" 2");
 	}
 	// Reset Flag will delete this entity
@@ -485,15 +460,6 @@ void Team_DroppedFlagThink(gentity_t *ent) {
 int Team_TouchOurFlag( gentity_t *ent, gentity_t *other, int team ) {
 	gclient_t *cl = other->client;
 //	gentity_t* te;
-	int our_flag, enemy_flag;
-
-	if (cl->sess.sessionTeam == TEAM_AXIS) {
-		our_flag = PW_REDFLAG;
-		enemy_flag = PW_BLUEFLAG;
-	} else {
-		our_flag = PW_BLUEFLAG;
-		enemy_flag = PW_REDFLAG;
-	}
 
 	if ( ent->flags & FL_DROPPED_ITEM ) {
 		// hey, its not home.  return it by teleporting it back
@@ -539,19 +505,6 @@ int Team_TouchOurFlag( gentity_t *ent, gentity_t *other, int team ) {
 		//ResetFlag will remove this entity!  We must return zero
 		Team_ReturnFlagSound(ent, team);
 		Team_ResetFlag(ent);
-
-		// update objective indicator
-		if( ent->item->giTag == PW_REDFLAG ) {
-			level.redFlagCounter--;
-			if( !level.redFlagCounter )
-				level.flagIndicator &= ~(1 << PW_REDFLAG);
-		} else {
-			level.blueFlagCounter--;
-			if( !level.blueFlagCounter )
-				level.flagIndicator &= ~(1 << PW_BLUEFLAG);
-		}
-		G_globalFlagIndicator();
-
 		return 0;
 	}
 
@@ -626,7 +579,6 @@ int Team_TouchEnemyFlag( gentity_t *ent, gentity_t *other, int team ) {
 		level.flagIndicator   |= (1 << PW_BLUEFLAG);
 		level.blueFlagCounter += 1;
 	} // flags never expire
-
 	G_globalFlagIndicator();
 
 	// store the entitynum of our original flag spawner
@@ -745,7 +697,7 @@ gentity_t *SelectRandomTeamSpawnPoint( int teamstate, team_t team, int spawnObje
 	gentity_t	*spot;
 	gentity_t	*spots[MAX_TEAM_SPAWN_POINTS];
 
-	int			count, closest, defendingTeam;
+	int			count, closest;
 	int			i = 0;
 
 	char		*classname;
@@ -754,8 +706,6 @@ gentity_t *SelectRandomTeamSpawnPoint( int teamstate, team_t team, int spawnObje
 	vec3_t		target;
 	vec3_t		farthest;
 	
-	defendingTeam = -1;
-
 	if (team == TEAM_AXIS) {
 		classname = "team_CTF_redspawn";
 	} else if (team == TEAM_ALLIES) {
@@ -1714,7 +1664,6 @@ int QDECL G_SortPlayersByXPRate( const void *a, const void *b ) {
 void G_shuffleTeams(void)
 {
 	int i, cTeam;;
-	int aTeamCount[TEAM_NUM_TEAMS];
 	int cnt = 0;
 	int	sortClients[MAX_CLIENTS];
 
@@ -1722,10 +1671,6 @@ void G_shuffleTeams(void)
 
 	G_teamReset(TEAM_AXIS, qtrue);
 	G_teamReset(TEAM_ALLIES, qtrue);
-
-	for( i = 0; i < TEAM_NUM_TEAMS; i++ ) {
-		aTeamCount[i] = 0;
-	}
 
 	for( i = 0; i < level.numConnectedClients; i++ ) {
 		cl = level.clients + level.sortedClients[ i ];

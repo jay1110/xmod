@@ -918,10 +918,6 @@ static void CG_SwingAngles( float destination, float swingTolerance, float clamp
 
 	if ( !*swinging ) {
 		// see if a swing should be started
-		float centerAngle;
-
-		// zinx - use predictable center so server can match cgame easier
-		centerAngle = rint(*angle / swingTolerance) * swingTolerance;
 
 		swing = AngleSubtract( destination, *angle );
 		if ( swing >= swingTolerance || swing < -swingTolerance ) {
@@ -1041,7 +1037,7 @@ static void CG_PlayerAngles( centity_t *cent, vec3_t legs[3], vec3_t torso[3], v
 	vec3_t			velocity;
 	float			speed;
 	float			clampTolerance;
-	int				legsSet, torsoSet;
+	int				legsSet;
 	clientInfo_t	*ci;
 	bg_character_t	*character;
 
@@ -1054,7 +1050,6 @@ static void CG_PlayerAngles( centity_t *cent, vec3_t legs[3], vec3_t torso[3], v
 	}
 
 	legsSet = cent->currentState.legsAnim & ~ANIM_TOGGLEBIT;
-	torsoSet = cent->currentState.torsoAnim & ~ANIM_TOGGLEBIT;
 
 	VectorCopy( cent->lerpAngles, headAngles );
 	headAngles[YAW] = AngleMod( headAngles[YAW] );
@@ -1398,22 +1393,10 @@ static void CG_PlayerSprites( centity_t *cent ) {
 	}
 
 	// DHM - Nerve :: show voice chat signal so players know who's talking
-	// ET:Legacy parity: only show medic/ammo requests to the relevant class
 	if( cent->voiceChatSpriteTime > cg.time && 
 		(cg.snap->ps.persistant[PERS_TEAM] == team || (cg.snap->ps.persistant[PERS_TEAM] == TEAM_SPECTATOR && cgs.clientinfo[cg.snap->ps.clientNum].shoutcaster ))) {
-		qboolean showSprite = qtrue;
-
-		// Filter: medic icon only shown to medics, ammo icon only shown to field ops
-		if( cent->voiceChatSprite == (int)cgs.media.medicIcon && cg.snap->ps.stats[STAT_PLAYER_CLASS] != PC_MEDIC ) {
-			showSprite = qfalse;
-		} else if( cent->voiceChatSprite == (int)cgs.media.ammoIconHUD && cg.snap->ps.stats[STAT_PLAYER_CLASS] != PC_FIELDOPS ) {
-			showSprite = qfalse;
-		}
-
-		if( showSprite ) {
-			CG_PlayerFloatSprite( cent, cent->voiceChatSprite, 56 );
-			return;
-		}
+		CG_PlayerFloatSprite( cent, cent->voiceChatSprite, 56 );
+		return;
 	}
 
 	// DHM - Nerve :: only show talk icon to team-mates
@@ -1424,9 +1407,15 @@ static void CG_PlayerSprites( centity_t *cent ) {
 	}
 
 	// forty - show no shoot icon to teammates 
-	if( cent->currentState.powerups & (1<<PW_OPS_DISGUISED) && cg.snap->ps.persistant[PERS_TEAM] == team ) { 
-		CG_PlayerFloatSprite( cent, cgs.media.friendShader, 56 ); 
-		return; 
+	if( cent->currentState.powerups & (1<<PW_OPS_DISGUISED) ) {
+		if ( cg.snap->ps.persistant[PERS_TEAM] == team ) {
+			CG_PlayerFloatSprite( cent, cgs.media.friendShader, 56 ); 
+			return; 
+		} else if ( cg.snap->ps.persistant[PERS_TEAM] == TEAM_SPECTATOR && cgs.clientinfo[cg.snap->ps.clientNum].shoutcaster ) {
+			// Shoutcasters can see disguised enemy covert ops
+			CG_PlayerFloatSprite( cent, cgs.media.disguisedShader, 56 );
+			return;
+		}
 	} 
 
 	{

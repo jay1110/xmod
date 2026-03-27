@@ -795,7 +795,7 @@ vmMain( int command, int arg0, int arg1, int arg2, int arg3, int arg4, int arg5,
 	case GAME_MESSAGERECEIVED:
 		// JXAC: Handle binary messages from clients
 		// arg0 = clientNum, arg1 = buf, arg2 = buflen, arg3 = commandTime
-		jxac::Server::handleBinaryMessage( arg0, (const char*)arg1, arg2 );
+		jxac::Server::handleBinaryMessage( arg0, reinterpret_cast<const char*>(static_cast<intptr_t>(arg1)), arg2 );
 		return 0;
 	}
 
@@ -950,7 +950,7 @@ void G_CheckForCursorHints( gentity_t *ent ) {
   	playerState_t *ps;
 	static int hintValMax = 255; // CHRUKER: b080 - Breakable damage indicator can wrap when the entity has a lot of health
 	int			hintType, hintDist, hintVal;
-	qboolean	zooming, indirectHit;	// indirectHit means the checkent was not the ent hit by the trace (checkEnt!=traceEnt)
+	qboolean	zooming;
 	int			trace_contents;			// DHM - Nerve
 	int			numOfIgnoredEnts = 0;
 
@@ -959,8 +959,6 @@ void G_CheckForCursorHints( gentity_t *ent ) {
 	}
 
 	ps = &ent->client->ps;
-
-	indirectHit = qfalse;
 
 	zooming = (qboolean)(ps->eFlags & EF_ZOOMING);
 
@@ -1106,7 +1104,6 @@ void G_CheckForCursorHints( gentity_t *ent ) {
 			}
 
 			if(!Q_stricmp(traceEnt->classname, "func_invisible_user")) {
-				indirectHit = qtrue;
 
 				// DHM - Nerve :: Put this back in only in multiplayer
 				if(traceEnt->s.dmgFlags) {	// hint icon specified in entity

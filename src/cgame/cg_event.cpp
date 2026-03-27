@@ -3013,6 +3013,12 @@ void CG_EntityEvent( centity_t *cent, vec3_t position ) {
 		}
 		break;
 
+	case EV_FLAG_INDICATOR:
+		cg.flagIndicator   = es->eventParm;
+		cg.redFlagCounter  = es->otherEntityNum;
+		cg.blueFlagCounter = es->otherEntityNum2;
+		break;
+
 	case EV_AIRSTRIKEMESSAGE:
 		{
 			const char* wav = NULL;
@@ -3181,13 +3187,6 @@ void CG_EntityEvent( centity_t *cent, vec3_t position ) {
         DEBUGNAME("EV_BONK");
         trap_S_StartSoundVControl( NULL, cg.snap->ps.clientNum, CHAN_AUTO, cgs.media.molotovBonk, 200 );
         break;
-
-	case EV_FLAG_INDICATOR:
-		DEBUGNAME("EV_FLAG_INDICATOR");
-		cg.flagIndicator   = es->eventParm;
-		cg.redFlagCounter  = es->otherEntityNum;
-		cg.blueFlagCounter = es->otherEntityNum2;
-		break;
 
 	default:
 		DEBUGNAME("UNKNOWN");
