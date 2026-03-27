@@ -1299,8 +1299,7 @@ static void CG_DrawXmodWatermark(void) {
 		return;
 
 	x = Ccg_WideX(SCREEN_WIDTH) - 48;
-	y = SCREEN_HEIGHT - 255;
-	//y = 480 - 145;  // alt hud (here for reference)
+	y = 104;  // positioned above the timelimit (timer starts at y=152)
 
 	// Initialize the start time
 	if (startTime == 0) {
@@ -5327,8 +5326,8 @@ static void CG_DrawPlayerRank ( void ) {
 =================
 CG_DrawObjectiveStatus
 Draw flag/objective status indicator on the left side of the HUD.
-Shows how many objectives each team currently holds with team flag icons and counts.
-Also shows flag carrying/drop status via pulsing indicator (ET:Legacy parity).
+Shows flag carrying/drop status via pulsing diamond indicator (ET:Legacy parity).
+Objective count numbers are displayed next to the existing flag icons within the diamond.
 =================
 */
 static void CG_DrawObjectiveStatus( void ) {
@@ -5344,32 +5343,6 @@ static void CG_DrawObjectiveStatus( void ) {
 	if ( ps->persistant[PERS_TEAM] == TEAM_SPECTATOR )
 		return;
 
-	// --- Objective count display (always shown when there are objectives) ---
-	// Show per-team objective counts using flag icons + numbers
-	if ( cg.redFlagCounter > 0 || cg.blueFlagCounter > 0 ) {
-		float countY = y - 20;
-		float iconW = 14;
-		float iconH = 10;
-		vec4_t countColor = { 1.f, 1.f, 1.f, 0.9f };
-		char *s;
-
-		// Team flag icon + count (left = your team, right = enemy)
-		// Draw Axis flag + count
-		trap_R_SetColor( countColor );
-		CG_DrawPic( x, countY, iconW, iconH, cgs.media.axisFlag );
-		trap_R_SetColor( NULL );
-		s = va( "%i", cg.redFlagCounter );
-		CG_Text_Paint_Ext( x + iconW + 2, countY + iconH - 1, 0.19f, 0.19f, countColor, s, 0, 0, 0, &cgs.media.limboFont1 );
-
-		// Draw Allied flag + count
-		trap_R_SetColor( countColor );
-		CG_DrawPic( x, countY + iconH + 2, iconW, iconH, cgs.media.alliedFlag );
-		trap_R_SetColor( NULL );
-		s = va( "%i", cg.blueFlagCounter );
-		CG_Text_Paint_Ext( x + iconW + 2, countY + 2 * iconH + 1, 0.19f, 0.19f, countColor, s, 0, 0, 0, &cgs.media.limboFont1 );
-	}
-
-	// --- Flag status indicator (pulsing, shown when flags are in play) ---
 	if ( !(cg.flagIndicator & (1 << PW_REDFLAG)) && !(cg.flagIndicator & (1 << PW_BLUEFLAG)) && !(cg.flagIndicator & (1 << PW_NUM_POWERUPS)) )
 		return;
 
@@ -5395,6 +5368,14 @@ static void CG_DrawObjectiveStatus( void ) {
 			ps->persistant[PERS_TEAM] == TEAM_AXIS ? cgs.media.axisFlag : cgs.media.alliedFlag);
 		CG_DrawPic(x + w - flagIconWidth, y + flagIconHeightOffset, flagIconWidth, flagIconHeight,
 			ps->persistant[PERS_TEAM] == TEAM_AXIS ? cgs.media.alliedFlag : cgs.media.axisFlag);
+		// Objective count numbers next to each flag
+		{
+			vec4_t cntClr = { 1.f, 1.f, 1.f, 0.9f };
+			int leftCount = ps->persistant[PERS_TEAM] == TEAM_AXIS ? cg.redFlagCounter : cg.blueFlagCounter;
+			int rightCount = ps->persistant[PERS_TEAM] == TEAM_AXIS ? cg.blueFlagCounter : cg.redFlagCounter;
+			CG_Text_Paint_Ext(x + flagIconWidth + 1, y + flagIconHeightOffset + flagIconHeight, 0.17f, 0.17f, cntClr, va("%i", leftCount), 0, 0, 0, &cgs.media.limboFont1);
+			CG_Text_Paint_Ext(x + w + 1, y + flagIconHeightOffset + flagIconHeight, 0.17f, 0.17f, cntClr, va("%i", rightCount), 0, 0, 0, &cgs.media.limboFont1);
+		}
 		// clear debug/sentinel bit after display (intentional side effect, matches ET:Legacy)
 		cg.flagIndicator &= ~(1 << PW_NUM_POWERUPS);
 	} else if ( cg.flagIndicator & (1 << PW_REDFLAG) ) {
@@ -5407,6 +5388,11 @@ static void CG_DrawObjectiveStatus( void ) {
 		color[3] = 1.f;
 		trap_R_SetColor(color);
 		CG_DrawPic(x + (ps->persistant[PERS_TEAM] == TEAM_AXIS ? w - flagIconWidth : 0), y + flagIconHeightOffset, flagIconWidth, flagIconHeight, cgs.media.alliedFlag);
+		{
+			vec4_t cntClr = { 1.f, 1.f, 1.f, 0.9f };
+			float flagX = x + (ps->persistant[PERS_TEAM] == TEAM_AXIS ? w - flagIconWidth : 0);
+			CG_Text_Paint_Ext(flagX + flagIconWidth + 1, y + flagIconHeightOffset + flagIconHeight, 0.17f, 0.17f, cntClr, va("%i", cg.redFlagCounter), 0, 0, 0, &cgs.media.limboFont1);
+		}
 	} else if ( cg.flagIndicator & (1 << PW_BLUEFLAG) ) {
 		if ( cg.blueFlagCounter > 0 ) {
 			CG_DrawPic(x, y, w, h, ps->persistant[PERS_TEAM] == TEAM_AXIS ? cgs.media.objectiveTeamShader : cgs.media.objectiveEnemyShader);
@@ -5417,6 +5403,11 @@ static void CG_DrawObjectiveStatus( void ) {
 		color[3] = 1.f;
 		trap_R_SetColor(color);
 		CG_DrawPic(x + (ps->persistant[PERS_TEAM] == TEAM_ALLIES ? w - flagIconWidth : 0), y + flagIconHeightOffset, flagIconWidth, flagIconHeight, cgs.media.axisFlag);
+		{
+			vec4_t cntClr = { 1.f, 1.f, 1.f, 0.9f };
+			float flagX = x + (ps->persistant[PERS_TEAM] == TEAM_ALLIES ? w - flagIconWidth : 0);
+			CG_Text_Paint_Ext(flagX + flagIconWidth + 1, y + flagIconHeightOffset + flagIconHeight, 0.17f, 0.17f, cntClr, va("%i", cg.blueFlagCounter), 0, 0, 0, &cgs.media.limboFont1);
+		}
 	}
 
 	trap_R_SetColor(NULL);
