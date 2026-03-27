@@ -924,6 +924,41 @@ static void CG_DrawUpperRight( void ) {
 	if ( cg_drawSnapshot.integer ) {
 		y = CG_DrawSnapshot( y );
 	}
+
+	// Spawn invulnerability shield indicator (right-side HUD, ET:Legacy parity)
+	if ( cg.snap->ps.powerups[PW_INVULNERABLE] > 0 && !(cg.snap->ps.pm_flags & PMF_LIMBO) && cg.snap->ps.persistant[PERS_TEAM] != TEAM_SPECTATOR ) {
+		float iconSize = 20;
+		float textW;
+		char *s;
+		int remaining;
+		vec4_t shieldColor = { 1.f, 1.f, 1.f, 1.f };
+		vec4_t timerBackground;
+		vec4_t timerBorder;
+		vec4_t tclr = { 0.625f, 0.625f, 0.6f, 1.0f };
+		CG_GetHudBackgroundColor( timerBackground );
+		CG_GetHudBorderColor( timerBorder );
+
+		remaining = (cg.snap->ps.powerups[PW_INVULNERABLE] - cg.time);
+		if ( remaining < 0 ) remaining = 0;
+
+		s = va( "%i.%is", remaining / 1000, (remaining % 1000) / 100 );
+		textW = CG_Text_Width_Ext( s, 0.19f, 0, &cgs.media.limboFont1 );
+
+		// Background + border box (icon + text)
+		CG_FillRect( UPPERRIGHT_X - iconSize - textW - 6, y, iconSize + textW + 9, iconSize + 2, timerBackground );
+		CG_DrawRect_FixedBorder( UPPERRIGHT_X - iconSize - textW - 6, y, iconSize + textW + 9, iconSize + 2, 1, timerBorder );
+
+		// Pulsing shield icon
+		shieldColor[3] = 0.67f + 0.33f * sin(cg.time / 200.0);
+		trap_R_SetColor( shieldColor );
+		CG_DrawPic( UPPERRIGHT_X - iconSize - textW - 4, y + 1, iconSize, iconSize, cgs.media.spawnInvincibleShader );
+		trap_R_SetColor( NULL );
+
+		// Remaining time text
+		CG_Text_Paint_Ext( UPPERRIGHT_X - textW, y + 14, 0.19f, 0.19f, tclr, s, 0, 0, 0, &cgs.media.limboFont1 );
+
+		y += iconSize + 6;
+	}
 }
 
 /*
@@ -5291,8 +5326,9 @@ static void CG_DrawPlayerRank ( void ) {
 /*
 =================
 CG_DrawObjectiveStatus
-Draw flag/objective status indicator - shows when flags are being carried, dropped, etc.
-Ported from ET:Legacy cg_draw_hud.c
+Draw flag/objective status indicator on the left side of the HUD.
+Shows how many objectives each team currently holds with team flag icons and counts.
+Also shows flag carrying/drop status via pulsing indicator (ET:Legacy parity).
 =================
 */
 static void CG_DrawObjectiveStatus( void ) {
@@ -5308,6 +5344,32 @@ static void CG_DrawObjectiveStatus( void ) {
 	if ( ps->persistant[PERS_TEAM] == TEAM_SPECTATOR )
 		return;
 
+	// --- Objective count display (always shown when there are objectives) ---
+	// Show per-team objective counts using flag icons + numbers
+	if ( cg.redFlagCounter > 0 || cg.blueFlagCounter > 0 ) {
+		float countY = y - 20;
+		float iconW = 14;
+		float iconH = 10;
+		vec4_t countColor = { 1.f, 1.f, 1.f, 0.9f };
+		char *s;
+
+		// Team flag icon + count (left = your team, right = enemy)
+		// Draw Axis flag + count
+		trap_R_SetColor( countColor );
+		CG_DrawPic( x, countY, iconW, iconH, cgs.media.axisFlag );
+		trap_R_SetColor( NULL );
+		s = va( "%i", cg.redFlagCounter );
+		CG_Text_Paint_Ext( x + iconW + 2, countY + iconH - 1, 0.19f, 0.19f, countColor, s, 0, 0, 0, &cgs.media.limboFont1 );
+
+		// Draw Allied flag + count
+		trap_R_SetColor( countColor );
+		CG_DrawPic( x, countY + iconH + 2, iconW, iconH, cgs.media.alliedFlag );
+		trap_R_SetColor( NULL );
+		s = va( "%i", cg.blueFlagCounter );
+		CG_Text_Paint_Ext( x + iconW + 2, countY + 2 * iconH + 1, 0.19f, 0.19f, countColor, s, 0, 0, 0, &cgs.media.limboFont1 );
+	}
+
+	// --- Flag status indicator (pulsing, shown when flags are in play) ---
 	if ( !(cg.flagIndicator & (1 << PW_REDFLAG)) && !(cg.flagIndicator & (1 << PW_BLUEFLAG)) && !(cg.flagIndicator & (1 << PW_NUM_POWERUPS)) )
 		return;
 
