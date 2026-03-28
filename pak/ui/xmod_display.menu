@@ -3,7 +3,7 @@
 #define WINDOW_X        16
 #define WINDOW_Y        16
 #define WINDOW_WIDTH    608
-#define WINDOW_HEIGHT   378
+#define WINDOW_HEIGHT   390
 #define GROUP_NAME      "grpxDisplay"
 
 #include "ui/menumacros.h"
@@ -29,7 +29,7 @@ menuDef {
 	// LINKE SPALTE //
 
 	// Draw Options
-	SUBWINDOW( LEFT_X, 32, (SUBWINDOW_WIDTH), 126, "^oDRAW" )
+	SUBWINDOW( LEFT_X, 32, (SUBWINDOW_WIDTH), 138, "^oDRAW" )
 	YESNO(  LEFT_X+2, 48,  (SUBWINDOW_WIDTH)-4, 10, "^7Muzzle Flash:",     .2, 8, "cg_muzzleFlash",     "^0Toggle Muzzle Flash" )
 	MULTI(  LEFT_X+2, 60,  (SUBWINDOW_WIDTH)-4, 10, "^7Bullet Tracers:",   .2, 8, "cg_tracers",         cvarFloatList { "^1No" 0 "^dYes" 1 "^dYes, but not my own" 2 }, "^0Toggle Bullet Tracers" )
 	YESNO(  LEFT_X+2, 72,  (SUBWINDOW_WIDTH)-4, 10, "^7Explosions:",       .2, 8, "cg_wolfParticles",   "^0Toggle Explosions" )
@@ -39,26 +39,29 @@ menuDef {
 	YESNO(  LEFT_X+2, 120, (SUBWINDOW_WIDTH)-4, 10, "^7Player Shadows:",   .2, 8, "cg_shadows",         "^0Toggle player shadows" )
 	MULTI(  LEFT_X+2, 132, (SUBWINDOW_WIDTH)-4, 10, "^7Draw Gun Color:",   .2, 8, "cg_drawgun",         cvarFloatList { "^1Remove gun" 0 "^dEnable Gun" 1 "^0black" 2 "^1red" 3 "^2green" 4 "^3yellow" 5 "^4blue" 6 "^5cyan" 7 "^6magenta" 8 "^7white" 9 "^8orange" 10 "^9gray" 11 "^:light gray" 12 "^<dark green" 13 "^=olive" 14 "^>dark blue" 15 "^?dark red" 16 "^@brown" 17 "^alight orange" 18 "^bteal" 19 "^cpurple" 20 "^dsky blue" 21 "^eviolet" 22 "^fsteel blue" 23 "^glight green" 24 "^hforest green" 25 "^ired-pink" 26 "^jdark red" 27 "^ltan" 29 "^molive" 30 "^nlight yellow" 31 }, "Gun Alpha Color" )
 	SLIDER( LEFT_X+2, 144, (SUBWINDOW_WIDTH)-4, 10, "^7Drawgun Alpha:",     .2, 8, "cg_drawgunalpha" 1 0 255, "Change visibility of the gun" )
+	YESNO(  LEFT_X+2, 156,  (SUBWINDOW_WIDTH)-4, 10, "^7Missile Cam:",     .2, 8, "cg_drawcam",     "^0Toggle Missile Cam for panzerfaust, mortar and rifle." )
+
+	
 
 	// HUD Options
-	SUBWINDOW( LEFT_X, 162, (SUBWINDOW_WIDTH), 116, "^oHUD" )
-	MULTI(  LEFT_X+2, 178, (SUBWINDOW_WIDTH)-4, 10, "^7Use Xmod-style HUD:",   .2, 8, "cg_althud",              cvarFloatList { "^2No" 0 "^dYes" 1 }, "Use the Xmod-style Heads-Up-Display." )
-	MULTI(  LEFT_X+2, 190, (SUBWINDOW_WIDTH)-4, 10, "^7Obituary Location:",    .2, 8, "cg_obituaryLocation",    cvarFloatList { "^dLeft Side" 0 "^dChat Area" 1 }, "The area of the screen you want obituaries to be displayed." )
-	MULTI(  LEFT_X+2, 202, (SUBWINDOW_WIDTH)-4, 10, "^7Obituary Filter:",      .2, 8, "cg_obituaryFilter",      cvarFloatList { "^dShow all" 0 "^dRelevant" 1 "^dShow None" 2 }, "Choose which obituaries you want to see." )
-	MULTI(  LEFT_X+2, 214, (SUBWINDOW_WIDTH)-4, 10, "^7HUD Background Color:", .2, 8, "cg_hudBackgroundColor",  cvarStrList { "Default"; ".16 .2 .17 .8"; "White"; "1 1 1 .8"; "Yellow"; "1 1 0 .8"; "Red"; "1 0 0 .8"; "Green"; "0 1 0 .8"; "Blue"; "0 0 1 .8"; "Black"; "0 0 0 .8" }, "HUD Background Color" )
-	MULTI(  LEFT_X+2, 226, (SUBWINDOW_WIDTH)-4, 10, "^7HUD Border Color:",     .2, 8, "cg_hudBorderColor",      cvarStrList { "Default"; ".5 .5 .5 .5"; "White"; "1 1 1 .8"; "Yellow"; "1 1 0 .8"; "Red"; "1 0 0 .8"; "Green"; "0 1 0 .8"; "Blue"; "0 0 1 .8"; "Black"; "0 0 0 .8" }, "HUD Border Color" )
-	SLIDER( LEFT_X+2, 238, (SUBWINDOW_WIDTH)-4, 10, "^7HUD Alpha:",            .2, 8, "cg_hudAlpha" .8 0 1, "Transparency of HUD" )
-	SLIDER( LEFT_X+2, 250, (SUBWINDOW_WIDTH)-4, 10, "^7Watermark Opacity:",    .2, 8, "cg_watermarkOpacity" 1 0 1, "Set the transparency level for the server's watermark." )
-	SLIDER( LEFT_X+2, 262, (SUBWINDOW_WIDTH)-4, 10, "^7Compass Zoom:",         .2, 8, "cg_mapZoom" 1.2 1 7.43, "Set the amount of zoom for the compass." )
+	SUBWINDOW( LEFT_X, 174, (SUBWINDOW_WIDTH), 116, "^oHUD" )
+	MULTI(  LEFT_X+2, 190, (SUBWINDOW_WIDTH)-4, 10, "^7Use Xmod-style HUD:",   .2, 8, "cg_althud",              cvarFloatList { "^2No" 0 "^dYes" 1 }, "Use the Xmod-style Heads-Up-Display." )
+	MULTI(  LEFT_X+2, 202, (SUBWINDOW_WIDTH)-4, 10, "^7Obituary Location:",    .2, 8, "cg_obituaryLocation",    cvarFloatList { "^dLeft Side" 0 "^dChat Area" 1 }, "The area of the screen you want obituaries to be displayed." )
+	MULTI(  LEFT_X+2, 214, (SUBWINDOW_WIDTH)-4, 10, "^7Obituary Filter:",      .2, 8, "cg_obituaryFilter",      cvarFloatList { "^dShow all" 0 "^dRelevant" 1 "^dShow None" 2 }, "Choose which obituaries you want to see." )
+	MULTI(  LEFT_X+2, 226, (SUBWINDOW_WIDTH)-4, 10, "^7HUD Background Color:", .2, 8, "cg_hudBackgroundColor",  cvarStrList { "Default"; ".16 .2 .17 .8"; "White"; "1 1 1 .8"; "Yellow"; "1 1 0 .8"; "Red"; "1 0 0 .8"; "Green"; "0 1 0 .8"; "Blue"; "0 0 1 .8"; "Black"; "0 0 0 .8" }, "HUD Background Color" )
+	MULTI(  LEFT_X+2, 238, (SUBWINDOW_WIDTH)-4, 10, "^7HUD Border Color:",     .2, 8, "cg_hudBorderColor",      cvarStrList { "Default"; ".5 .5 .5 .5"; "White"; "1 1 1 .8"; "Yellow"; "1 1 0 .8"; "Red"; "1 0 0 .8"; "Green"; "0 1 0 .8"; "Blue"; "0 0 1 .8"; "Black"; "0 0 0 .8" }, "HUD Border Color" )
+	SLIDER( LEFT_X+2, 250, (SUBWINDOW_WIDTH)-4, 10, "^7HUD Alpha:",            .2, 8, "cg_hudAlpha" .8 0 1, "Transparency of HUD" )
+	SLIDER( LEFT_X+2, 262, (SUBWINDOW_WIDTH)-4, 10, "^7Watermark Opacity:",    .2, 8, "cg_watermarkOpacity" 1 0 1, "Set the transparency level for the server's watermark." )
+	SLIDER( LEFT_X+2, 274, (SUBWINDOW_WIDTH)-4, 10, "^7Compass Zoom:",         .2, 8, "cg_mapZoom" 1.2 1 7.43, "Set the amount of zoom for the compass." )
 
 	// Crosshair & Names
-	SUBWINDOW( LEFT_X, 282, (SUBWINDOW_WIDTH), 68, "^oCROSSHAIR & NAMES" )
-	LABEL( LEFT_X+10, 296, (SUBWINDOW_WIDTH)-4, 10, "^7Crosshair Name Drawing", .20, ITEM_ALIGN_LEFT, 8, 8 )
+	SUBWINDOW( LEFT_X, 294, (SUBWINDOW_WIDTH), 68, "^oCROSSHAIR & NAMES" )
+	LABEL( LEFT_X+10, 308, (SUBWINDOW_WIDTH)-4, 10, "^7Crosshair Name Drawing", .20, ITEM_ALIGN_LEFT, 8, 8 )
 	//CHECKBOXACTIONBITFLAG( LEFT_X+140, 308, 60, 10, "Enable", .2, 10, 8, "cg_drawCrosshairNames", 1, togglecvarbit cg_drawCrosshairNames 1, "Enable Name Drawing" )
 	//CHECKBOXACTIONBITFLAG( LEFT_X+210, 320, 60, 10, "Ranks", .2, 10, 8, "cg_drawCrosshairNames", 2, togglecvarbit cg_drawCrosshairNames 2, "Draw Player Ranks" )
-	YESNO(  LEFT_X+2, 308, (SUBWINDOW_WIDTH)-4, 10, "^7Wounded Player Names:",  .2, 8, "cg_woundedNames",        "Draw names above players waiting for revives" )
-	YESNO(  LEFT_X+2, 320, (SUBWINDOW_WIDTH)-4, 10, "^7Descriptive Text:",      .2, 8, "cg_descriptiveText",     "Show Spectator Info" )
-	MULTI(  LEFT_X+2, 338, (SUBWINDOW_WIDTH)-4, 10, "^7Spectator Names:",      .2, 8, "cg_drawSpectatorNames",      cvarFloatList { "^dOff" 0 "^dShow" 1 "^dShow" 2 }, "Show spectator names" )
+	YESNO(  LEFT_X+2, 324, (SUBWINDOW_WIDTH)-4, 10, "^7Wounded Player Names:",  .2, 8, "cg_woundedNames",        "Draw names above players waiting for revives" )
+	YESNO(  LEFT_X+2, 336, (SUBWINDOW_WIDTH)-4, 10, "^7Descriptive Text:",      .2, 8, "cg_descriptiveText",     "Show Spectator Info" )
+	MULTI(  LEFT_X+2, 348, (SUBWINDOW_WIDTH)-4, 10, "^7Spectator Names:",      .2, 8, "cg_drawSpectatorNames",      cvarFloatList { "^dOff" 0 "^dShow" 1 "^dShow" 2 }, "Show spectator names" )
 
 	// RECHTE SPALTE //
 
@@ -97,5 +100,5 @@ menuDef {
 	//SLIDER( RIGHT_X+2, 338, (SUBWINDOW_WIDTH)-4, 10, "^7Auto Map Zoom:", .2, 8, "cg_automapZoom" 5.159 1 7.43, "Auto map zoom level" )
 
 	// Back Button
-	BUTTON( 6, 354, SUBWINDOW_WIDTH, 18, "BACK", .3, 14, close xmod_display ; open xmod_options )
+	BUTTON( 6, 366, SUBWINDOW_WIDTH, 18, "BACK", .3, 14, close xmod_display ; open xmod_options )
 }
