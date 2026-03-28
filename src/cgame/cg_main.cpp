@@ -339,6 +339,9 @@ vmCvar_t	cg_hudAlpha;
 vmCvar_t	cg_hudBackgroundColor;
 vmCvar_t	cg_hudBorderColor;
 
+// Spawn Shield Timer
+vmCvar_t	cg_drawSpawnShieldTimer;
+
 // Missile Cameras
 vmCvar_t	cg_drawCam;
 
@@ -601,6 +604,9 @@ cvarTable_t		cvarTable[] = {
 	{ &cg_hudAlpha, "cg_hudAlpha", "1.0", CVAR_ARCHIVE },
 	{ &cg_hudBackgroundColor, "cg_hudBackgroundColor", "0.16 0.2 0.17 0.8", CVAR_ARCHIVE },
 	{ &cg_hudBorderColor, "cg_hudBorderColor", "0.5 0.5 0.5 0.5", CVAR_ARCHIVE },
+
+	// Spawn Shield Timer
+	{ &cg_drawSpawnShieldTimer, "cg_drawSpawnShieldTimer", "1", CVAR_ARCHIVE },
 
 	// Missile Cameras
 	{ &cg_drawCam, "cg_drawCam", "1", CVAR_ARCHIVE },

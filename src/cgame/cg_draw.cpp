@@ -926,7 +926,7 @@ static void CG_DrawUpperRight( void ) {
 	}
 
 	// Spawn invulnerability shield indicator (right-side HUD, ET:Legacy parity)
-	if ( cg.snap->ps.powerups[PW_INVULNERABLE] > 0 && !(cg.snap->ps.pm_flags & PMF_LIMBO) && cg.snap->ps.persistant[PERS_TEAM] != TEAM_SPECTATOR ) {
+	if ( cg_drawSpawnShieldTimer.integer && cg.snap->ps.powerups[PW_INVULNERABLE] > 0 && !(cg.snap->ps.pm_flags & PMF_LIMBO) && cg.snap->ps.persistant[PERS_TEAM] != TEAM_SPECTATOR ) {
 		float iconSize = 20;
 		float textW;
 		char *s;

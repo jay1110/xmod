@@ -2541,6 +2541,9 @@ extern	vmCvar_t		cg_hudAlpha;
 extern	vmCvar_t		cg_hudBackgroundColor;
 extern	vmCvar_t		cg_hudBorderColor;
 
+// Spawn Shield Timer
+extern	vmCvar_t		cg_drawSpawnShieldTimer;
+
 // Missile Cameras
 extern	vmCvar_t		cg_drawCam;
 
