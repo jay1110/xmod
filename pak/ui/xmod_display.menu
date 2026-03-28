@@ -63,32 +63,34 @@ menuDef {
 	// RECHTE SPALTE //
 
 	// Utilities
-	SUBWINDOW( RIGHT_X, 32, (SUBWINDOW_WIDTH), 124, "^oUTILITIES" )
+	SUBWINDOW( RIGHT_X, 32, (SUBWINDOW_WIDTH), 136, "^oUTILITIES" )
 	MULTI(  RIGHT_X+2, 48,  (SUBWINDOW_WIDTH)-4, 10, "^7Frames Per Second:",        .2, 8, "cg_drawfps",     cvarFloatList { "^dOff" 0 "^dOn" 1 }, "Show Frames Per Second" )
 	MULTI(  RIGHT_X+2, 60,  (SUBWINDOW_WIDTH)-4, 10, "^7Show Lag-O-Meter:",         .2, 8, "cg_lagometer",   cvarFloatList { "^dOff" 0 "^dOn" 1 }, "Show the Lag-O-Meter" )
 	MULTI(  RIGHT_X+2, 72,  (SUBWINDOW_WIDTH)-4, 10, "^7Draw Ping:",                .2, 8, "cg_drawPing",    cvarFloatList { "^dOff" 0 "^dOn" 1 }, "Draw Ping" )
 	MULTI(  RIGHT_X+2, 84,  (SUBWINDOW_WIDTH)-4, 10, "^7Local Time:",               .2, 8, "cg_drawClock",   cvarFloatList { "^dOff" 0 "^d12 Hour" 1 "^d24 Hour" 2 }, "Display the local time" )
-	MULTI(  RIGHT_X+2, 96,  (SUBWINDOW_WIDTH)-4, 10, "^7Speedometer:",              .2, 8, "cg_drawSpeed",   cvarFloatList { "^dOff" 0 "^dUPS" 1 "^dUPS + Max" 2 "^dkm/hr" 3 "^dkm/hr + Max" 4 "^dmi/hr" 5 "^dmi/hr + Max" 6 }, "Display player's speed" )
+	MULTI(  RIGHT_X+2, 96,  (SUBWINDOW_WIDTH)-4, 10, "^7Spawnshield Timer:",        .2, 8, "cg_drawSpawnShieldTimer",   cvarFloatList { "^dOff" 0 "^dOn" 1 }, "Display spawnshield indicator and timer" )
+	MULTI(  RIGHT_X+2, 108,  (SUBWINDOW_WIDTH)-4, 10, "^7Speedometer:",              .2, 8, "cg_drawSpeed",   cvarFloatList { "^dOff" 0 "^dUPS" 1 "^dUPS + Max" 2 "^dkm/hr" 3 "^dkm/hr + Max" 4 "^dmi/hr" 5 "^dmi/hr + Max" 6 }, "Display player's speed" )
 	//MULTI(  RIGHT_X+2, 108, (SUBWINDOW_WIDTH)-4, 10, "^7Speed Units:",              .2, 8, "cg_speedunit",   cvarFloatList { "^dUPS" 0 "^dKPH" 1 "^dMPH" 2 }, "Speed unit" )
 	SLIDER( RIGHT_X+2, 120, (SUBWINDOW_WIDTH)-4, 10, "^7Speedometer Delay:", .2, 8, "cg_speedRefresh" 25 0 200, "Update delay for speedometer" )
 	MULTI(  RIGHT_X+2, 132, (SUBWINDOW_WIDTH)-4, 10, "^7Country Flags:",            .2, 8, "cg_countryflags", cvarFloatList { "^dOff" 0 "^dOn" 1 }, "Draw Country Flags" )
-	MULTI(  RIGHT_X+2, 144, (SUBWINDOW_WIDTH)-4, 10, "^7Objective Hints:",          .2, 8, "cg_objectiveHints", cvarFloatList { "^dOff" 0 "^dOn" 1 }, "Draw objective hints" )
+	MULTI(  RIGHT_X+2, 144, (SUBWINDOW_WIDTH)-4, 10, "^7Objective Hints:",          .2, 8, "cg_drawObjectiveIndicators", cvarFloatList { "^dOff" 0 "^dOn" 1 "^dOn+Distance" 2 }, "Draw objective hints" )
+	MULTI(  RIGHT_X+2, 156, (SUBWINDOW_WIDTH)-4, 10, "^7OBJ hints distance:",  .2, 8, "cg_objectiveIndicatorMaxDist",           cvarFloatList { "^dMax distance" 0 "^d1" 100 "^d200" 200 "^d300" 300 "^d400" 400 "^d500" 500 "^d600" 600 "^d700" 700 "^d800" 800 "^d900" 900 "^d1000" 1000 "^d1100" 1100 "^d1200" 1200 "^d1300" 1300 "^d1400" 1400 "^d1500" 1500 "^d1600" 1600 "^d1700" 1700 "^d1800" 1800 "^d1900" 1900 "^d2000" 2000 }, "hide objective hints, when reaching the value" )
 
 	// Popups
-	SUBWINDOW( RIGHT_X, 160, (SUBWINDOW_WIDTH), 76, "^oPOPUPS" )
-	MULTI(  RIGHT_X+2, 176, (SUBWINDOW_WIDTH)-4, 10, "^7Icon Size:",         .2, 8, "cg_drawSmallPopupIcons", cvarFloatList { "^2Normal" 0 "^dSmall" 1 }, "Icon size for popup messages" )
-	MULTI(  RIGHT_X+2, 188, (SUBWINDOW_WIDTH)-4, 10, "^7Number of Popups:",  .2, 8, "cg_numPopups",           cvarFloatList { "^dOff" 0 "^d1" 1 "^d2" 2 "^d3" 3 "^d4" 4 "^d5" 5 "^d6" 6 "^d7" 7 "^d8" 8 "^d9" 9 "^d10" 10 "^d11" 11 "^d12" 12 "^d13" 13 "^d14" 14 "^d15" 15 "^d16" 16 "^d17" 17 "^d18" 18 "^d19" 19 "^d20" 20 }, "Number of popups displayed" )
-	SLIDER( RIGHT_X+2, 200, (SUBWINDOW_WIDTH)-4, 10, "^7Popup Delay:",       .2, 8, "cg_popupTime"     1000 0 1500, "Time between popups" )
-	SLIDER( RIGHT_X+2, 212, (SUBWINDOW_WIDTH)-4, 10, "^7Popup Duration:",    .2, 8, "cg_popupWaitTime" 2000 0 4000, "Popup display time" )
-	SLIDER( RIGHT_X+2, 224, (SUBWINDOW_WIDTH)-4, 10, "^7Popup Fade:",        .2, 8, "cg_popupFadeTime" 2500 0 5000, "Popup fade time" )
+	SUBWINDOW( RIGHT_X, 172, (SUBWINDOW_WIDTH), 76, "^oPOPUPS" )
+	MULTI(  RIGHT_X+2, 188, (SUBWINDOW_WIDTH)-4, 10, "^7Icon Size:",         .2, 8, "cg_drawSmallPopupIcons", cvarFloatList { "^2Normal" 0 "^dSmall" 1 }, "Icon size for popup messages" )
+	MULTI(  RIGHT_X+2, 200, (SUBWINDOW_WIDTH)-4, 10, "^7Number of Popups:",  .2, 8, "cg_numPopups",           cvarFloatList { "^dOff" 0 "^d1" 1 "^d2" 2 "^d3" 3 "^d4" 4 "^d5" 5 "^d6" 6 "^d7" 7 "^d8" 8 "^d9" 9 "^d10" 10 "^d11" 11 "^d12" 12 "^d13" 13 "^d14" 14 "^d15" 15 "^d16" 16 "^d17" 17 "^d18" 18 "^d19" 19 "^d20" 20 }, "Number of popups displayed" )
+	SLIDER( RIGHT_X+2, 212, (SUBWINDOW_WIDTH)-4, 10, "^7Popup Delay:",       .2, 8, "cg_popupTime"     1000 0 1500, "Time between popups" )
+	SLIDER( RIGHT_X+2, 224, (SUBWINDOW_WIDTH)-4, 10, "^7Popup Duration:",    .2, 8, "cg_popupWaitTime" 2000 0 4000, "Popup display time" )
+	SLIDER( RIGHT_X+2, 236, (SUBWINDOW_WIDTH)-4, 10, "^7Popup Fade:",        .2, 8, "cg_popupFadeTime" 2500 0 5000, "Popup fade time" )
 
 	// Fireteam & Location
-	SUBWINDOW( RIGHT_X, 240, (SUBWINDOW_WIDTH), 76, "^oFIRETEAM & LOCATION" )
-	MULTI(  RIGHT_X+2, 256, (SUBWINDOW_WIDTH)-4, 10, "^7Draw Location:",        .2, 8, "cg_locations",        cvarFloatList { "Coordinates only" 0 "Fire-Team only" 1 "Team-Chat only" 2 "Team-Chat+Fire-Team" 3 }, "Location display options" )
-	MULTI(  RIGHT_X+2, 268, (SUBWINDOW_WIDTH)-4, 10, "^7Fireteam Locations:",    .2, 8, "cg_locationMode",     cvarFloatList { "^dDefault (Names)" 0 "^dLocation Names" 1 "^dCoordinates" 2 "^dNames + Coords" 3 "^dNames, no PVS check" 5 "^dNames + Coords (PVS)" 7 "^dNames when Unknown" 9 "^dNames + Coords (Unknown)" 11 "^dNames (PVS)(Unknown)" 13 "^dNames + Coords (PVS)(Unknown)" 15 }, "Fireteam location display" )
-	SLIDER( RIGHT_X+2, 280, (SUBWINDOW_WIDTH)-4, 10, "^7Location Max Chars:",     .2, 8, "cg_locationMaxChars" 25 0 76, "Max characters for location names" )
-	MULTI(  RIGHT_X+2, 292, (SUBWINDOW_WIDTH)-4, 10, "^7Location Justify:",       .2, 8, "cg_locationJustify",  cvarFloatList { "^dLeft no padding" 0 "^dLeft with padding" -1 "^dRight with padding" 1 }, "^dLocation text justification" )
-	YESNO(  RIGHT_X+2, 304, (SUBWINDOW_WIDTH)-4, 10, "^7Auto Select FT Buddies:", .2, 8, "cg_FTAutoSelect",     "Auto-select fireteam buddies" )
+	SUBWINDOW( RIGHT_X, 252, (SUBWINDOW_WIDTH), 76, "^oFIRETEAM & LOCATION" )
+	MULTI(  RIGHT_X+2, 268, (SUBWINDOW_WIDTH)-4, 10, "^7Draw Location:",        .2, 8, "cg_locations",        cvarFloatList { "Coordinates only" 0 "Fire-Team only" 1 "Team-Chat only" 2 "Team-Chat+Fire-Team" 3 }, "Location display options" )
+	MULTI(  RIGHT_X+2, 280, (SUBWINDOW_WIDTH)-4, 10, "^7Fireteam Locations:",    .2, 8, "cg_locationMode",     cvarFloatList { "^dDefault (Names)" 0 "^dLocation Names" 1 "^dCoordinates" 2 "^dNames + Coords" 3 "^dNames, no PVS check" 5 "^dNames + Coords (PVS)" 7 "^dNames when Unknown" 9 "^dNames + Coords (Unknown)" 11 "^dNames (PVS)(Unknown)" 13 "^dNames + Coords (PVS)(Unknown)" 15 }, "Fireteam location display" )
+	SLIDER( RIGHT_X+2, 292, (SUBWINDOW_WIDTH)-4, 10, "^7Location Max Chars:",     .2, 8, "cg_locationMaxChars" 25 0 76, "Max characters for location names" )
+	MULTI(  RIGHT_X+2, 304, (SUBWINDOW_WIDTH)-4, 10, "^7Location Justify:",       .2, 8, "cg_locationJustify",  cvarFloatList { "^dLeft no padding" 0 "^dLeft with padding" -1 "^dRight with padding" 1 }, "^dLocation text justification" )
+	YESNO(  RIGHT_X+2, 316, (SUBWINDOW_WIDTH)-4, 10, "^7Auto Select FT Buddies:", .2, 8, "cg_FTAutoSelect",     "Auto-select fireteam buddies" )
 
 	// Auto Map
 	//SUBWINDOW( RIGHT_X, 320, (SUBWINDOW_WIDTH), 30, "^oAUTO MAP" )
