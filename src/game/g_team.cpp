@@ -321,6 +321,17 @@ void Team_ResetFlag( gentity_t *ent )
 		if( ent->s.density == 1 )
 			RespawnItem(ent);
 
+		// update flag indicator
+		int flagType = (ent->item) ? ent->item->giTag : 0;
+		if (flagType == PW_REDFLAG) {
+			if (level.redFlagCounter > 0) level.redFlagCounter--;
+			if (!level.redFlagCounter) level.flagIndicator &= ~(1 << PW_REDFLAG);
+		} else if (flagType == PW_BLUEFLAG) {
+			if (level.blueFlagCounter > 0) level.blueFlagCounter--;
+			if (!level.blueFlagCounter) level.flagIndicator &= ~(1 << PW_BLUEFLAG);
+		}
+		G_globalFlagIndicator();
+
 		Bot_Util_SendTrigger(ent, NULL, va("Flag returned %s!", _GetEntityName(ent)), "returned");
 	}
 }
@@ -368,6 +379,14 @@ void Team_ResetFlags(void)
 	while ((ent = G_Find (ent, FOFS(classname), "team_CTF_blueflag")) != NULL) {
 		Team_ResetFlag( ent );
 	}
+}
+
+void G_globalFlagIndicator(void) {
+	gentity_t *te = G_TempEntity(vec3_origin, EV_FLAG_INDICATOR);
+	te->s.eventParm       = level.flagIndicator;
+	te->s.otherEntityNum  = level.redFlagCounter;
+	te->s.otherEntityNum2 = level.blueFlagCounter;
+	te->r.svFlags        |= SVF_BROADCAST;
 }
 
 void Team_ReturnFlagSound(gentity_t *ent, int team)
@@ -441,15 +460,6 @@ void Team_DroppedFlagThink(gentity_t *ent) {
 int Team_TouchOurFlag( gentity_t *ent, gentity_t *other, int team ) {
 	gclient_t *cl = other->client;
 //	gentity_t* te;
-	int our_flag, enemy_flag;
-
-	if (cl->sess.sessionTeam == TEAM_AXIS) {
-		our_flag = PW_REDFLAG;
-		enemy_flag = PW_BLUEFLAG;
-	} else {
-		our_flag = PW_BLUEFLAG;
-		enemy_flag = PW_REDFLAG;
-	}
 
 	if ( ent->flags & FL_DROPPED_ITEM ) {
 		// hey, its not home.  return it by teleporting it back
@@ -562,9 +572,14 @@ int Team_TouchEnemyFlag( gentity_t *ent, gentity_t *other, int team ) {
 
 	if(team == TEAM_AXIS) {
 		cl->ps.powerups[PW_REDFLAG] = INT_MAX;
+		level.flagIndicator  |= (1 << PW_REDFLAG);
+		level.redFlagCounter += 1;
 	} else {
 		cl->ps.powerups[PW_BLUEFLAG] = INT_MAX;
+		level.flagIndicator   |= (1 << PW_BLUEFLAG);
+		level.blueFlagCounter += 1;
 	} // flags never expire
+	G_globalFlagIndicator();
 
 	// store the entitynum of our original flag spawner
 	if( ent->flags & FL_DROPPED_ITEM )
@@ -682,7 +697,7 @@ gentity_t *SelectRandomTeamSpawnPoint( int teamstate, team_t team, int spawnObje
 	gentity_t	*spot;
 	gentity_t	*spots[MAX_TEAM_SPAWN_POINTS];
 
-	int			count, closest, defendingTeam;
+	int			count, closest;
 	int			i = 0;
 
 	char		*classname;
@@ -691,8 +706,6 @@ gentity_t *SelectRandomTeamSpawnPoint( int teamstate, team_t team, int spawnObje
 	vec3_t		target;
 	vec3_t		farthest;
 	
-	defendingTeam = -1;
-
 	if (team == TEAM_AXIS) {
 		classname = "team_CTF_redspawn";
 	} else if (team == TEAM_ALLIES) {
@@ -1651,7 +1664,6 @@ int QDECL G_SortPlayersByXPRate( const void *a, const void *b ) {
 void G_shuffleTeams(void)
 {
 	int i, cTeam;;
-	int aTeamCount[TEAM_NUM_TEAMS];
 	int cnt = 0;
 	int	sortClients[MAX_CLIENTS];
 
@@ -1659,10 +1671,6 @@ void G_shuffleTeams(void)
 
 	G_teamReset(TEAM_AXIS, qtrue);
 	G_teamReset(TEAM_ALLIES, qtrue);
-
-	for( i = 0; i < TEAM_NUM_TEAMS; i++ ) {
-		aTeamCount[i] = 0;
-	}
 
 	for( i = 0; i < level.numConnectedClients; i++ ) {
 		cl = level.clients + level.sortedClients[ i ];

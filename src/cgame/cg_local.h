@@ -1274,6 +1274,11 @@ typedef struct {
     
     // Rate-limit underwater nofire sound to prevent flooding during prediction
     int nextNofireSoundTime;
+
+	// objective/flag status indicator (ET:Legacy parity)
+	int         flagIndicator;
+	int         redFlagCounter;
+	int         blueFlagCounter;
 } cg_t;
 
 extern bool needClientFlagsUpdated;
@@ -1374,6 +1379,9 @@ typedef struct {
 
 	qhandle_t	vehicleShader;
 	qhandle_t	destroyShader;
+	qhandle_t	disguisedShader;
+	qhandle_t	objectiveBlueShader;
+	qhandle_t	objectiveRedShader;
 
 //	qhandle_t	selectShader;
 	qhandle_t	viewBloodShader;
@@ -1492,6 +1500,13 @@ typedef struct {
 	qhandle_t	slashShader;
 	qhandle_t	compassShader;
 	qhandle_t	compass2Shader;
+
+	qhandle_t	objectiveIndicatorAttackShader;
+	qhandle_t	objectiveIndicatorDefendShader;
+	qhandle_t	objectiveIndicatorConstructShader;
+	qhandle_t	objectiveIndicatorDestroyShader;
+	qhandle_t	objectiveIndicatorEscortShader;
+	qhandle_t	objectiveIndicatorRegroupShader;
 
 	// Rafael
 	qhandle_t	snowShader;
@@ -1785,6 +1800,8 @@ typedef struct {
 	// Gordon: for commandmap
 	qhandle_t	medicIcon;
     qhandle_t   medicIconCM;
+	qhandle_t	ammoIcon;
+	qhandle_t	ammoIconCM;
 
 	qhandle_t	hWeaponSnd;
 	qhandle_t	hWeaponEchoSnd;
@@ -1906,6 +1923,28 @@ typedef struct {
 
 	// Country Flags
 	qhandle_t		countryFlags;
+
+	// objective status shaders (flag carrier/dropped state)
+	qhandle_t   objectiveTeamShader;
+	qhandle_t   objectiveDroppedShader;
+	qhandle_t   objectiveEnemyShader;
+	qhandle_t   objectiveBothTEShader;
+	qhandle_t   objectiveBothTDShader;
+	qhandle_t   objectiveBothDEShader;
+
+	// voice chat sprite variants
+	qhandle_t   medicReviveShader2;
+	qhandle_t   voiceChatOrangeShader;
+	qhandle_t   greenTick;
+	qhandle_t   redCross;
+
+	// command map specific icons
+	qhandle_t   ccFriendShader;
+	qhandle_t   ccMedicIcon;
+	qhandle_t   ccMedicReviveShader;
+	qhandle_t   ccVoiceChatShader;
+	qhandle_t   ccVoiceChatOrangeShader;
+	qhandle_t   ccskillPics[SK_NUM_SKILLS];
 } cgMedia_t;
 
 typedef struct {
@@ -2387,6 +2426,8 @@ extern vmCvar_t			cg_movespeed;
 extern vmCvar_t			cg_animState;
 
 extern vmCvar_t			cg_drawCompass;
+extern vmCvar_t			cg_drawObjectiveIndicators;
+extern vmCvar_t			cg_objectiveIndicatorMaxDist;
 extern vmCvar_t			cg_drawNotifyText;
 extern vmCvar_t			cg_quickMessageAlt;
 extern vmCvar_t			cg_popupLimboMenu;
@@ -2499,6 +2540,9 @@ extern	vmCvar_t		cg_countryflags;
 extern	vmCvar_t		cg_hudAlpha;
 extern	vmCvar_t		cg_hudBackgroundColor;
 extern	vmCvar_t		cg_hudBorderColor;
+
+// Spawn Shield Timer
+extern	vmCvar_t		cg_drawSpawnShieldTimer;
 
 // Missile Cameras
 extern	vmCvar_t		cg_drawCam;

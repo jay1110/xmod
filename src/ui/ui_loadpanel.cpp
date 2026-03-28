@@ -361,7 +361,6 @@ void UI_LoadPanel_RenderLoadingText( panel_button_t* button )
 	char			downloadName[MAX_INFO_VALUE];
 	char			buff[2560];
 	static connstate_t	lastConnState;
-	static char			lastLoadingText[MAX_INFO_VALUE];
 	char			*p, *s = "";
 	float			y;
 
@@ -374,7 +373,7 @@ void UI_LoadPanel_RenderLoadingText( panel_button_t* button )
 	trap_Cvar_VariableStringBuffer( "cl_downloadName", downloadName, sizeof(downloadName) );
 
 	if ( lastConnState > cstate.connState ) {
-		lastLoadingText[0] = '\0';
+		// connection state reset
 	}
 	lastConnState = cstate.connState;
 

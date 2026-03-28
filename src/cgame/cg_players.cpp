@@ -918,10 +918,6 @@ static void CG_SwingAngles( float destination, float swingTolerance, float clamp
 
 	if ( !*swinging ) {
 		// see if a swing should be started
-		float centerAngle;
-
-		// zinx - use predictable center so server can match cgame easier
-		centerAngle = rint(*angle / swingTolerance) * swingTolerance;
 
 		swing = AngleSubtract( destination, *angle );
 		if ( swing >= swingTolerance || swing < -swingTolerance ) {
@@ -1041,7 +1037,7 @@ static void CG_PlayerAngles( centity_t *cent, vec3_t legs[3], vec3_t torso[3], v
 	vec3_t			velocity;
 	float			speed;
 	float			clampTolerance;
-	int				legsSet, torsoSet;
+	int				legsSet;
 	clientInfo_t	*ci;
 	bg_character_t	*character;
 
@@ -1054,7 +1050,6 @@ static void CG_PlayerAngles( centity_t *cent, vec3_t legs[3], vec3_t torso[3], v
 	}
 
 	legsSet = cent->currentState.legsAnim & ~ANIM_TOGGLEBIT;
-	torsoSet = cent->currentState.torsoAnim & ~ANIM_TOGGLEBIT;
 
 	VectorCopy( cent->lerpAngles, headAngles );
 	headAngles[YAW] = AngleMod( headAngles[YAW] );
@@ -1412,9 +1407,15 @@ static void CG_PlayerSprites( centity_t *cent ) {
 	}
 
 	// forty - show no shoot icon to teammates 
-	if( cent->currentState.powerups & (1<<PW_OPS_DISGUISED) && cg.snap->ps.persistant[PERS_TEAM] == team ) { 
-		CG_PlayerFloatSprite( cent, cgs.media.friendShader, 56 ); 
-		return; 
+	if( cent->currentState.powerups & (1<<PW_OPS_DISGUISED) ) {
+		if ( cg.snap->ps.persistant[PERS_TEAM] == team ) {
+			CG_PlayerFloatSprite( cent, cgs.media.friendShader, 56 ); 
+			return; 
+		} else if ( cg.snap->ps.persistant[PERS_TEAM] == TEAM_SPECTATOR && cgs.clientinfo[cg.snap->ps.clientNum].shoutcaster ) {
+			// Shoutcasters can see disguised enemy covert ops
+			CG_PlayerFloatSprite( cent, cgs.media.disguisedShader, 56 );
+			return;
+		}
 	} 
 
 	{

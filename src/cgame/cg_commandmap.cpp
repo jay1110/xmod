@@ -661,6 +661,17 @@ static void CG_DrawPlayerEntity( mapEntityData_t* mEnt, float x, float y, float 
         float offset = 12;
         bool draw = true;
 
+        // Use command-map-specific icons when available
+        qhandle_t cmVoiceChatIcon = voiceChatIcon;
+        if ( voiceChatIcon == cgs.media.medicIcon && cgs.media.medicIconCM )
+            cmVoiceChatIcon = cgs.media.medicIconCM;
+        else if ( voiceChatIcon == cgs.media.ammoIcon && cgs.media.ammoIconCM )
+            cmVoiceChatIcon = cgs.media.ammoIconCM;
+        else if ( voiceChatIcon == cgs.media.voiceChatShader && cgs.media.ccVoiceChatShader )
+            cmVoiceChatIcon = cgs.media.ccVoiceChatShader;
+        else if ( voiceChatIcon == cgs.media.voiceChatOrangeShader && cgs.media.ccVoiceChatOrangeShader )
+            cmVoiceChatIcon = cgs.media.ccVoiceChatOrangeShader;
+
         // Jaybird - check for culling
         if (scissor) {
             offset *= CM_ALT_SCALE;
@@ -675,7 +686,7 @@ static void CG_DrawPlayerEntity( mapEntityData_t* mEnt, float x, float y, float 
         }
 
         if (draw) {
-			CG_DrawPic( icon_pos[0] + offset, icon_pos[1], icon_extends[0] * 0.5f, icon_extends[1] * 0.5f, voiceChatIcon);
+			CG_DrawPic( icon_pos[0] + offset, icon_pos[1], icon_extends[0] * 0.5f, icon_extends[1] * 0.5f, cmVoiceChatIcon);
         }
 	}
 

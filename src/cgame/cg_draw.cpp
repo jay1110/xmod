@@ -924,6 +924,41 @@ static void CG_DrawUpperRight( void ) {
 	if ( cg_drawSnapshot.integer ) {
 		y = CG_DrawSnapshot( y );
 	}
+
+	// Spawn invulnerability shield indicator (right-side HUD, ET:Legacy parity)
+	if ( cg_drawSpawnShieldTimer.integer && cg.snap->ps.powerups[PW_INVULNERABLE] > 0 && !(cg.snap->ps.pm_flags & PMF_LIMBO) && cg.snap->ps.persistant[PERS_TEAM] != TEAM_SPECTATOR ) {
+		float iconSize = 20;
+		float textW;
+		char *s;
+		int remaining;
+		vec4_t shieldColor = { 1.f, 1.f, 1.f, 1.f };
+		vec4_t timerBackground;
+		vec4_t timerBorder;
+		vec4_t tclr = { 0.625f, 0.625f, 0.6f, 1.0f };
+		CG_GetHudBackgroundColor( timerBackground );
+		CG_GetHudBorderColor( timerBorder );
+
+		remaining = (cg.snap->ps.powerups[PW_INVULNERABLE] - cg.time);
+		if ( remaining < 0 ) remaining = 0;
+
+		s = va( "%i.%is", remaining / 1000, (remaining % 1000) / 100 );
+		textW = CG_Text_Width_Ext( s, 0.19f, 0, &cgs.media.limboFont1 );
+
+		// Background + border box (icon + text)
+		CG_FillRect( UPPERRIGHT_X - iconSize - textW - 6, y, iconSize + textW + 9, iconSize + 2, timerBackground );
+		CG_DrawRect_FixedBorder( UPPERRIGHT_X - iconSize - textW - 6, y, iconSize + textW + 9, iconSize + 2, 1, timerBorder );
+
+		// Pulsing shield icon
+		shieldColor[3] = 0.67f + 0.33f * sin(cg.time / 200.0);
+		trap_R_SetColor( shieldColor );
+		CG_DrawPic( UPPERRIGHT_X - iconSize - textW - 4, y + 1, iconSize, iconSize, cgs.media.spawnInvincibleShader );
+		trap_R_SetColor( NULL );
+
+		// Remaining time text
+		CG_Text_Paint_Ext( UPPERRIGHT_X - textW, y + 14, 0.19f, 0.19f, tclr, s, 0, 0, 0, &cgs.media.limboFont1 );
+
+		y += iconSize + 6;
+	}
 }
 
 /*
@@ -1264,8 +1299,7 @@ static void CG_DrawXmodWatermark(void) {
 		return;
 
 	x = Ccg_WideX(SCREEN_WIDTH) - 48;
-	y = SCREEN_HEIGHT - 255;
-	//y = 480 - 145;  // alt hud (here for reference)
+	y = 104;  // positioned above the timelimit (timer starts at y=152)
 
 	// Initialize the start time
 	if (startTime == 0) {
@@ -4093,6 +4127,294 @@ static void CG_DrawFlashBlend( void ) {
 	CG_DrawFlashDamage();
 }
 
+/*
+=================
+CG_WorldCoordToScreenCoordFloat
+
+Projects a 3D world point to 2D screen coordinates.
+Returns qtrue if the point is in front of the camera.
+=================
+*/
+static qboolean CG_WorldCoordToScreenCoordFloat( vec3_t point, float *x, float *y ) {
+	vec3_t trans;
+	float  xc, yc;
+	float  px, py;
+	float  z;
+
+	px = tanf( DEG2RAD( cg.refdef.fov_x ) * 0.5f );
+	py = tanf( DEG2RAD( cg.refdef.fov_y ) * 0.5f );
+
+	VectorSubtract( point, cg.refdef.vieworg, trans );
+
+	xc = 640.0f * 0.5f;
+	yc = 480.0f * 0.5f;
+
+	z = DotProduct( trans, cg.refdef.viewaxis[0] );
+	if ( z < 0.1f )
+		return qfalse;
+
+	px *= z;
+	py *= z;
+	if ( px == 0.f || py == 0.f )
+		return qfalse;
+
+	*x = xc - ( DotProduct( trans, cg.refdef.viewaxis[1] ) * xc ) / px;
+	*y = yc - ( DotProduct( trans, cg.refdef.viewaxis[2] ) * yc ) / py;
+	*x = Ccg_WideX( *x );
+
+	return qtrue;
+}
+
+/*
+=================
+CG_DrawObjectiveIndicators / CG_WorldCoordToScreenCoordForObjective constants
+=================
+*/
+#define OBJIND_UNITS_PER_METER   52.5f
+#define OBJIND_DIST_TEXT_MIN     0.12f
+#define OBJIND_DIST_TEXT_MAX     0.20f
+#define OBJIND_EDGE_MARGIN       18.0f  // px from screen border for edge-pinned indicators
+
+/*
+=================
+CG_WorldCoordToScreenCoordForObjective
+
+Like CG_WorldCoordToScreenCoordFloat but also handles objectives that are behind
+the camera:
+ - In front (z > 0):  normal projection, result clamped to screen edge with margin.
+ - Behind  (z <= 0):  the 2D screen-plane direction to the objective is used to
+                      find the screen-edge intersection, so the icon always appears
+                      on the correct edge (e.g. behind-left → left edge).
+Sets *onEdge = qtrue when the result was clamped/pinned to a screen border.
+When *onEdge is true the caller should skip distance text (it would be misleading
+on an edge arrow).
+Returns qfalse only when the vector is degenerate (player standing inside entity).
+=================
+*/
+
+static qboolean CG_WorldCoordToScreenCoordForObjective( vec3_t point, float *x, float *y, qboolean *onEdge ) {
+	vec3_t trans;
+	float  xc, yc, screenW;
+	float  px, py, z;
+
+	px = tanf( DEG2RAD( cg.refdef.fov_x ) * 0.5f );
+	py = tanf( DEG2RAD( cg.refdef.fov_y ) * 0.5f );
+	if ( px == 0.f || py == 0.f )
+		return qfalse;
+
+	VectorSubtract( point, cg.refdef.vieworg, trans );
+	if ( VectorLength( trans ) < 0.1f )
+		return qfalse;
+
+	xc      = 640.0f * 0.5f;
+	yc      = 480.0f * 0.5f;
+	screenW = Ccg_WideX( 640.0f );
+	*onEdge = qfalse;
+
+	z = DotProduct( trans, cg.refdef.viewaxis[0] );
+
+	if ( z > 0.1f ) {
+		// Normal in-front projection
+		*x = Ccg_WideX( xc - ( DotProduct( trans, cg.refdef.viewaxis[1] ) * xc ) / ( px * z ) );
+		*y = yc           - ( DotProduct( trans, cg.refdef.viewaxis[2] ) * yc ) / ( py * z );
+	} else {
+		// Behind camera: derive direction from the 2D screen-plane components.
+		// viewaxis[1] points LEFT, viewaxis[2] points UP.
+		// Map to screen-right/down: dx = -(left), dy = -(up)
+		float s   = DotProduct( trans, cg.refdef.viewaxis[1] );
+		float u   = DotProduct( trans, cg.refdef.viewaxis[2] );
+		float dx  = -s;
+		float dy  = -u;
+		float len = sqrtf( dx * dx + dy * dy );
+
+		if ( len < 0.01f ) {
+			// Directly behind with no lateral offset: default to bottom-centre
+			*x = screenW * 0.5f;
+			*y = 480.0f - OBJIND_EDGE_MARGIN;
+			*onEdge = qtrue;
+			return qtrue;
+		}
+
+		dx /= len;
+		dy /= len;
+
+		// Find the t that first hits the horizontal or vertical screen edge
+		float hHalf = screenW * 0.5f - OBJIND_EDGE_MARGIN;
+		float vHalf = yc - OBJIND_EDGE_MARGIN;
+		float tx    = ( fabsf( dx ) > 0.001f ) ? hHalf / fabsf( dx ) : 1e9f;
+		float ty    = ( fabsf( dy ) > 0.001f ) ? vHalf / fabsf( dy ) : 1e9f;
+		float t     = ( tx < ty ) ? tx : ty;
+
+		*x = screenW * 0.5f + t * dx;
+		*y = 480.0f  * 0.5f + t * dy;
+		*onEdge = qtrue;
+		return qtrue;
+	}
+
+	// Clamp in-front coords that project outside the viewport
+	{
+		float xmin = OBJIND_EDGE_MARGIN, xmax = screenW - OBJIND_EDGE_MARGIN;
+		float ymin = OBJIND_EDGE_MARGIN, ymax = 480.0f - OBJIND_EDGE_MARGIN;
+		if ( *x < xmin ) { *x = xmin; *onEdge = qtrue; }
+		if ( *x > xmax ) { *x = xmax; *onEdge = qtrue; }
+		if ( *y < ymin ) { *y = ymin; *onEdge = qtrue; }
+		if ( *y > ymax ) { *y = ymax; *onEdge = qtrue; }
+	}
+
+	return qtrue;
+}
+
+/*
+=================
+CG_DrawObjectiveIndicators
+
+Draws world-space icons for active objectives (explosives, constructibles, tanks,
+capture points). Icons are shown through walls at reduced alpha, and at full alpha
+when in line of sight. Set cg_objectiveIndicatorMaxDist > 0 to limit visibility range.
+Indicators are hidden within 1 metre of the player. When an objective is behind the
+player the icon is pinned to the nearest screen edge.
+=================
+*/
+
+static void CG_DrawObjectiveIndicators( void ) {
+	int           num;
+	centity_t     *cent;
+	float         sx, sy;
+	float         alpha, size;
+	vec4_t        color;
+	qhandle_t     icon;
+	trace_t       trace;
+	int           playerTeam;
+	float         dist;
+	float         maxDist;
+	vec3_t        dir;
+	int           eType;
+	int           objTeam;
+	char          distStr[16];
+	float         textScale;
+	float         textW;
+	qboolean      onEdge;
+
+	if ( !cg.snap )
+		return;
+
+	playerTeam = cg.snap->ps.persistant[PERS_TEAM];
+	if ( playerTeam != TEAM_AXIS && playerTeam != TEAM_ALLIES )
+		return;
+
+	maxDist = cg_objectiveIndicatorMaxDist.value;
+
+	for ( num = 0; num < cg.snap->numEntities; num++ ) {
+		cent = &cg_entities[cg.snap->entities[num].number];
+		eType = cent->currentState.eType;
+
+		if ( eType != ET_EXPLOSIVE_INDICATOR &&
+		     eType != ET_CONSTRUCTIBLE_INDICATOR &&
+		     eType != ET_TANK_INDICATOR &&
+		     eType != ET_TANK_INDICATOR_DEAD &&
+		     eType != ET_TRAP &&
+		     eType != ET_WOLF_OBJECTIVE ) {
+			continue;
+		}
+
+		// Distance check
+		VectorSubtract( cent->lerpOrigin, cg.refdef.vieworg, dir );
+		dist = VectorLength( dir );
+		// Hide when closer than 1 metre — the icon would just clutter the screen
+		if ( dist < OBJIND_UNITS_PER_METER )
+			continue;
+		if ( maxDist > 0.f && dist > maxDist )
+			continue;
+
+		if ( !CG_WorldCoordToScreenCoordForObjective( cent->lerpOrigin, &sx, &sy, &onEdge ) )
+			continue;
+
+		// Determine icon per objective type
+		if ( eType == ET_WOLF_OBJECTIVE || eType == ET_TRAP ) {
+			// Capture-and-Hold checkpoint flag. WCP_ANIM_* states in s.frame:
+			//   0 = NOFLAG (neutral)   1/3/7 = axis owns   2/4/8 = allies owns
+			//   5/6 = transitioning (both can capture)
+			int frame = cent->currentState.frame;
+			if ( frame == 1 || frame == 3 || frame == 7 ) {
+				objTeam = TEAM_AXIS;
+			} else if ( frame == 2 || frame == 4 || frame == 8 ) {
+				objTeam = TEAM_ALLIES;
+			} else {
+				objTeam = TEAM_FREE;   // neutral / transitioning
+			}
+			if ( objTeam == TEAM_FREE ) {
+				icon = cgs.media.objectiveIndicatorRegroupShader;  // neutral: go capture
+			} else if ( objTeam == playerTeam ) {
+				icon = cgs.media.objectiveIndicatorDefendShader;   // ours: defend it
+			} else {
+				icon = cgs.media.objectiveIndicatorAttackShader;   // enemy holds: go take it
+			}
+		} else if ( eType == ET_TANK_INDICATOR_DEAD ) {
+			// Destroyed tank: only relevant to same-team engineers (repair it).
+			if ( (int)cent->currentState.teamNum != playerTeam ) {
+				continue;  // nothing actionable for the enemy
+			}
+			icon = cgs.media.objectiveIndicatorConstructShader;  // repair/rebuild
+		} else if ( eType == ET_TANK_INDICATOR ) {
+			if ( (int)cent->currentState.teamNum == playerTeam ) {
+				icon = cgs.media.objectiveIndicatorEscortShader;   // escort our tank
+			} else {
+				icon = cgs.media.objectiveIndicatorDestroyShader;  // destroy enemy tank
+			}
+		} else if ( eType == ET_CONSTRUCTIBLE_INDICATOR ) {
+			if ( (int)cent->currentState.teamNum == playerTeam ) {
+				icon = cgs.media.objectiveIndicatorConstructShader; // build/repair ours
+			} else {
+				icon = cgs.media.objectiveIndicatorDestroyShader;   // blow up theirs
+			}
+		} else {
+			// ET_EXPLOSIVE_INDICATOR: teamNum = team that OWNS the targeted constructible.
+			// If it's ours → enemy placed dynamite on our objective → DEFUSE it.
+			// If it's theirs → our team placed dynamite on their objective → press the attack.
+			if ( (int)cent->currentState.teamNum == playerTeam ) {
+				// Enemy placed dynamite on our objective — defuse it
+				icon = cgs.media.objectiveIndicatorDefendShader;
+			} else {
+				// Our team placed dynamite on enemy objective — keep attacking
+				icon = cgs.media.objectiveIndicatorAttackShader;
+			}
+		}
+
+		// Line-of-sight trace: full alpha if visible, reduced if through wall
+		CG_Trace( &trace, cg.refdef.vieworg, NULL, NULL, cent->lerpOrigin, -1, CONTENTS_SOLID );
+		alpha = ( trace.fraction >= 1.0f ) ? 1.0f : 0.35f;
+
+		// Distance-based scale: base 18px, clamped [10, 24]
+		size = 18.0f * ( 300.0f / ( dist > 1.0f ? dist : 1.0f ) );
+		if ( size < 10.0f ) size = 10.0f;
+		if ( size > 24.0f ) size = 24.0f;
+
+		// Subtle pulse
+		alpha *= 0.8f + 0.2f * sinf( cg.time * 0.003f );
+
+		color[0] = 1.0f;
+		color[1] = 1.0f;
+		color[2] = 1.0f;
+		color[3] = alpha;
+
+		trap_R_SetColor( color );
+		CG_DrawPic( sx - size * 0.5f, sy - size * 0.5f, size, size, icon );
+		trap_R_SetColor( NULL );
+
+		// Distance label below the icon — only when cvar >= 2 and not edge-pinned
+		if ( cg_drawObjectiveIndicators.integer >= 2 && !onEdge ) {
+			Com_sprintf( distStr, sizeof( distStr ), "%im", (int)( dist / OBJIND_UNITS_PER_METER + 0.5f ) );
+			textScale = size * 0.011f;   // scale text proportionally to icon
+			if ( textScale < OBJIND_DIST_TEXT_MIN ) textScale = OBJIND_DIST_TEXT_MIN;
+			if ( textScale > OBJIND_DIST_TEXT_MAX ) textScale = OBJIND_DIST_TEXT_MAX;
+			textW = (float)CG_Text_Width_Ext( distStr, textScale, 0, &cgs.media.limboFont2 );
+			color[3] = alpha;
+			// +8px gap below icon bottom so text doesn't overlap with the icon
+			CG_Text_Paint_Ext( sx - textW * 0.5f, sy + size * 0.5f + 8.0f, textScale, textScale, color, distStr, 0, 0, ITEM_TEXTSTYLE_SHADOWED, &cgs.media.limboFont2 );
+		}
+	}
+}
+
 // NERVE - SMF
 /*
 =================
@@ -4566,6 +4888,89 @@ static void CG_DrawNewCompass( void ) {
 
 		CG_DrawCompassIcon( basex, basey, basew, baseh, cg.predictedPlayerState.origin, ent->pos.trBase, cgs.media.buddyShader );
 	}
+
+	// Dropped flag (objective item) icons on compass
+	{
+		int playerTeam = cg.predictedPlayerState.persistant[PERS_TEAM];
+		if ( playerTeam == TEAM_AXIS || playerTeam == TEAM_ALLIES ) {
+			for (int i = 0; i < snap->numEntities; i++) {
+				entityState_t *ent = &snap->entities[i];
+				if ( ent->eType != ET_ITEM )
+					continue;
+				if ( ent->modelindex <= 0 || ent->modelindex >= bg_numItems )
+					continue;
+
+				gitem_t *item = &bg_itemlist[ ent->modelindex ];
+				if ( item->giType != IT_TEAM )
+					continue;
+
+				qhandle_t icon = 0;
+				if ( item->giTag == PW_BLUEFLAG ) {
+					icon = ( playerTeam == TEAM_AXIS ) ? cgs.media.objectiveBlueShader : cgs.media.objectiveRedShader;
+				} else if ( item->giTag == PW_REDFLAG ) {
+					icon = ( playerTeam == TEAM_ALLIES ) ? cgs.media.objectiveBlueShader : cgs.media.objectiveRedShader;
+				}
+
+				if ( icon ) {
+					centity_t *cent2 = &cg_entities[ent->number];
+					CG_DrawCompassIcon( basex, basey, basew, baseh, cg.predictedPlayerState.origin, cent2->lerpOrigin, icon );
+				}
+			}
+		}
+	}
+
+	// Objective indicator icons on compass
+	if ( cg_drawObjectiveIndicators.integer ) {
+		int playerTeam = cg.predictedPlayerState.persistant[PERS_TEAM];
+		if ( playerTeam == TEAM_AXIS || playerTeam == TEAM_ALLIES ) {
+			for ( int i = 0; i < snap->numEntities; i++ ) {
+				entityState_t *ent2  = &snap->entities[i];
+				centity_t     *cent2 = &cg_entities[ent2->number];
+				qhandle_t      icon  = 0;
+				int            eTeam = (int)ent2->teamNum;
+
+				switch ( ent2->eType ) {
+				case ET_EXPLOSIVE_INDICATOR:
+					icon = ( eTeam == playerTeam )
+					       ? cgs.media.objectiveIndicatorDefendShader
+					       : cgs.media.objectiveIndicatorAttackShader;
+					break;
+				case ET_CONSTRUCTIBLE_INDICATOR:
+					icon = ( eTeam == playerTeam )
+					       ? cgs.media.objectiveIndicatorConstructShader
+					       : cgs.media.objectiveIndicatorDestroyShader;
+					break;
+				case ET_TANK_INDICATOR:
+					icon = ( eTeam == playerTeam )
+					       ? cgs.media.objectiveIndicatorEscortShader
+					       : cgs.media.objectiveIndicatorDestroyShader;
+					break;
+				case ET_TANK_INDICATOR_DEAD:
+					if ( eTeam == playerTeam )
+						icon = cgs.media.objectiveIndicatorConstructShader;
+					break;
+				case ET_WOLF_OBJECTIVE:
+				case ET_TRAP:
+				{
+					int frame = ent2->frame;
+					int objTeam;
+					if ( frame == 1 || frame == 3 || frame == 7 )      objTeam = TEAM_AXIS;
+					else if ( frame == 2 || frame == 4 || frame == 8 ) objTeam = TEAM_ALLIES;
+					else                                                objTeam = TEAM_FREE;
+					if ( objTeam == TEAM_FREE )         icon = cgs.media.objectiveIndicatorRegroupShader;
+					else if ( objTeam == playerTeam )   icon = cgs.media.objectiveIndicatorDefendShader;
+					else                                icon = cgs.media.objectiveIndicatorAttackShader;
+					break;
+				}
+				default:
+					break;
+				}
+
+				if ( icon )
+					CG_DrawCompassIcon( basex, basey, basew, baseh, cg.predictedPlayerState.origin, cent2->lerpOrigin, icon );
+			}
+		}
+	}
 }
 
 static int CG_PlayerAmmoValue( int *ammo, int *clips, int *akimboammo ) {
@@ -4737,6 +5142,11 @@ static void CG_DrawPlayerStatusHead( void ) {
 	
 
 	CG_DrawPlayerHead( &headRect, character, headcharacter, 180, 0, cg.snap->ps.eFlags & EF_HEADSHOT ? qfalse : qtrue, anim, painshader, cgs.clientinfo[ cg.snap->ps.clientNum ].rank, qfalse );
+
+	// Spawn invulnerability shield overlay
+	if ( cg.snap->ps.powerups[PW_INVULNERABLE] > 0 && !(cg.snap->ps.pm_flags & PMF_LIMBO) ) {
+		CG_DrawPic( headRect.x, headRect.y, headRect.w, headRect.h, cgs.media.spawnInvincibleShader );
+	}
 
 //	CG_DrawKeyHint( &headHintRect, "openlimbomenu" );
 }
@@ -4910,6 +5320,97 @@ static void CG_DrawPlayerRank ( void ) {
 	w = CG_Text_Width_Ext( str, 0.2f, 0, &cgs.media.limboFont1 );
 	h = CG_Text_Height_Ext( str, 0.2f, 0, &cgs.media.limboFont1 );
 	CG_Text_Paint_Ext( Ccg_WideX(SCREEN_WIDTH) - 27 - w, SCREEN_HEIGHT - 92 + (3 * (h + 3)), 0.2f, 0.2f, colorWhite, str, 0, 0, ITEM_TEXTSTYLE_SHADOWED, &cgs.media.limboFont1 );
+}
+
+/*
+=================
+CG_DrawObjectiveStatus
+Draw flag/objective status indicator on the left side of the HUD.
+Shows flag carrying/drop status via pulsing diamond indicator (ET:Legacy parity).
+Objective count numbers are displayed next to the existing flag icons within the diamond.
+=================
+*/
+static void CG_DrawObjectiveStatus( void ) {
+	playerState_t *ps = &cg.snap->ps;
+	float x = 4;
+	float y = SCREEN_HEIGHT - 136;
+	float w = 36;
+	float h = 36;
+	float flagIconWidth        = w * 0.333f;
+	float flagIconHeight       = h * 0.222f;
+	float flagIconHeightOffset = h * 0.777f;
+
+	if ( ps->persistant[PERS_TEAM] == TEAM_SPECTATOR )
+		return;
+
+	if ( !(cg.flagIndicator & (1 << PW_REDFLAG)) && !(cg.flagIndicator & (1 << PW_BLUEFLAG)) && !(cg.flagIndicator & (1 << PW_NUM_POWERUPS)) )
+		return;
+
+	// Pulsing alpha: base 0.67 + amplitude 0.33, period ~1.26s (ET:Legacy parity)
+	vec4_t color = { 1.f, 1.f, 1.f, 1.f };
+	color[3] *= 0.67f + 0.33f * sin(cg.time / 200.0);
+	trap_R_SetColor(color);
+
+	if ( (cg.flagIndicator & (1 << PW_REDFLAG) && cg.flagIndicator & (1 << PW_BLUEFLAG)) || cg.flagIndicator & (1 << PW_NUM_POWERUPS) ) {
+		if ( cg.redFlagCounter > 0 && cg.blueFlagCounter > 0 ) {
+			CG_DrawPic(x, y, w, h, cgs.media.objectiveBothTEShader);
+		} else if ( cg.redFlagCounter > 0 && !cg.blueFlagCounter ) {
+			CG_DrawPic(x, y, w, h, ps->persistant[PERS_TEAM] == TEAM_AXIS ? cgs.media.objectiveBothTDShader : cgs.media.objectiveBothDEShader);
+		} else if ( !cg.redFlagCounter && cg.blueFlagCounter > 0 ) {
+			CG_DrawPic(x, y, w, h, ps->persistant[PERS_TEAM] == TEAM_ALLIES ? cgs.media.objectiveBothTDShader : cgs.media.objectiveBothDEShader);
+		} else {
+			CG_DrawPic(x, y, w, h, cgs.media.objectiveDroppedShader);
+		}
+		trap_R_SetColor(NULL);
+		color[3] = 1.f;
+		trap_R_SetColor(color);
+		CG_DrawPic(x, y + flagIconHeightOffset, flagIconWidth, flagIconHeight,
+			ps->persistant[PERS_TEAM] == TEAM_AXIS ? cgs.media.axisFlag : cgs.media.alliedFlag);
+		CG_DrawPic(x + w - flagIconWidth, y + flagIconHeightOffset, flagIconWidth, flagIconHeight,
+			ps->persistant[PERS_TEAM] == TEAM_AXIS ? cgs.media.alliedFlag : cgs.media.axisFlag);
+		// Objective count numbers next to each flag
+		{
+			vec4_t cntClr = { 1.f, 1.f, 1.f, 0.9f };
+			int leftCount = ps->persistant[PERS_TEAM] == TEAM_AXIS ? cg.redFlagCounter : cg.blueFlagCounter;
+			int rightCount = ps->persistant[PERS_TEAM] == TEAM_AXIS ? cg.blueFlagCounter : cg.redFlagCounter;
+			CG_Text_Paint_Ext(x + flagIconWidth + 1, y + flagIconHeightOffset + flagIconHeight, 0.17f, 0.17f, cntClr, va("%i", leftCount), 0, 0, 0, &cgs.media.limboFont1);
+			CG_Text_Paint_Ext(x + w + 1, y + flagIconHeightOffset + flagIconHeight, 0.17f, 0.17f, cntClr, va("%i", rightCount), 0, 0, 0, &cgs.media.limboFont1);
+		}
+		// clear debug/sentinel bit after display (intentional side effect, matches ET:Legacy)
+		cg.flagIndicator &= ~(1 << PW_NUM_POWERUPS);
+	} else if ( cg.flagIndicator & (1 << PW_REDFLAG) ) {
+		if ( cg.redFlagCounter > 0 ) {
+			CG_DrawPic(x, y, w, h, ps->persistant[PERS_TEAM] == TEAM_ALLIES ? cgs.media.objectiveTeamShader : cgs.media.objectiveEnemyShader);
+		} else {
+			CG_DrawPic(x, y, w, h, cgs.media.objectiveDroppedShader);
+		}
+		trap_R_SetColor(NULL);
+		color[3] = 1.f;
+		trap_R_SetColor(color);
+		CG_DrawPic(x + (ps->persistant[PERS_TEAM] == TEAM_AXIS ? w - flagIconWidth : 0), y + flagIconHeightOffset, flagIconWidth, flagIconHeight, cgs.media.alliedFlag);
+		{
+			vec4_t cntClr = { 1.f, 1.f, 1.f, 0.9f };
+			float flagX = x + (ps->persistant[PERS_TEAM] == TEAM_AXIS ? w - flagIconWidth : 0);
+			CG_Text_Paint_Ext(flagX + flagIconWidth + 1, y + flagIconHeightOffset + flagIconHeight, 0.17f, 0.17f, cntClr, va("%i", cg.redFlagCounter), 0, 0, 0, &cgs.media.limboFont1);
+		}
+	} else if ( cg.flagIndicator & (1 << PW_BLUEFLAG) ) {
+		if ( cg.blueFlagCounter > 0 ) {
+			CG_DrawPic(x, y, w, h, ps->persistant[PERS_TEAM] == TEAM_AXIS ? cgs.media.objectiveTeamShader : cgs.media.objectiveEnemyShader);
+		} else {
+			CG_DrawPic(x, y, w, h, cgs.media.objectiveDroppedShader);
+		}
+		trap_R_SetColor(NULL);
+		color[3] = 1.f;
+		trap_R_SetColor(color);
+		CG_DrawPic(x + (ps->persistant[PERS_TEAM] == TEAM_ALLIES ? w - flagIconWidth : 0), y + flagIconHeightOffset, flagIconWidth, flagIconHeight, cgs.media.axisFlag);
+		{
+			vec4_t cntClr = { 1.f, 1.f, 1.f, 0.9f };
+			float flagX = x + (ps->persistant[PERS_TEAM] == TEAM_ALLIES ? w - flagIconWidth : 0);
+			CG_Text_Paint_Ext(flagX + flagIconWidth + 1, y + flagIconHeightOffset + flagIconHeight, 0.17f, 0.17f, cntClr, va("%i", cg.blueFlagCounter), 0, 0, 0, &cgs.media.limboFont1);
+		}
+	}
+
+	trap_R_SetColor(NULL);
 }
 
 static void CG_DrawPlayerStatus( void ) {
@@ -5323,6 +5824,7 @@ static void CG_Draw2D( void ) {
 			if( cg.snap->ps.stats[STAT_HEALTH] > 0 ) {
 				CG_DrawPlayerStatusHead();
 				CG_DrawPlayerStatus();
+				CG_DrawObjectiveStatus();
 				CG_DrawPlayerStats();
 			}
 
@@ -5366,6 +5868,12 @@ static void CG_Draw2D( void ) {
 
 		if ( cg_drawCompass.integer ) {
 			CG_DrawNewCompass();
+		}
+
+		if ( cg_drawObjectiveIndicators.integer &&
+		     cg.snap->ps.persistant[PERS_TEAM] != TEAM_SPECTATOR &&
+		     ( cg.snap->ps.stats[STAT_HEALTH] > 0 || (cg.snap->ps.pm_flags & PMF_FOLLOW) ) ) {
+			CG_DrawObjectiveIndicators();
 		}
 
 		CG_DrawObjectiveInfo();
