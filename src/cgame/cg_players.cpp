@@ -1739,6 +1739,7 @@ void CG_AddRefEntityWithPowerups( refEntity_t *ent, int powerups, int team, enti
 	// Demo wallhack: render a colored glow visible through walls (players only)
 	if ( cg.demoWallHack && cg.demoPlayback && ( team == TEAM_AXIS || team == TEAM_ALLIES ) ) {
 		ent->customShader = cgs.media.wallhackShader;
+		ent->renderfx |= RF_DEPTHHACK | RF_NOSHADOW;
 		if ( team == TEAM_AXIS ) {
 			ent->shaderRGBA[0] = 255;
 			ent->shaderRGBA[1] = 0;
