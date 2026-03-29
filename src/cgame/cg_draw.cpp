@@ -1583,7 +1583,7 @@ Position: Between crosshair and top edge of screen
 ==============
 */
 #define KILL_NOTIFY_DURATION 3000
-#define KILL_NOTIFY_Y_POS 20   // Y position - moved up ~100px from 120
+#define KILL_NOTIFY_Y_POS 70   // Y position - moved up ~50px from 120
 #define KILL_NOTIFY_FONT_SCALE 0.176f  // 80% of 0.22f
 #define KILL_NOTIFY_SPACING 15  // Vertical spacing (scaled down from 18)
 
