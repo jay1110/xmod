@@ -1583,15 +1583,19 @@ Position: Between crosshair and top edge of screen
 ==============
 */
 #define KILL_NOTIFY_DURATION 3000
-#define KILL_NOTIFY_Y_POS 120  // Y position - between crosshair (~240) and top
-#define KILL_NOTIFY_FONT_SCALE 0.22f
-#define KILL_NOTIFY_SPACING 18  // Vertical spacing between kill and death notifications
+#define KILL_NOTIFY_Y_POS 70   // Y position - moved up ~50px from 120
+#define KILL_NOTIFY_FONT_SCALE 0.176f  // 80% of 0.22f
+#define KILL_NOTIFY_SPACING 15  // Vertical spacing (scaled down from 18)
 
 void CG_DrawKillNotifications( void ) {
 	float *color;
 	float w;
 	float x, y;
 	vec4_t textColor;
+
+	if ( !cg_drawKillNotifications.integer ) {
+		return;
+	}
 
 	// Draw kill notification (when you killed someone)
 	if ( cg.killNotifyTime ) {
@@ -1604,8 +1608,14 @@ void CG_DrawKillNotifications( void ) {
 			w = CG_Text_Width_Ext( cg.killNotifyText, KILL_NOTIFY_FONT_SCALE, 0, &cgs.media.limboFont1 );
 			x = ( Ccg_WideX(SCREEN_WIDTH) - w ) / 2;
 
-			// Set color - white with fade
+			// Slow fade: alpha ramps down over full duration
+			float elapsed = (float)( cg.time - cg.killNotifyTime );
+			float alpha = 1.0f - ( elapsed / (float)KILL_NOTIFY_DURATION );
+			if ( alpha < 0.0f ) alpha = 0.0f;
+			if ( alpha > 1.0f ) alpha = 1.0f;
+
 			Vector4Copy( color, textColor );
+			textColor[3] = alpha;
 
 			// Draw using limboFont1 (same as spectatorNames)
 			CG_Text_Paint_Ext( x, y, KILL_NOTIFY_FONT_SCALE, KILL_NOTIFY_FONT_SCALE, textColor, cg.killNotifyText, 0, 0, ITEM_TEXTSTYLE_SHADOWED, &cgs.media.limboFont1 );
@@ -1623,8 +1633,14 @@ void CG_DrawKillNotifications( void ) {
 			w = CG_Text_Width_Ext( cg.deathNotifyText, KILL_NOTIFY_FONT_SCALE, 0, &cgs.media.limboFont1 );
 			x = ( Ccg_WideX(SCREEN_WIDTH) - w ) / 2;
 
-			// Set color - white with fade
+			// Slow fade: alpha ramps down over full duration
+			float elapsed = (float)( cg.time - cg.deathNotifyTime );
+			float alpha = 1.0f - ( elapsed / (float)KILL_NOTIFY_DURATION );
+			if ( alpha < 0.0f ) alpha = 0.0f;
+			if ( alpha > 1.0f ) alpha = 1.0f;
+
 			Vector4Copy( color, textColor );
+			textColor[3] = alpha;
 
 			// Draw using limboFont1 (same as spectatorNames)
 			CG_Text_Paint_Ext( x, y, KILL_NOTIFY_FONT_SCALE, KILL_NOTIFY_FONT_SCALE, textColor, cg.deathNotifyText, 0, 0, ITEM_TEXTSTYLE_SHADOWED, &cgs.media.limboFont1 );
@@ -1642,8 +1658,14 @@ void CG_DrawKillNotifications( void ) {
 			w = CG_Text_Width_Ext( cg.assistNotifyText, KILL_NOTIFY_FONT_SCALE, 0, &cgs.media.limboFont1 );
 			x = ( Ccg_WideX(SCREEN_WIDTH) - w ) / 2;
 
-			// Set color - white with fade
+			// Slow fade: alpha ramps down over full duration
+			float elapsed = (float)( cg.time - cg.assistNotifyTime );
+			float alpha = 1.0f - ( elapsed / (float)KILL_NOTIFY_DURATION );
+			if ( alpha < 0.0f ) alpha = 0.0f;
+			if ( alpha > 1.0f ) alpha = 1.0f;
+
 			Vector4Copy( color, textColor );
+			textColor[3] = alpha;
 
 			// Draw using limboFont1 (same as spectatorNames)
 			CG_Text_Paint_Ext( x, y, KILL_NOTIFY_FONT_SCALE, KILL_NOTIFY_FONT_SCALE, textColor, cg.assistNotifyText, 0, 0, ITEM_TEXTSTYLE_SHADOWED, &cgs.media.limboFont1 );
@@ -1659,9 +1681,9 @@ Set kill notification message when player kills someone
 */
 void CG_SetKillNotification( const char *victimName, qboolean isRevenge ) {
 	if ( isRevenge ) {
-		Com_sprintf( cg.killNotifyText, sizeof(cg.killNotifyText), "^1Revenge^7: You killed %s", victimName );
+		Com_sprintf( cg.killNotifyText, sizeof(cg.killNotifyText), "^1Revenge^7: You killed %s^7", victimName );
 	} else {
-		Com_sprintf( cg.killNotifyText, sizeof(cg.killNotifyText), "You killed %s", victimName );
+		Com_sprintf( cg.killNotifyText, sizeof(cg.killNotifyText), "You killed %s^7", victimName );
 	}
 	cg.killNotifyTime = cg.time;
 	cg.killNotifyIsRevenge = isRevenge;
@@ -1674,10 +1696,19 @@ Set death notification message when player is killed
 ==============
 */
 void CG_SetDeathNotification( const char *killerName, qboolean wasRevenged, int attackerHP ) {
-	if ( wasRevenged ) {
-		Com_sprintf( cg.deathNotifyText, sizeof(cg.deathNotifyText), "^1Revenged^7 by %s / %dHP left", killerName, attackerHP );
+	const char *hpColor;
+	if ( attackerHP > 100 ) {
+		hpColor = "^2";  // green
+	} else if ( attackerHP > 20 ) {
+		hpColor = "^3";  // yellow
 	} else {
-		Com_sprintf( cg.deathNotifyText, sizeof(cg.deathNotifyText), "Killed by %s / %dHP left", killerName, attackerHP );
+		hpColor = "^1";  // red
+	}
+
+	if ( wasRevenged ) {
+		Com_sprintf( cg.deathNotifyText, sizeof(cg.deathNotifyText), "^1Revenged^7 by %s^7 / %s%d^7HP left", killerName, hpColor, attackerHP );
+	} else {
+		Com_sprintf( cg.deathNotifyText, sizeof(cg.deathNotifyText), "Killed by %s^7 / %s%d^7HP left", killerName, hpColor, attackerHP );
 	}
 	cg.deathNotifyTime = cg.time;
 	cg.deathNotifyIsRevenged = wasRevenged;
