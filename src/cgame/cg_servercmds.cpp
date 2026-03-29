@@ -2478,6 +2478,14 @@ static void CG_ServerCommand( void ) {
 		CG_ParseTeamInfo();
 		return;
 	}
+
+	if ( !strcmp( cmd, "artilleryHint" ) ) {
+		if ( cg_artilleryHints.integer ) {
+			cg.artilleryHintTime = cg.time;
+		}
+		return;
+	}
+
 	if ( !strcmp( cmd, "sc0" ) ) {
 		CG_ParseScore(TEAM_AXIS);
 		return;

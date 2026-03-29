@@ -348,6 +348,9 @@ vmCvar_t	cg_drawCam;
 // Kill/Death notifications
 vmCvar_t	cg_drawKillNotifications;
 
+// Artillery Hints
+vmCvar_t	cg_artilleryHints;
+
 typedef struct {
 	vmCvar_t	*vmCvar;
 	char		*cvarName;
@@ -616,6 +619,9 @@ cvarTable_t		cvarTable[] = {
 
 	// Kill/Death notifications
 	{ &cg_drawKillNotifications, "cg_drawKillNotifications", "1", CVAR_ARCHIVE },
+
+	// Artillery Hints
+	{ &cg_artilleryHints, "cg_artilleryHints", "1", CVAR_ARCHIVE },
 
 	//bani - demo recording cvars
 	{ &cl_demorecording, "cl_demorecording", "0", CVAR_ROM },
@@ -1686,6 +1692,7 @@ static void CG_RegisterGraphics( void ) {
 	cgs.media.compass2Shader =				trap_R_RegisterShaderNoMip( "gfx/2d/compass2.tga" );
 	cgs.media.compassShader =				trap_R_RegisterShaderNoMip( "gfx/2d/compass.tga" );
 	cgs.media.buddyShader =					trap_R_RegisterShaderNoMip( "sprites/buddy.tga" );
+	cgs.media.artilleryHintShader =			trap_R_RegisterShaderNoMip( "sprites/artillery_hint" );
 
 	cgs.media.objectiveIndicatorAttackShader    = trap_R_RegisterShaderNoMip( "sprites/waypoint_attack" );
 	cgs.media.objectiveIndicatorDefendShader    = trap_R_RegisterShaderNoMip( "sprites/waypoint_defend" );

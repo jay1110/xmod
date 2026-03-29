@@ -833,6 +833,8 @@ typedef struct {
 //unlagged - true ping
 
 	int			joinedTeamTime;
+
+	int			lastArtilleryHintTime;
 } clientPersistant_t;
 
 typedef struct {

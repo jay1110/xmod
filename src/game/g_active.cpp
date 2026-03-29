@@ -2350,5 +2350,41 @@ void ClientEndFrame( gentity_t *ent ) {
 	}
 
 	G_TeamDamageRestriction( ent );
+
+	// Artillery zone hints - check if player is in friendly artillery zone
+	if ( g_artilleryHints.integer ) {
+		qboolean inZone = qfalse;
+		gentity_t *check;
+		int i;
+
+		for ( i = MAX_CLIENTS, check = g_entities + MAX_CLIENTS; i < level.num_entities; i++, check++ ) {
+			if ( !check->inuse ) {
+				continue;
+			}
+			if ( check->s.eType != ET_MISSILE || check->s.weapon != WP_ARTY ) {
+				continue;
+			}
+			// only warn for friendly artillery
+			if ( check->s.teamNum != ent->client->sess.sessionTeam ) {
+				continue;
+			}
+			// only warn for pending bombs (not yet detonated)
+			if ( check->nextthink <= level.time ) {
+				continue;
+			}
+			if ( DistanceSquared( ent->r.currentOrigin, check->s.pos.trBase ) <= 900 * 900 ) {
+				inZone = qtrue;
+				break;
+			}
+		}
+
+		if ( inZone && level.time - ent->client->pers.lastArtilleryHintTime > 1000 ) {
+			trap_SendServerCommand( ent - g_entities, "artilleryHint" );
+			ent->client->pers.lastArtilleryHintTime = level.time;
+		}
+		if ( !inZone ) {
+			ent->client->pers.lastArtilleryHintTime = 0;
+		}
+	}
 }
 

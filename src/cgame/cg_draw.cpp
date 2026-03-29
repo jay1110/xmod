@@ -2039,6 +2039,43 @@ static void CG_DrawCenterString( void ) {
 	trap_R_SetColor( NULL );
 }
 
+/*
+===================
+CG_DrawArtilleryHint
+===================
+*/
+static void CG_DrawArtilleryHint( void ) {
+	float *color;
+	int iconSize = 32;
+	int x, y, w;
+	const char *text = "friendly artillery area";
+
+	if ( !cg.artilleryHintTime ) {
+		return;
+	}
+
+	color = CG_FadeColor( cg.artilleryHintTime, 2000 );
+	if ( !color ) {
+		cg.artilleryHintTime = 0;
+		return;
+	}
+
+	trap_R_SetColor( color );
+
+	// draw icon centered on screen
+	x = ( Ccg_WideX(SCREEN_WIDTH) - iconSize ) / 2;
+	y = int(SCREEN_HEIGHT - (SCREEN_HEIGHT * 0.20f)) - iconSize;
+	CG_DrawPic( x, y, iconSize, iconSize, cgs.media.artilleryHintShader );
+
+	// draw text below icon
+	w = CG_DrawStrlen( text ) * SMALLCHAR_WIDTH;
+	x = ( Ccg_WideX(SCREEN_WIDTH) - w ) / 2;
+	y += iconSize + 4;
+	CG_DrawStringExt( x, y, text, color, qfalse, qtrue, SMALLCHAR_WIDTH, SMALLCHAR_HEIGHT, 0 );
+
+	trap_R_SetColor( NULL );
+}
+
 
 
 /*
@@ -5887,6 +5924,7 @@ static void CG_Draw2D( void ) {
 
 		CG_DrawCenterString();
 		CG_DrawBCenterString();
+		CG_DrawArtilleryHint();
 		CG_DrawKillSpreeMessages();
 		CG_DrawKillNotifications();  // Custom kill/death notifications
 		CG_DrawPMItems();
