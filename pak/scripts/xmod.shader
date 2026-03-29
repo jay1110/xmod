@@ -93,6 +93,21 @@ etpro/color_construction
 	}
 }
 
+// Wallhack shader for demo playback - renders through walls
+xmod/wallhack
+{
+	cull none
+	noPicmip
+	surfaceparm trans
+	{
+		map $whiteimage
+		blendFunc GL_SRC_ALPHA GL_ONE_MINUS_SRC_ALPHA
+		depthFunc always
+		rgbGen entity
+		alphaGen entity
+	}
+}
+
 // Transparent shader for cg_drawGun 2-32 colored weapon rendering
 xmod/transparent_weapon
 {

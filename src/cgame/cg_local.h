@@ -791,6 +791,7 @@ typedef struct {
 	int			xpChangeTime;
 
 	qboolean	demoPlayback;
+	qboolean	demoWallHack;		// demo wallhack: glow players through walls
 	qboolean	loading;			// don't defer players at initial startup
 	qboolean	clientInfoReceived;		// true after first CS_PLAYERS update for own client
 	qboolean	intermissionStarted;	// don't play voice rewards, because game will end shortly
@@ -1303,6 +1304,7 @@ typedef struct {
 	qhandle_t	charsetPropGlow;
 	qhandle_t	charsetPropB;
 	qhandle_t	whiteShader;
+	qhandle_t	wallhackShader;
 
 	qhandle_t	bulletVolumeShader;
 
