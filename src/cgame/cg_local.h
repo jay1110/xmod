@@ -2549,6 +2549,9 @@ extern	vmCvar_t		cg_drawSpawnShieldTimer;
 // Missile Cameras
 extern	vmCvar_t		cg_drawCam;
 
+// Kill/Death notifications
+extern	vmCvar_t		cg_drawKillNotifications;
+
 //
 // cg_main.c
 //
