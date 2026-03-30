@@ -906,6 +906,9 @@ typedef struct {
 	int			centerPrintLines;
 	int			centerPrintPriority;			// NERVE - SMF
 
+	// artillery hint
+	int			artilleryHintTime;
+
 	// Jaybird - bprinting
 	int			bPrintTime;
 	int			bPrintCharWidth;
@@ -1947,6 +1950,9 @@ typedef struct {
 	qhandle_t   ccVoiceChatShader;
 	qhandle_t   ccVoiceChatOrangeShader;
 	qhandle_t   ccskillPics[SK_NUM_SKILLS];
+
+	// artillery hint
+	qhandle_t   artilleryHintShader;
 } cgMedia_t;
 
 typedef struct {
@@ -2551,6 +2557,9 @@ extern	vmCvar_t		cg_drawCam;
 
 // Kill/Death notifications
 extern	vmCvar_t		cg_drawKillNotifications;
+
+// Artillery Hints
+extern	vmCvar_t		cg_artilleryHints;
 
 //
 // cg_main.c

@@ -35,6 +35,7 @@ extern vmCvar_t	g_dragCorpse;
 extern vmCvar_t	g_shove;
 extern vmCvar_t	g_classChange;
 extern vmCvar_t	team_maxArtillery;
+extern vmCvar_t g_artilleryHints;
 extern vmCvar_t g_killingSpree;
 extern vmCvar_t	g_xpSave;
 extern vmCvar_t g_xpSaveTimeout;

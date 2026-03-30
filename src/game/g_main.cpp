@@ -206,6 +206,7 @@ vmCvar_t		g_corpseDrag;
 vmCvar_t		g_shove;
 vmCvar_t		g_classChange;
 vmCvar_t		team_maxArtillery;
+vmCvar_t		g_artilleryHints;
 vmCvar_t		g_dragCorpse;
 vmCvar_t		g_killingSpree;
 vmCvar_t		g_xpSave;
@@ -361,6 +362,7 @@ cvarTable_t		gameCvarTable[] = {
 	{ &g_shove,				"g_shove",				"0",		CVAR_ARCHIVE },
 	{ &g_classChange,		"g_classChange",		"0",		CVAR_ARCHIVE },
 	{ &team_maxArtillery,	"team_maxArtillery",	"6",		CVAR_ARCHIVE | CVAR_XMODINFO },
+	{ &g_artilleryHints,	"g_artilleryHints",		"1",		CVAR_ARCHIVE },
 	{ &g_xpSave,			"g_xpSave",				"0",		CVAR_ARCHIVE | CVAR_LATCH },
 	{ &g_xpSaveTimeout,		"g_xpSaveTimeout",		"1h",		CVAR_ARCHIVE },
 	{ &g_xpMax,				"g_xpMax",				"0",		CVAR_ARCHIVE },
