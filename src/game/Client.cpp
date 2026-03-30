@@ -211,6 +211,10 @@ Client::init()
     authWarningShown = false;
     authGuid.clear();
     authHwid.clear();
+
+    // Reset freeze state
+    frozen = false;
+    frozenExpiry = 0;
 }
 
 ///////////////////////////////////////////////////////////////////////////////

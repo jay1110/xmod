@@ -34,6 +34,7 @@ private:
 #include <game/cmd/Finger.h>
 #include <game/cmd/Fling.h>
 #include <game/cmd/Flinga.h>
+#include <game/cmd/Freeze.h>
 #include <game/cmd/Glow.h>
 #include <game/cmd/Help.h>
 #include <game/cmd/JxacScreenshot.h>
@@ -85,6 +86,7 @@ private:
 #include <game/cmd/Throwa.h>
 #include <game/cmd/Time.h>
 #include <game/cmd/Unban.h>
+#include <game/cmd/Unfreeze.h>
 #include <game/cmd/Unlock.h>
 #include <game/cmd/Unmute.h>
 #include <game/cmd/Unpause.h>
@@ -114,6 +116,7 @@ namespace builtins {
     extern Finger       finger;
     extern Fling        fling;
     extern Flinga       flinga;
+    extern Freeze       freeze;
     extern Glow         glow;
     extern Help             help;
     extern JxacScreenshot   jxacScreenshot;
@@ -165,6 +168,7 @@ namespace builtins {
     extern Throwa       throwa;
     extern Time         time;
     extern Unban        unban;
+    extern Unfreeze     unfreeze;
     extern Unlock       unlock;
     extern Unmute       unmute;
     extern Unpause      unpause;
