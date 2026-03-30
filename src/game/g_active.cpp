@@ -2352,6 +2352,7 @@ void ClientEndFrame( gentity_t *ent ) {
 	G_TeamDamageRestriction( ent );
 
 	// Artillery zone hints - check if player is in friendly artillery zone
+	// Radius 650 = 250 (bomb scatter) + 400 (splash radius), matching original ET values
 	if ( g_artilleryHints.integer ) {
 		qboolean inZone = qfalse;
 		gentity_t *check;
@@ -2372,7 +2373,7 @@ void ClientEndFrame( gentity_t *ent ) {
 			if ( check->nextthink <= level.time ) {
 				continue;
 			}
-			if ( DistanceSquared( ent->r.currentOrigin, check->s.pos.trBase ) <= 900 * 900 ) {
+			if ( DistanceSquared( ent->r.currentOrigin, check->s.pos.trBase ) <= 650 * 650 ) {
 				inZone = qtrue;
 				break;
 			}
@@ -2382,7 +2383,8 @@ void ClientEndFrame( gentity_t *ent ) {
 			trap_SendServerCommand( ent - g_entities, "artilleryHint" );
 			ent->client->pers.lastArtilleryHintTime = level.time;
 		}
-		if ( !inZone ) {
+		if ( !inZone && ent->client->pers.lastArtilleryHintTime ) {
+			trap_SendServerCommand( ent - g_entities, "artilleryHintOff" );
 			ent->client->pers.lastArtilleryHintTime = 0;
 		}
 	}

@@ -2486,6 +2486,11 @@ static void CG_ServerCommand( void ) {
 		return;
 	}
 
+	if ( !strcmp( cmd, "artilleryHintOff" ) ) {
+		cg.artilleryHintTime = 0;
+		return;
+	}
+
 	if ( !strcmp( cmd, "sc0" ) ) {
 		CG_ParseScore(TEAM_AXIS);
 		return;

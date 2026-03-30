@@ -2045,7 +2045,7 @@ CG_DrawArtilleryHint
 ===================
 */
 static void CG_DrawArtilleryHint( void ) {
-	float *color;
+	vec4_t hintColor;
 	int iconSize = 32;
 	int x, y, w;
 	const char *text = "friendly artillery area";
@@ -2054,13 +2054,13 @@ static void CG_DrawArtilleryHint( void ) {
 		return;
 	}
 
-	color = CG_FadeColor( cg.artilleryHintTime, 2000 );
-	if ( !color ) {
-		cg.artilleryHintTime = 0;
-		return;
-	}
+	// yellow with slight transparency
+	hintColor[0] = 1.0f;
+	hintColor[1] = 1.0f;
+	hintColor[2] = 0.0f;
+	hintColor[3] = 0.7f;
 
-	trap_R_SetColor( color );
+	trap_R_SetColor( hintColor );
 
 	// draw icon centered on screen
 	x = ( Ccg_WideX(SCREEN_WIDTH) - iconSize ) / 2;
@@ -2068,10 +2068,10 @@ static void CG_DrawArtilleryHint( void ) {
 	CG_DrawPic( x, y, iconSize, iconSize, cgs.media.artilleryHintShader );
 
 	// draw text below icon
-	w = CG_DrawStrlen( text ) * SMALLCHAR_WIDTH;
+	w = CG_DrawStrlen( text ) * TINYCHAR_WIDTH;
 	x = ( Ccg_WideX(SCREEN_WIDTH) - w ) / 2;
-	y += iconSize + 4;
-	CG_DrawStringExt( x, y, text, color, qfalse, qtrue, SMALLCHAR_WIDTH, SMALLCHAR_HEIGHT, 0 );
+	y += iconSize + 2;
+	CG_DrawStringExt( x, y, text, hintColor, qfalse, qtrue, TINYCHAR_WIDTH, TINYCHAR_HEIGHT, 0 );
 
 	trap_R_SetColor( NULL );
 }
