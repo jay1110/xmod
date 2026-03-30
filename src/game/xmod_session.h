@@ -32,6 +32,9 @@ private:
     std::string muteReason;
     std::string muteAuthority;
     std::string muteAuthorityx;  // formatted authority name with color codes
+    bool nospammed;
+    time_t nospamExpiry;
+    time_t nospamLastChat;
     bool fakeguid;
     std::string name;
     std::string namex;
@@ -73,6 +76,9 @@ public:
     const std::string& getMuteAuthority() const { return muteAuthority; }
     const std::string& getMuteAuthorityx() const { return muteAuthorityx; }
     bool isFakeGuid() const { return fakeguid; }
+    bool isNospammed() const { return nospammed; }
+    time_t getNospamExpiry() const { return nospamExpiry; }
+    time_t getNospamLastChat() const { return nospamLastChat; }
     const std::string& getName() const { return name; }
     const std::string& getNamex() const { return namex; }
     const std::string& getMac() const { return mac; }
@@ -88,6 +94,9 @@ public:
     void setMuteAuthority(const std::string& value) { muteAuthority = value; }
     void setMuteAuthorityx(const std::string& value) { muteAuthorityx = value; }
     void setFakeGuid(bool value) { fakeguid = value; }
+    void setNospammed(bool value) { nospammed = value; }
+    void setNospamExpiry(time_t value) { nospamExpiry = value; }
+    void setNospamLastChat(time_t value) { nospamLastChat = value; }
     void setName(const std::string& value) { name = value; }
     void setNamex(const std::string& value) { namex = value; }
     void setMac(const std::string& value) { mac = value; }

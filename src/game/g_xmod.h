@@ -341,6 +341,8 @@ void     G_UpdateUptime          ( );
 qboolean IsReflectable           ( int );
 bool     G_MutePlayer            ( gentity_t*, string, string = "" );
 bool     G_UnmutePlayer          ( gentity_t* );
+bool     G_NospamPlayer          ( gentity_t*, time_t = 0 );
+bool     G_UnnospamPlayer        ( gentity_t* );
 void     G_BanPlayer             ( gentity_t*, string, string, int );
 
 // Poison

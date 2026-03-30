@@ -3640,34 +3640,58 @@ void ClientCommand( int clientNum ) {
 
 	if (Q_stricmp (cmd, "say") == 0) {
 		if( !::xmod::isClientMuted(ent-g_entities) ) {
-			Cmd_Say_f (ent, SAY_ALL, qfalse);
+			if (::xmod::isClientNospamAllowed(ent-g_entities)) {
+				Cmd_Say_f (ent, SAY_ALL, qfalse);
+			} else {
+				trap_SendServerCommand( ent-g_entities, "cp \"^xNospam: ^7You can only send 1 message per minute.\n\"" );
+			}
 		}
 		return;
 	}
 
 	if( Q_stricmp (cmd, "say_team") == 0 ) {
 		if( !::xmod::isClientMuted(ent-g_entities) ) {
-			Cmd_Say_f (ent, SAY_TEAM, qfalse);
+			if (::xmod::isClientNospamAllowed(ent-g_entities)) {
+				Cmd_Say_f (ent, SAY_TEAM, qfalse);
+			} else {
+				trap_SendServerCommand( ent-g_entities, "cp \"^xNospam: ^7You can only send 1 message per minute.\n\"" );
+			}
 		}
 		return;
 	} else if (Q_stricmp (cmd, "vsay") == 0) {
 		if( !::xmod::isClientMuted(ent-g_entities) ) {
-			Cmd_Voice_f (ent, SAY_ALL, qfalse, qfalse);
+			if (::xmod::isClientNospamAllowed(ent-g_entities)) {
+				Cmd_Voice_f (ent, SAY_ALL, qfalse, qfalse);
+			} else {
+				trap_SendServerCommand( ent-g_entities, "cp \"^xNospam: ^7You can only send 1 sound per minute.\n\"" );
+			}
 		}
 		return;
 	} else if (Q_stricmp (cmd, "vsay_team") == 0) {
 		if( !::xmod::isClientMuted(ent-g_entities) ) {
-			Cmd_Voice_f (ent, SAY_TEAM, qfalse, qfalse);
+			if (::xmod::isClientNospamAllowed(ent-g_entities)) {
+				Cmd_Voice_f (ent, SAY_TEAM, qfalse, qfalse);
+			} else {
+				trap_SendServerCommand( ent-g_entities, "cp \"^xNospam: ^7You can only send 1 sound per minute.\n\"" );
+			}
 		}
 		return;
 	} else if (Q_stricmp (cmd, "say_buddy") == 0) {
 		if( !::xmod::isClientMuted(ent-g_entities) ) {
-			Cmd_Say_f( ent, SAY_BUDDY, qfalse );
+			if (::xmod::isClientNospamAllowed(ent-g_entities)) {
+				Cmd_Say_f( ent, SAY_BUDDY, qfalse );
+			} else {
+				trap_SendServerCommand( ent-g_entities, "cp \"^xNospam: ^7You can only send 1 message per minute.\n\"" );
+			}
 		}
 		return;
 	} else if (Q_stricmp (cmd, "vsay_buddy") == 0) {
 		if( !::xmod::isClientMuted(ent-g_entities) ) {
-			Cmd_Voice_f( ent, SAY_BUDDY, qfalse, qfalse );
+			if (::xmod::isClientNospamAllowed(ent-g_entities)) {
+				Cmd_Voice_f( ent, SAY_BUDDY, qfalse, qfalse );
+			} else {
+				trap_SendServerCommand( ent-g_entities, "cp \"^xNospam: ^7You can only send 1 sound per minute.\n\"" );
+			}
 		}
 		return;
 	} else if (Q_stricmp (cmd, "score") == 0) {

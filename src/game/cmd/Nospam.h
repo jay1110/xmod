@@ -1,0 +1,18 @@
+#ifndef GAME_CMD_NOSPAM_H
+#define GAME_CMD_NOSPAM_H
+
+///////////////////////////////////////////////////////////////////////////////
+
+class Nospam : public AbstractBuiltin
+{
+protected:
+    PostAction doExecute( Context& );
+
+public:
+    Nospam();
+    ~Nospam();
+};
+
+///////////////////////////////////////////////////////////////////////////////
+
+#endif // GAME_CMD_NOSPAM_H

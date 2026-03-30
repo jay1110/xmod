@@ -2541,6 +2541,36 @@ bool G_UnmutePlayer(gentity_t* ent)
     return true;
 }
 
+bool G_NospamPlayer(gentity_t* ent, time_t expiry)
+{
+    int clientNum = ent - g_entities;
+    
+    if (::xmod::isClientNospammed(clientNum)) {
+        return false;
+    }
+
+    ::xmod::setClientNospammed(clientNum, true);
+    ::xmod::setClientNospamExpiry(clientNum, expiry);
+    ::xmod::setClientNospamLastChat(clientNum, 0);
+
+    return true;
+}
+
+bool G_UnnospamPlayer(gentity_t* ent)
+{
+    int clientNum = ent - g_entities;
+    
+    if (!::xmod::isClientNospammed(clientNum)) {
+        return false;
+    }
+
+    ::xmod::setClientNospammed(clientNum, false);
+    ::xmod::setClientNospamExpiry(clientNum, 0);
+    ::xmod::setClientNospamLastChat(clientNum, 0);
+
+    return true;
+}
+
 void G_BanPlayer(gentity_t* ent, string banner, string reason, int duration)
 {
     int clientNum = ent - g_entities;

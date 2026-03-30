@@ -54,6 +54,7 @@ private:
 #include <game/cmd/Mute.h>
 #include <game/cmd/News.h>
 #include <game/cmd/NextMap.h>
+#include <game/cmd/Nospam.h>
 #include <game/cmd/Orient.h>
 #include <game/cmd/Page.h>
 #include <game/cmd/Pants.h>
@@ -87,6 +88,7 @@ private:
 #include <game/cmd/Unban.h>
 #include <game/cmd/Unlock.h>
 #include <game/cmd/Unmute.h>
+#include <game/cmd/Unnospam.h>
 #include <game/cmd/Unpause.h>
 #include <game/cmd/Uptime.h>
 #include <game/cmd/UserDelete.h>
@@ -134,6 +136,7 @@ namespace builtins {
     extern Mute         mute;
     extern News         news;
     extern NextMap      nextMap;
+    extern Nospam       nospam;
     extern Orient       orient;
     extern Page         page;
     extern Pants        pants;
@@ -167,6 +170,7 @@ namespace builtins {
     extern Unban        unban;
     extern Unlock       unlock;
     extern Unmute       unmute;
+    extern Unnospam     unnospam;
     extern Unpause      unpause;
     extern Uptime       uptime;
     extern UserDelete   userDelete;
