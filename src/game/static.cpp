@@ -224,6 +224,7 @@ Registry registry;
 
 namespace builtins {
     About            about;
+    AddXp            addXp;
     AdminTest        adminTest;
     Ban              ban;
     BanInfo          banInfo;
@@ -276,6 +277,7 @@ namespace builtins {
     Revive           revive;
     Seen             seen;
     SetLevel         setLevel;
+    SetXp            setXp;
     Shake            shake;
     Shuffle          shuffle;
     Slap             slap;

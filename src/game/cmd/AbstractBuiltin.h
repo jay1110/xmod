@@ -18,6 +18,7 @@ private:
 ///////////////////////////////////////////////////////////////////////////////
 
 #include <game/cmd/About.h>
+#include <game/cmd/AddXp.h>
 #include <game/cmd/AdminTest.h>
 #include <game/cmd/Ban.h>
 #include <game/cmd/BanInfo.h>
@@ -70,6 +71,7 @@ private:
 #include <game/cmd/Revive.h>
 #include <game/cmd/Seen.h>
 #include <game/cmd/SetLevel.h>
+#include <game/cmd/SetXp.h>
 #include <game/cmd/Shake.h>
 #include <game/cmd/Shuffle.h>
 #include <game/cmd/Slap.h>
@@ -99,6 +101,7 @@ private:
 
 namespace builtins {
     extern About        about;
+    extern AddXp        addXp;
     extern AdminTest    adminTest;
     extern Ban          ban;
     extern BanInfo      banInfo;
@@ -150,6 +153,7 @@ namespace builtins {
     extern Revive       revive;
     extern Seen         seen;
     extern SetLevel     setLevel;
+    extern SetXp        setXp;
     extern Shake        shake;
     extern Shuffle      shuffle;
     extern Slap         slap;
