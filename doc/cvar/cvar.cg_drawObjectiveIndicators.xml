@@ -1,0 +1,78 @@
+<refentry id="cvar.cg_drawObjectiveIndicators">
+
+<refmeta>
+    <refentrytitle>cg_drawObjectiveIndicators</refentrytitle>
+    <manvolnum>cvar</manvolnum>
+</refmeta>
+
+<refnamediv>
+    <refname>cg_drawObjectiveIndicators</refname>
+    <refpurpose>display world-space icons for active objectives</refpurpose>
+</refnamediv>
+
+<refsynopsisdiv>
+    <cmdsynopsis>
+        <command>cg_drawObjectiveIndicators</command>
+        <arg><replaceable>mode</replaceable></arg>
+    </cmdsynopsis>
+
+<table id="cvar.cg_drawObjectiveIndicators.modes" frame="all">
+<?dbfo table-width="90%"?>
+<title>cg_drawObjectiveIndicators Modes</title>
+<tgroup cols="2" align="left" colsep="1" rowsep="1">
+    <colspec colnum="1" colwidth="9*" align="center"/>
+    <colspec colnum="2" colwidth="81*"/>
+    <thead>
+        <row>
+            <entry>MODE</entry>
+            <entry>DESCRIPTION</entry>
+        </row>
+    </thead>
+    <tbody>
+        <row>
+            <entry>0</entry>
+            <entry>disabled</entry>
+        </row>
+        <row>
+            <entry>1</entry>
+            <entry>show objective icons without distance labels</entry>
+        </row>
+        <row>
+            <entry>2</entry>
+            <entry>show objective icons with distance labels</entry>
+        </row>
+    </tbody>
+</tgroup>
+</table>
+</refsynopsisdiv>
+
+<refsection>
+<title>Default</title>
+    <cmdsynopsis>
+        <command>cg_drawObjectiveIndicators</command>
+        <arg choice="plain"><literal>2</literal></arg>
+    </cmdsynopsis>
+</refsection>
+
+<refsection>
+<title>Description</title>
+<para>
+    <command>cg_drawObjectiveIndicators</command>
+    draws world-space icons for active objectives such as explosives,
+    constructibles, tanks, and capture points.
+    Icons are shown through walls at reduced alpha and at full alpha
+    when in line of sight.
+    When an objective is behind the player, the icon is pinned to the
+    nearest screen edge.
+    Indicators are hidden within 1 metre of the player.
+</para>
+</refsection>
+
+<refsection>
+<title>See Also</title>
+<para>
+    <xref linkend="cvar.cg_objectiveIndicatorMaxDist"/>
+</para>
+</refsection>
+
+</refentry>

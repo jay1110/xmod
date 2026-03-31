@@ -1,0 +1,77 @@
+<refentry id="cvar.cg_drawSpeed">
+
+<refmeta>
+    <refentrytitle>cg_drawSpeed</refentrytitle>
+    <manvolnum>cvar</manvolnum>
+</refmeta>
+
+<refnamediv>
+    <refname>cg_drawSpeed</refname>
+    <refpurpose>display the player's movement speed on the HUD</refpurpose>
+</refnamediv>
+
+<refsynopsisdiv>
+    <cmdsynopsis>
+        <command>cg_drawSpeed</command>
+        <arg><replaceable>mode</replaceable></arg>
+    </cmdsynopsis>
+
+<table id="cvar.cg_drawSpeed.modes" frame="all">
+<?dbfo table-width="90%"?>
+<title>cg_drawSpeed Modes</title>
+<tgroup cols="2" align="left" colsep="1" rowsep="1">
+    <colspec colnum="1" colwidth="9*" align="center"/>
+    <colspec colnum="2" colwidth="81*"/>
+    <thead>
+        <row>
+            <entry>MODE</entry>
+            <entry>DESCRIPTION</entry>
+        </row>
+    </thead>
+    <tbody>
+        <row>
+            <entry>0</entry>
+            <entry>disabled</entry>
+        </row>
+        <row>
+            <entry>1</entry>
+            <entry>show speed in UPS (units per second)</entry>
+        </row>
+        <row>
+            <entry>2</entry>
+            <entry>show speed in km/h</entry>
+        </row>
+        <row>
+            <entry>3</entry>
+            <entry>show speed in mi/h</entry>
+        </row>
+    </tbody>
+</tgroup>
+</table>
+</refsynopsisdiv>
+
+<refsection>
+<title>Default</title>
+    <cmdsynopsis>
+        <command>cg_drawSpeed</command>
+        <arg choice="plain"><literal>0</literal></arg>
+    </cmdsynopsis>
+</refsection>
+
+<refsection>
+<title>Description</title>
+<para>
+    <command>cg_drawSpeed</command>
+    displays the player's current movement speed on the upper-right area of the HUD.
+    A value of <literal>0</literal> hides the speed display.
+</para>
+</refsection>
+
+<refsection>
+<title>See Also</title>
+<para>
+    <xref linkend="cvar.cg_speedRefresh"/>
+</para>
+</refsection>
+
+</refentry>

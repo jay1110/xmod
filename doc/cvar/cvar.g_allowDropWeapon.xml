@@ -1,0 +1,38 @@
+<refentry id="cvar.g_allowDropWeapon">
+
+<refmeta>
+    <refentrytitle>g_allowDropWeapon</refentrytitle>
+    <manvolnum>cvar</manvolnum>
+</refmeta>
+
+<refnamediv>
+    <refname>g_allowDropWeapon</refname>
+    <refpurpose>allow players to drop their primary weapon</refpurpose>
+</refnamediv>
+
+<refsynopsisdiv>
+    <cmdsynopsis>
+        <command>g_allowDropWeapon</command>
+        <arg><replaceable>mode</replaceable></arg>
+    </cmdsynopsis>
+	&boolean.mode;
+</refsynopsisdiv>
+
+<refsection>
+<title>Default</title>
+    <cmdsynopsis>
+        <command>g_allowDropWeapon</command>
+        <arg choice="plain"><literal>0</literal></arg>
+    </cmdsynopsis>
+</refsection>
+
+<refsection>
+<title>Description</title>
+<para>
+    <command>g_allowDropWeapon</command>
+    allows players to drop their primary weapon for other players to pick up.
+    A value of <literal>0</literal> disables weapon dropping.
+</para>
+</refsection>
+
+</refentry>

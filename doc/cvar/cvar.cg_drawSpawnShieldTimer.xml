@@ -1,0 +1,47 @@
+<refentry id="cvar.cg_drawSpawnShieldTimer">
+
+<refmeta>
+    <refentrytitle>cg_drawSpawnShieldTimer</refentrytitle>
+    <manvolnum>cvar</manvolnum>
+</refmeta>
+
+<refnamediv>
+    <refname>cg_drawSpawnShieldTimer</refname>
+    <refpurpose>display the spawn invulnerability shield countdown on the HUD</refpurpose>
+</refnamediv>
+
+<refsynopsisdiv>
+    <cmdsynopsis>
+        <command>cg_drawSpawnShieldTimer</command>
+        <arg><replaceable>mode</replaceable></arg>
+    </cmdsynopsis>
+	&boolean.mode;
+</refsynopsisdiv>
+
+<refsection>
+<title>Default</title>
+    <cmdsynopsis>
+        <command>cg_drawSpawnShieldTimer</command>
+        <arg choice="plain"><literal>1</literal></arg>
+    </cmdsynopsis>
+</refsection>
+
+<refsection>
+<title>Description</title>
+<para>
+    <command>cg_drawSpawnShieldTimer</command>
+    controls the display of the spawn invulnerability shield countdown timer
+    on the right side of the HUD. When enabled, a pulsing icon and remaining
+    time are shown while the player has spawn protection active.
+    A value of <literal>0</literal> hides the indicator.
+</para>
+</refsection>
+
+<refsection>
+<title>See Also</title>
+<para>
+    <xref linkend="cvar.g_spawnInvul"/>
+</para>
+</refsection>
+
+</refentry>

@@ -1,0 +1,38 @@
+<refentry id="cvar.cg_drawRoundTimer">
+
+<refmeta>
+    <refentrytitle>cg_drawRoundTimer</refentrytitle>
+    <manvolnum>cvar</manvolnum>
+</refmeta>
+
+<refnamediv>
+    <refname>cg_drawRoundTimer</refname>
+    <refpurpose>display the round timer on the HUD</refpurpose>
+</refnamediv>
+
+<refsynopsisdiv>
+    <cmdsynopsis>
+        <command>cg_drawRoundTimer</command>
+        <arg><replaceable>mode</replaceable></arg>
+    </cmdsynopsis>
+	&boolean.mode;
+</refsynopsisdiv>
+
+<refsection>
+<title>Default</title>
+    <cmdsynopsis>
+        <command>cg_drawRoundTimer</command>
+        <arg choice="plain"><literal>1</literal></arg>
+    </cmdsynopsis>
+</refsection>
+
+<refsection>
+<title>Description</title>
+<para>
+    <command>cg_drawRoundTimer</command>
+    controls the display of the round timer on the HUD.
+    A value of <literal>0</literal> hides the round timer.
+</para>
+</refsection>
+
+</refentry>
