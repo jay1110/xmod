@@ -955,5 +955,5 @@ When migrating Lua scripts to xmod:
 
 ---
 
-**Last Updated**: February 2026  
-**Version**: xmod 2.0.2
+**Last Updated**: March 2026  
+**Version**: xmod 2.0.3

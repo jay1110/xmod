@@ -1,0 +1,30 @@
+<refentry id="cmd.setxp">
+
+<refmeta>
+    <refentrytitle>setxp</refentrytitle>
+    <manvolnum>1</manvolnum>
+</refmeta>
+
+<refnamediv>
+    <refname>setxp</refname>
+    <refpurpose>Set a player's total XP to a specific amount.</refpurpose>
+</refnamediv>
+
+<refsynopsisdiv>
+    <cmdsynopsis>
+        <command>!setxp</command>
+        <arg><replaceable>PLAYER</replaceable></arg>
+        <arg><replaceable>AMOUNT</replaceable></arg>
+    </cmdsynopsis>
+</refsynopsisdiv>
+
+<refsection>
+<title>Description</title>
+<para>
+    <command>setxp</command>
+    sets a player's total XP to the specified <replaceable>AMOUNT</replaceable>.
+    The XP is distributed evenly across all skill categories.
+</para>
+</refsection>
+
+</refentry>

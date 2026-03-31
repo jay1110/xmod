@@ -1,0 +1,75 @@
+<refentry id="cvar.g_instantJoinTeam">
+
+<refmeta>
+    <refentrytitle>g_instantJoinTeam</refentrytitle>
+    <manvolnum>cvar</manvolnum>
+</refmeta>
+
+<refnamediv>
+    <refname>g_instantJoinTeam</refname>
+    <refpurpose>bypass reinforcement wave wait when joining a team</refpurpose>
+</refnamediv>
+
+<refsynopsisdiv>
+    <cmdsynopsis>
+        <command>g_instantJoinTeam</command>
+        <arg><replaceable>mode</replaceable></arg>
+    </cmdsynopsis>
+
+<table id="cvar.g_instantJoinTeam.modes" frame="all">
+<?dbfo table-width="90%"?>
+<title>g_instantJoinTeam Modes</title>
+<tgroup cols="2" align="left" colsep="1" rowsep="1">
+    <colspec colnum="1" colwidth="9*" align="center"/>
+    <colspec colnum="2" colwidth="81*"/>
+    <thead>
+        <row>
+            <entry>MODE</entry>
+            <entry>DESCRIPTION</entry>
+        </row>
+    </thead>
+    <tbody>
+        <row>
+            <entry>0</entry>
+            <entry>disabled</entry>
+        </row>
+        <row>
+            <entry>1</entry>
+            <entry>instant spawn when switching from spectator to a team</entry>
+        </row>
+        <row>
+            <entry>2</entry>
+            <entry>instant spawn when switching from spectator or from the other team</entry>
+        </row>
+    </tbody>
+</tgroup>
+</table>
+</refsynopsisdiv>
+
+<refsection>
+<title>Default</title>
+    <cmdsynopsis>
+        <command>g_instantJoinTeam</command>
+        <arg choice="plain"><literal>0</literal></arg>
+    </cmdsynopsis>
+</refsection>
+
+<refsection>
+<title>Description</title>
+<para>
+    <command>g_instantJoinTeam</command>
+    bypasses the reinforcement wave wait when players join a team.
+    When set to <literal>1</literal>, players switching from spectator to a team spawn immediately.
+    When set to <literal>2</literal>, players also spawn immediately when switching between teams.
+    A value of <literal>0</literal> disables this feature.
+</para>
+</refsection>
+
+<refsection>
+<title>See Also</title>
+<para>
+    <xref linkend="cvar.g_instantSpawn"/>
+</para>
+</refsection>
+
+</refentry>

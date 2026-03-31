@@ -1,0 +1,47 @@
+<refentry id="cvar.cg_artilleryHints">
+
+<refmeta>
+    <refentrytitle>cg_artilleryHints</refentrytitle>
+    <manvolnum>cvar</manvolnum>
+</refmeta>
+
+<refnamediv>
+    <refname>cg_artilleryHints</refname>
+    <refpurpose>display friendly artillery zone warnings on the HUD</refpurpose>
+</refnamediv>
+
+<refsynopsisdiv>
+    <cmdsynopsis>
+        <command>cg_artilleryHints</command>
+        <arg><replaceable>mode</replaceable></arg>
+    </cmdsynopsis>
+	&boolean.mode;
+</refsynopsisdiv>
+
+<refsection>
+<title>Default</title>
+    <cmdsynopsis>
+        <command>cg_artilleryHints</command>
+        <arg choice="plain"><literal>1</literal></arg>
+    </cmdsynopsis>
+</refsection>
+
+<refsection>
+<title>Description</title>
+<para>
+    <command>cg_artilleryHints</command>
+    controls the client-side display of friendly artillery zone warnings.
+    When enabled, a warning icon and text are shown on the HUD when the player
+    is within the danger zone of a friendly artillery strike.
+    A value of <literal>0</literal> hides the warning.
+</para>
+</refsection>
+
+<refsection>
+<title>See Also</title>
+<para>
+    <xref linkend="cvar.g_artilleryHints"/>
+</para>
+</refsection>
+
+</refentry>

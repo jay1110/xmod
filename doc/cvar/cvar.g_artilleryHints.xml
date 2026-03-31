@@ -1,0 +1,47 @@
+<refentry id="cvar.g_artilleryHints">
+
+<refmeta>
+    <refentrytitle>g_artilleryHints</refentrytitle>
+    <manvolnum>cvar</manvolnum>
+</refmeta>
+
+<refnamediv>
+    <refname>g_artilleryHints</refname>
+    <refpurpose>enable friendly artillery zone warnings</refpurpose>
+</refnamediv>
+
+<refsynopsisdiv>
+    <cmdsynopsis>
+        <command>g_artilleryHints</command>
+        <arg><replaceable>mode</replaceable></arg>
+    </cmdsynopsis>
+	&boolean.mode;
+</refsynopsisdiv>
+
+<refsection>
+<title>Default</title>
+    <cmdsynopsis>
+        <command>g_artilleryHints</command>
+        <arg choice="plain"><literal>1</literal></arg>
+    </cmdsynopsis>
+</refsection>
+
+<refsection>
+<title>Description</title>
+<para>
+    <command>g_artilleryHints</command>
+    enables server-side friendly artillery zone warnings.
+    When enabled, the server detects when a player is within the danger zone of
+    a friendly artillery strike and sends a hint to the client.
+    A value of <literal>0</literal> disables this feature.
+</para>
+</refsection>
+
+<refsection>
+<title>See Also</title>
+<para>
+    <xref linkend="cvar.cg_artilleryHints"/>
+</para>
+</refsection>
+
+</refentry>

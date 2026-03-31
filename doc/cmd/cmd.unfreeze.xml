@@ -1,0 +1,28 @@
+<refentry id="cmd.unfreeze">
+
+<refmeta>
+    <refentrytitle>unfreeze</refentrytitle>
+    <manvolnum>1</manvolnum>
+</refmeta>
+
+<refnamediv>
+    <refname>unfreeze</refname>
+    <refpurpose>Unfreeze a frozen player.</refpurpose>
+</refnamediv>
+
+<refsynopsisdiv>
+    <cmdsynopsis>
+        <command>!unfreeze</command>
+        <arg><replaceable>PLAYER</replaceable></arg>
+    </cmdsynopsis>
+</refsynopsisdiv>
+
+<refsection>
+<title>Description</title>
+<para>
+    <command>unfreeze</command>
+    removes the frozen state from a player, allowing them to move and interact again.
+</para>
+</refsection>
+
+</refentry>

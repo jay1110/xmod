@@ -1,0 +1,29 @@
+<refentry id="cmd.unnospam">
+
+<refmeta>
+    <refentrytitle>unnospam</refentrytitle>
+    <manvolnum>1</manvolnum>
+</refmeta>
+
+<refnamediv>
+    <refname>unnospam</refname>
+    <refpurpose>Remove the nospam restriction from a player.</refpurpose>
+</refnamediv>
+
+<refsynopsisdiv>
+    <cmdsynopsis>
+        <command>!unnospam</command>
+        <arg><replaceable>PLAYER</replaceable></arg>
+    </cmdsynopsis>
+</refsynopsisdiv>
+
+<refsection>
+<title>Description</title>
+<para>
+    <command>unnospam</command>
+    removes the nospam restriction from a player, allowing them to chat and use
+    voice commands normally again.
+</para>
+</refsection>
+
+</refentry>
