@@ -1,0 +1,18 @@
+#ifndef GAME_CMD_SETXP_H
+#define GAME_CMD_SETXP_H
+
+///////////////////////////////////////////////////////////////////////////////
+
+class SetXp : public AbstractBuiltin
+{
+protected:
+    PostAction doExecute( Context& );
+
+public:
+    SetXp();
+    ~SetXp();
+};
+
+///////////////////////////////////////////////////////////////////////////////
+
+#endif // GAME_CMD_SETXP_H
