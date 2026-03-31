@@ -318,6 +318,7 @@ vmCvar_t        g_revenge;           // Show "REVENGE!" and award 1XP
 vmCvar_t        g_noReload;          // Unlimited ammo, clips auto-refill
 vmCvar_t        g_noCharge;          // No charge usage
 vmCvar_t        g_instantSpawn;      // Players respawn instantly
+vmCvar_t        g_instantJoinTeam;   // Players spawn instantly when joining a team from spectator
 vmCvar_t        g_spawnInvulNoClip;  // Players can pass through bodies during spawn invul
 
 // Kill Assistance
@@ -469,6 +470,7 @@ cvarTable_t		gameCvarTable[] = {
     { &g_noReload,          "g_noReload",           "0",        CVAR_ARCHIVE | CVAR_XMODINFO },
     { &g_noCharge,          "g_noCharge",           "0",        CVAR_ARCHIVE | CVAR_XMODINFO },
     { &g_instantSpawn,      "g_instantSpawn",       "0",        CVAR_ARCHIVE },
+    { &g_instantJoinTeam,   "g_instantJoinTeam",    "0",        CVAR_ARCHIVE },
     { &g_spawnInvulNoClip,  "g_spawnInvulNoClip",   "0",        CVAR_ARCHIVE | CVAR_XMODINFO },
 
     // Kill Assistance
