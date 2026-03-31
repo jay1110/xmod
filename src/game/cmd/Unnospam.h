@@ -1,0 +1,18 @@
+#ifndef GAME_CMD_UNNOSPAM_H
+#define GAME_CMD_UNNOSPAM_H
+
+///////////////////////////////////////////////////////////////////////////////
+
+class Unnospam : public AbstractBuiltin
+{
+protected:
+    PostAction doExecute( Context& );
+
+public:
+    Unnospam();
+    ~Unnospam();
+};
+
+///////////////////////////////////////////////////////////////////////////////
+
+#endif // GAME_CMD_UNNOSPAM_H

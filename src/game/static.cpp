@@ -262,6 +262,7 @@ namespace builtins {
     Mute             mute;
     News             news;
     NextMap          nextMap;
+    Nospam           nospam;
     Orient           orient;
     Page             page;
     Pants            pants;
@@ -297,6 +298,7 @@ namespace builtins {
     Unfreeze         unfreeze;
     Unlock           unlock;
     Unmute           unmute;
+    Unnospam         unnospam;
     Unpause          unpause;
     Uptime           uptime;
     UserDelete       userDelete;

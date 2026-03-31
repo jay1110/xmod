@@ -163,6 +163,93 @@ void setClientMuted(int clientNum, bool muted) {
     }
 }
 
+bool isClientNospammed(int clientNum) {
+    if (clientNum < 0 || clientNum >= MAX_CLIENTS) {
+        return false;
+    }
+    
+    if (g_sessions[clientNum] && g_sessions[clientNum]->isInitialized()) {
+        return g_sessions[clientNum]->isNospammed();
+    }
+    
+    return false;
+}
+
+void setClientNospammed(int clientNum, bool nospammed) {
+    if (clientNum < 0 || clientNum >= MAX_CLIENTS) {
+        return;
+    }
+    
+    if (g_sessions[clientNum] && g_sessions[clientNum]->isInitialized()) {
+        g_sessions[clientNum]->setNospammed(nospammed);
+    }
+}
+
+void setClientNospamExpiry(int clientNum, time_t expiry) {
+    if (clientNum < 0 || clientNum >= MAX_CLIENTS) {
+        return;
+    }
+    
+    if (g_sessions[clientNum] && g_sessions[clientNum]->isInitialized()) {
+        g_sessions[clientNum]->setNospamExpiry(expiry);
+    }
+}
+
+time_t getClientNospamExpiry(int clientNum) {
+    if (clientNum < 0 || clientNum >= MAX_CLIENTS) {
+        return 0;
+    }
+    
+    if (g_sessions[clientNum] && g_sessions[clientNum]->isInitialized()) {
+        return g_sessions[clientNum]->getNospamExpiry();
+    }
+    
+    return 0;
+}
+
+time_t getClientNospamLastChat(int clientNum) {
+    if (clientNum < 0 || clientNum >= MAX_CLIENTS) {
+        return 0;
+    }
+    
+    if (g_sessions[clientNum] && g_sessions[clientNum]->isInitialized()) {
+        return g_sessions[clientNum]->getNospamLastChat();
+    }
+    
+    return 0;
+}
+
+void setClientNospamLastChat(int clientNum, time_t lastChat) {
+    if (clientNum < 0 || clientNum >= MAX_CLIENTS) {
+        return;
+    }
+    
+    if (g_sessions[clientNum] && g_sessions[clientNum]->isInitialized()) {
+        g_sessions[clientNum]->setNospamLastChat(lastChat);
+    }
+}
+
+bool isClientNospamAllowed(int clientNum) {
+    if (clientNum < 0 || clientNum >= MAX_CLIENTS) {
+        return true;
+    }
+    
+    if (!isClientNospammed(clientNum)) {
+        return true;
+    }
+    
+    time_t now = time(NULL);
+    time_t lastChat = getClientNospamLastChat(clientNum);
+    
+    // Allow if 60 seconds have passed since last message
+    if (now - lastChat >= 60) {
+        setClientNospamLastChat(clientNum, now);
+        return true;
+    }
+    
+    return false;
+}
+
 const std::string& getClientGuid(int clientNum) {
     static const std::string empty = "";
     

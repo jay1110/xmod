@@ -1440,6 +1440,16 @@ void ClientThink_real( gentity_t *ent, bool skipServerTime ) {
         }
 	}
 
+    // Remove nospam restriction if the time is expired
+    if (::xmod::isClientNospammed(ent-g_entities)) {
+        time_t nospamExpiry = ::xmod::getClientNospamExpiry(ent-g_entities);
+
+        if (nospamExpiry && nospamExpiry <= time(NULL)) {
+            G_UnnospamPlayer(ent);
+            CPx(ent - g_entities, "chat \"^3Your nospam restriction has expired.\"");
+        }
+    }
+
     // Unfreeze the player if the time is expired
     {
         Client& cl = g_clientObjects[ent - g_entities];

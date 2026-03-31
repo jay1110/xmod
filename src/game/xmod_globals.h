@@ -44,6 +44,28 @@ bool isClientMuted(int clientNum);
 // Set mute status on both session and User
 void setClientMuted(int clientNum, bool muted);
 
+// Check if player is nospammed
+bool isClientNospammed(int clientNum);
+
+// Set nospam status on session
+void setClientNospammed(int clientNum, bool nospammed);
+
+// Set nospam expiry on session
+void setClientNospamExpiry(int clientNum, time_t expiry);
+
+// Get nospam expiry time
+time_t getClientNospamExpiry(int clientNum);
+
+// Get last chat time for nospam rate limiting
+time_t getClientNospamLastChat(int clientNum);
+
+// Set last chat time for nospam rate limiting
+void setClientNospamLastChat(int clientNum, time_t lastChat);
+
+// Check if a nospammed player is allowed to chat (rate limit: 1 per 60s)
+// Returns true if allowed, false if rate-limited
+bool isClientNospamAllowed(int clientNum);
+
 // Get player GUID
 const std::string& getClientGuid(int clientNum);
 
