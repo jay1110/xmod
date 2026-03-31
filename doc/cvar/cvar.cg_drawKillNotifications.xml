@@ -1,0 +1,42 @@
+<refentry id="cvar.cg_drawKillNotifications">
+
+<refmeta>
+    <refentrytitle>cg_drawKillNotifications</refentrytitle>
+    <manvolnum>cvar</manvolnum>
+</refmeta>
+
+<refnamediv>
+    <refname>cg_drawKillNotifications</refname>
+    <refpurpose>display kill and death popup notifications on the HUD</refpurpose>
+</refnamediv>
+
+<refsynopsisdiv>
+    <cmdsynopsis>
+        <command>cg_drawKillNotifications</command>
+        <arg><replaceable>mode</replaceable></arg>
+    </cmdsynopsis>
+	&boolean.mode;
+</refsynopsisdiv>
+
+<refsection>
+<title>Default</title>
+    <cmdsynopsis>
+        <command>cg_drawKillNotifications</command>
+        <arg choice="plain"><literal>1</literal></arg>
+    </cmdsynopsis>
+</refsection>
+
+<refsection>
+<title>Description</title>
+<para>
+    <command>cg_drawKillNotifications</command>
+    controls the display of kill and death popup notifications on the HUD.
+    When enabled, a notification is shown between the crosshair and the top
+    of the screen when you kill an opponent or are killed.
+    The notification includes the opponent's name with HP color coding
+    and fades out over 3 seconds.
+    A value of <literal>0</literal> disables the notifications.
+</para>
+</refsection>
+
+</refentry>

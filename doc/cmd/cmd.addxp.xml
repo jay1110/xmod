@@ -1,0 +1,30 @@
+<refentry id="cmd.addxp">
+
+<refmeta>
+    <refentrytitle>addxp</refentrytitle>
+    <manvolnum>1</manvolnum>
+</refmeta>
+
+<refnamediv>
+    <refname>addxp</refname>
+    <refpurpose>Add XP to a player's current total.</refpurpose>
+</refnamediv>
+
+<refsynopsisdiv>
+    <cmdsynopsis>
+        <command>!addxp</command>
+        <arg><replaceable>PLAYER</replaceable></arg>
+        <arg><replaceable>AMOUNT</replaceable></arg>
+    </cmdsynopsis>
+</refsynopsisdiv>
+
+<refsection>
+<title>Description</title>
+<para>
+    <command>addxp</command>
+    adds the specified <replaceable>AMOUNT</replaceable> of XP to a player's
+    current total. The added XP is distributed evenly across all skill categories.
+</para>
+</refsection>
+
+</refentry>

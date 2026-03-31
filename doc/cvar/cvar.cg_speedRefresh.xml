@@ -1,0 +1,44 @@
+<refentry id="cvar.cg_speedRefresh">
+
+<refmeta>
+    <refentrytitle>cg_speedRefresh</refentrytitle>
+    <manvolnum>cvar</manvolnum>
+</refmeta>
+
+<refnamediv>
+    <refname>cg_speedRefresh</refname>
+    <refpurpose>set the refresh interval for the speed display</refpurpose>
+</refnamediv>
+
+<refsynopsisdiv>
+    <cmdsynopsis>
+        <command>cg_speedRefresh</command>
+        <arg><replaceable>milliseconds</replaceable></arg>
+    </cmdsynopsis>
+</refsynopsisdiv>
+
+<refsection>
+<title>Default</title>
+    <cmdsynopsis>
+        <command>cg_speedRefresh</command>
+        <arg choice="plain"><literal>100</literal></arg>
+    </cmdsynopsis>
+</refsection>
+
+<refsection>
+<title>Description</title>
+<para>
+    <command>cg_speedRefresh</command>
+    sets the update interval in milliseconds for the speed display.
+    Lower values update the speed reading more frequently.
+</para>
+</refsection>
+
+<refsection>
+<title>See Also</title>
+<para>
+    <xref linkend="cvar.cg_drawSpeed"/>
+</para>
+</refsection>
+
+</refentry>

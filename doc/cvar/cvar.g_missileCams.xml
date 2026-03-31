@@ -1,0 +1,77 @@
+<refentry id="cvar.g_missileCams">
+
+<refmeta>
+    <refentrytitle>g_missileCams</refentrytitle>
+    <manvolnum>cvar</manvolnum>
+</refmeta>
+
+<refnamediv>
+    <refname>g_missileCams</refname>
+    <refpurpose>enable picture-in-picture missile cameras for projectile weapons</refpurpose>
+</refnamediv>
+
+<refsynopsisdiv>
+    <cmdsynopsis>
+        <command>g_missileCams</command>
+        <arg><replaceable>flags</replaceable></arg>
+    </cmdsynopsis>
+
+<table id="cvar.g_missileCams.flags" frame="all">
+<?dbfo table-width="90%"?>
+<title>g_missileCams Flags</title>
+<tgroup cols="2" align="left" colsep="1" rowsep="1">
+    <colspec colnum="1" colwidth="9*" align="center"/>
+    <colspec colnum="2" colwidth="81*"/>
+    <thead>
+        <row>
+            <entry>FLAG</entry>
+            <entry>DESCRIPTION</entry>
+        </row>
+    </thead>
+    <tbody>
+        <row>
+            <entry>1</entry>
+            <entry>Panzerfaust</entry>
+        </row>
+        <row>
+            <entry>2</entry>
+            <entry>Mortar</entry>
+        </row>
+        <row>
+            <entry>4</entry>
+            <entry>Rifle Grenade</entry>
+        </row>
+    </tbody>
+</tgroup>
+</table>
+</refsynopsisdiv>
+
+<refsection>
+<title>Default</title>
+    <cmdsynopsis>
+        <command>g_missileCams</command>
+        <arg choice="plain"><literal>0</literal></arg>
+    </cmdsynopsis>
+</refsection>
+
+<refsection>
+<title>Description</title>
+<para>
+    <command>g_missileCams</command>
+    enables picture-in-picture missile cameras for projectile weapons.
+    When a player fires one of the enabled weapon types, a small camera
+    view from the missile's perspective is displayed on screen.
+    Combine flag values to enable multiple weapons (e.g. <literal>3</literal>
+    for Panzerfaust and Mortar).
+    A value of <literal>0</literal> disables missile cameras.
+</para>
+</refsection>
+
+<refsection>
+<title>See Also</title>
+<para>
+    <xref linkend="cvar.cg_drawCam"/>
+</para>
+</refsection>
+
+</refentry>

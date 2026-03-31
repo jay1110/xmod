@@ -1,0 +1,38 @@
+<refentry id="cvar.g_dropObj">
+
+<refmeta>
+    <refentrytitle>g_dropObj</refentrytitle>
+    <manvolnum>cvar</manvolnum>
+</refmeta>
+
+<refnamediv>
+    <refname>g_dropObj</refname>
+    <refpurpose>set how many times per life a player can drop an objective</refpurpose>
+</refnamediv>
+
+<refsynopsisdiv>
+    <cmdsynopsis>
+        <command>g_dropObj</command>
+        <arg><replaceable>count</replaceable></arg>
+    </cmdsynopsis>
+</refsynopsisdiv>
+
+<refsection>
+<title>Default</title>
+    <cmdsynopsis>
+        <command>g_dropObj</command>
+        <arg choice="plain"><literal>0</literal></arg>
+    </cmdsynopsis>
+</refsection>
+
+<refsection>
+<title>Description</title>
+<para>
+    <command>g_dropObj</command>
+    sets the maximum number of times per life a player can drop a carried
+    objective (e.g. documents, gold).
+    A value of <literal>0</literal> disables objective dropping.
+</para>
+</refsection>
+
+</refentry>

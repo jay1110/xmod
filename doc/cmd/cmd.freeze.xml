@@ -1,0 +1,32 @@
+<refentry id="cmd.freeze">
+
+<refmeta>
+    <refentrytitle>freeze</refentrytitle>
+    <manvolnum>1</manvolnum>
+</refmeta>
+
+<refnamediv>
+    <refname>freeze</refname>
+    <refpurpose>Freeze a player so they cannot move, shoot, or interact.</refpurpose>
+</refnamediv>
+
+<refsynopsisdiv>
+    <cmdsynopsis>
+        <command>!freeze</command>
+        <arg><replaceable>PLAYER</replaceable></arg>
+        <arg><replaceable>TIME</replaceable></arg>
+    </cmdsynopsis>
+</refsynopsisdiv>
+
+<refsection>
+<title>Description</title>
+<para>
+    <command>freeze</command>
+    freezes a player in place. Frozen players cannot move, shoot, or interact.
+    An optional <replaceable>TIME</replaceable> parameter sets the duration
+    (e.g. <literal>30s</literal>, <literal>5m</literal>, <literal>1h</literal>).
+    If no time is specified, the player remains frozen until manually unfrozen.
+</para>
+</refsection>
+
+</refentry>

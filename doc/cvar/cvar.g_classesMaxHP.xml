@@ -1,0 +1,48 @@
+<refentry id="cvar.g_classesMaxHP">
+
+<refmeta>
+    <refentrytitle>g_classesMaxHP</refentrytitle>
+    <manvolnum>cvar</manvolnum>
+</refmeta>
+
+<refnamediv>
+    <refname>g_classesMaxHP</refname>
+    <refpurpose>override maximum HP per player class</refpurpose>
+</refnamediv>
+
+<refsynopsisdiv>
+    <cmdsynopsis>
+        <command>g_classesMaxHP</command>
+        <arg><replaceable>soldier medic engineer fieldops covertops</replaceable></arg>
+    </cmdsynopsis>
+</refsynopsisdiv>
+
+<refsection>
+<title>Default</title>
+    <cmdsynopsis>
+        <command>g_classesMaxHP</command>
+        <arg choice="plain"><literal>0 0 0 0 0</literal></arg>
+    </cmdsynopsis>
+</refsection>
+
+<refsection>
+<title>Description</title>
+<para>
+    <command>g_classesMaxHP</command>
+    overrides the maximum health points for each player class.
+    The value is a string of 5 space-separated integers in the order:
+    Soldier, Medic, Engineer, Field Ops, Covert Ops.
+    A value of <literal>0</literal> for any class means the default HP is used.
+    When a custom max HP is set, health regeneration caps at exactly that value
+    without overheal.
+</para>
+</refsection>
+
+<refsection>
+<title>See Also</title>
+<para>
+    <xref linkend="cvar.g_medics"/>
+</para>
+</refsection>
+
+</refentry>

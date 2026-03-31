@@ -1,0 +1,45 @@
+<refentry id="cvar.cg_watermarkOpacity">
+
+<refmeta>
+    <refentrytitle>cg_watermarkOpacity</refentrytitle>
+    <manvolnum>cvar</manvolnum>
+</refmeta>
+
+<refnamediv>
+    <refname>cg_watermarkOpacity</refname>
+    <refpurpose>set the opacity of the server watermark</refpurpose>
+</refnamediv>
+
+<refsynopsisdiv>
+    <cmdsynopsis>
+        <command>cg_watermarkOpacity</command>
+        <arg><replaceable>alpha</replaceable></arg>
+    </cmdsynopsis>
+</refsynopsisdiv>
+
+<refsection>
+<title>Default</title>
+    <cmdsynopsis>
+        <command>cg_watermarkOpacity</command>
+        <arg choice="plain"><literal>1.0</literal></arg>
+    </cmdsynopsis>
+</refsection>
+
+<refsection>
+<title>Description</title>
+<para>
+    <command>cg_watermarkOpacity</command>
+    sets the opacity of the server watermark displayed on the HUD.
+    <replaceable>alpha</replaceable> is a value between <literal>0.0</literal> (fully transparent)
+    and <literal>1.0</literal> (fully opaque).
+</para>
+</refsection>
+
+<refsection>
+<title>See Also</title>
+<para>
+    <xref linkend="cvar.g_watermark"/>
+</para>
+</refsection>
+
+</refentry>

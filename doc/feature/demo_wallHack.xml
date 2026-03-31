@@ -1,0 +1,11 @@
+<para>
+    <command>demo_wallHack</command> is a client console command available only
+    during demo playback. It toggles a wallhack effect that renders all player
+    models with a glow visible through walls, making it easier to follow the
+    action while reviewing demos.
+</para>
+<para>
+    To use, type <command>demo_wallHack</command> in the console or bind it to
+    a key while watching a demo. Typing the command again toggles it off.
+    This command has no effect outside of demo playback.
+</para>

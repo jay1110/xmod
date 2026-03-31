@@ -30,6 +30,12 @@
     </thead>
     <tbody>
         <row>
+            <entry>1</entry>
+            <entry>
+                prevent medics from picking up their own med packs
+            </entry>
+        </row>
+        <row>
             <entry>4</entry>
             <entry>
                 regenerate <emphasis role="bold">normal</emphasis> health at 2HP/s,
@@ -52,6 +58,13 @@
 				pause health regeneration for 5 seconds after the player has
 				taken damage
 			</entry>
+        </row>
+        <row>
+            <entry>64</entry>
+            <entry>
+                allow medics to heal living teammates with the syringe when
+                they are below full health
+            </entry>
         </row>
     </tbody>
 </tgroup>

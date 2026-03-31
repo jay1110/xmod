@@ -1,0 +1,39 @@
+<refentry id="cvar.cg_drawPing">
+
+<refmeta>
+    <refentrytitle>cg_drawPing</refentrytitle>
+    <manvolnum>cvar</manvolnum>
+</refmeta>
+
+<refnamediv>
+    <refname>cg_drawPing</refname>
+    <refpurpose>display the current ping on the HUD</refpurpose>
+</refnamediv>
+
+<refsynopsisdiv>
+    <cmdsynopsis>
+        <command>cg_drawPing</command>
+        <arg><replaceable>mode</replaceable></arg>
+    </cmdsynopsis>
+	&boolean.mode;
+</refsynopsisdiv>
+
+<refsection>
+<title>Default</title>
+    <cmdsynopsis>
+        <command>cg_drawPing</command>
+        <arg choice="plain"><literal>0</literal></arg>
+    </cmdsynopsis>
+</refsection>
+
+<refsection>
+<title>Description</title>
+<para>
+    <command>cg_drawPing</command>
+    displays the current network latency (ping) in milliseconds
+    on the upper-right area of the HUD.
+    A value of <literal>0</literal> hides the ping display.
+</para>
+</refsection>
+
+</refentry>

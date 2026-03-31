@@ -1,0 +1,46 @@
+<refentry id="cvar.cg_drawCam">
+
+<refmeta>
+    <refentrytitle>cg_drawCam</refentrytitle>
+    <manvolnum>cvar</manvolnum>
+</refmeta>
+
+<refnamediv>
+    <refname>cg_drawCam</refname>
+    <refpurpose>enable the client-side missile camera display</refpurpose>
+</refnamediv>
+
+<refsynopsisdiv>
+    <cmdsynopsis>
+        <command>cg_drawCam</command>
+        <arg><replaceable>mode</replaceable></arg>
+    </cmdsynopsis>
+	&boolean.mode;
+</refsynopsisdiv>
+
+<refsection>
+<title>Default</title>
+    <cmdsynopsis>
+        <command>cg_drawCam</command>
+        <arg choice="plain"><literal>1</literal></arg>
+    </cmdsynopsis>
+</refsection>
+
+<refsection>
+<title>Description</title>
+<para>
+    <command>cg_drawCam</command>
+    controls the client-side display of the missile camera picture-in-picture view.
+    The server must have <command>g_missileCams</command> enabled for this to take effect.
+    A value of <literal>0</literal> hides the missile camera on the client.
+</para>
+</refsection>
+
+<refsection>
+<title>See Also</title>
+<para>
+    <xref linkend="cvar.g_missileCams"/>
+</para>
+</refsection>
+
+</refentry>

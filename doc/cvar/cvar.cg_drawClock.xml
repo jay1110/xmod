@@ -1,0 +1,66 @@
+<refentry id="cvar.cg_drawClock">
+
+<refmeta>
+    <refentrytitle>cg_drawClock</refentrytitle>
+    <manvolnum>cvar</manvolnum>
+</refmeta>
+
+<refnamediv>
+    <refname>cg_drawClock</refname>
+    <refpurpose>display a real-time clock on the HUD</refpurpose>
+</refnamediv>
+
+<refsynopsisdiv>
+    <cmdsynopsis>
+        <command>cg_drawClock</command>
+        <arg><replaceable>mode</replaceable></arg>
+    </cmdsynopsis>
+
+<table id="cvar.cg_drawClock.modes" frame="all">
+<?dbfo table-width="90%"?>
+<title>cg_drawClock Modes</title>
+<tgroup cols="2" align="left" colsep="1" rowsep="1">
+    <colspec colnum="1" colwidth="9*" align="center"/>
+    <colspec colnum="2" colwidth="81*"/>
+    <thead>
+        <row>
+            <entry>MODE</entry>
+            <entry>DESCRIPTION</entry>
+        </row>
+    </thead>
+    <tbody>
+        <row>
+            <entry>0</entry>
+            <entry>disabled</entry>
+        </row>
+        <row>
+            <entry>1</entry>
+            <entry>12-hour format (e.g. 02:30:00PM)</entry>
+        </row>
+        <row>
+            <entry>2</entry>
+            <entry>24-hour format (e.g. 14:30:00)</entry>
+        </row>
+    </tbody>
+</tgroup>
+</table>
+</refsynopsisdiv>
+
+<refsection>
+<title>Default</title>
+    <cmdsynopsis>
+        <command>cg_drawClock</command>
+        <arg choice="plain"><literal>0</literal></arg>
+    </cmdsynopsis>
+</refsection>
+
+<refsection>
+<title>Description</title>
+<para>
+    <command>cg_drawClock</command>
+    displays a real-time clock on the upper-right area of the HUD.
+    A value of <literal>0</literal> disables the clock.
+</para>
+</refsection>
+
+</refentry>

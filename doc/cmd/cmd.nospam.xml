@@ -1,0 +1,32 @@
+<refentry id="cmd.nospam">
+
+<refmeta>
+    <refentrytitle>nospam</refentrytitle>
+    <manvolnum>1</manvolnum>
+</refmeta>
+
+<refnamediv>
+    <refname>nospam</refname>
+    <refpurpose>Restrict a player to one chat message or voice command per minute.</refpurpose>
+</refnamediv>
+
+<refsynopsisdiv>
+    <cmdsynopsis>
+        <command>!nospam</command>
+        <arg><replaceable>PLAYER</replaceable></arg>
+        <arg><replaceable>TIME</replaceable></arg>
+    </cmdsynopsis>
+</refsynopsisdiv>
+
+<refsection>
+<title>Description</title>
+<para>
+    <command>nospam</command>
+    restricts a player to one chat message or voice command per minute.
+    An optional <replaceable>TIME</replaceable> parameter sets the duration
+    (e.g. <literal>5m</literal>, <literal>1h</literal>).
+    If no time is specified, the restriction is permanent until manually removed.
+</para>
+</refsection>
+
+</refentry>

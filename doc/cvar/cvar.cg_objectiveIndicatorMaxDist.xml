@@ -1,0 +1,47 @@
+<refentry id="cvar.cg_objectiveIndicatorMaxDist">
+
+<refmeta>
+    <refentrytitle>cg_objectiveIndicatorMaxDist</refentrytitle>
+    <manvolnum>cvar</manvolnum>
+</refmeta>
+
+<refnamediv>
+    <refname>cg_objectiveIndicatorMaxDist</refname>
+    <refpurpose>set maximum visibility range for objective indicators</refpurpose>
+</refnamediv>
+
+<refsynopsisdiv>
+    <cmdsynopsis>
+        <command>cg_objectiveIndicatorMaxDist</command>
+        <arg><replaceable>distance</replaceable></arg>
+    </cmdsynopsis>
+</refsynopsisdiv>
+
+<refsection>
+<title>Default</title>
+    <cmdsynopsis>
+        <command>cg_objectiveIndicatorMaxDist</command>
+        <arg choice="plain"><literal>500</literal></arg>
+    </cmdsynopsis>
+</refsection>
+
+<refsection>
+<title>Description</title>
+<para>
+    <command>cg_objectiveIndicatorMaxDist</command>
+    limits the visibility range for objective indicators.
+    Objective icons are only displayed if the objective is within
+    <replaceable>distance</replaceable> game units from the player.
+    A value of <literal>0</literal> disables the distance limit,
+    showing all objectives regardless of range.
+</para>
+</refsection>
+
+<refsection>
+<title>See Also</title>
+<para>
+    <xref linkend="cvar.cg_drawObjectiveIndicators"/>
+</para>
+</refsection>
+
+</refentry>

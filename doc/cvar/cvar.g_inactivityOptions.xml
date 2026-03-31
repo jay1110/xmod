@@ -1,0 +1,82 @@
+<refentry id="cvar.g_inactivityOptions">
+
+<refmeta>
+    <refentrytitle>g_inactivityOptions</refentrytitle>
+    <manvolnum>cvar</manvolnum>
+</refmeta>
+
+<refnamediv>
+    <refname>g_inactivityOptions</refname>
+    <refpurpose>set bitflags for inactivity behavior</refpurpose>
+</refnamediv>
+
+<refsynopsisdiv>
+    <cmdsynopsis>
+        <command>g_inactivityOptions</command>
+        <arg><replaceable>flags</replaceable></arg>
+    </cmdsynopsis>
+
+<table id="cvar.g_inactivityOptions.flags" frame="all">
+<?dbfo table-width="90%"?>
+<title>g_inactivityOptions Flags</title>
+<tgroup cols="2" align="left" colsep="1" rowsep="1">
+    <colspec colnum="1" colwidth="9*" align="center"/>
+    <colspec colnum="2" colwidth="81*"/>
+    <thead>
+        <row>
+            <entry>FLAG</entry>
+            <entry>DESCRIPTION</entry>
+        </row>
+    </thead>
+    <tbody>
+        <row>
+            <entry>1</entry>
+            <entry>
+                do not move spectators to inactive if they are following a player
+            </entry>
+        </row>
+        <row>
+            <entry>2</entry>
+            <entry>
+                move inactive spectators even when the server is not full
+            </entry>
+        </row>
+        <row>
+            <entry>4</entry>
+            <entry>
+                do not move players with the <emphasis>inactivity</emphasis> admin
+                privilege to spectators
+            </entry>
+        </row>
+    </tbody>
+</tgroup>
+</table>
+</refsynopsisdiv>
+
+<refsection>
+<title>Default</title>
+    <cmdsynopsis>
+        <command>g_inactivityOptions</command>
+        <arg choice="plain"><literal>0</literal></arg>
+    </cmdsynopsis>
+</refsection>
+
+<refsection>
+<title>Description</title>
+<para>
+    <command>g_inactivityOptions</command>
+    sets bitflags that control the behavior of the inactivity system.
+    Inactive players are moved to spectators instead of being kicked.
+    A value of <literal>0</literal> uses the default behavior.
+</para>
+</refsection>
+
+<refsection>
+<title>See Also</title>
+<para>
+    <xref linkend="cvar.g_inactivity"/>,
+    <xref linkend="cvar.g_spectatorInactivity"/>
+</para>
+</refsection>
+
+</refentry>
