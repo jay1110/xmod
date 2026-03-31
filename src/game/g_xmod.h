@@ -136,6 +136,7 @@ extern vmCvar_t g_revenge;           // Show "REVENGE!" and award 1XP
 extern vmCvar_t g_noReload;          // Unlimited ammo, clips auto-refill
 extern vmCvar_t g_noCharge;          // No charge usage
 extern vmCvar_t g_instantSpawn;      // Players respawn instantly
+extern vmCvar_t g_instantJoinTeam;   // 1=instant spawn from spectator, 2=also from other team
 extern vmCvar_t g_spawnInvulNoClip;  // Players can pass through bodies during spawn invul
 
 // Kill Assistance
