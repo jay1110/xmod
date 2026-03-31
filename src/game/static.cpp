@@ -240,6 +240,7 @@ namespace builtins {
     Finger           finger;
     Fling            fling;
     Flinga           flinga;
+    Freeze           freeze;
     Glow             glow;
     Help             help;
     JxacScreenshot   jxacScreenshot;
@@ -291,6 +292,7 @@ namespace builtins {
     Throwa           throwa;
     Time             time;
     Unban            unban;
+    Unfreeze         unfreeze;
     Unlock           unlock;
     Unmute           unmute;
     Unpause          unpause;

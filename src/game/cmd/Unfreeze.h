@@ -1,0 +1,18 @@
+#ifndef GAME_CMD_UNFREEZE_H
+#define GAME_CMD_UNFREEZE_H
+
+///////////////////////////////////////////////////////////////////////////////
+
+class Unfreeze : public AbstractBuiltin
+{
+protected:
+    PostAction doExecute( Context& );
+
+public:
+    Unfreeze();
+    ~Unfreeze();
+};
+
+///////////////////////////////////////////////////////////////////////////////
+
+#endif // GAME_CMD_UNFREEZE_H
