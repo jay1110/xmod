@@ -1447,6 +1447,9 @@ void ClientThink_real( gentity_t *ent, bool skipServerTime ) {
         if (nospamExpiry && nospamExpiry <= time(NULL)) {
             G_UnnospamPlayer(ent);
             CPx(ent - g_entities, "chat \"^3Your nospam restriction has expired.\"");
+        }
+    }
+
     // Unfreeze the player if the time is expired
     {
         Client& cl = g_clientObjects[ent - g_entities];
