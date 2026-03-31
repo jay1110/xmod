@@ -863,10 +863,12 @@ qboolean SetTeam( gentity_t* ent, const char* teamName, qboolean force, weapon_t
 		}
 	}
 
-	// g_instantJoinTeam: Instantly spawn players when switching from spectator to a team
-	if (g_instantJoinTeam.integer && oldTeam == TEAM_SPECTATOR &&
+	// g_instantJoinTeam: Instantly spawn players when joining a team
+	// 1 = from spectator to a team, 2 = also from team to another team
+	if (g_instantJoinTeam.integer &&
 		(client->sess.sessionTeam == TEAM_AXIS || client->sess.sessionTeam == TEAM_ALLIES) &&
-		(ent->client->ps.pm_flags & PMF_LIMBO)) {
+		(ent->client->ps.pm_flags & PMF_LIMBO) &&
+		(oldTeam == TEAM_SPECTATOR || g_instantJoinTeam.integer >= 2)) {
 		reinforce(ent);
 	}
 

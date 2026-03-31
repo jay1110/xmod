@@ -318,7 +318,7 @@ vmCvar_t        g_revenge;           // Show "REVENGE!" and award 1XP
 vmCvar_t        g_noReload;          // Unlimited ammo, clips auto-refill
 vmCvar_t        g_noCharge;          // No charge usage
 vmCvar_t        g_instantSpawn;      // Players respawn instantly
-vmCvar_t        g_instantJoinTeam;   // Players spawn instantly when joining a team from spectator
+vmCvar_t        g_instantJoinTeam;   // 1=instant spawn from spectator, 2=also from other team
 vmCvar_t        g_spawnInvulNoClip;  // Players can pass through bodies during spawn invul
 
 // Kill Assistance
