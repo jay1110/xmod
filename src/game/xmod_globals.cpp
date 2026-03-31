@@ -169,19 +169,7 @@ bool isClientNospammed(int clientNum) {
     }
     
     if (g_sessions[clientNum] && g_sessions[clientNum]->isInitialized()) {
-        if (!g_sessions[clientNum]->isNospammed()) {
-            return false;
-        }
-        // Check if nospam has expired
-        time_t expiry = g_sessions[clientNum]->getNospamExpiry();
-        if (expiry > 0 && time(NULL) >= expiry) {
-            // Expired - auto-clear
-            g_sessions[clientNum]->setNospammed(false);
-            g_sessions[clientNum]->setNospamExpiry(0);
-            g_sessions[clientNum]->setNospamLastChat(0);
-            return false;
-        }
-        return true;
+        return g_sessions[clientNum]->isNospammed();
     }
     
     return false;
