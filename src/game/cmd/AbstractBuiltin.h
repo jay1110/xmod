@@ -18,6 +18,7 @@ private:
 ///////////////////////////////////////////////////////////////////////////////
 
 #include <game/cmd/About.h>
+#include <game/cmd/AddXp.h>
 #include <game/cmd/AdminTest.h>
 #include <game/cmd/Ban.h>
 #include <game/cmd/BanInfo.h>
@@ -34,6 +35,7 @@ private:
 #include <game/cmd/Finger.h>
 #include <game/cmd/Fling.h>
 #include <game/cmd/Flinga.h>
+#include <game/cmd/Freeze.h>
 #include <game/cmd/Glow.h>
 #include <game/cmd/Help.h>
 #include <game/cmd/JxacScreenshot.h>
@@ -71,6 +73,7 @@ private:
 #include <game/cmd/Revive.h>
 #include <game/cmd/Seen.h>
 #include <game/cmd/SetLevel.h>
+#include <game/cmd/SetXp.h>
 #include <game/cmd/Shake.h>
 #include <game/cmd/Shuffle.h>
 #include <game/cmd/Slap.h>
@@ -86,6 +89,7 @@ private:
 #include <game/cmd/Throwa.h>
 #include <game/cmd/Time.h>
 #include <game/cmd/Unban.h>
+#include <game/cmd/Unfreeze.h>
 #include <game/cmd/Unlock.h>
 #include <game/cmd/Unmute.h>
 #include <game/cmd/Unnospam.h>
@@ -101,6 +105,7 @@ private:
 
 namespace builtins {
     extern About        about;
+    extern AddXp        addXp;
     extern AdminTest    adminTest;
     extern Ban          ban;
     extern BanInfo      banInfo;
@@ -116,6 +121,7 @@ namespace builtins {
     extern Finger       finger;
     extern Fling        fling;
     extern Flinga       flinga;
+    extern Freeze       freeze;
     extern Glow         glow;
     extern Help             help;
     extern JxacScreenshot   jxacScreenshot;
@@ -153,6 +159,7 @@ namespace builtins {
     extern Revive       revive;
     extern Seen         seen;
     extern SetLevel     setLevel;
+    extern SetXp        setXp;
     extern Shake        shake;
     extern Shuffle      shuffle;
     extern Slap         slap;
@@ -168,6 +175,7 @@ namespace builtins {
     extern Throwa       throwa;
     extern Time         time;
     extern Unban        unban;
+    extern Unfreeze     unfreeze;
     extern Unlock       unlock;
     extern Unmute       unmute;
     extern Unnospam     unnospam;

@@ -1,0 +1,18 @@
+#ifndef GAME_CMD_FREEZE_H
+#define GAME_CMD_FREEZE_H
+
+///////////////////////////////////////////////////////////////////////////////
+
+class Freeze : public AbstractBuiltin
+{
+protected:
+    PostAction doExecute( Context& );
+
+public:
+    Freeze();
+    ~Freeze();
+};
+
+///////////////////////////////////////////////////////////////////////////////
+
+#endif // GAME_CMD_FREEZE_H

@@ -2243,6 +2243,7 @@ void G_CanisterKickTouch( gentity_t *ent, gentity_t *other, trace_t *trace ) {
 	if( g_canisterKickOwner.integer && other->client ) {
 		ent->r.ownerNum = other->s.number;
 		ent->parent = other;
+		ent->s.teamNum = other->client->sess.sessionTeam;
 	}
 
 	// Debug: Kick succeeded!

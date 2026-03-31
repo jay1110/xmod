@@ -224,6 +224,7 @@ Registry registry;
 
 namespace builtins {
     About            about;
+    AddXp            addXp;
     AdminTest        adminTest;
     Ban              ban;
     BanInfo          banInfo;
@@ -240,6 +241,7 @@ namespace builtins {
     Finger           finger;
     Fling            fling;
     Flinga           flinga;
+    Freeze           freeze;
     Glow             glow;
     Help             help;
     JxacScreenshot   jxacScreenshot;
@@ -277,6 +279,7 @@ namespace builtins {
     Revive           revive;
     Seen             seen;
     SetLevel         setLevel;
+    SetXp            setXp;
     Shake            shake;
     Shuffle          shuffle;
     Slap             slap;
@@ -292,6 +295,7 @@ namespace builtins {
     Throwa           throwa;
     Time             time;
     Unban            unban;
+    Unfreeze         unfreeze;
     Unlock           unlock;
     Unmute           unmute;
     Unnospam         unnospam;

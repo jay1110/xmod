@@ -1,0 +1,18 @@
+#ifndef GAME_CMD_ADDXP_H
+#define GAME_CMD_ADDXP_H
+
+///////////////////////////////////////////////////////////////////////////////
+
+class AddXp : public AbstractBuiltin
+{
+protected:
+    PostAction doExecute( Context& );
+
+public:
+    AddXp();
+    ~AddXp();
+};
+
+///////////////////////////////////////////////////////////////////////////////
+
+#endif // GAME_CMD_ADDXP_H

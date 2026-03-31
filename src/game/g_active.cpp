@@ -1447,6 +1447,14 @@ void ClientThink_real( gentity_t *ent, bool skipServerTime ) {
         if (nospamExpiry && nospamExpiry <= time(NULL)) {
             G_UnnospamPlayer(ent);
             CPx(ent - g_entities, "chat \"^3Your nospam restriction has expired.\"");
+    // Unfreeze the player if the time is expired
+    {
+        Client& cl = g_clientObjects[ent - g_entities];
+        if (cl.frozen && cl.frozenExpiry && cl.frozenExpiry <= time(NULL)) {
+            cl.frozen = false;
+            cl.frozenExpiry = 0;
+            CPx(ent - g_entities, "cp \"^xYou've been unfrozen.\n\"");
+            CPx(ent - g_entities, "chat \"^3Your freeze has expired, and you have been auto-unfrozen.\"");
         }
     }
 
@@ -1522,6 +1530,15 @@ void ClientThink_real( gentity_t *ent, bool skipServerTime ) {
 			VectorClear(client->ps.velocity);
 			client->ps.pm_type = PM_FREEZE;
 		}
+	} else if ( g_clientObjects[ent - g_entities].frozen ) {
+		ucmd->buttons = 0;
+		ucmd->forwardmove = 0;
+		ucmd->rightmove = 0;
+		ucmd->upmove = 0;
+		ucmd->wbuttons = 0;
+		ucmd->doubleTap = 0;
+		VectorClear(client->ps.velocity);
+		client->ps.pm_type = PM_FREEZE;
 	} else if ( client->noclip ) {
 		client->ps.pm_type = PM_NOCLIP;
 	} else if ( client->ps.pm_type == PM_PLAYDEAD) {

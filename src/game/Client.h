@@ -63,6 +63,10 @@ public:
     bool   authWarningShown;
     string authGuid;
     string authHwid;
+
+    // Freeze
+    bool   frozen;
+    time_t frozenExpiry;
 };
 
 ///////////////////////////////////////////////////////////////////////////////
