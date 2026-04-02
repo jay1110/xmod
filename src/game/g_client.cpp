@@ -2736,6 +2736,9 @@ void ClientBegin( int clientNum )
 
 	G_LogPrintf( "ClientBegin: %i\n", clientNum );
 
+	// AntiRush: notify connecting player about antirush
+	G_AntiRushNotify( clientNum );
+
 	// Send RPCS (xmod configstring) data to the connecting client
 	// This data is no longer in the gamestate to avoid MAX_GAMESTATE_CHARS exceeded
 	G_SendXmodCS( clientNum );

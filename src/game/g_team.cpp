@@ -523,6 +523,12 @@ int Team_TouchEnemyFlag( gentity_t *ent, gentity_t *other, int team ) {
 //	gentity_t *te;
 	gentity_t *tmp;
 
+	// AntiRush: prevent flag/document theft during antirush period
+	if ( G_AntiRushActive() ) {
+		G_AntiRushPenalty( other );
+		return 0;
+	}
+
 	ent->s.density--;
 
 	// hey, its not our flag, pick it up

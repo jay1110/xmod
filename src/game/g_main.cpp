@@ -253,6 +253,8 @@ vmCvar_t		vote_voteBased;
 vmCvar_t		vote_minPercent;
 vmCvar_t        g_muteTime;
 vmCvar_t        g_antiwarp;
+vmCvar_t        g_antirush;
+vmCvar_t        g_antirushTime;
 
 // GeoIP Country Flags
 vmCvar_t        g_countryflags;
@@ -407,6 +409,8 @@ cvarTable_t		gameCvarTable[] = {
 	{ &g_userConfig,		"g_userConfig",			"xmod.db",	CVAR_ARCHIVE },
     { &g_muteTime,          "g_muteTime",           "0",        0 },
     { &g_antiwarp,          "g_antiwarp",           "1",        0 },
+    { &g_antirush,          "g_antirush",           "0",        CVAR_ARCHIVE },
+    { &g_antirushTime,      "g_antirushTime",       "30",       CVAR_ARCHIVE },
     { &g_countryflags,      "g_countryflags",       "1",        CVAR_ARCHIVE },
 
     { &sv_maxRate,          "sv_maxRate",           "90000",    CVAR_SYSTEMINFO | CVAR_ARCHIVE },
@@ -2052,6 +2056,8 @@ void G_InitGame( int levelTime, int randomSeed, int restart ) {
 	level.engineerChargeTimeModifier[0] = level.engineerChargeTimeModifier[1] = 1.f;
 	level.lieutenantChargeTimeModifier[0] = level.lieutenantChargeTimeModifier[1] = 1.f;
 	level.covertopsChargeTimeModifier[0] = level.covertopsChargeTimeModifier[1] = 1.f;
+
+	G_AntiRushInit();
 
 	cs[0] = '\0';
 	Info_SetValueForKey( cs, "axs_sld", va("%i", level.soldierChargeTime[0]) );
@@ -4180,6 +4186,9 @@ void G_RunFrame( int levelTime ) {
 
     // NERVE - SMF
     CheckWolfMP();
+
+    // AntiRush: check if antirush timer has expired
+    G_AntiRushCheck();
 
 	// see if it is time to end the level
 	CheckExitRules();

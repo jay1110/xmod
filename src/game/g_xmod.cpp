@@ -2631,3 +2631,137 @@ namespace cache {
     string kickMessage;
     int    kickTime;
 } // namespace cache
+
+///////////////////////////////////////////////////////////////////////////////
+// AntiRush System
+///////////////////////////////////////////////////////////////////////////////
+
+/*
+===================
+G_AntiRushInit
+
+Called when a game round starts. Sets up the antirush timer if enabled.
+===================
+*/
+void G_AntiRushInit( void ) {
+    level.antirushEndTime = 0;
+
+    if ( !g_antirush.integer )
+        return;
+
+    if ( g_antirushTime.integer <= 0 )
+        return;
+
+    level.antirushEndTime = level.startTime + ( g_antirushTime.integer * 1000 );
+}
+
+/*
+===================
+G_AntiRushActive
+
+Returns qtrue if the antirush timer is still active.
+===================
+*/
+qboolean G_AntiRushActive( void ) {
+    if ( !g_antirush.integer )
+        return qfalse;
+
+    if ( !level.antirushEndTime )
+        return qfalse;
+
+    if ( level.time >= level.antirushEndTime )
+        return qfalse;
+
+    return qtrue;
+}
+
+/*
+===================
+G_AntiRushCheck
+
+Called each frame from G_RunFrame. When the antirush period ends,
+announces to all clients and unfreezes antirush-frozen players.
+===================
+*/
+void G_AntiRushCheck( void ) {
+    if ( !g_antirush.integer )
+        return;
+
+    if ( !level.antirushEndTime )
+        return;
+
+    // Timer hasn't expired yet
+    if ( level.time < level.antirushEndTime )
+        return;
+
+    // Timer just expired - announce and unfreeze
+    trap_SendServerCommand( -1, "cp \"^3AntiRush: ^8Objective can now be taken!\n\"" );
+    trap_SendServerCommand( -1, "chat \"^3AntiRush: ^7Objective can now be taken!\"" );
+
+    // Unfreeze all players frozen by antirush
+    for ( int i = 0; i < level.maxclients; i++ ) {
+        Client& cl = g_clientObjects[i];
+        if ( cl.frozenByAntirush && cl.frozen ) {
+            cl.frozen = false;
+            cl.frozenExpiry = 0;
+            cl.frozenByAntirush = false;
+            VectorClear( level.clients[i].ps.velocity );
+            CPx( i, "cp \"^xYou've been unfrozen.\n\"" );
+        }
+        cl.frozenByAntirush = false;
+    }
+
+    // Disable timer so this only runs once
+    level.antirushEndTime = 0;
+}
+
+/*
+===================
+G_AntiRushNotify
+
+Sends antirush status message to a connecting client.
+===================
+*/
+void G_AntiRushNotify( int clientNum ) {
+    if ( !g_antirush.integer )
+        return;
+
+    if ( !G_AntiRushActive() )
+        return;
+
+    int remaining = ( level.antirushEndTime - level.time ) / 1000;
+    trap_SendServerCommand( clientNum, va( "cp \"^8AntiRush ^7enabled! (%d seconds remaining)\n\"", remaining ) );
+}
+
+/*
+===================
+G_AntiRushPenalty
+
+Freezes a player and removes their dynamite for rushing the objective.
+===================
+*/
+void G_AntiRushPenalty( gentity_t *ent ) {
+    int clientNum = (int)(ent - g_entities);
+    Client& cl = g_clientObjects[clientNum];
+
+    // Freeze the player
+    cl.frozen = true;
+    cl.frozenExpiry = 0; // no auto-expiry, unfreeze when antirush ends
+    cl.frozenByAntirush = true;
+    VectorClear( ent->client->ps.velocity );
+
+    trap_SendServerCommand( clientNum, "cp \"^1You tried to Rush the Objective!\n^7Type ^3/kill ^7or wait for the timer.\n\"" );
+    trap_SendServerCommand( clientNum, "chat \"^1AntiRush: ^7You tried to Rush the Objective! Type ^3/kill ^7or wait.\"" );
+
+    // Remove all dynamite entities owned by this player
+    for ( int i = MAX_CLIENTS; i < level.num_entities; i++ ) {
+        gentity_t *check = &g_entities[i];
+        if ( !check->inuse )
+            continue;
+        if ( !check->classname || Q_stricmp( check->classname, "dynamite" ) != 0 )
+            continue;
+        if ( check->r.ownerNum == clientNum ) {
+            G_FreeEntity( check );
+        }
+    }
+}

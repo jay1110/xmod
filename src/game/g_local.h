@@ -1097,6 +1097,8 @@ typedef struct {
 
 	int			startTime;				// level.time the map was started
 
+	int			antirushEndTime;		// level.time when antirush period ends (0 = inactive)
+
 	int			teamScores[TEAM_NUM_TEAMS];
 	int			lastTeamLocationTime;		// last time of client team location update
 

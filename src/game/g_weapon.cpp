@@ -2326,6 +2326,13 @@ evilbanigoto:
 						if (!(hit->spawnflags & 128) && (((hit->spawnflags & AXIS_OBJECTIVE) && (ent->client->sess.sessionTeam == TEAM_ALLIES)) ||
 							 ((hit->spawnflags & ALLIED_OBJECTIVE) && (ent->client->sess.sessionTeam == TEAM_AXIS))) ) 
 						{
+							// AntiRush: prevent planting on objectives during antirush period
+							if ( G_AntiRushActive() ) {
+								G_FreeEntity( traceEnt );
+								G_AntiRushPenalty( ent );
+								return;
+							}
+
 							gentity_t* pm = G_PopupMessage( PM_DYNAMITE );
 							const char *Goalname = _GetEntityName( hit );
 							if ( !Goalname ) Goalname = "unknown";
@@ -2405,6 +2412,13 @@ evilbanigoto:
 
 						if( hit->parent )
 						{
+							// AntiRush: prevent planting on constructibles during antirush period
+							if ( G_AntiRushActive() ) {
+								G_FreeEntity( traceEnt );
+								G_AntiRushPenalty( ent );
+								return;
+							}
+
 							const char *Goalname = _GetEntityName( hit->parent );
 							if ( !Goalname ) Goalname = "unknown";
 							gentity_t* pm = G_PopupMessage( PM_DYNAMITE );
