@@ -67,6 +67,17 @@ public:
     // Freeze
     bool   frozen;
     time_t frozenExpiry;
+
+    // PM History
+    struct PmEntry {
+        string senderName;
+        string message;
+        time_t timestamp;
+    };
+    static const size_t PM_HISTORY_MAX = 20;
+    list<PmEntry> pmHistory;
+    void addPmHistory( const string& sender, const string& msg );
+    void showPmHistory( );
 };
 
 ///////////////////////////////////////////////////////////////////////////////

@@ -14,7 +14,6 @@
 #include <sys/types.h>
 #include <unistd.h>
 
-#ifdef _DEBUG
 #ifndef __USE_GNU
 #   define __USE_GNU
 #   include <sys/ucontext.h>
@@ -22,11 +21,11 @@
 #else
 #   include <sys/ucontext.h>
 #endif
-#endif // __DEBUG
 
 #include <signal.h>
 #include <errno.h>
 #include <execinfo.h>
+#include <fcntl.h>
 
 namespace {
 
@@ -36,7 +35,7 @@ struct SigData
 {
     int num;
     void (*handler)( int, siginfo_t*, void* );
-    int flags;
+    unsigned int flags;
     struct sigaction savedAction;
 };
 
@@ -44,7 +43,6 @@ sigset_t sigSavedMask;
 
 //////////////////////////////////////////////////////////////////////////////
 
-#ifdef _DEBUG
 void
 coreTrace( int num, siginfo_t* info, ucontext_t* context )
 {
@@ -70,7 +68,57 @@ coreTrace( int num, siginfo_t* info, ucontext_t* context )
     for (i = 1; i < size; i++)
         printf( "[%02d] %s\n", i, elements[i] );
 }
-#endif // __DEBUG
+
+//////////////////////////////////////////////////////////////////////////////
+
+void
+writeCrashLog( int num, siginfo_t* info, ucontext_t* context )
+{
+    // Use async-signal-safe I/O to write crash log
+    int fd = open( "xmod_crash.log", O_WRONLY | O_CREAT | O_APPEND, 0644 );
+    if (fd < 0)
+        return;
+
+    time_t now = time( 0 );
+    char fnow[32];
+    strftime( fnow, sizeof(fnow), "%Y-%m-%d %H:%M:%S", localtime( &now ));
+
+    char buf[8192];
+    int len = snprintf( buf, sizeof(buf),
+        "=== XMOD CRASH LOG ===\n"
+        "Timestamp: %s\n"
+        "Signal: %d\n"
+        "si_errno: %d\n"
+        "si_code: %d\n"
+        "si_pid: %d\n"
+        "si_uid: %d\n",
+        fnow, num,
+        (int)info->si_errno, (int)info->si_code,
+        (int)info->si_pid, (int)info->si_uid );
+    write( fd, buf, len );
+
+    // Write backtrace
+    void*  array[1024];
+    int    size;
+    size = backtrace( array, sizeof(array) / sizeof(void*) );
+
+#if defined(__x86_64__) || defined(__amd64__)
+    array[1] = (void*)context->uc_mcontext.gregs[REG_RIP];
+#else
+    array[1] = (void*)context->uc_mcontext.gregs[REG_EIP];
+#endif
+
+    len = snprintf( buf, sizeof(buf), "Stack frames: %d\n", size - 1 );
+    write( fd, buf, len );
+
+    // backtrace_symbols_fd is async-signal-safe
+    backtrace_symbols_fd( array + 1, size - 1, fd );
+
+    len = snprintf( buf, sizeof(buf), "=== END CRASH LOG ===\n\n" );
+    write( fd, buf, len );
+
+    close( fd );
+}
 
 //////////////////////////////////////////////////////////////////////////////
 
@@ -98,17 +146,16 @@ handlerMsg( int num, siginfo_t* info, const char* name, const char* action )
 
 //////////////////////////////////////////////////////////////////////////////
 
-#ifdef _DEBUG
 void
 handlerCORE( int num, siginfo_t* info, void* context )
 {
     printf( "SIGNAL CAUGHT: %d\n", num );
     coreTrace( num, info, (ucontext_t*)context );
+    writeCrashLog( num, info, (ucontext_t*)context );
 
     if (raise( num ))
         printf( "WARNING: unable to raise signal(%d): error #%d\n", num, errno );
 }
-#endif // __DEBUG
 
 //////////////////////////////////////////////////////////////////////////////
 
@@ -157,7 +204,6 @@ SigData sigList[] = {
     { SIGHUP,  handlerHUP,  0 },
     { SIGTERM, handlerTERM, 0 },
     { SIGUSR1, handlerUSR1, 0 },
-#ifdef _DEBUG
     { SIGINT,  handlerCORE, SA_RESETHAND },
     { SIGQUIT, handlerCORE, SA_RESETHAND },
     { SIGILL,  handlerCORE, SA_RESETHAND },
@@ -165,7 +211,6 @@ SigData sigList[] = {
     { SIGBUS,  handlerCORE, SA_RESETHAND },
     { SIGFPE,  handlerCORE, SA_RESETHAND },
     { SIGSEGV, handlerCORE, SA_RESETHAND },
-#endif // __DEBUG
     { -1 },
 };
 

@@ -2343,6 +2343,10 @@ evilbanigoto:
 								if(traceEnt->parent && traceEnt->parent->client) {
 									G_LogPrintf("Dynamite_Plant: %d\n", (int)(traceEnt->parent - g_entities));	// OSP
 								}
+								if ( g_logOptions.integer & LOGOPTS_OBJECTIVE ) {
+									const char *teamStr = (ent->client->sess.sessionTeam == TEAM_ALLIES) ? "allies" : "axis";
+									G_LogPrintf("xmod popup: %s planted \"%s\"\n", teamStr, Goalname ? Goalname : "unknown");
+								}
 								traceEnt->parent = ent; // give explode score to guy who armed it
 							}
 							//bani - fix #238
@@ -2416,6 +2420,10 @@ evilbanigoto:
 								AddScore(traceEnt->parent, WOLF_DYNAMITE_PLANT); // give drop score to guy who dropped it
 								if( traceEnt->parent && traceEnt->parent->client ) {
 									G_LogPrintf("Dynamite_Plant: %d\n", (int)(traceEnt->parent - g_entities));	// OSP
+								}
+								if ( g_logOptions.integer & LOGOPTS_OBJECTIVE ) {
+									const char *teamStr = (ent->client->sess.sessionTeam == TEAM_ALLIES) ? "allies" : "axis";
+									G_LogPrintf("xmod popup: %s planted \"%s\"\n", teamStr, Goalname ? Goalname : "unknown");
 								}
 								traceEnt->parent = ent; // give explode score to guy who armed it
 							}

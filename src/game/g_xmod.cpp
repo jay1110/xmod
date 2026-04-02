@@ -458,6 +458,9 @@ void G_PrivateMessage( gentity_t *ent )
                 cmd::printPm( &c, buf, true );
 
     		    CPx( c.slot, va( "cp \"^3Private message from ^7%s^3.\"", senderNamex.c_str() ));
+
+                // Store in recipient's PM history
+                c.addPmHistory( senderName, message );
             }
 
             // bcc: self

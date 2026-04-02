@@ -3014,7 +3014,16 @@ void QDECL G_LogPrintf( const char *fmt, ... ) {
 	tens = sec / 10;
 	sec -= tens * 10;
 
-	Com_sprintf( string, sizeof(string), "%i:%i%i ", min, tens, sec );
+	// When LOGOPTS_REALTIME is set, prepend real-time timestamp
+	if ( g_logOptions.integer & LOGOPTS_REALTIME ) {
+		time_t now = time( NULL );
+		struct tm* lt = localtime( &now );
+		char stime[32];
+		strftime( stime, sizeof(stime), "%Y-%m-%d %H:%M:%S", lt );
+		Com_sprintf( string, sizeof(string), "[%s] %i:%i%i ", stime, min, tens, sec );
+	} else {
+		Com_sprintf( string, sizeof(string), "%i:%i%i ", min, tens, sec );
+	}
 
 	l = strlen( string );
 
