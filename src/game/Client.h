@@ -67,7 +67,6 @@ public:
     // Freeze
     bool   frozen;
     time_t frozenExpiry;
-    bool   frozenByAntirush;
 
     // PM History
     struct PmEntry {

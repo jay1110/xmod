@@ -215,7 +215,6 @@ Client::init()
     // Reset freeze state
     frozen = false;
     frozenExpiry = 0;
-    frozenByAntirush = false;
 }
 
 ///////////////////////////////////////////////////////////////////////////////

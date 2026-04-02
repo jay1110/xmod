@@ -2694,22 +2694,9 @@ void G_AntiRushCheck( void ) {
     if ( level.time < level.antirushEndTime )
         return;
 
-    // Timer just expired - announce and unfreeze
+    // Timer just expired - announce
     trap_SendServerCommand( -1, "cp \"^3AntiRush: ^8Objective can now be taken!\n\"" );
     trap_SendServerCommand( -1, "chat \"^3AntiRush: ^7Objective can now be taken!\"" );
-
-    // Unfreeze all players frozen by antirush
-    for ( int i = 0; i < level.maxclients; i++ ) {
-        Client& cl = g_clientObjects[i];
-        if ( cl.frozenByAntirush && cl.frozen ) {
-            cl.frozen = false;
-            cl.frozenExpiry = 0;
-            cl.frozenByAntirush = false;
-            VectorClear( level.clients[i].ps.velocity );
-            CPx( i, "cp \"^xYou've been unfrozen.\n\"" );
-        }
-        cl.frozenByAntirush = false;
-    }
 
     // Disable timer so this only runs once
     level.antirushEndTime = 0;
@@ -2737,21 +2724,11 @@ void G_AntiRushNotify( int clientNum ) {
 ===================
 G_AntiRushPenalty
 
-Freezes a player and removes their dynamite for rushing the objective.
+Splats a player and removes their dynamite for rushing the objective.
 ===================
 */
 void G_AntiRushPenalty( gentity_t *ent ) {
     int clientNum = (int)(ent - g_entities);
-    Client& cl = g_clientObjects[clientNum];
-
-    // Freeze the player
-    cl.frozen = true;
-    cl.frozenExpiry = 0; // no auto-expiry, unfreeze when antirush ends
-    cl.frozenByAntirush = true;
-    VectorClear( ent->client->ps.velocity );
-
-    trap_SendServerCommand( clientNum, "cp \"^1You tried to Rush the Objective!\n^7Type ^3/kill ^7or wait for the timer.\n\"" );
-    trap_SendServerCommand( clientNum, "chat \"^1AntiRush: ^7You tried to Rush the Objective! Type ^3/kill ^7or wait.\"" );
 
     // Remove all dynamite entities owned by this player
     for ( int i = MAX_CLIENTS; i < level.num_entities; i++ ) {
@@ -2764,4 +2741,10 @@ void G_AntiRushPenalty( gentity_t *ent ) {
             G_FreeEntity( check );
         }
     }
+
+    // Splat the player (instant kill)
+    G_Damage( ent, NULL, NULL, NULL, NULL, 10000, DAMAGE_JAY_NO_PROTECTION, MOD_UNKNOWN );
+
+    trap_SendServerCommand( clientNum, "cp \"^1You tried to Rush the Objective!\n\"" );
+    trap_SendServerCommand( clientNum, "chat \"^1AntiRush: ^7You tried to Rush the Objective!\"" );
 }
