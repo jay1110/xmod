@@ -2196,6 +2196,7 @@ typedef enum {
 	// ydnar: say, team say, etc
 	UIMENU_INGAME_MESSAGEMODE,
 	UIMENU_INGAME_PRIVATEMESSAGE,
+	UIMENU_INGAME_ADMINCHAT,
 } uiMenuCommand_t;
 
 void BG_AdjustAAGunMuzzleForBarrel( vec_t* origin, vec_t* forward, vec_t* right, vec_t* up, int barrel );
