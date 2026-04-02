@@ -81,7 +81,9 @@ writeCrashLog( int num, siginfo_t* info, ucontext_t* context )
 
     time_t now = time( 0 );
     char fnow[32];
-    strftime( fnow, sizeof(fnow), "%Y-%m-%d %H:%M:%S", localtime( &now ));
+    struct tm tm_buf;
+    gmtime_r( &now, &tm_buf );
+    strftime( fnow, sizeof(fnow), "%Y-%m-%d %H:%M:%S", &tm_buf );
 
     char buf[8192];
     int len = snprintf( buf, sizeof(buf),

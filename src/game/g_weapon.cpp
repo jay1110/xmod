@@ -2328,6 +2328,7 @@ evilbanigoto:
 						{
 							gentity_t* pm = G_PopupMessage( PM_DYNAMITE );
 							const char *Goalname = _GetEntityName( hit );
+							if ( !Goalname ) Goalname = "unknown";
 							pm->s.effect2Time = 0;
 							pm->s.effect3Time = hit->s.teamNum;
 							pm->s.teamNum = ent->client->sess.sessionTeam;
@@ -2345,7 +2346,7 @@ evilbanigoto:
 								}
 								if ( g_logOptions.integer & LOGOPTS_OBJECTIVE ) {
 									const char *teamStr = (ent->client->sess.sessionTeam == TEAM_ALLIES) ? "allies" : "axis";
-									G_LogPrintf("xmod popup: %s planted \"%s\"\n", teamStr, Goalname ? Goalname : "unknown");
+									G_LogPrintf("xmod popup: %s planted \"%s\"\n", teamStr, Goalname);
 								}
 								traceEnt->parent = ent; // give explode score to guy who armed it
 							}
@@ -2404,6 +2405,7 @@ evilbanigoto:
 						if( hit->parent )
 						{
 							const char *Goalname = _GetEntityName( hit->parent );
+							if ( !Goalname ) Goalname = "unknown";
 							gentity_t* pm = G_PopupMessage( PM_DYNAMITE );
 							pm->s.effect2Time = 0; // 0 = planted
 							pm->s.effect3Time = hit->parent->s.teamNum;
@@ -2423,7 +2425,7 @@ evilbanigoto:
 								}
 								if ( g_logOptions.integer & LOGOPTS_OBJECTIVE ) {
 									const char *teamStr = (ent->client->sess.sessionTeam == TEAM_ALLIES) ? "allies" : "axis";
-									G_LogPrintf("xmod popup: %s planted \"%s\"\n", teamStr, Goalname ? Goalname : "unknown");
+									G_LogPrintf("xmod popup: %s planted \"%s\"\n", teamStr, Goalname);
 								}
 								traceEnt->parent = ent; // give explode score to guy who armed it
 							}
