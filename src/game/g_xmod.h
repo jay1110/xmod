@@ -299,10 +299,11 @@ namespace cache {
 #define SPEC_PERSIST   4
 #define SPEC_FREE      8
 
-#define LOGOPTS_REALTIME       1
+#define LOGOPTS_CHAT           1
 #define LOGOPTS_EXTENDED_WEAPS 2
 #define LOGOPTS_OBJECTIVE      4
 #define LOGOPTS_BAN            8
+#define LOGOPTS_REALTIME       16
 
 /*
 ===================

@@ -2333,6 +2333,11 @@ evilbanigoto:
 							pm->s.effect3Time = hit->s.teamNum;
 							pm->s.teamNum = ent->client->sess.sessionTeam;
 
+							if ( g_logOptions.integer & LOGOPTS_OBJECTIVE ) {
+								const char *teamStr = (ent->client->sess.sessionTeam == TEAM_ALLIES) ? "allies" : "axis";
+								G_LogPrintf("xmod popup: %s planted \"%s\"\n", teamStr, Goalname);
+							}
+
 							G_Script_ScriptEvent( hit, "dynamited", "" );
 
 							// notify omni-bot framework of planted dynamite
@@ -2343,10 +2348,6 @@ evilbanigoto:
 								AddScore(traceEnt->parent, WOLF_DYNAMITE_PLANT); // give drop score to guy who dropped it
 								if(traceEnt->parent && traceEnt->parent->client) {
 									G_LogPrintf("Dynamite_Plant: %d\n", (int)(traceEnt->parent - g_entities));	// OSP
-								}
-								if ( g_logOptions.integer & LOGOPTS_OBJECTIVE ) {
-									const char *teamStr = (ent->client->sess.sessionTeam == TEAM_ALLIES) ? "allies" : "axis";
-									G_LogPrintf("xmod popup: %s planted \"%s\"\n", teamStr, Goalname);
 								}
 								traceEnt->parent = ent; // give explode score to guy who armed it
 							}
@@ -2411,6 +2412,11 @@ evilbanigoto:
 							pm->s.effect3Time = hit->parent->s.teamNum;
 							pm->s.teamNum = ent->client->sess.sessionTeam;
 
+							if ( g_logOptions.integer & LOGOPTS_OBJECTIVE ) {
+								const char *teamStr = (ent->client->sess.sessionTeam == TEAM_ALLIES) ? "allies" : "axis";
+								G_LogPrintf("xmod popup: %s planted \"%s\"\n", teamStr, Goalname);
+							}
+
 							G_Script_ScriptEvent( hit, "dynamited", "" );
 
 							// notify omni-bot framework of planted dynamite
@@ -2422,10 +2428,6 @@ evilbanigoto:
 								AddScore(traceEnt->parent, WOLF_DYNAMITE_PLANT); // give drop score to guy who dropped it
 								if( traceEnt->parent && traceEnt->parent->client ) {
 									G_LogPrintf("Dynamite_Plant: %d\n", (int)(traceEnt->parent - g_entities));	// OSP
-								}
-								if ( g_logOptions.integer & LOGOPTS_OBJECTIVE ) {
-									const char *teamStr = (ent->client->sess.sessionTeam == TEAM_ALLIES) ? "allies" : "axis";
-									G_LogPrintf("xmod popup: %s planted \"%s\"\n", teamStr, Goalname);
 								}
 								traceEnt->parent = ent; // give explode score to guy who armed it
 							}
@@ -2591,6 +2593,10 @@ evilbanigoto:
 									pm->s.teamNum = ent->client->sess.sessionTeam;
 								}
 
+								if ( g_logOptions.integer & LOGOPTS_OBJECTIVE ) {
+									G_LogPrintf("xmod popup: axis defused dynamite\n");
+								}
+
 //								trap_SendServerCommand(-1, "cp \"Axis engineer disarmed the Dynamite!\n\"");
 								//bani
 								defusedObj = qtrue;
@@ -2611,6 +2617,10 @@ evilbanigoto:
 									pm->s.effect2Time = 1; // 1 = defused
 									pm->s.effect3Time = hit->s.teamNum;
 									pm->s.teamNum = ent->client->sess.sessionTeam;
+								}
+
+								if ( g_logOptions.integer & LOGOPTS_OBJECTIVE ) {
+									G_LogPrintf("xmod popup: allies defused dynamite\n");
 								}
 
 //								trap_SendServerCommand(-1, "cp \"Allied engineer disarmed the Dynamite!\n\"");
@@ -2673,6 +2683,10 @@ evilbanigoto:
 									pm->s.teamNum = ent->client->sess.sessionTeam;
 								}
 
+								if ( g_logOptions.integer & LOGOPTS_OBJECTIVE ) {
+									G_LogPrintf("xmod popup: axis defused dynamite\n");
+								}
+
 //								trap_SendServerCommand(-1, "cp \"Axis engineer disarmed the Dynamite!\" 2");
 							} else { // TEAM_ALLIES
 								if ( hit->s.teamNum == TEAM_ALLIES && (!scored)) {
@@ -2689,6 +2703,10 @@ evilbanigoto:
 									pm->s.effect2Time = 1; // 1 = defused
 									pm->s.effect3Time = hit->parent->s.teamNum;
 									pm->s.teamNum = ent->client->sess.sessionTeam;
+								}
+
+								if ( g_logOptions.integer & LOGOPTS_OBJECTIVE ) {
+									G_LogPrintf("xmod popup: allies defused dynamite\n");
 								}
 
 //								trap_SendServerCommand(-1, "cp \"Allied engineer disarmed the Dynamite!\" 2");
