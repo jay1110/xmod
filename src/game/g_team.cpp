@@ -525,8 +525,11 @@ int Team_TouchEnemyFlag( gentity_t *ent, gentity_t *other, int team ) {
 
 	// AntiRush: prevent flag/document theft during antirush period
 	if ( G_AntiRushActive() ) {
-		G_AntiRushPenalty( other );
-		return 0;
+		const char *objName = ent->message ? ent->message : _GetEntityName( ent );
+		if ( G_AntiRushIsProtectedObjective( objName ) ) {
+			G_AntiRushPenalty( other );
+			return 0;
+		}
 	}
 
 	ent->s.density--;

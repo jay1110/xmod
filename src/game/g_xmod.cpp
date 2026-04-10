@@ -2637,7 +2637,7 @@ namespace cache {
 ///////////////////////////////////////////////////////////////////////////////
 
 // Per-map list of protected objective names loaded from antirush_objectives.cfg.
-// If empty for the current map, ALL objectives are protected during antirush.
+// Only objectives explicitly listed are protected. If empty, antirush is inactive for this map.
 static vector<string> antirushProtectedObjectives;
 
 /*
@@ -2646,6 +2646,8 @@ G_AntiRushLoadConfig
 
 Reads antirush_objectives.cfg and populates antirushProtectedObjectives
 with the objective names configured for the current map.
+Only maps listed in the config file will have antirush protection.
+Multiple objectives per map are supported (one entry per line).
 
 File format (one entry per line):
   mapname;objectivename
@@ -2653,6 +2655,7 @@ File format (one entry per line):
 Lines starting with // or # are comments. Empty lines are ignored.
 Example:
   oasis;Old City Wall
+  oasis;Water Pump
   goldrush;Gold Crates
 ===================
 */
@@ -2664,7 +2667,7 @@ static void G_AntiRushLoadConfig( void ) {
 
     len = trap_FS_FOpenFile( "antirush_objectives.cfg", &f, FS_READ );
     if ( len < 0 ) {
-        // No config file - all objectives are protected (default behavior)
+        // No config file - no objectives protected
         return;
     }
 
@@ -2765,9 +2768,15 @@ void G_AntiRushInit( void ) {
     if ( g_antirushTime.integer <= 0 )
         return;
 
-    level.antirushEndTime = level.startTime + ( g_antirushTime.integer * 1000 );
-
     G_AntiRushLoadConfig();
+
+    // Only activate if objectives are configured for this map
+    if ( antirushProtectedObjectives.empty() ) {
+        G_Printf( "AntiRush: no objectives configured for map '%s', antirush disabled\n", level.rawmapname );
+        return;
+    }
+
+    level.antirushEndTime = level.startTime + ( g_antirushTime.integer * 1000 );
 }
 
 /*
@@ -2775,13 +2784,14 @@ void G_AntiRushInit( void ) {
 G_AntiRushIsProtectedObjective
 
 Returns qtrue if the given objective name is protected by antirush.
-If no objectives are configured for the current map, ALL objectives are protected.
+Only objectives explicitly listed in antirush_objectives.cfg are protected.
+If no objectives are configured for the current map, nothing is protected.
 ===================
 */
 qboolean G_AntiRushIsProtectedObjective( const char *objectiveName ) {
-    // No config entries for this map - protect everything (default)
+    // No config entries for this map - nothing is protected
     if ( antirushProtectedObjectives.empty() )
-        return qtrue;
+        return qfalse;
 
     if ( !objectiveName || !*objectiveName )
         return qfalse;
