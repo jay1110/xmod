@@ -437,6 +437,7 @@ void     G_AntiRushCheck          ( void );
 qboolean G_AntiRushActive         ( void );
 void     G_AntiRushNotify         ( int clientNum );
 void     G_AntiRushPenalty        ( gentity_t *ent );
+qboolean G_AntiRushIsProtectedObjective( const char *objectiveName );
 
 ///////////////////////////////////////////////////////////////////////////////
 

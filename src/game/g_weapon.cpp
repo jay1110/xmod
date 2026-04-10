@@ -2327,7 +2327,7 @@ evilbanigoto:
 							 ((hit->spawnflags & ALLIED_OBJECTIVE) && (ent->client->sess.sessionTeam == TEAM_AXIS))) ) 
 						{
 							// AntiRush: prevent planting on objectives during antirush period
-							if ( G_AntiRushActive() ) {
+							if ( G_AntiRushActive() && G_AntiRushIsProtectedObjective( _GetEntityName( hit ) ) ) {
 								G_FreeEntity( traceEnt );
 								G_AntiRushPenalty( ent );
 								return;
@@ -2413,7 +2413,7 @@ evilbanigoto:
 						if( hit->parent )
 						{
 							// AntiRush: prevent planting on constructibles during antirush period
-							if ( G_AntiRushActive() ) {
+							if ( G_AntiRushActive() && G_AntiRushIsProtectedObjective( _GetEntityName( hit->parent ) ) ) {
 								G_FreeEntity( traceEnt );
 								G_AntiRushPenalty( ent );
 								return;

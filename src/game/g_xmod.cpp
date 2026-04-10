@@ -2636,15 +2636,128 @@ namespace cache {
 // AntiRush System
 ///////////////////////////////////////////////////////////////////////////////
 
+// Per-map list of protected objective names loaded from antirush_objectives.cfg.
+// If empty for the current map, ALL objectives are protected during antirush.
+static vector<string> antirushProtectedObjectives;
+
+/*
+===================
+G_AntiRushLoadConfig
+
+Reads antirush_objectives.cfg and populates antirushProtectedObjectives
+with the objective names configured for the current map.
+
+File format (one entry per line):
+  mapname;objectivename
+
+Lines starting with // or # are comments. Empty lines are ignored.
+Example:
+  oasis;Old City Wall
+  goldrush;Gold Crates
+===================
+*/
+static void G_AntiRushLoadConfig( void ) {
+    fileHandle_t f;
+    int len;
+
+    antirushProtectedObjectives.clear();
+
+    len = trap_FS_FOpenFile( "antirush_objectives.cfg", &f, FS_READ );
+    if ( len < 0 ) {
+        // No config file - all objectives are protected (default behavior)
+        return;
+    }
+
+    if ( len == 0 ) {
+        trap_FS_FCloseFile( f );
+        return;
+    }
+
+    char *buf = (char *)malloc( len + 1 );
+    if ( !buf ) {
+        trap_FS_FCloseFile( f );
+        return;
+    }
+
+    trap_FS_Read( buf, len, f );
+    trap_FS_FCloseFile( f );
+    buf[len] = '\0';
+
+    // Parse line by line
+    char *p = buf;
+    while ( *p ) {
+        // Find end of line
+        char *lineStart = p;
+        while ( *p && *p != '\n' && *p != '\r' )
+            p++;
+
+        // Null-terminate this line
+        char saved = *p;
+        if ( *p )
+            *p++ = '\0';
+        // Skip \r\n pairs
+        while ( *p == '\n' || *p == '\r' )
+            p++;
+
+        // Skip leading whitespace
+        char *line = lineStart;
+        while ( *line == ' ' || *line == '\t' )
+            line++;
+
+        // Skip empty lines and comments
+        if ( !*line || line[0] == '#' || ( line[0] == '/' && line[1] == '/' ) )
+            continue;
+
+        // Find the semicolon separator
+        char *sep = strchr( line, ';' );
+        if ( !sep )
+            continue;
+
+        *sep = '\0';
+        char *mapname = line;
+        char *objname = sep + 1;
+
+        // Trim trailing whitespace from mapname
+        char *end = mapname + strlen( mapname ) - 1;
+        while ( end > mapname && ( *end == ' ' || *end == '\t' ) )
+            *end-- = '\0';
+
+        // Trim leading whitespace from objname
+        while ( *objname == ' ' || *objname == '\t' )
+            objname++;
+
+        // Trim trailing whitespace from objname
+        if ( *objname ) {
+            end = objname + strlen( objname ) - 1;
+            while ( end > objname && ( *end == ' ' || *end == '\t' ) )
+                *end-- = '\0';
+        }
+
+        // Match against current map
+        if ( Q_stricmp( mapname, level.rawmapname ) == 0 && *objname ) {
+            antirushProtectedObjectives.push_back( string( objname ) );
+        }
+    }
+
+    free( buf );
+
+    if ( !antirushProtectedObjectives.empty() ) {
+        G_Printf( "AntiRush: loaded %d protected objective(s) for map '%s'\n",
+                   (int)antirushProtectedObjectives.size(), level.rawmapname );
+    }
+}
+
 /*
 ===================
 G_AntiRushInit
 
 Called when a game round starts. Sets up the antirush timer if enabled.
+Must be called after level.rawmapname is set.
 ===================
 */
 void G_AntiRushInit( void ) {
     level.antirushEndTime = 0;
+    antirushProtectedObjectives.clear();
 
     if ( !g_antirush.integer )
         return;
@@ -2653,6 +2766,32 @@ void G_AntiRushInit( void ) {
         return;
 
     level.antirushEndTime = level.startTime + ( g_antirushTime.integer * 1000 );
+
+    G_AntiRushLoadConfig();
+}
+
+/*
+===================
+G_AntiRushIsProtectedObjective
+
+Returns qtrue if the given objective name is protected by antirush.
+If no objectives are configured for the current map, ALL objectives are protected.
+===================
+*/
+qboolean G_AntiRushIsProtectedObjective( const char *objectiveName ) {
+    // No config entries for this map - protect everything (default)
+    if ( antirushProtectedObjectives.empty() )
+        return qtrue;
+
+    if ( !objectiveName || !*objectiveName )
+        return qfalse;
+
+    for ( size_t i = 0; i < antirushProtectedObjectives.size(); i++ ) {
+        if ( Q_stricmp( antirushProtectedObjectives[i].c_str(), objectiveName ) == 0 )
+            return qtrue;
+    }
+
+    return qfalse;
 }
 
 /*

@@ -2057,8 +2057,6 @@ void G_InitGame( int levelTime, int randomSeed, int restart ) {
 	level.lieutenantChargeTimeModifier[0] = level.lieutenantChargeTimeModifier[1] = 1.f;
 	level.covertopsChargeTimeModifier[0] = level.covertopsChargeTimeModifier[1] = 1.f;
 
-	G_AntiRushInit();
-
 	cs[0] = '\0';
 	Info_SetValueForKey( cs, "axs_sld", va("%i", level.soldierChargeTime[0]) );
 	Info_SetValueForKey( cs, "ald_sld", va("%i", level.soldierChargeTime[1]) );
@@ -2117,6 +2115,8 @@ void G_InitGame( int levelTime, int randomSeed, int restart ) {
 
 	trap_GetServerinfo( cs, sizeof( cs ) );
 	Q_strncpyz( level.rawmapname, Info_ValueForKey( cs, "mapname" ), sizeof(level.rawmapname) );
+
+	G_AntiRushInit();
 
 	G_ParseCampaigns();
 	if( g_gametype.integer == GT_WOLF_CAMPAIGN ) {
