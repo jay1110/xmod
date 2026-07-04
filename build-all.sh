@@ -90,6 +90,8 @@ clean_all() {
         "build.android-x86_64-debug"
         "build.android-x86-release"
         "build.android-x86-debug"
+        "build.wasm-release"
+        "build.wasm-debug"
         "build-final-release"
         "build-final-debug"
     )
@@ -167,6 +169,13 @@ check_android_x86_available() {
     return $?
 }
 
+check_wasm_available() {
+    # WebAssembly build requires the Emscripten compiler (em++) on PATH.
+    # Activate with: source /path/to/emsdk/emsdk_env.sh
+    which em++ >/dev/null 2>&1
+    return $?
+}
+
 # Detect available platforms
 AVAILABLE_PLATFORMS=""
 MISSING_PLATFORMS=""
@@ -227,6 +236,14 @@ if check_android_x86_available; then
 else
     MISSING_PLATFORMS="$MISSING_PLATFORMS android-x86"
     echo "  [--] Android x86 (set NDK_ROOT or ANDROID_NDK_HOME)"
+fi
+
+if check_wasm_available; then
+    AVAILABLE_PLATFORMS="$AVAILABLE_PLATFORMS wasm"
+    echo "  [OK] WebAssembly (Emscripten)"
+else
+    MISSING_PLATFORMS="$MISSING_PLATFORMS wasm"
+    echo "  [--] WebAssembly (source emsdk_env.sh to provide em++)"
 fi
 
 echo ""
@@ -290,6 +307,7 @@ for platform in $AVAILABLE_PLATFORMS; do
         android-arm64) build_platform "android-arm64" "Android ARM64"       && BUILT_PLATFORMS="$BUILT_PLATFORMS android-arm64" ;;
         android-x86_64) build_platform "android-x86_64" "Android x86_64"    && BUILT_PLATFORMS="$BUILT_PLATFORMS android-x86_64" ;;
         android-x86)   build_platform "android-x86"   "Android x86"         && BUILT_PLATFORMS="$BUILT_PLATFORMS android-x86" ;;
+        wasm)          build_platform "wasm"          "WebAssembly"         && BUILT_PLATFORMS="$BUILT_PLATFORMS wasm" ;;
     esac
 done
 
@@ -369,6 +387,7 @@ for platform in $BUILT_PLATFORMS; do
         linux|linux64) collect_binaries "$platform" ".so" ;;
         mingw|mingw64) collect_binaries "$platform" ".dll" ;;
         android-arm64|android-x86_64|android-x86) collect_binaries "$platform" ".so" ;;
+        wasm) collect_binaries "$platform" ".so" ;;
     esac
 done
 

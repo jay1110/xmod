@@ -303,6 +303,22 @@ PLATFORM=android-x86 make release
 ```
 See [docs/BUILD_ANDROID.md](docs/BUILD_ANDROID.md) for detailed instructions.
 
+**Option 4: Emscripten (Linux) - Build WebAssembly Modules**
+```bash
+# Activate the Emscripten SDK first (provides em++/emar):
+#   git clone https://github.com/emscripten-core/emsdk
+#   ./emsdk/emsdk install latest && ./emsdk/emsdk activate latest
+#   source ./emsdk/emsdk_env.sh
+
+# WebAssembly (wasm32) - builds cgame, ui and qagame as Emscripten SIDE_MODULEs
+PLATFORM=wasm make release
+```
+The modules (`cgame.mp.wasm32.so`, `ui.mp.wasm32.so`, `qagame.mp.wasm32.so`) are
+WebAssembly binaries linked as Emscripten `SIDE_MODULE`s and export the standard
+`dllEntry`/`vmMain` entry points, so a `MAIN_MODULE` (Emscripten) build of the ET
+engine can load them at runtime via `dlopen`, exactly like the native `.so`/`.dll`
+modules. This mirrors the ET:Legacy in-browser (Emscripten/WASM) approach.
+
 ### Visual Studio 2022 Build System
 
 **New!** Complete cross-platform build system for Windows developers:
@@ -381,6 +397,7 @@ See [docs/BUILD_ANDROID.md](docs/BUILD_ANDROID.md) for detailed instructions.
 | Android | ARM64-v8a | `PLATFORM=android-arm64 make` | `libqagame.mp.android.arm64-v8a.so` |
 | Android | x86_64 (64-bit) | `PLATFORM=android-x86_64 make` | `libqagame.mp.android.x86_64.so` |
 | Android | x86 (32-bit) | `PLATFORM=android-x86 make` | `libqagame.mp.android.i386.so` |
+| WebAssembly | wasm32 (Emscripten) | `PLATFORM=wasm make` | `qagame.mp.wasm32.so` |
 
 All platforms include full Lua 5.4.7 integration.
 

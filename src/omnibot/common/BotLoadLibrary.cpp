@@ -4,7 +4,7 @@
 
 #define WIN32 1
 
-#elif defined __linux__ || ((defined __MACH__) && (defined __APPLE__))
+#elif defined __linux__ || ((defined __MACH__) && (defined __APPLE__)) || defined __EMSCRIPTEN__
 
 #define _stricmp strcasecmp
 

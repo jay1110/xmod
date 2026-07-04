@@ -14,6 +14,13 @@
 #include <sys/types.h>
 #include <unistd.h>
 
+// Emscripten/WebAssembly does not provide backtrace()/execinfo.h, machine
+// register contexts (ucontext gregs), or meaningful process signals in the
+// browser sandbox, so the native crash-handling and signal machinery below is
+// compiled only for real POSIX targets. Emscripten-specific no-op
+// implementations of the public Process methods are provided further down.
+#ifndef __EMSCRIPTEN__
+
 #ifndef __USE_GNU
 #   define __USE_GNU
 #   include <sys/ucontext.h>
@@ -220,6 +227,8 @@ SigData sigList[] = {
 
 }
 
+#endif // !__EMSCRIPTEN__
+
 //////////////////////////////////////////////////////////////////////////////
 
 Process::mstime_t
@@ -231,6 +240,8 @@ Process::mstime()
 }
 
 //////////////////////////////////////////////////////////////////////////////
+
+#ifndef __EMSCRIPTEN__
 
 void
 Process::beginCriticalSection()
@@ -284,3 +295,37 @@ Process::signalShutdown()
         printf( "WARNING: failed to restore signal(%d) handler: error #%d\n", data->num, errno );
     }
 }
+
+#else // __EMSCRIPTEN__
+
+//////////////////////////////////////////////////////////////////////////////
+// WebAssembly (browser) has no meaningful process signals or critical-section
+// signal masking, so these are no-ops.
+
+void
+Process::beginCriticalSection()
+{
+}
+
+//////////////////////////////////////////////////////////////////////////////
+
+void
+Process::endCriticalSection()
+{
+}
+
+//////////////////////////////////////////////////////////////////////////////
+
+void
+Process::signalInit()
+{
+}
+
+//////////////////////////////////////////////////////////////////////////////
+
+void
+Process::signalShutdown()
+{
+}
+
+#endif // __EMSCRIPTEN__

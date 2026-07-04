@@ -1,0 +1,173 @@
+# WebAssembly (Emscripten) Platform Configuration
+#
+# Builds the client/server game-logic modules (cgame, ui, qagame) as
+# WebAssembly using the Emscripten toolchain. Each module is linked as an
+# Emscripten SIDE_MODULE so that a MAIN_MODULE engine (e.g. an Emscripten build
+# of ET:Legacy) can load them at runtime via dlopen, exactly like the native
+# .so / .dll modules are loaded on other platforms.
+#
+# Requires: the Emscripten SDK (emsdk) on PATH.
+#   git clone https://github.com/emscripten-core/emscripten emsdk && ...
+#   source /path/to/emsdk/emsdk_env.sh   (provides em++, emar)
+#
+# The produced files use a ".mp.wasm32.so" suffix so the engine's dlopen()
+# based loader finds and loads them (the ".so" naming keeps them cache-hit
+# compatible with Emscripten's preloaded SIDE_MODULE lookup).
+
+EMXX ?= em++
+EMAR ?= emar
+
+###############################################################################
+
+IDMODULE.prefix =
+IDMODULE.suffix = .mp.wasm32.so
+STATICLIB.suffix = .a
+
+###############################################################################
+
+# Emscripten resolves libc/libm symbols from the MAIN_MODULE at load time, so
+# no explicit link libraries are required for the SIDE_MODULEs.
+DYNLOAD.l  =
+MATH.l     =
+IPHLPAPI.l =
+ADVAPI.l   =
+WS2_32.l   =
+
+###############################################################################
+
+M4  = m4
+TAR = tar
+AR  = $(EMAR)
+
+###############################################################################
+
+CXX = $(EMXX)
+
+CXX.pch.ext  = gch
+CXX.pch.arch = default
+
+CXX.opt.D = $(call fnPrefix,-D,$(CXX.D) $($(CXX.inherit).CXX.D))
+CXX.opt.I = $(call fnPrefix,-I,$($(CXX.inherit).CXX.I<) $(CXX.I) $($(CXX.inherit).CXX.I))
+CXX.opt.L = $(call fnPrefix,-L,$(CXX.L) $($(CXX.inherit).CXX.L))
+CXX.opt.R = $(call fnPrefix,-Xlinker -R,$(CXX.R) $($(CXX.inherit).CXX.R))
+CXX.opt.U = $(call fnPrefix,-U,$(CXX.U) $($(CXX.inherit).CXX.U))
+CXX.opt.l = $(call fnPrefix,-l,$(CXX.l) $($(CXX.inherit).CXX.l))
+
+CXX.opt.BIT    =
+CXX.opt.ML     = -fmessage-length=0
+CXX.opt.NSA    = -fno-strict-aliasing
+CXX.opt.O      = -O3 -ffast-math
+CXX.opt.PIC    = -fPIC
+CXX.opt.W      = -w
+CXX.opt.g      = -g
+CXX.opt.pipe   = -pipe
+CXX.opt.p      =
+CXX.opt.static =
+CXX.opt.std    = -fno-exceptions -fno-rtti
+
+CXX.ldopts.exe = -sSIDE_MODULE=1
+CXX.ldopts.so  = -sSIDE_MODULE=1
+
+###############################################################################
+
+CXX.D = XMOD_WASM __EMSCRIPTEN__
+CXX.I = $(BUILD/) $(PROJECT/)src $(PROJECT/)pak
+CXX.L = $(BUILD/)
+CXX.R =
+CXX.U =
+CXX.l =
+
+CXX.BIT    =
+CXX.ML     = 1
+CXX.NSA    = 1
+CXX.O      =
+CXX.PIC    = 1
+CXX.W      = 1
+CXX.g      =
+CXX.pipe   = 1
+CXX.p      =
+CXX.static =
+CXX.std    = 1
+CXX.vis    =
+
+###############################################################################
+
+CXX.fnStrip =
+
+###############################################################################
+
+CXX.fnCompile = $(call print.COMMAND.normal,$(CXX),$(2),$(strip \
+	$(CXX) \
+    $(foreach i,pipe W ML BIT std NSA vis PIC O g p,$(foreach j,$(CXX.$(i)),$(CXX.opt.$(i)))) \
+	$(CXX.opt.D) \
+	$(CXX.opt.I) \
+	$(CXX.opt.U) \
+	-c $(1) -o $(2) \
+	))
+
+CXX.fnCompilePch = $(CXX.fnCompile)
+
+###############################################################################
+
+CXX.fnPrecompile = $(call print.COMMAND.magenta,$(CXX),$(2),$(strip \
+	$(CXX) \
+    $(foreach i,pipe W ML BIT std NSA vis PIC O g p,$(foreach j,$(CXX.$(i)),$(CXX.opt.$(i)))) \
+	$(CXX.opt.D) \
+	$(CXX.opt.I) \
+	$(CXX.opt.U) \
+	-x c++-header -c $(1) -o $(2) \
+	))
+
+###############################################################################
+
+CXX.libstdcxx.DEPS =
+CXX.libstdcxx.link =
+
+BUILD.output += $(CXX.libstdcxx.DEPS)
+
+###############################################################################
+
+CXX.fnCompileStatic = $(call print.STATIC,$(AR),$(1),$(2),$(AR) cq $(1) $(2))
+
+###############################################################################
+
+CXX.fnLinkExe = $(call print.LINK,$(CXX),$(1),$(3),$(4),$(strip \
+    $(CXX) \
+    $(foreach i,pipe W ML BIT std NSA vis PIC O g p static,$(foreach j,$(CXX.$(i)),$(CXX.opt.$(i)))) \
+    $(CXX.opt.D) \
+    $(CXX.opt.I) \
+    $(CXX.opt.U) \
+    $(CXX.fnLinkExe.<<) $($(CXX.inherit).CXX.fnLinkExe.<<) \
+    -o $(1) $(3) $(4) \
+    $(CXX.ldopts.exe) \
+    $(CXX.opt.R) \
+    $(CXX.opt.L) \
+    $(CXX.opt.l) \
+    $(CXX.fnLinkExe.>>) $($(CC.inherit).CC.fnLinkExe.>>) \
+    ))
+
+###############################################################################
+
+CXX.fnLinkSo = $(call print.LINK,$(CXX),$(1),$(2),$(strip \
+    $(CXX) \
+    $(foreach i,pipe W ML BIT std NSA vis PIC O g p static,$(foreach j,$(CXX.$(i)),$(CXX.opt.$(i)))) \
+    $(CXX.opt.D) \
+    $(CXX.opt.I) \
+    $(CXX.opt.U) \
+    $(CXX.fnLinkSo.<<) $($(CXX.inherit).CXX.fnLinkSo.<<) \
+    -o $(1) $(2) \
+    $(CXX.ldopts.so) \
+    $(CXX.opt.R) \
+    $(CXX.opt.L) \
+    $(CXX.opt.l) \
+    $(CXX.fnLinkSo.>>) $($(CC.inherit).CC.fnLinkSo.>>) \
+    ))
+
+###############################################################################
+
+SPECIALS.name  = wasm
+SPECIALS.build = build
+SPECIALS.base  = $(PROJECT.packageBase)-$(SPECIALS.name)
+SPECIALS.base/ = $(BUILD/)$(SPECIALS.base)/
+
+world:: default debug release

@@ -1,14 +1,17 @@
 #include <stdio.h>
 #include <unistd.h>
 #include <string.h>
+
+#include <base/public.h>
+#include <bgame/q_shared.h>
+
+#ifndef __EMSCRIPTEN__
+
 #include <sys/ioctl.h>
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <linux/if.h>
-
-#include <base/public.h>
-#include <bgame/q_shared.h>
 
 bool
 GetMACAddress( string& mac ) {
@@ -61,3 +64,14 @@ GetMACAddress( string& mac ) {
     mac = out.str();
     return true;
 }
+
+#else // __EMSCRIPTEN__
+
+// The browser sandbox exposes no network hardware / MAC address.
+bool
+GetMACAddress( string& mac ) {
+    mac = "";
+    return false;
+}
+
+#endif // __EMSCRIPTEN__

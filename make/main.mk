@@ -32,6 +32,10 @@ endif
 ifneq (,$(findstring android,$(PROJECT.platformNamef)))
     PROJECT.platspecific = linux
 endif
+# WebAssembly (Emscripten) provides a POSIX-compatible (linux-like) environment
+ifneq (,$(findstring wasm,$(PROJECT.platformNamef)))
+    PROJECT.platspecific = linux
+endif
 
 ###############################################################################
 

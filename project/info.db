@@ -42,6 +42,10 @@ platformName = Windows
 
 platformName = Android
 
+::wasm
+
+platformName = Emscripten
+
 ###############################################################################
 
 ::release

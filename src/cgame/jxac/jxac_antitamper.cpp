@@ -22,6 +22,11 @@ static const char* Q_stristr(const char* haystack, const char* needle) {
 #ifdef _WIN32
 #include <windows.h>
 #include <tlhelp32.h>
+#elif defined(__EMSCRIPTEN__)
+// The browser sandbox has no ptrace and no external process list, so the
+// anti-debug / anti-tamper probes below are compiled out for WebAssembly.
+#include <unistd.h>
+#include <stdio.h>
 #else
 #include <sys/ptrace.h>
 #include <signal.h>
@@ -146,6 +151,9 @@ bool AntiTamper::checkDebugger() {
         return true;
     }
     
+    return false;
+#elif defined(__EMSCRIPTEN__)
+    // No ptrace in the browser sandbox; assume no debugger is attached.
     return false;
 #else
     // Linux: Use ptrace trick
