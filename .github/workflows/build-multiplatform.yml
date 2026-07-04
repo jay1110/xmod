@@ -298,9 +298,49 @@ jobs:
           path: artifacts/android/${{ matrix.abi.name }}/*.so
           if-no-files-found: error
 
+  build-wasm:
+    name: Build WebAssembly ${{ matrix.module }}
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        module: [cgame, ui, game]
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y build-essential python3 zip m4
+
+      - name: Setup Emscripten
+        uses: mymindstorm/setup-emsdk@v14
+        with:
+          version: latest
+
+      - name: Ensure scripts are executable
+        run: chmod +x project/info.py
+
+      - name: Build ${{ matrix.module }} for WebAssembly
+        run: |
+          emcc --version
+          PLATFORM=wasm make release
+
+      - name: Organize artifacts
+        run: |
+          mkdir -p artifacts/wasm
+          find build.wasm-release/${{ matrix.module }} -name "*.wasm32.so" -exec cp {} artifacts/wasm/ \;
+          ls -la artifacts/wasm/
+
+      - name: Upload WebAssembly artifacts
+        uses: actions/upload-artifact@v7
+        with:
+          name: xmod-wasm-${{ matrix.module }}
+          path: artifacts/wasm/*.wasm32.so
+          if-no-files-found: error
+
   create-release-package:
     name: Create Release Package
-    needs: [build-linux64, build-linux32, build-windows, build-linux-arm64, build-macos, build-android]
+    needs: [build-linux64, build-linux32, build-windows, build-linux-arm64, build-macos, build-android, build-wasm]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
