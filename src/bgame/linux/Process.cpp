@@ -17,9 +17,10 @@
 // Emscripten/WebAssembly does not provide backtrace()/execinfo.h, machine
 // register contexts (ucontext gregs), or meaningful process signals in the
 // browser sandbox, so the native crash-handling and signal machinery below is
-// compiled only for real POSIX targets. Emscripten-specific no-op
-// implementations of the public Process methods are provided further down.
-#ifndef __EMSCRIPTEN__
+// compiled only for real POSIX targets. Similarly, Android (Bionic libc) does
+// not provide execinfo.h/backtrace(). Platform-specific no-op implementations
+// of the public Process methods are provided further down.
+#if !defined(__EMSCRIPTEN__) && !defined(__ANDROID__)
 
 #ifndef __USE_GNU
 #   define __USE_GNU
@@ -235,7 +236,7 @@ SigData sigList[] = {
 
 }
 
-#endif // !__EMSCRIPTEN__
+#endif // !__EMSCRIPTEN__ && !__ANDROID__
 
 //////////////////////////////////////////////////////////////////////////////
 
@@ -249,7 +250,7 @@ Process::mstime()
 
 //////////////////////////////////////////////////////////////////////////////
 
-#ifndef __EMSCRIPTEN__
+#if !defined(__EMSCRIPTEN__) && !defined(__ANDROID__)
 
 void
 Process::beginCriticalSection()
@@ -304,11 +305,11 @@ Process::signalShutdown()
     }
 }
 
-#else // __EMSCRIPTEN__
+#else // __EMSCRIPTEN__ || __ANDROID__
 
 //////////////////////////////////////////////////////////////////////////////
-// WebAssembly (browser) has no meaningful process signals or critical-section
-// signal masking, so these are no-ops.
+// WebAssembly (browser) and Android have no meaningful process signals or
+// critical-section signal masking, so these are no-ops.
 
 void
 Process::beginCriticalSection()
@@ -336,4 +337,4 @@ Process::signalShutdown()
 {
 }
 
-#endif // __EMSCRIPTEN__
+#endif // __EMSCRIPTEN__ || __ANDROID__
