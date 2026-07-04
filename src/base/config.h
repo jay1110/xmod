@@ -13,6 +13,8 @@
 #    include <base/windows/public.h>
 #elif defined( XMOD_ANDROID_ARM64 ) || defined( XMOD_ANDROID_ARMV7A ) || defined( XMOD_ANDROID_X86_64 ) || defined( XMOD_ANDROID_X86 )
 #    include <base/linux/public.h>
+#elif defined( XMOD_WASM ) || defined( __EMSCRIPTEN__ )
+#    include <base/linux/public.h>
 #else
 #    error "XMOD platform is not defined."
 #endif
