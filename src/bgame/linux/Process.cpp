@@ -66,6 +66,10 @@ coreTrace( int num, siginfo_t* info, ucontext_t* context )
     // If we don't do this stack traces are less accurate.
 #if defined(__x86_64__) || defined(__amd64__)
     array[1] = (void*)context->uc_mcontext.gregs[REG_RIP];
+#elif defined(__aarch64__)
+    array[1] = (void*)context->uc_mcontext.pc;
+#elif defined(__arm__)
+    array[1] = (void*)(uintptr_t)context->uc_mcontext.arm_pc;
 #else
     array[1] = (void*)context->uc_mcontext.gregs[REG_EIP];
 #endif
@@ -113,6 +117,10 @@ writeCrashLog( int num, siginfo_t* info, ucontext_t* context )
 
 #if defined(__x86_64__) || defined(__amd64__)
     array[1] = (void*)context->uc_mcontext.gregs[REG_RIP];
+#elif defined(__aarch64__)
+    array[1] = (void*)context->uc_mcontext.pc;
+#elif defined(__arm__)
+    array[1] = (void*)(uintptr_t)context->uc_mcontext.arm_pc;
 #else
     array[1] = (void*)context->uc_mcontext.gregs[REG_EIP];
 #endif
