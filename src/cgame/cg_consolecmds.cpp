@@ -543,6 +543,17 @@ static void CG_MessageMode_f( void ) {
 		return;
 	}
 
+	// xmod - admin chat
+	else if( !Q_stricmp( cmd, "messagemode5" ) )
+	{
+		trap_Cvar_Set( "cg_messageType", "5" );
+		trap_Cvar_Set( "cg_messageText", "" );
+
+		// open the menu
+		trap_UI_Popup( UIMENU_INGAME_ADMINCHAT );
+		return;
+	}
+
 	// (normal) say
 	else
 	{
@@ -583,6 +594,10 @@ static void CG_MessageSend_f( void )
 	// fireteam say
 	} else if( messageType == 3 ) {
 		trap_SendConsoleCommand( va( "say_buddy \"%s\"\n", messageText ) );
+
+	// admin chat
+	} else if( messageType == 5 ) {
+		trap_SendConsoleCommand( va( "ma \"%s\"\n", messageText ) );
 	
 	// normal say
 	} else {
@@ -1105,6 +1120,9 @@ static consoleCommand_t	commands[] =
 	{ "messageMode4", CG_MessageMode_f },
 	{ "privateSend", CG_PrivateSend_f },
 
+	// xmod - admin chat
+	{ "messageMode5", CG_MessageMode_f },
+
 	// Jaybird
 	{ "textshortcuts", CG_PrintTextShortcuts_f },
 	{ "xmodinfo", CG_PrintXmodInfo_f },
@@ -1300,6 +1318,7 @@ void CG_InitConsoleCommands( void ) {
 	trap_AddCommand ("campaigninfo");
 	trap_AddCommand ("m");
 	trap_AddCommand ("messagemode4");
+	trap_AddCommand ("messagemode5");
 	trap_AddCommand ("textshortcuts");
 	trap_AddCommand ("xmodinfo");
 	

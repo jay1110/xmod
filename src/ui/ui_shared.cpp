@@ -4264,6 +4264,7 @@ static bind_t g_bindings[] = {
 	{ "messagemode2",	'y',		-1,	'y',			-1,	-1,	-1 },
 	{ "messagemode3",	'u',		-1,	'u',			-1,	-1,	-1 },
 	{ "messagemode4",	'i',		-1, 'i',			-1, -1, -1 },
+	{ "messagemode5",	-1,		-1, -1,			-1, -1, -1 },
 	{ "mp_quickmessage",'v',		-1,	'v',			-1,	-1,	-1 },
 	{ "mp_fireteammsg",	'z',		-1,	'c',			-1,	-1,	-1 },
 	{ "vote yes",		K_F1,		-1,	K_F1,			-1,	-1,	-1 },

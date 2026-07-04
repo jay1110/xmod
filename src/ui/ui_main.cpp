@@ -7878,6 +7878,12 @@ void _UI_SetActiveMenu( uiMenuCommand_t menu ) {
 			Menus_OpenByName( "ingame_privatemessage" );
 			return;
 
+		// xmod - admin chat
+		case UIMENU_INGAME_ADMINCHAT:
+			trap_Key_SetCatcher( KEYCATCH_UI );
+			Menus_OpenByName( "ingame_messagemode5" );
+			return;
+
     default:
       return; // TTimo: a lot of not handled
 		}
