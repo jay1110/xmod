@@ -78,6 +78,8 @@ extern vmCvar_t	vote_voteBased;
 extern vmCvar_t	vote_minPercent;
 extern vmCvar_t g_muteTime;
 extern vmCvar_t g_antiwarp;
+extern vmCvar_t g_antirush;
+extern vmCvar_t g_antirushTime;
 
 // GeoIP Country Flags
 extern vmCvar_t g_countryflags;
@@ -301,7 +303,9 @@ namespace cache {
 
 #define LOGOPTS_CHAT           1
 #define LOGOPTS_EXTENDED_WEAPS 2
+#define LOGOPTS_OBJECTIVE      4
 #define LOGOPTS_BAN            8
+#define LOGOPTS_REALTIME       16
 
 /*
 ===================
@@ -426,6 +430,14 @@ void G_ResetDamageTracking       ( gentity_t* ent );
 
 // Multi-Revive System
 void G_ProcessRevive             ( gentity_t* medic, gentity_t* patient );
+
+// AntiRush
+void     G_AntiRushInit           ( void );
+void     G_AntiRushCheck          ( void );
+qboolean G_AntiRushActive         ( void );
+void     G_AntiRushNotify         ( int clientNum );
+void     G_AntiRushPenalty        ( gentity_t *ent );
+qboolean G_AntiRushIsProtectedObjective( const char *objectiveName );
 
 ///////////////////////////////////////////////////////////////////////////////
 

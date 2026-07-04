@@ -253,6 +253,8 @@ vmCvar_t		vote_voteBased;
 vmCvar_t		vote_minPercent;
 vmCvar_t        g_muteTime;
 vmCvar_t        g_antiwarp;
+vmCvar_t        g_antirush;
+vmCvar_t        g_antirushTime;
 
 // GeoIP Country Flags
 vmCvar_t        g_countryflags;
@@ -407,6 +409,8 @@ cvarTable_t		gameCvarTable[] = {
 	{ &g_userConfig,		"g_userConfig",			"xmod.db",	CVAR_ARCHIVE },
     { &g_muteTime,          "g_muteTime",           "0",        0 },
     { &g_antiwarp,          "g_antiwarp",           "1",        0 },
+    { &g_antirush,          "g_antirush",           "0",        CVAR_ARCHIVE },
+    { &g_antirushTime,      "g_antirushTime",       "30",       CVAR_ARCHIVE },
     { &g_countryflags,      "g_countryflags",       "1",        CVAR_ARCHIVE },
 
     { &sv_maxRate,          "sv_maxRate",           "90000",    CVAR_SYSTEMINFO | CVAR_ARCHIVE },
@@ -2112,6 +2116,8 @@ void G_InitGame( int levelTime, int randomSeed, int restart ) {
 	trap_GetServerinfo( cs, sizeof( cs ) );
 	Q_strncpyz( level.rawmapname, Info_ValueForKey( cs, "mapname" ), sizeof(level.rawmapname) );
 
+	G_AntiRushInit();
+
 	G_ParseCampaigns();
 	if( g_gametype.integer == GT_WOLF_CAMPAIGN ) {
 		if( g_campaigns[level.currentCampaign].current == 0 || level.newCampaign ) {
@@ -3014,7 +3020,16 @@ void QDECL G_LogPrintf( const char *fmt, ... ) {
 	tens = sec / 10;
 	sec -= tens * 10;
 
-	Com_sprintf( string, sizeof(string), "%i:%i%i ", min, tens, sec );
+	// When LOGOPTS_REALTIME is set, prepend real-time timestamp
+	if ( g_logOptions.integer & LOGOPTS_REALTIME ) {
+		time_t now = time( NULL );
+		struct tm* lt = localtime( &now );
+		char stime[32];
+		strftime( stime, sizeof(stime), "%Y-%m-%d %H:%M:%S", lt );
+		Com_sprintf( string, sizeof(string), "[%s] %i:%i%i ", stime, min, tens, sec );
+	} else {
+		Com_sprintf( string, sizeof(string), "%i:%i%i ", min, tens, sec );
+	}
 
 	l = strlen( string );
 
@@ -4171,6 +4186,9 @@ void G_RunFrame( int levelTime ) {
 
     // NERVE - SMF
     CheckWolfMP();
+
+    // AntiRush: check if antirush timer has expired
+    G_AntiRushCheck();
 
 	// see if it is time to end the level
 	CheckExitRules();

@@ -3109,6 +3109,10 @@ qboolean G_ScriptAction_Announce_Icon( gentity_t *ent, char *params ) {
 
 	trap_SendServerCommand( -1, va("cpm %i \"%s\"", iconnumber, token ));
 
+	if ( g_logOptions.integer & LOGOPTS_OBJECTIVE ) {
+		G_LogPrintf("xmod announce: \"%s\"\n", token);
+	}
+
 	Bot_Util_SendTrigger(ent, NULL, token, "announce_icon");
 
 	return qtrue;
@@ -3137,6 +3141,10 @@ qboolean G_ScriptAction_Announce( gentity_t *ent, char *params )
 				
 	trap_SendServerCommand( -1, va("cpm \"%s\"", token ));
 //	trap_SendServerCommand( -1, va("cp \"%s\" 2", token ));
+
+	if ( g_logOptions.integer & LOGOPTS_OBJECTIVE ) {
+		G_LogPrintf("xmod announce: \"%s\"\n", token);
+	}
 
 	Bot_Util_SendTrigger(ent, NULL, token, "announce");
 

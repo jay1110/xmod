@@ -1021,4 +1021,46 @@ Client::greeting()
 
 ///////////////////////////////////////////////////////////////////////////////
 
+void
+Client::addPmHistory( const string& sender, const string& msg )
+{
+    PmEntry entry;
+    entry.senderName = sender;
+    entry.message = msg;
+    entry.timestamp = time( NULL );
+
+    pmHistory.push_back( entry );
+
+    // Trim to max size
+    while ( pmHistory.size() > PM_HISTORY_MAX ) {
+        pmHistory.pop_front();
+    }
+}
+
+///////////////////////////////////////////////////////////////////////////////
+
+void
+Client::showPmHistory( )
+{
+    if ( pmHistory.empty() ) {
+        trap_SendServerCommand( slot, "print \"^3No private messages in history.\n\"" );
+        return;
+    }
+
+    trap_SendServerCommand( slot, "print \"^3--- PM History ---\n\"" );
+
+    for ( list<PmEntry>::const_iterator it = pmHistory.begin(); it != pmHistory.end(); ++it ) {
+        struct tm* lt = localtime( &it->timestamp );
+        char stime[32];
+        strftime( stime, sizeof(stime), "%H:%M:%S", lt );
+
+        trap_SendServerCommand( slot, va( "print \"^7[%s] ^2%s^7: %s\n\"",
+            stime, it->senderName.c_str(), it->message.c_str() ) );
+    }
+
+    trap_SendServerCommand( slot, "print \"^3--- End of PM History ---\n\"" );
+}
+
+///////////////////////////////////////////////////////////////////////////////
+
 Client g_clientObjects[ MAX_CLIENTS ];

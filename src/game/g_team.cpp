@@ -405,6 +405,12 @@ void Team_ReturnFlagSound(gentity_t *ent, int team)
 	pm->s.effect2Time = team;
 	pm->s.density = 1; // 1 = returned
 
+	if ( g_logOptions.integer & LOGOPTS_OBJECTIVE ) {
+		const char *teamStr = (team == TEAM_AXIS) ? "Axis" : "Allies";
+		const char *objName = ent->message ? ent->message : "unknown";
+		G_LogPrintf("xmod objective: %s returned \"%s\"\n", teamStr, objName);
+	}
+
 	/*te = G_TempEntity( ent->s.pos.trBase, EV_GLOBAL_SOUND );
 	te->s.eventParm = G_SoundIndex( team == TEAM_AXIS ?
 		"sound/chat/axis/g-objective_secure.wav" :
@@ -517,6 +523,15 @@ int Team_TouchEnemyFlag( gentity_t *ent, gentity_t *other, int team ) {
 //	gentity_t *te;
 	gentity_t *tmp;
 
+	// AntiRush: prevent flag/document theft during antirush period
+	if ( G_AntiRushActive() ) {
+		const char *objName = ent->message ? ent->message : _GetEntityName( ent );
+		if ( G_AntiRushIsProtectedObjective( objName ) ) {
+			G_AntiRushPenalty( other );
+			return 0;
+		}
+	}
+
 	ent->s.density--;
 
 	// hey, its not our flag, pick it up
@@ -540,6 +555,10 @@ int Team_TouchEnemyFlag( gentity_t *ent, gentity_t *other, int team ) {
 
 //		trap_SendServerCommand(-1, va("cp \"Axis have stolen %s!\n\" 2", ent->message));
 
+		if ( g_logOptions.integer & LOGOPTS_OBJECTIVE ) {
+			G_LogPrintf("xmod objective: Axis have stolen \"%s\"\n", ent->message ? ent->message : "unknown");
+		}
+
 		if( level.gameManager ) {
 			G_Script_ScriptEvent( level.gameManager, "trigger", "allied_object_stolen" );
 		}
@@ -554,6 +573,10 @@ int Team_TouchEnemyFlag( gentity_t *ent, gentity_t *other, int team ) {
 //		te->s.eventParm = G_SoundIndex( "sound/chat/allies/a-objective_taken.wav" );
 
 //		trap_SendServerCommand(-1, va("cp \"Allies have stolen %s!\n\" 2", ent->message));
+
+		if ( g_logOptions.integer & LOGOPTS_OBJECTIVE ) {
+			G_LogPrintf("xmod objective: Allies have stolen \"%s\"\n", ent->message ? ent->message : "unknown");
+		}
 
 		if( level.gameManager ) {
 			G_Script_ScriptEvent( level.gameManager, "trigger", "axis_object_stolen" );
@@ -1435,11 +1458,19 @@ void checkpoint_spawntouch (gentity_t *self, gentity_t *other, trace_t *trace) {
 	// Run script trigger
 	if ( self->count == TEAM_AXIS )
 	{
+		if ( g_logOptions.integer & LOGOPTS_OBJECTIVE ) {
+			const char *flagName = _GetEntityName(self);
+			G_LogPrintf("xmod objective: Axis %s \"%s\"\n", flagAction, flagName ? flagName : "unknown");
+		}
 		G_Script_ScriptEvent( self, "trigger", "axis_capture" );
 		Bot_Util_SendTrigger(self, NULL, va("axis_%s_%s", flagAction, _GetEntityName(self)), flagAction);
 	}
 	else
 	{
+		if ( g_logOptions.integer & LOGOPTS_OBJECTIVE ) {
+			const char *flagName = _GetEntityName(self);
+			G_LogPrintf("xmod objective: Allies %s \"%s\"\n", flagAction, flagName ? flagName : "unknown");
+		}
 		G_Script_ScriptEvent( self, "trigger", "allied_capture" );
 		Bot_Util_SendTrigger(self, NULL, va("allies_%s_%s", flagAction, _GetEntityName(self)), flagAction);
 	}

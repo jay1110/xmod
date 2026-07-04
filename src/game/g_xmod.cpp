@@ -458,6 +458,9 @@ void G_PrivateMessage( gentity_t *ent )
                 cmd::printPm( &c, buf, true );
 
     		    CPx( c.slot, va( "cp \"^3Private message from ^7%s^3.\"", senderNamex.c_str() ));
+
+                // Store in recipient's PM history
+                c.addPmHistory( senderName, message );
             }
 
             // bcc: self
@@ -2628,3 +2631,269 @@ namespace cache {
     string kickMessage;
     int    kickTime;
 } // namespace cache
+
+///////////////////////////////////////////////////////////////////////////////
+// AntiRush System
+///////////////////////////////////////////////////////////////////////////////
+
+// Per-map list of protected objective names loaded from antirush_objectives.cfg.
+// Only objectives explicitly listed are protected. If empty, antirush is inactive for this map.
+static vector<string> antirushProtectedObjectives;
+
+/*
+===================
+G_AntiRushLoadConfig
+
+Reads antirush_objectives.cfg and populates antirushProtectedObjectives
+with the objective names configured for the current map.
+Only maps listed in the config file will have antirush protection.
+Multiple objectives per map are supported (one entry per line).
+
+File format (one entry per line):
+  mapname;objectivename
+
+Lines starting with // or # are comments. Empty lines are ignored.
+Example:
+  oasis;Old City Wall
+  oasis;Water Pump
+  goldrush;Gold Crates
+===================
+*/
+static void G_AntiRushLoadConfig( void ) {
+    fileHandle_t f;
+    int len;
+
+    antirushProtectedObjectives.clear();
+
+    len = trap_FS_FOpenFile( "antirush_objectives.cfg", &f, FS_READ );
+    if ( len < 0 ) {
+        // No config file - no objectives protected
+        return;
+    }
+
+    if ( len == 0 ) {
+        trap_FS_FCloseFile( f );
+        return;
+    }
+
+    char *buf = (char *)malloc( len + 1 );
+    if ( !buf ) {
+        trap_FS_FCloseFile( f );
+        return;
+    }
+
+    trap_FS_Read( buf, len, f );
+    trap_FS_FCloseFile( f );
+    buf[len] = '\0';
+
+    // Parse line by line
+    char *p = buf;
+    while ( *p ) {
+        // Find end of line
+        char *lineStart = p;
+        while ( *p && *p != '\n' && *p != '\r' )
+            p++;
+
+        // Null-terminate this line
+        char saved = *p;
+        if ( *p )
+            *p++ = '\0';
+        // Skip \r\n pairs
+        while ( *p == '\n' || *p == '\r' )
+            p++;
+
+        // Skip leading whitespace
+        char *line = lineStart;
+        while ( *line == ' ' || *line == '\t' )
+            line++;
+
+        // Skip empty lines and comments
+        if ( !*line || line[0] == '#' || ( line[0] == '/' && line[1] == '/' ) )
+            continue;
+
+        // Find the semicolon separator
+        char *sep = strchr( line, ';' );
+        if ( !sep )
+            continue;
+
+        *sep = '\0';
+        char *mapname = line;
+        char *objname = sep + 1;
+
+        // Trim trailing whitespace from mapname
+        char *end = mapname + strlen( mapname ) - 1;
+        while ( end > mapname && ( *end == ' ' || *end == '\t' ) )
+            *end-- = '\0';
+
+        // Trim leading whitespace from objname
+        while ( *objname == ' ' || *objname == '\t' )
+            objname++;
+
+        // Trim trailing whitespace from objname
+        if ( *objname ) {
+            end = objname + strlen( objname ) - 1;
+            while ( end > objname && ( *end == ' ' || *end == '\t' ) )
+                *end-- = '\0';
+        }
+
+        // Match against current map
+        if ( Q_stricmp( mapname, level.rawmapname ) == 0 && *objname ) {
+            antirushProtectedObjectives.push_back( string( objname ) );
+        }
+    }
+
+    free( buf );
+
+    if ( !antirushProtectedObjectives.empty() ) {
+        G_Printf( "AntiRush: loaded %d protected objective(s) for map '%s'\n",
+                   (int)antirushProtectedObjectives.size(), level.rawmapname );
+    }
+}
+
+/*
+===================
+G_AntiRushInit
+
+Called when a game round starts. Sets up the antirush timer if enabled.
+Must be called after level.rawmapname is set.
+===================
+*/
+void G_AntiRushInit( void ) {
+    level.antirushEndTime = 0;
+    antirushProtectedObjectives.clear();
+
+    if ( !g_antirush.integer )
+        return;
+
+    if ( g_antirushTime.integer <= 0 )
+        return;
+
+    G_AntiRushLoadConfig();
+
+    // Only activate if objectives are configured for this map
+    if ( antirushProtectedObjectives.empty() ) {
+        G_Printf( "AntiRush: no objectives configured for map '%s', antirush disabled\n", level.rawmapname );
+        return;
+    }
+
+    level.antirushEndTime = level.startTime + ( g_antirushTime.integer * 1000 );
+}
+
+/*
+===================
+G_AntiRushIsProtectedObjective
+
+Returns qtrue if the given objective name is protected by antirush.
+Only objectives explicitly listed in antirush_objectives.cfg are protected.
+If no objectives are configured for the current map, nothing is protected.
+===================
+*/
+qboolean G_AntiRushIsProtectedObjective( const char *objectiveName ) {
+    // No config entries for this map - nothing is protected
+    if ( antirushProtectedObjectives.empty() )
+        return qfalse;
+
+    if ( !objectiveName || !*objectiveName )
+        return qfalse;
+
+    for ( size_t i = 0; i < antirushProtectedObjectives.size(); i++ ) {
+        if ( Q_stricmp( antirushProtectedObjectives[i].c_str(), objectiveName ) == 0 )
+            return qtrue;
+    }
+
+    return qfalse;
+}
+
+/*
+===================
+G_AntiRushActive
+
+Returns qtrue if the antirush timer is still active.
+===================
+*/
+qboolean G_AntiRushActive( void ) {
+    if ( !g_antirush.integer )
+        return qfalse;
+
+    if ( !level.antirushEndTime )
+        return qfalse;
+
+    if ( level.time >= level.antirushEndTime )
+        return qfalse;
+
+    return qtrue;
+}
+
+/*
+===================
+G_AntiRushCheck
+
+Called each frame from G_RunFrame. When the antirush period ends,
+announces to all clients and unfreezes antirush-frozen players.
+===================
+*/
+void G_AntiRushCheck( void ) {
+    if ( !g_antirush.integer )
+        return;
+
+    if ( !level.antirushEndTime )
+        return;
+
+    // Timer hasn't expired yet
+    if ( level.time < level.antirushEndTime )
+        return;
+
+    // Timer just expired - announce
+    trap_SendServerCommand( -1, "cp \"^3AntiRush: ^8Objective can now be taken!\n\"" );
+    trap_SendServerCommand( -1, "chat \"^3AntiRush: ^7Objective can now be taken!\"" );
+
+    // Disable timer so this only runs once
+    level.antirushEndTime = 0;
+}
+
+/*
+===================
+G_AntiRushNotify
+
+Sends antirush status message to a connecting client.
+===================
+*/
+void G_AntiRushNotify( int clientNum ) {
+    if ( !g_antirush.integer )
+        return;
+
+    if ( !G_AntiRushActive() )
+        return;
+
+    int remaining = ( level.antirushEndTime - level.time ) / 1000;
+    trap_SendServerCommand( clientNum, va( "cp \"^8AntiRush ^7enabled! (%d seconds remaining)\n\"", remaining ) );
+}
+
+/*
+===================
+G_AntiRushPenalty
+
+Splats a player and removes their dynamite for rushing the objective.
+===================
+*/
+void G_AntiRushPenalty( gentity_t *ent ) {
+    int clientNum = (int)(ent - g_entities);
+
+    // Remove all dynamite entities owned by this player
+    for ( int i = MAX_CLIENTS; i < level.num_entities; i++ ) {
+        gentity_t *check = &g_entities[i];
+        if ( !check->inuse )
+            continue;
+        if ( !check->classname || Q_stricmp( check->classname, "dynamite" ) != 0 )
+            continue;
+        if ( check->r.ownerNum == clientNum ) {
+            G_FreeEntity( check );
+        }
+    }
+
+    // Splat the player (instant kill)
+    G_Damage( ent, NULL, NULL, NULL, NULL, 10000, DAMAGE_JAY_NO_PROTECTION, MOD_UNKNOWN );
+
+    trap_SendServerCommand( clientNum, "cp \"^1You tried to Rush the Objective!\n\"" );
+    trap_SendServerCommand( clientNum, "chat \"^1AntiRush: ^7You tried to Rush the Objective!\"" );
+}

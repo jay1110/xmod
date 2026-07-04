@@ -2326,11 +2326,24 @@ evilbanigoto:
 						if (!(hit->spawnflags & 128) && (((hit->spawnflags & AXIS_OBJECTIVE) && (ent->client->sess.sessionTeam == TEAM_ALLIES)) ||
 							 ((hit->spawnflags & ALLIED_OBJECTIVE) && (ent->client->sess.sessionTeam == TEAM_AXIS))) ) 
 						{
+							// AntiRush: prevent planting on objectives during antirush period
+							if ( G_AntiRushActive() && G_AntiRushIsProtectedObjective( _GetEntityName( hit ) ) ) {
+								G_FreeEntity( traceEnt );
+								G_AntiRushPenalty( ent );
+								return;
+							}
+
 							gentity_t* pm = G_PopupMessage( PM_DYNAMITE );
 							const char *Goalname = _GetEntityName( hit );
+							if ( !Goalname ) Goalname = "unknown";
 							pm->s.effect2Time = 0;
 							pm->s.effect3Time = hit->s.teamNum;
 							pm->s.teamNum = ent->client->sess.sessionTeam;
+
+							if ( g_logOptions.integer & LOGOPTS_OBJECTIVE ) {
+								const char *teamStr = (ent->client->sess.sessionTeam == TEAM_ALLIES) ? "allies" : "axis";
+								G_LogPrintf("xmod popup: %s planted \"%s\"\n", teamStr, Goalname);
+							}
 
 							G_Script_ScriptEvent( hit, "dynamited", "" );
 
@@ -2399,11 +2412,24 @@ evilbanigoto:
 
 						if( hit->parent )
 						{
+							// AntiRush: prevent planting on constructibles during antirush period
+							if ( G_AntiRushActive() && G_AntiRushIsProtectedObjective( _GetEntityName( hit->parent ) ) ) {
+								G_FreeEntity( traceEnt );
+								G_AntiRushPenalty( ent );
+								return;
+							}
+
 							const char *Goalname = _GetEntityName( hit->parent );
+							if ( !Goalname ) Goalname = "unknown";
 							gentity_t* pm = G_PopupMessage( PM_DYNAMITE );
 							pm->s.effect2Time = 0; // 0 = planted
 							pm->s.effect3Time = hit->parent->s.teamNum;
 							pm->s.teamNum = ent->client->sess.sessionTeam;
+
+							if ( g_logOptions.integer & LOGOPTS_OBJECTIVE ) {
+								const char *teamStr = (ent->client->sess.sessionTeam == TEAM_ALLIES) ? "allies" : "axis";
+								G_LogPrintf("xmod popup: %s planted \"%s\"\n", teamStr, Goalname);
+							}
 
 							G_Script_ScriptEvent( hit, "dynamited", "" );
 
@@ -2581,6 +2607,10 @@ evilbanigoto:
 									pm->s.teamNum = ent->client->sess.sessionTeam;
 								}
 
+								if ( g_logOptions.integer & LOGOPTS_OBJECTIVE ) {
+									G_LogPrintf("xmod popup: axis defused dynamite\n");
+								}
+
 //								trap_SendServerCommand(-1, "cp \"Axis engineer disarmed the Dynamite!\n\"");
 								//bani
 								defusedObj = qtrue;
@@ -2601,6 +2631,10 @@ evilbanigoto:
 									pm->s.effect2Time = 1; // 1 = defused
 									pm->s.effect3Time = hit->s.teamNum;
 									pm->s.teamNum = ent->client->sess.sessionTeam;
+								}
+
+								if ( g_logOptions.integer & LOGOPTS_OBJECTIVE ) {
+									G_LogPrintf("xmod popup: allies defused dynamite\n");
 								}
 
 //								trap_SendServerCommand(-1, "cp \"Allied engineer disarmed the Dynamite!\n\"");
@@ -2663,6 +2697,10 @@ evilbanigoto:
 									pm->s.teamNum = ent->client->sess.sessionTeam;
 								}
 
+								if ( g_logOptions.integer & LOGOPTS_OBJECTIVE ) {
+									G_LogPrintf("xmod popup: axis defused dynamite\n");
+								}
+
 //								trap_SendServerCommand(-1, "cp \"Axis engineer disarmed the Dynamite!\" 2");
 							} else { // TEAM_ALLIES
 								if ( hit->s.teamNum == TEAM_ALLIES && (!scored)) {
@@ -2679,6 +2717,10 @@ evilbanigoto:
 									pm->s.effect2Time = 1; // 1 = defused
 									pm->s.effect3Time = hit->parent->s.teamNum;
 									pm->s.teamNum = ent->client->sess.sessionTeam;
+								}
+
+								if ( g_logOptions.integer & LOGOPTS_OBJECTIVE ) {
+									G_LogPrintf("xmod popup: allies defused dynamite\n");
 								}
 
 //								trap_SendServerCommand(-1, "cp \"Allied engineer disarmed the Dynamite!\" 2");
