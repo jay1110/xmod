@@ -64,6 +64,16 @@ CXX.opt.pipe   = -pipe
 CXX.opt.p      =
 CXX.opt.static =
 CXX.opt.std    = -fno-exceptions -fno-rtti
+# Emscripten resolves every default-visibility symbol of a SIDE_MODULE through
+# one process-wide symbol table. cgame, ui and qagame share a lot of source
+# (bgame/, base/, ui/ui_shared.cpp), so without hidden visibility their
+# identically named globals collide and the module loaded first wins for all of
+# them. That made cgame use the ui module's display context (ui_shared.cpp's
+# 'DC'), so cgame issued ui trap numbers and the engine aborted with
+# "bad cgame system trap: 24" (UI_R_REGISTERSHADERNOMIP). Hiding everything but
+# the LF_PUBLIC entry points (vmMain, dllEntry) keeps each module self
+# contained, exactly like the native linux build does.
+CXX.opt.vis    = -fvisibility=hidden
 
 CXX.ldopts.exe = -sSIDE_MODULE=1
 CXX.ldopts.so  = -sSIDE_MODULE=1
@@ -88,7 +98,7 @@ CXX.pipe   = 1
 CXX.p      =
 CXX.static =
 CXX.std    = 1
-CXX.vis    =
+CXX.vis    = 1
 
 ###############################################################################
 
