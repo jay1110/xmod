@@ -733,8 +733,14 @@ This is the only way control passes into the module.
 This must be the very first function compiled into the .q3vm file
 ================
 */
+// NOTE: WebAssembly's call_indirect requires exact signature matching. The
+// engine calls vmMain through VM_EntryPoint_t which takes 13 arguments (command
+// + arg0..arg11). On native platforms extra arguments are harmlessly ignored,
+// but on wasm a mismatched arity traps with "indirect call signature mismatch".
+// Keep this signature identical to cgame/ui and the engine's VM_EntryPoint_t.
 extern "C" LF_PUBLIC intptr_t
-vmMain( int command, int arg0, int arg1, int arg2, int arg3, int arg4, int arg5, int arg6 ) {
+vmMain( int command, int arg0, int arg1, int arg2, int arg3, int arg4, int arg5, int arg6,
+        int arg7, int arg8, int arg9, int arg10, int arg11 ) {
 	switch ( command ) {
 	case GAME_INIT:
 		Bot_Interface_InitHandles();

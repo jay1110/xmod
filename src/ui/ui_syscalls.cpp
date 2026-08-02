@@ -3,12 +3,49 @@
 // this file is only included when building a dll
 // syscalls.asm is included instead when building a qvm
 
+#if defined( __EMSCRIPTEN__ )
+// WebAssembly's call_indirect requires exact signature matching, and variadic
+// function pointers do not work across MAIN_MODULE/SIDE_MODULE boundaries (they
+// trap with "indirect call signature mismatch" or "table index is out of
+// bounds"). The engine hands us a non-variadic, array-based syscall entry
+// point, so we pack each trap's arguments into a contiguous array. The 'engine'
+// object below is callable exactly like the variadic pointer used on native
+// platforms, so the trap wrappers stay unchanged.
+static intptr_t (QDECL *engineSyscall)( intptr_t* ) = (intptr_t (QDECL *)( intptr_t* ))-1;
+
+namespace {
+class EngineCaller
+{
+public:
+	intptr_t operator()( intptr_t cmd ) const
+	{
+		intptr_t a[1] = { cmd };
+		return engineSyscall( a );
+	}
+
+	template< typename... Args >
+	intptr_t operator()( intptr_t cmd, Args... args ) const
+	{
+		intptr_t a[] = { cmd, (intptr_t)( args )... };
+		return engineSyscall( a );
+	}
+};
+}
+
+static EngineCaller engine;
+
+extern "C" LF_PUBLIC void
+dllEntry( intptr_t (QDECL *syscallptr)( intptr_t* ) ) {
+	engineSyscall = syscallptr;
+}
+#else
 static intptr_t (QDECL *engine)( intptr_t arg, ... ) = (intptr_t (QDECL *)( intptr_t, ...))-1;
 
 extern "C" LF_PUBLIC void
 dllEntry( intptr_t (QDECL *syscallptr)( intptr_t arg,... ) ) {
 	engine = syscallptr;
 }
+#endif
 
 int PASSFLOAT( float x ) {
 	float	floatTemp;
