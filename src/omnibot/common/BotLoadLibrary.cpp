@@ -245,7 +245,9 @@ eomnibot_error Omnibot_LoadLibrary(int version, const char *lib, const char *pat
 		g_BotLibrary = Omnibot_LL(OB_VA("%s" SUFFIX ".dll", lib));
 
 #else
-#ifdef __x86_64__
+#if defined __EMSCRIPTEN__
+#define SUFFIX ".wasm32"
+#elif defined __x86_64__
 #define SUFFIX ".x86_64"
 #elif defined __aarch64__
 #define SUFFIX ".aarch64"
