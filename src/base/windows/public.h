@@ -5,7 +5,9 @@
 
 #define LF_PUBLIC  __declspec(dllexport)
 #define LF_PRIVATE
+#ifndef WIN32
 #define WIN32
+#endif
 
 ///////////////////////////////////////////////////////////////////////////////
 

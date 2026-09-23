@@ -883,7 +883,8 @@ initialized:
 		mov ecx,dword ptr[4+4+esp]
 		xor eax,eax
 		mov ebx,dword ptr[4+8+esp]
-		mov al,byte ptr[17+edx]
+		// AL already specifies the byte width; avoid C++17 std::byte here.
+		mov al,[17+edx]
 		cmp al,8
 		jge Lerror
 		fld dword ptr[0+edx]
@@ -1613,7 +1614,7 @@ float VectorDistanceSquared(vec3_t v1, vec3_t v2) {
 }
 
  
-#ifdef _MSC_VER
+#if defined(_MSC_VER) && _MSC_VER < 1800
  
 	int rint (double x) {  
 				                 

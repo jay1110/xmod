@@ -268,12 +268,26 @@ levels  = 8, 9, 10, 11, 999
 
 ### Quick Start Options
 
-**Option 1: Visual Studio 2022 (Windows) - Build All Platforms**
+**Option 1: Visual Studio 2022 (Windows)**
+
+Install the C++ desktop workload, CMake and Python 3. The Windows server module
+must use MSVC to match the Omni-Bot DLL's C++ ABI. The **Build and Release** and
+**Build Multi-Platform** GitHub Actions workflows run these builds automatically;
+Linux continues to use GNU Make.
+
 ```powershell
-# Builds Windows (VS2022) + Linux (WSL2) and creates complete release package
-.\build-all.ps1
+cmake -S . -B build/msvc-x86 -G "Visual Studio 17 2022" -A Win32
+cmake --build build/msvc-x86 --config Release --parallel
+ctest --test-dir build/msvc-x86 -C Release --output-on-failure
+
+cmake -S . -B build/msvc-x64 -G "Visual Studio 17 2022" -A x64
+cmake --build build/msvc-x64 --config Release --parallel
+ctest --test-dir build/msvc-x64 -C Release --output-on-failure
 ```
-See [docs/BUILD_VS2022.md](docs/BUILD_VS2022.md) for detailed instructions.
+
+The DLLs are under `build/msvc-<arch>/<game|cgame|ui>/Release/`.
+Use `omnibot_et.dll` with x86 and `omnibot_et_x64.dll` with x64, and set
+`omnibot_path` to the directory containing the matching Omni-Bot installation.
 
 **Option 2: GNU Make (Linux/MinGW) - Build Single Platform**
 ```bash
@@ -283,10 +297,10 @@ PLATFORM=linux64 make release
 # Linux 32-bit (requires gcc-multilib g++-multilib)
 PLATFORM=linux make release
 
-# Windows 32-bit (cross-compile via MinGW)
+# Windows 32-bit (MinGW; not compatible with MSVC Omni-Bot DLLs)
 PLATFORM=mingw make release
 
-# Windows 64-bit (cross-compile via MinGW)
+# Windows 64-bit (MinGW; not compatible with MSVC Omni-Bot DLLs)
 PLATFORM=mingw64 make release
 ```
 
@@ -392,8 +406,8 @@ modules. This mirrors the ET:Legacy in-browser (Emscripten/WASM) approach.
 |----------|--------------|---------------|--------|
 | Linux | i386 (32-bit) | `PLATFORM=linux make` | `qagame.mp.i386.so` |
 | Linux | x86_64 (64-bit) | `PLATFORM=linux64 make` | `qagame.mp.x86_64.so` |
-| Windows | x86 (32-bit) | `PLATFORM=mingw make` | `qagame_mp_x86.dll` |
-| Windows | x64 (64-bit) | `PLATFORM=mingw64 make` | `qagame_mp_x64.dll` |
+| Windows | x86 (32-bit) | MSVC/CMake, `-A Win32` (see above) | `qagame_mp_x86.dll` |
+| Windows | x64 (64-bit) | MSVC/CMake, `-A x64` (see above) | `qagame_mp_x64.dll` |
 | Android | ARM64-v8a | `PLATFORM=android-arm64 make` | `libqagame.mp.android.arm64-v8a.so` |
 | Android | x86_64 (64-bit) | `PLATFORM=android-x86_64 make` | `libqagame.mp.android.x86_64.so` |
 | Android | x86 (32-bit) | `PLATFORM=android-x86 make` | `libqagame.mp.android.i386.so` |

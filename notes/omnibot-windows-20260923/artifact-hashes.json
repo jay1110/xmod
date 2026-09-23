@@ -1,0 +1,26 @@
+[
+  {
+    "Path": "C:\\Users\\micha\\Documents\\GitHub\\xmod\\build\\msvc-x86\\cgame\\Release\\cgame_mp_x86.dll",
+    "Hash": "C03C532C26DBF51B18BCB4A297DD1DE45A7291CE025EF6A0CBE89251E8CA4536"
+  },
+  {
+    "Path": "C:\\Users\\micha\\Documents\\GitHub\\xmod\\build\\msvc-x86\\game\\Release\\qagame_mp_x86.dll",
+    "Hash": "86BB9EA3BFC6DA3F1962A1CD05C3CA68E0341DC46E122F6C0AEBC5A4100A95CD"
+  },
+  {
+    "Path": "C:\\Users\\micha\\Documents\\GitHub\\xmod\\build\\msvc-x86\\ui\\Release\\ui_mp_x86.dll",
+    "Hash": "068B94F50EA3F5AFFBDC7736C83AC676DF3A249921BB390854644C4727E274CA"
+  },
+  {
+    "Path": "C:\\Users\\micha\\Documents\\GitHub\\xmod\\build\\msvc-x64\\cgame\\Release\\cgame_mp_x64.dll",
+    "Hash": "E9C4458B7D6625ACC049CFCE9F37351E0A49ECDA1B94822A2D5A24C820E71DF9"
+  },
+  {
+    "Path": "C:\\Users\\micha\\Documents\\GitHub\\xmod\\build\\msvc-x64\\game\\Release\\qagame_mp_x64.dll",
+    "Hash": "1292DCE32A0046F405824BDC28C575EBE9EB4E85F0AC15237FCD6EA32433A3CA"
+  },
+  {
+    "Path": "C:\\Users\\micha\\Documents\\GitHub\\xmod\\build\\msvc-x64\\ui\\Release\\ui_mp_x64.dll",
+    "Hash": "816C28140E1027836C499512CAA4175B4D2F17ABBC67CA57C29D62F18F304999"
+  }
+]

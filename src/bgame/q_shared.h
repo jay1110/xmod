@@ -656,7 +656,7 @@ float VectorDistance(vec3_t v1, vec3_t v2);
 float VectorDistanceSquared(vec3_t v1, vec3_t v2);
 
 // Jaybird - add rint to repetoir (sp?)
-#ifdef _MSC_VER
+#if defined(_MSC_VER) && _MSC_VER < 1800
 int rint (double x);
 #endif
 
