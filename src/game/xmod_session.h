@@ -58,7 +58,7 @@ public:
 
     // GUID/HWID handling
     bool guidReceived(const std::string& hashedGuid, const std::string& hashedHwid);
-    void onGuidReceived(const std::string& hashedGuid, const std::string& hashedHwid);
+    bool onGuidReceived(const std::string& hashedGuid, const std::string& hashedHwid);
 
     // Getters
     int getClientNum() const { return clientNum; }

@@ -69,8 +69,13 @@ set_source_files_properties(src/omnibot/common/BotLoadLibrary.cpp
 
 foreach(module game cgame ui)
     module_sources(${module} sources)
-    add_library(${module} SHARED ${sources})
+    set(compile_target ${module})
     if(module STREQUAL "game")
+        # Reuse the production server objects in the authentication regression
+        # host; only the engine syscall boundary is replaced by that test.
+        add_library(game_objects OBJECT ${sources})
+        add_library(game SHARED $<TARGET_OBJECTS:game_objects>)
+        set(compile_target game_objects)
         set(module_define GAMEDLL)
         set(module_name qagame)
     elseif(module STREQUAL "cgame")
@@ -80,8 +85,11 @@ foreach(module game cgame ui)
         set(module_define UIDLL)
         set(module_name ui)
     endif()
-    target_compile_definitions(${module} PRIVATE ${module_define})
-    target_precompile_headers(${module} PRIVATE <bgame/impl.h>)
+    if(NOT module STREQUAL "game")
+        add_library(${module} SHARED ${sources})
+    endif()
+    target_compile_definitions(${compile_target} PRIVATE ${module_define})
+    target_precompile_headers(${compile_target} PRIVATE <bgame/impl.h>)
     target_link_libraries(${module} PRIVATE base lua sqlite3 ws2_32 iphlpapi advapi32)
     set_target_properties(${module} PROPERTIES
         OUTPUT_NAME "${module_name}_mp_${module_arch}"
@@ -90,6 +98,10 @@ endforeach()
 
 include(CTest)
 if(BUILD_TESTING)
+    add_executable(auth_mapchange_test tests/auth_mapchange_test.cpp $<TARGET_OBJECTS:game_objects>)
+    target_compile_definitions(auth_mapchange_test PRIVATE GAMEDLL)
+    target_link_libraries(auth_mapchange_test PRIVATE base lua sqlite3 ws2_32 iphlpapi advapi32)
+    add_test(NAME auth_mapchange COMMAND auth_mapchange_test)
     add_executable(windows_module_load tests/windows_module_load.cpp)
     add_dependencies(windows_module_load game cgame ui)
     add_test(NAME windows_module_load COMMAND windows_module_load

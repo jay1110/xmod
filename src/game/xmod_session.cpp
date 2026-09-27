@@ -98,6 +98,7 @@ bool Session::validateHwid(const std::string& hwidStr) {
 ///////////////////////////////////////////////////////////////////////////////
 
 bool Session::guidReceived(const std::string& hashedGuid, const std::string& hashedHwid) {
+    authenticated = false;
     if (!initialized) {
         G_Printf("^1[SQLite] ERROR: Session::guidReceived - session not initialized\n");
         return false;
@@ -187,6 +188,18 @@ bool Session::guidReceived(const std::string& hashedGuid, const std::string& has
     // Sync user data from SQLite to runtime User object
     // This maintains backward compatibility with legacy UserDB system
     if (authenticated && clientNum >= 0 && clientNum < MAX_CLIENTS) {
+        // Bind the confirmed GUID BEFORE applying SQLite data. Applying it to
+        // the PENDING user and then replacing that pointer loses the level and
+        // mute state when authentication arrives after ClientBegin.
+        std::string err;
+        User& user = userManager.fetchByKey(guid, err, true);
+        if (&user == &User::BAD) {
+            authenticated = false;
+            G_Printf("^1[SQLite] Cannot bind authenticated user: %s\n", err.c_str());
+            return false;
+        }
+        connectedUsers[clientNum] = &user;
+        user.timestamp = time(nullptr);
         if (connectedUsers[clientNum] && connectedUsers[clientNum] != &User::BAD) {
             // Get current client info to sync MAC address and name
             gclient_t* client = &level.clients[clientNum];
@@ -242,13 +255,15 @@ bool Session::guidReceived(const std::string& hashedGuid, const std::string& has
 
 ///////////////////////////////////////////////////////////////////////////////
 
-void Session::onGuidReceived(const std::string& hashedGuid, const std::string& hashedHwid) {
+bool Session::onGuidReceived(const std::string& hashedGuid, const std::string& hashedHwid) {
     if (!guidReceived(hashedGuid, hashedHwid)) {
         // Authentication failed - disconnect client
         if (clientNum >= 0 && clientNum < MAX_CLIENTS) {
             trap_DropClient(clientNum, "Authentication failed", 0);
         }
+        return false;
     }
+    return true;
 }
 
 ///////////////////////////////////////////////////////////////////////////////

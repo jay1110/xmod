@@ -76,53 +76,29 @@ qboolean OnClientCommand(int clientNum, const char* cmd) {
 				}
 			}
 
-			// Store in Client object
+			// Session authentication binds connectedUsers to the confirmed GUID
+			// and applies the database level/mute state before reporting success.
+			if (!xmod::g_database || !xmod::g_sessions[clientNum]) {
+				G_LogPrintf("[Auth] Client %d: authentication service unavailable\n", clientNum);
+				trap_DropClient(clientNum, "Authentication unavailable", 0);
+				return qtrue;
+			}
+			if (!xmod::g_sessions[clientNum]->onGuidReceived(guid, hwid)) {
+				return qtrue;
+			}
+
 			Client& clientObject = g_clientObjects[clientNum];
 			clientObject.authGuid = guid;
 			clientObject.authHwid = hwid;
 			clientObject.authenticated = true;
 			clientObject.authWarningShown = false;
 
-			G_LogPrintf("[Auth] Client %d (%s): authenticated successfully (GUID: %.8s...)\n",
-				clientNum, clientName, guid);
+			G_LogPrintf("[Auth] Client %d (%s): authenticated successfully (GUID: %.8s..., level: %d)\n",
+				clientNum, clientName, guid, connectedUsers[clientNum]->authLevel);
 
-			// Use xmod session system for database integration
-			if (xmod::g_database && xmod::g_sessions[clientNum]) {
-				xmod::g_sessions[clientNum]->onGuidReceived(guid, hwid);
-			}
-
-			// Update the legacy connectedUsers with the real GUID
-			// This is needed for !setlevel and other admin commands
-			if (connectedUsers[clientNum] && connectedUsers[clientNum] != &User::BAD) {
-				std::string err;
-				User& newUser = userManager.fetchByKey(guid, err, true);
-				if (&newUser != &User::BAD) {
-					User* oldUser = connectedUsers[clientNum];
-					// Transfer session data from PENDING user to real user
-					if (oldUser->guid.find("PENDING") == 0 || oldUser->fakeguid) {
-						newUser.name = oldUser->name;
-						newUser.namex = oldUser->namex;
-						newUser.ip = oldUser->ip;
-						newUser.mac = oldUser->mac;
-						newUser.timestamp = time(NULL);
-					}
-					// Mark as real GUID (not fake)
-					newUser.fakeguid = false;
-					connectedUsers[clientNum] = &newUser;
-					G_LogPrintf("[Auth] Client %d: Updated connectedUsers with GUID %.8s... (fakeguid=false)\n", clientNum, guid);
-					
-					// Now that we have the real GUID, try to restore XP from database
-					// This is needed because G_InitSessionData() called xpRestore() earlier
-					// with PENDING guid before authentication completed
-					if (g_xpSave.integer) {
-						g_clientObjects[clientNum].xpRestore();
-					}
-				} else {
-					// If we can't create a new user entry, at least mark current user as not fake
-					// so admin commands will work
-					connectedUsers[clientNum]->fakeguid = false;
-					G_LogPrintf("[Auth] Client %d: Marked existing user as authenticated (fakeguid=false)\n", clientNum);
-				}
+			// G_InitSessionData may have tried restoring XP with a PENDING GUID.
+			if (g_xpSave.integer) {
+				clientObject.xpRestore();
 			}
 		} else {
 			G_LogPrintf("[Auth] Client %d (%s): authentication FAILED - invalid format (GUID len=%d, HWID len=%d)\n",
