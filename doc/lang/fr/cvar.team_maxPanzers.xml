@@ -47,7 +47,7 @@
     <para><xref linkend="cvar.team_maxArtillery" />, <xref
     linkend="cvar.team_maxFlamers" />, <xref
     linkend="cvar.team_maxGrenLaunchers" /> <xref
-    linkend="cvar.team_maxLandMines" />, <xref linkend="cvar.team_maxM97s" />,
+    linkend="cvar.team_maxLandmines" />, <xref linkend="cvar.team_maxM97s" />,
     <xref linkend="cvar.team_maxMG42s" /> <xref
     linkend="cvar.team_maxMortars" />,</para>
   </refsection>

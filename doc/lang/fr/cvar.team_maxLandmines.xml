@@ -1,20 +1,20 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<refentry id="cvar.team_maxLandMines">
+<refentry id="cvar.team_maxLandmines">
   <refmeta>
-    <refentrytitle>team_maxLandMines</refentrytitle>
+    <refentrytitle>team_maxLandmines</refentrytitle>
 
     <manvolnum>cvar</manvolnum>
   </refmeta>
 
   <refnamediv>
-    <refname>team_maxLandMines</refname>
+    <refname>team_maxLandmines</refname>
 
     <refpurpose>détermine le maximum de mines par équipe</refpurpose>
   </refnamediv>
 
   <refsynopsisdiv>
     <cmdsynopsis>
-      <command>team_maxLandMines</command>
+      <command>team_maxLandmines</command>
 
       <arg><replaceable>num</replaceable></arg>
     </cmdsynopsis>
@@ -24,7 +24,7 @@
     <title>Valeur initiale</title>
 
     <cmdsynopsis>
-      <command>team_maxLandMines</command>
+      <command>team_maxLandmines</command>
 
       <arg choice="plain"><literal>10</literal></arg>
     </cmdsynopsis>
@@ -33,7 +33,7 @@
   <refsection>
     <title>Description</title>
 
-    <para><command>team_maxLandMines</command> détermine le maximum de mines
+    <para><command>team_maxLandmines</command> détermine le maximum de mines
     par équipe posées simultanément. Une valeur de 0 pour
     <replaceable>num</replaceable> annule l'option, <literal>1</literal> ou
     plus spécifie le maximum de mines qu'une équipe peut poser

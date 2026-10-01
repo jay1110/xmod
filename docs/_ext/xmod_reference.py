@@ -200,6 +200,7 @@ def generate(app) -> None:
     compiled = {item.name.lower(): item for item in registrations(root)}
     values = entities(root, app.config.release)
     references: dict[str, Path] = {}
+    page_sources: dict[str, Path] = {}
     entries = []
     for category in ("cmd", "cvar"):
         for source in sorted((root / "doc" / category).glob("*.xml"), key=lambda p: p.name.lower()):
@@ -209,6 +210,13 @@ def generate(app) -> None:
                 raise ValueError(f"Missing refentry in {source}")
             name = entry.findtext("refnamediv/refname", source.stem)
             page = generated / category / f"{name}.md"
+            # Page names must remain unique on case-sensitive and Windows filesystems.
+            page_key = f"{category}/{name}".casefold()
+            if page_key in page_sources:
+                previous = page_sources[page_key].relative_to(root).as_posix()
+                current = source.relative_to(root).as_posix()
+                raise ValueError(f"Duplicate reference page {category}/{name}: {previous} and {current}")
+            page_sources[page_key] = source
             for node in entry.iter():
                 if node.get("id"):
                     references[node.get("id")] = page

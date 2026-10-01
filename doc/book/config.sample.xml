@@ -169,7 +169,7 @@ set &cvar:g_ammoRechargeTime;    "<literal>60000</literal>"
 set &cvar:g_healthRechargeTime;  "<literal>10000</literal>"
 
 set &cvar:team_maxArtillery;  "<literal>6</literal>"
-set &cvar:team_maxLandMines;  "<literal>20</literal>"
+set &cvar:team_maxLandmines;  "<literal>20</literal>"
 
 set &cvar:team_maxFlamers;        "<literal>-1</literal>"
 set &cvar:team_maxGrenLaunchers;  "<literal>-1</literal>"

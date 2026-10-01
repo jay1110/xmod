@@ -5,6 +5,7 @@
 Updated: 2026-10-01 · Unreleased
 
 - **Fixed:**
+  - Removed a duplicate cvar reference that broke Read the Docs builds on Linux.
   - Store relative admin and JXAC logs in the mod directory; default JXAC logs use `jxac/jxac.log`.
   - Prevented duplicate archive members when rebuilding WASM libraries.
   - Moved VPN API checks off the game thread; cancelled stale decisions after disconnects and map changes.
@@ -57,6 +58,7 @@ Updated: 2026-10-01 · Unreleased
 Stand: 01.10.2026 · Noch nicht veröffentlicht
 
 - **Fixed:**
+  - Doppelte Cvar-Referenz entfernt, die Read-the-Docs-Builds unter Linux verhinderte.
   - Relative Admin- und JXAC-Logs im Mod-Verzeichnis abgelegt; JXAC verwendet standardmäßig `jxac/jxac.log`.
   - Doppelte Archiveinträge beim erneuten Bauen der WASM-Bibliotheken verhindert.
   - VPN-API-Prüfungen in den Hintergrund verlegt; veraltete Ergebnisse nach Disconnects und Mapwechseln verworfen.
