@@ -606,10 +606,10 @@ Aktualisieren Sie die Umgebungsvariablen entsprechend.
 
 ## Weiterführende Dokumentation
 
-- [BUILD.md](../BUILD.md) - Allgemeine Build-Anleitung für alle Plattformen
+- [BUILD.md](BUILD.md) - Allgemeine Build-Anleitung für alle Plattformen
 - [BUILD_VS2022.md](BUILD_VS2022.md) - Windows Build mit Visual Studio 2022
-- [README.md](../README.md) - Projekt-Übersicht und Features
-- [notes/BuildSystem.txt](../notes/BuildSystem.txt) - Detaillierte Build-System Dokumentation
+- [README.md](https://github.com/jay1110/xmod/blob/master/README.md) - Projekt-Übersicht und Features
+- [notes/BuildSystem.txt](https://github.com/jay1110/xmod/blob/master/notes/BuildSystem.txt) - Detaillierte Build-System Dokumentation
 
 ## Support
 

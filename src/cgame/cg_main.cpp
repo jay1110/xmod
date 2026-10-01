@@ -31,18 +31,18 @@ This is the only way control passes into the module.
 */
 extern "C" LF_PUBLIC intptr_t
 vmMain( int cmd, 
-            int arg0, 
-            int arg1, 
-            int arg2, 
-            int arg3, 
-            int arg4, 
-            int arg5,
-            int arg6,
-            int arg7,
-            int arg8,
-            int arg9,
-            int arg10,
-            int arg11  )
+            intptr_t arg0,
+            intptr_t arg1,
+            intptr_t arg2,
+            intptr_t arg3,
+            intptr_t arg4,
+            intptr_t arg5,
+            intptr_t arg6,
+            intptr_t arg7,
+            intptr_t arg8,
+            intptr_t arg9,
+            intptr_t arg10,
+            intptr_t arg11  )
 {
 	switch ( cmd ) {
 	case CG_INIT:
@@ -729,6 +729,7 @@ CG_UpdateCvars
 =================
 */
 void CG_UpdateCvars( void ) {
+    CG_UpdateForcedCvars();
     needClientFlagsUpdated = false; // must come before Cvar global update.
     Cvar::update();
 
@@ -2239,6 +2240,7 @@ static void CG_RegisterGraphics( void ) {
 	cgs.media.limboWeaponCard2 =				trap_R_RegisterShaderNoMip( "gfx/limbo/weaponcard02"	);
 	cgs.media.limboWeaponCardArrow =			trap_R_RegisterShaderNoMip( "gfx/limbo/weap_dnarrow.tga");
     cgs.media.limboWeaponCard_M97 =             trap_R_RegisterShaderNoMip( "models/weapons2/m97/card.tga" );
+    cgs.media.limboWeaponCard3 =                trap_R_RegisterShaderNoMip( "gfx/limbo/weaponcard03" );
 
 	cgs.media.limboObjectiveBack[0]	=			trap_R_RegisterShaderNoMip( "gfx/limbo/objective_back_axis" );
 	cgs.media.limboObjectiveBack[1]	=			trap_R_RegisterShaderNoMip( "gfx/limbo/objective_back_allied" );
@@ -2988,7 +2990,8 @@ Will perform callbacks to make the loading info screen update.
 #define DEBUG_INITPROFILE_EXEC(f) if( developer.integer ) { CG_Printf("^5%s passed in %i msec\n", f, elapsed = trap_Milliseconds()-dbgTime );  dbgTime += elapsed; }
 #endif // _DEBUG
 void CG_Init( int serverMessageNum, int serverCommandSequence, int clientNum, qboolean demoPlayback ) {
-    memcpy( ammoTableMP_BACKUP, ammoTableMP, sizeof(ammoTableMP_BACKUP) );
+    BG_InitWeaponScriptState();
+    CG_ClearForcedCvars();
 
 	const char	*s;
 	int			i;
@@ -3292,7 +3295,7 @@ void CG_Init( int serverMessageNum, int serverCommandSequence, int clientNum, qb
 	// lost (models, sounds, shaders, etc.), but the server does not call
 	// ClientBegin again. This command tells the server to re-queue the
 	// deferred NCS/XCS sends for this client.
-	trap_SendConsoleCommand( "xmod_request\n" );
+	trap_SendClientCommand( "xmod_request" );
 
     // Read in map locations
     locationDB.load();

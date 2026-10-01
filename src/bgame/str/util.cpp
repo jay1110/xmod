@@ -636,6 +636,7 @@ toString( weapon_t type, string& out )
         case WP_TRIPMINE:              out = "TRIPMINE";              return out;
         case WP_MOLOTOV:               out = "MOLOTOV";               return out;
         case WP_BOMB:                  out = "BOMB";                  return out;
+        case WP_BOMB_ALLIES:                  out = "BOMB";                  return out;
 
         default:
             break;

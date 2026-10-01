@@ -38,7 +38,10 @@ Unnospam::doExecute( Context& txt )
         return PA_ERROR;
     }
 
-    G_UnnospamPlayer( &target->gentity );
+    if (!G_UnnospamPlayer(&target->gentity)) {
+        txt._ebuf << "Unable to remove nospam from SQLite.";
+        return PA_ERROR;
+    }
     trap_SendServerCommand( target->slot, "cp \"^xYour nospam restriction has been removed.\n\"" );
 
     Buffer buf;

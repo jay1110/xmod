@@ -1,0 +1,333 @@
+name: Native Unix server builds
+
+on:
+  workflow_call:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+# No API keys or external classification requests are needed for this check.
+env:
+  VPN_SMOKE_SOURCE: |
+    #include "game/vpn_service.h"
+    #define QDECL
+    #include "bgame/native_syscall.h"
+    #include <cstdarg>
+    #include <chrono>
+    #include <cstdio>
+    #include <cstdlib>
+    #include <dlfcn.h>
+    #include <pthread.h>
+    #include <signal.h>
+    #include <thread>
+    using namespace vpnblocker;
+    using Clock = std::chrono::steady_clock;
+    void require(bool ok) { if (!ok) std::abort(); }
+    intptr_t expectedAddress;
+    intptr_t QDECL receiveTrap(intptr_t command, ...) {
+      require(command == 71);
+      va_list args;
+      va_start(args, command);
+      require(va_arg(args, intptr_t) == -77);
+      require(va_arg(args, intptr_t) == 0x20000009);
+      require(va_arg(args, intptr_t) == expectedAddress);
+      require(va_arg(args, intptr_t) == -1337);
+      va_end(args);
+      return expectedAddress;
+    }
+    int main(int argc, char** argv) {
+      // In particular on Apple ARM64, every variadic slot must be intptr_t.
+      int stackValue = 42;
+      expectedAddress = reinterpret_cast<intptr_t>(&stackValue);
+      NativeSyscall syscall;
+      syscall = receiveTrap;
+      require(syscall(71, -77, 0x20000009, &stackValue) == expectedAddress);
+      require(supported());
+      sigset_t originalMask;
+      require(pthread_sigmask(SIG_SETMASK, nullptr, &originalMask) == 0);
+      // Exercise system libcurl initialization and module pinning without HTTP.
+      { Service nativeTransport; nativeTransport.stop(); }
+      std::string ip, diagnostic;
+      require(NormalizeAddress("8.8.8.8:27960", ip) && ip == "8.8.8.8");
+      require(!NormalizeAddress("127.0.0.1", ip));
+      require(ParseProviderResponse(Provider::VpnApi,
+        R"({"security":{"vpn":true,"proxy":false,"tor":false,"relay":false}})", diagnostic)
+        == Verdict::Blocked);
+      require(ParseProviderResponse(Provider::VpnApi, "{}", diagnostic) == Verdict::Unknown);
+      std::atomic<bool> entered(false), release(false);
+      Service service([&](const Config&, const std::string&, const std::atomic<bool>& cancel,
+                         std::string&) {
+        sigset_t workerMask;
+        require(pthread_sigmask(SIG_SETMASK, nullptr, &workerMask) == 0);
+        require(sigismember(&workerMask, SIGPIPE) == 1);
+        entered = true;
+        while (!release && !cancel) std::this_thread::sleep_for(std::chrono::milliseconds(1));
+        return Verdict::Blocked;
+      });
+      const Config config{"test-only-no-network", ""};
+      require(service.submit(1, "8.8.8.8", config));
+      auto deadline = Clock::now() + std::chrono::seconds(5);
+      while (!entered && Clock::now() < deadline) std::this_thread::yield();
+      require(entered);
+      // The transport is deliberately held. Polling/game-loop work must continue.
+      for (int frame = 0; frame < 100; ++frame) require(service.poll().empty());
+      release = true;
+      std::vector<Result> results;
+      while (results.empty() && Clock::now() < deadline) {
+        results = service.poll();
+        std::this_thread::sleep_for(std::chrono::milliseconds(1));
+      }
+      require(results.size() == 1 && results[0].id == 1 && results[0].verdict == Verdict::Blocked);
+      entered = false; release = false;
+      require(service.submit(2, "1.1.1.1", config));
+      deadline = Clock::now() + std::chrono::seconds(5);
+      while (!entered && Clock::now() < deadline) std::this_thread::yield();
+      require(entered);
+      const auto stopping = Clock::now();
+      service.stop();
+      require(Clock::now() - stopping < std::chrono::seconds(2));
+      require(service.poll().empty());
+      sigset_t finalMask;
+      require(pthread_sigmask(SIG_SETMASK, nullptr, &finalMask) == 0);
+      require(sigismember(&originalMask, SIGPIPE) == sigismember(&finalMask, SIGPIPE));
+      if (argc == 2) {
+        void* module = dlopen(argv[1], RTLD_NOW | RTLD_LOCAL);
+        if (!module) { std::fprintf(stderr, "%s\n", dlerror()); return 1; }
+        require(dlsym(module, "dllEntry") && dlsym(module, "vmMain"));
+        require(dlclose(module) == 0);
+      }
+      std::puts("Native syscall ABI, VPN parser, background polling, cancellation and module loading passed");
+    }
+
+jobs:
+  build:
+    name: ${{ matrix.label }}
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          # Pin the glibc baseline instead of silently raising it with ubuntu-latest.
+          - label: Linux x86_64
+            runner: ubuntu-22.04
+            platform: linux64
+            artifact: xmod-linux64
+            arch: x86_64
+            compiler: g++
+            flags: -m64
+            suffix: .mp.x86_64.so
+          - label: Linux i386
+            runner: ubuntu-22.04
+            platform: linux
+            artifact: xmod-linux32
+            arch: i386
+            compiler: g++
+            flags: -m32
+            suffix: .mp.i386.so
+          - label: Linux ARM64
+            runner: ubuntu-22.04-arm
+            platform: linux-aarch64
+            artifact: xmod-linux-arm64
+            arch: aarch64
+            compiler: g++
+            flags: ''
+            suffix: .mp.aarch64.so
+          - label: macOS Intel
+            runner: macos-15-intel
+            platform: osx64
+            artifact: xmod-macos-x86_64
+            arch: x86_64
+            compiler: /usr/bin/clang++
+            flags: -arch x86_64
+            suffix: _mac.binary
+          - label: macOS Apple Silicon
+            runner: macos-15
+            platform: osx-arm64
+            artifact: xmod-macos-arm64
+            arch: arm64
+            compiler: /usr/bin/clang++
+            flags: -arch arm64
+            suffix: _mac.binary
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Install Linux dependencies
+        if: runner.os == 'Linux'
+        env:
+          BUILD_ARCH: ${{ matrix.arch }}
+        run: |
+          if [ "$BUILD_ARCH" = i386 ]; then
+            sudo dpkg --add-architecture i386
+            sudo apt-get update
+            sudo apt-get install -y build-essential python3 zip m4 gcc-multilib g++-multilib libcurl4-openssl-dev:i386
+          else
+            sudo apt-get update
+            sudo apt-get install -y build-essential python3 zip m4 libcurl4-openssl-dev
+          fi
+
+      - name: Select macOS SDK and deployment target
+        if: runner.os == 'macOS'
+        env:
+          BUILD_ARCH: ${{ matrix.arch }}
+        run: |
+          echo "SDKROOT=$(xcrun --sdk macosx --show-sdk-path)" >> "$GITHUB_ENV"
+          if [ "$BUILD_ARCH" = arm64 ]; then
+            echo 'MACOSX_DEPLOYMENT_TARGET=11.0' >> "$GITHUB_ENV"
+          else
+            echo 'MACOSX_DEPLOYMENT_TARGET=10.15' >> "$GITHUB_ENV"
+          fi
+          # Use Apple's SDK libcurl, never a Homebrew-only runtime dependency.
+          test -f "$(xcrun --sdk macosx --show-sdk-path)/usr/include/curl/curl.h"
+
+      - name: Build native modules
+        env:
+          PLATFORM: ${{ matrix.platform }}
+        run: |
+          chmod +x project/info.py
+          make VARIANT=release all MODULES="src/lua src/sqlite3 src/jsoncpp src/base src/game src/cgame src/ui" -j2
+
+      - name: Check VPN worker and load server module
+        timeout-minutes: 2
+        env:
+          PLATFORM: ${{ matrix.platform }}
+          PROBE_CXX: ${{ matrix.compiler }}
+          PROBE_FLAGS: ${{ matrix.flags }}
+          MODULE_SUFFIX: ${{ matrix.suffix }}
+          BUILD_ARCH: ${{ matrix.arch }}
+        run: |
+          mkdir -p build/vpn-ci
+          printf '%s\n' "$VPN_SMOKE_SOURCE" > build/vpn-ci/check.cpp
+          module="build.$PLATFORM-release/game/qagame$MODULE_SUFFIX"
+          "$PROBE_CXX" $PROBE_FLAGS -std=c++17 -pthread -Isrc -Isrc/jsoncpp \
+            build/vpn-ci/check.cpp src/game/vpn_service.cpp src/game/vpn_http.cpp \
+            "build.$PLATFORM-release/jsoncpp/libjsoncpp.a" -lcurl -ldl -o build/vpn-ci/check
+          build/vpn-ci/check "$PWD/$module"
+          if [ "$RUNNER_OS" = macOS ]; then
+            lipo -verify_arch "$BUILD_ARCH" "$module"
+            otool -L "$module"
+            otool -L "$module" | grep -q '/usr/lib/libcurl'
+            if otool -L "$module" | grep -Eq '/opt/homebrew|/usr/local'; then
+              echo 'Unexpected local dependency in distributable module' >&2
+              exit 1
+            fi
+          else
+            file "$module"
+            readelf -h "$module"
+            ldd "$module"
+            ldd "$module" | grep -q 'libcurl.so.4'
+            if ldd "$module" | grep -q 'not found'; then exit 1; fi
+          fi
+
+      - name: Collect modules
+        env:
+          PLATFORM: ${{ matrix.platform }}
+          MODULE_SUFFIX: ${{ matrix.suffix }}
+        run: |
+          mkdir -p artifacts
+          cp "build.$PLATFORM-release/game/qagame$MODULE_SUFFIX" artifacts/
+          cp "build.$PLATFORM-release/cgame/cgame$MODULE_SUFFIX" artifacts/
+          cp "build.$PLATFORM-release/ui/ui$MODULE_SUFFIX" artifacts/
+
+      - uses: actions/upload-artifact@v7
+        with:
+          name: ${{ matrix.artifact }}
+          path: artifacts/*
+          if-no-files-found: error
+
+  macos-universal:
+    name: Package macOS Intel and Apple Silicon
+    needs: build
+    runs-on: macos-15
+    steps:
+      - uses: actions/download-artifact@v8
+        with:
+          pattern: xmod-macos-*
+          path: artifacts
+      - name: Create universal modules and legacy bundles
+        run: |
+          mkdir -p universal
+          for name in qagame cgame ui; do
+            file="${name}_mac"
+            bundle="universal/${file}.bundle"
+            mkdir -p "$bundle/Contents/MacOS"
+            lipo -create "artifacts/xmod-macos-x86_64/$file.binary" \
+              "artifacts/xmod-macos-arm64/$file.binary" -output "$bundle/Contents/MacOS/$file"
+            lipo -verify_arch x86_64 arm64 "$bundle/Contents/MacOS/$file"
+            /usr/libexec/PlistBuddy -c "Add :CFBundleExecutable string $file" "$bundle/Contents/Info.plist"
+            /usr/libexec/PlistBuddy -c "Add :CFBundleName string $file" "$bundle/Contents/Info.plist"
+            /usr/libexec/PlistBuddy -c 'Add :CFBundlePackageType string BNDL' "$bundle/Contents/Info.plist"
+            (cd universal && zip -rq - "$file.bundle") > "universal/$file"
+          done
+      - uses: actions/upload-artifact@v7
+        with:
+          name: xmod-macos
+          path: |
+            universal/qagame_mac
+            universal/cgame_mac
+            universal/ui_mac
+          if-no-files-found: error
+
+  distro-load:
+    name: Load glibc server on ${{ matrix.image }}
+    needs: build
+    runs-on: ubuntu-22.04
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - image: debian:12
+            install: apt-get update && apt-get install -y python3 libcurl4 libstdc++6
+          - image: ubuntu:24.04
+            install: apt-get update && apt-get install -y python3 libcurl4 libstdc++6
+          # Older enterprise runtimes need a native rebuild, not this prebuilt
+          # Ubuntu libstdc++ ABI. Fedora's current runtime can load this build.
+          - image: fedora:44
+            install: dnf install -y python3 libcurl-minimal libstdc++
+    steps:
+      - uses: actions/download-artifact@v8
+        with:
+          name: xmod-linux64
+          path: modules
+      - name: Load server with the distribution's runtime libraries
+        env:
+          DISTRO_IMAGE: ${{ matrix.image }}
+          DISTRO_INSTALL: ${{ matrix.install }}
+        run: |
+          docker run --rm -v "$PWD/modules:/modules:ro" -e DISTRO_INSTALL \
+            "$DISTRO_IMAGE" sh -ec '
+              eval "$DISTRO_INSTALL"
+              python3 -c "import ctypes; m=ctypes.CDLL(\"/modules/qagame.mp.x86_64.so\"); assert m.dllEntry and m.vmMain; print(\"Server module loaded\")"
+            '
+
+  musl:
+    name: Alpine musl x86_64 server
+    runs-on: ubuntu-22.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v6
+      - name: Compile and check native musl modules
+        run: |
+          mkdir -p build/vpn-ci
+          printf '%s\n' "$VPN_SMOKE_SOURCE" > build/vpn-ci/check.cpp
+          docker run --rm -v "$PWD:/src" -w /src alpine:3.22 sh -ec '
+            apk add --no-cache build-base python3 zip m4 curl-dev
+            chmod +x project/info.py
+            make PLATFORM=linux64 VARIANT=release all \
+              MODULES="src/lua src/sqlite3 src/jsoncpp src/base src/game src/cgame src/ui" -j2
+            g++ -std=c++17 -pthread -Isrc -Isrc/jsoncpp build/vpn-ci/check.cpp \
+              src/game/vpn_service.cpp src/game/vpn_http.cpp build.linux64-release/jsoncpp/libjsoncpp.a \
+              -lcurl -ldl -o build/vpn-ci/check-musl
+            build/vpn-ci/check-musl "$PWD/build.linux64-release/game/qagame.mp.x86_64.so"
+            mkdir -p artifacts
+            cp build.linux64-release/game/qagame.mp.x86_64.so artifacts/
+            cp build.linux64-release/cgame/cgame.mp.x86_64.so artifacts/
+            cp build.linux64-release/ui/ui.mp.x86_64.so artifacts/
+          '
+      - uses: actions/upload-artifact@v7
+        with:
+          name: xmod-linux-musl64
+          path: artifacts/*.so
+          if-no-files-found: error

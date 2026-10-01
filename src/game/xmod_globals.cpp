@@ -229,24 +229,41 @@ void setClientNospamLastChat(int clientNum, time_t lastChat) {
     }
 }
 
+bool saveClientNospam(int clientNum, time_t expiry) {
+    if (clientNum < 0 || clientNum >= MAX_CLIENTS || !g_database || !g_database->isOpened()) return false;
+    Session* session = g_sessions[clientNum];
+    return session && session->isAuthenticated() &&
+           g_database->setNospamExpiry(session->getUserId(), expiry);
+}
+
 bool isClientNospamAllowed(int clientNum) {
-    if (clientNum < 0 || clientNum >= MAX_CLIENTS) {
-        return true;
+    if (clientNum < 0 || clientNum >= MAX_CLIENTS) return false;
+    Session* session = g_sessions[clientNum];
+    // A reconnect must not create a window for bypassing persistent sanctions
+    // before the client has supplied its GUID. Bots do not authenticate.
+    if (!(g_entities[clientNum].r.svFlags & SVF_BOT) &&
+        (!session || !session->isAuthenticated())) return false;
+    if (!isClientNospammed(clientNum)) return true;
+    const time_t now = time(NULL);
+    const time_t expiry = getClientNospamExpiry(clientNum);
+    if (expiry > 0 && now >= expiry) return true;
+    const time_t lastChat = getClientNospamLastChat(clientNum);
+    if (lastChat && (now < lastChat || now - lastChat < 60)) return false;
+    // Commit before sending so reconnects cannot reset the one-minute window.
+    if (!g_database || !g_database->isOpened() || !session || !session->isAuthenticated() ||
+        !g_database->setNospamLastChat(session->getUserId(), now)) return false;
+    setClientNospamLastChat(clientNum, now);
+    return true;
+}
+
+bool checkClientNospam(int clientNum) {
+    if (isClientNospamAllowed(clientNum)) return true;
+    if (clientNum >= 0 && clientNum < MAX_CLIENTS &&
+        (!g_sessions[clientNum] || !g_sessions[clientNum]->isAuthenticated())) {
+        trap_SendServerCommand(clientNum, "cp \"^3Please wait for authentication before sending messages.\"");
+        return false;
     }
-    
-    if (!isClientNospammed(clientNum)) {
-        return true;
-    }
-    
-    time_t now = time(NULL);
-    time_t lastChat = getClientNospamLastChat(clientNum);
-    
-    // Allow if 60 seconds have passed since last message
-    if (now - lastChat >= 60) {
-        setClientNospamLastChat(clientNum, now);
-        return true;
-    }
-    
+    trap_SendServerCommand(clientNum, "cp \"^xNospam: ^7You can only send 1 message or sound per minute.\n\"");
     return false;
 }
 

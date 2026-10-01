@@ -206,6 +206,8 @@ qboolean OnClientCommand(int clientNum, const char* cmd) {
 	// NCS/XCS data is lost, but the server doesn't call ClientBegin again.
 	if (Q_stricmp(cmd, "xmod_request") == 0) {
 		if (clientNum >= 0 && clientNum < MAX_CLIENTS) {
+			// The renderer reloads cgame without a new engine ClientBegin.
+			jxac::Server::clientBegin(clientNum);
 			G_SendXmodCS( clientNum );
 		}
 		return qtrue;

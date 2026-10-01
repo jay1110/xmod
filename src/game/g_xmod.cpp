@@ -2,6 +2,8 @@
 #include <game/xmod_database.h>
 #include <game/xmod_globals.h>
 #include <game/g_weaponscripts.h>
+#include <game/jxac/jxac_server.h>
+#include <bgame/chat_text.h>
 #include <omnibot/et/g_etbot_interface.h>
 
 /*
@@ -430,13 +432,10 @@ void G_PrivateMessage( gentity_t *ent )
 	// Message
     string message;
     str::concatArgs( args, message, 2 );
-
-    // Prepare our blind carbon copy
-    Buffer bcc;
+    if (message.empty() || !::xmod::checkClientNospam(clientIndex)) return;
 
 	// Send to subscribers
     {
-        int pmcount = 0;
         const set<int>::iterator max = subscribers.end();
         for ( set<int>::iterator it = subscribers.begin(); it != max; it++ ) {
             Client& c = g_clientObjects[*it];
@@ -452,12 +451,11 @@ void G_PrivateMessage( gentity_t *ent )
 
 		    // Send message
             {
-                Buffer buf;
-                buf << xvalue( senderNamex ) << " -> " << xvalue( recipientNamex ) << " (" << xvalue( nsubs ) << "): "
-                    << xcbold << message;
-                cmd::printPm( &c, buf, true );
+                trap_SendServerCommand(c.slot,
+                    XmodPrivateCommand(senderNamex, recipientNamex, (int)nsubs, message, true).c_str());
 
-    		    CPx( c.slot, va( "cp \"^3Private message from ^7%s^3.\"", senderNamex.c_str() ));
+		    trap_SendServerCommand(c.slot, XmodChatCommand("cp", "^3Private message from ^7",
+                    senderNamex + "^3.", "").c_str());
 
                 // Store in recipient's PM history
                 c.addPmHistory( senderName, message );
@@ -465,14 +463,11 @@ void G_PrivateMessage( gentity_t *ent )
 
             // bcc: self
             {
-                Buffer buf;
-                if (pmcount++)
-                    bcc << '\n';
-                bcc << "PM -> " << xvalue( recipientNamex ) << ": " << message;
+                trap_SendServerCommand(actor.slot, XmodChatCommand("tchat",
+                    "PM -> ^7" + recipientNamex + "^7: ", message, " -1 0 0").c_str());
             }
         }
 
-        cmd::printChat( &actor, bcc );
 	}
 
 	// Send to  admins
@@ -481,10 +476,8 @@ void G_PrivateMessage( gentity_t *ent )
         for ( set<int>::iterator it = admins.begin(); it != max; it++ ) {
             Client& c = g_clientObjects[*it];
 
-            Buffer buf;
-            buf << xvalue( senderNamex ) << " -> " << xvalue( args[1] ) << " (" << xvalue( nsubs ) << "): "
-                << xcbold << message;
-            cmd::printPm( &c, buf, false );
+            trap_SendServerCommand(c.slot,
+                XmodPrivateCommand(senderNamex, args[1], (int)nsubs, message, false).c_str());
         }
     }
 
@@ -551,6 +544,7 @@ void G_AdminChat( gentity_t *ent )
 	// Message
     string message;
     str::concatArgs( args, message, 1 );
+    if (message.empty() || !::xmod::checkClientNospam(clientIndex)) return;
 
     // Build admin list
     set<int> admins;
@@ -579,9 +573,10 @@ void G_AdminChat( gentity_t *ent )
         for ( set<int>::iterator it = admins.begin(); it != max; it++ ) {
             Client& c = g_clientObjects[*it];
 
-            Buffer buf;
-            buf << "^3[AdminChat] " << xvalue( senderNamex ) << "^3: " << xcbold << message;
-            cmd::printChat( &c, buf );
+            // Raw chat preserves ET/UTF-8 bytes that the legacy formatting
+            // buffer treats as internal control codes.
+            trap_SendServerCommand(c.slot, XmodChatCommand("tchat",
+                "^3[AdminChat] ^7" + senderNamex + "^3: ", message, " -1 0 0").c_str());
         }
     }
 
@@ -1188,9 +1183,9 @@ void G_ChatShortcuts(gentity_t *ent, string &buf) {
 
     buf = result.str();
 
-    // Make sure the text isn't too long
-    if (buf.length() >= MAX_SAY_TEXT)
-        buf.resize(MAX_SAY_TEXT - 1);
+    // Shortcuts expand after the input budget. G_SayTo bounds the complete
+    // protocol envelope, so names/locations no longer eat the user's text.
+    if (buf.length() > 1000) buf.resize(1000);
 }
 
 /*
@@ -1459,6 +1454,7 @@ void G_SendXmodCS( int clientNum ) {
     }
 
     // Mark this client for deferred XCS + NCS sends
+    jxac::Server::queueForcedCvars(clientNum);
     level.xcsPendingPhase[clientNum] = 0;
     level.ncsPendingNext[clientNum] = 0;
 }
@@ -1476,7 +1472,8 @@ void G_SendXmodCS( int clientNum ) {
 #define XCS_PHASE_CHARGE    (XCS_PHASE_MAPXP_B + 1)
 #define XCS_PHASE_FILTER    (XCS_PHASE_CHARGE + 1)
 #define XCS_PHASE_ENDGAME   (XCS_PHASE_FILTER + 1)
-#define XCS_PHASE_DONE      (XCS_PHASE_ENDGAME + 1)
+#define XCS_PHASE_AWARDS    (XCS_PHASE_ENDGAME + 1)
+#define XCS_PHASE_DONE      (XCS_PHASE_AWARDS + 1)
 
 /*
 ================
@@ -1556,6 +1553,12 @@ static int G_SendXcsPhased( int clientNum ) {
             sent = 1;
         }
         break;
+    case XCS_PHASE_AWARDS:
+        if (level.rpcsRoundAwards[0]) {
+            trap_SendServerCommand(clientNum, va("xcs awards \"%s\"", level.rpcsRoundAwards));
+            sent = 1;
+        }
+        break;
     case XCS_PHASE_ENDGAME:
         if ( level.rpcsEndgameStats[0] ) {
             trap_SendServerCommand( clientNum, va("xcs e \"%s\"", level.rpcsEndgameStats) );
@@ -1569,15 +1572,7 @@ static int G_SendXcsPhased( int clientNum ) {
             weaponScriptDef_t *script = G_GetWeaponScript( wpIdx );
             if ( script && script->hasScript ) {
                 char wcs[MAX_INFO_STRING];
-                wcs[0] = '\0';
-                if ( script->name[0] )
-                    Info_SetValueForKey( wcs, "n", script->name );
-                if ( script->killMessage[0] )
-                    Info_SetValueForKey( wcs, "k", script->killMessage );
-                if ( script->killMessage2[0] )
-                    Info_SetValueForKey( wcs, "l", script->killMessage2 );
-                if ( script->selfKillMessage[0] )
-                    Info_SetValueForKey( wcs, "s", script->selfKillMessage );
+                G_BuildWeaponScriptInfo(wpIdx, wcs, sizeof(wcs));
                 trap_SendServerCommand( clientNum, va("xcs w %i \"%s\"", wpIdx, wcs) );
                 sent = 1;
             }
@@ -1641,6 +1636,7 @@ void G_ProcessPendingCommands( void ) {
         }
 
         int budget = CMDS_PER_CLIENT_PER_FRAME;
+        budget -= jxac::Server::sendPendingForcedCvar(c);
 
         // 2a: Send XCS commands incrementally (one per call, phased)
         // Empty phases (no weapon scripts, no data) are skipped without consuming budget.
@@ -1761,7 +1757,7 @@ void G_RunPoisonEvents( gentity_t *ent ) {
 
 			// Damage
 			if ((g_friendlyFire.integer & FF_ENABLE) || !OnSameTeam( ent, attacker )) {
-				G_Damage( ent, attacker, attacker, 0, 0, POISONDAMAGE, 0, MOD_POISON_SYRINGE );
+				G_Damage( ent, attacker, attacker, 0, 0, (int)BG_WeaponScriptValue(WP_POISON_SYRINGE, WSF_DAMAGE, POISONDAMAGE), 0, MOD_POISON_SYRINGE );
 				// XP
 				if( !OnSameTeam( ent, attacker ) ) {
 					G_AddSkillPoints( attacker, SK_BATTLE_SENSE, 0.5f );
@@ -2273,6 +2269,7 @@ qboolean G_IsKickableCanister( int weapon ) {
 		case WP_SMOKE_MARKER:
 		case WP_SMOKE_BOMB:
 		case WP_POISON_GAS:
+		case WP_BOMB_ALLIES:
 		case WP_BOMB:
 			return qtrue;
 		default:
@@ -2553,6 +2550,7 @@ bool G_NospamPlayer(gentity_t* ent, time_t expiry)
         return false;
     }
 
+    if (!::xmod::saveClientNospam(clientNum, expiry ? expiry : (time_t)-1)) return false;
     ::xmod::setClientNospammed(clientNum, true);
     ::xmod::setClientNospamExpiry(clientNum, expiry);
     ::xmod::setClientNospamLastChat(clientNum, 0);
@@ -2568,6 +2566,10 @@ bool G_UnnospamPlayer(gentity_t* ent)
         return false;
     }
 
+    // An expired database row also restores as inactive. A cleanup write error
+    // must not keep retrying/notifying every user command after expiration.
+    const time_t expiry = ::xmod::getClientNospamExpiry(clientNum);
+    if (!::xmod::saveClientNospam(clientNum, 0) && !(expiry > 0 && expiry <= time(NULL))) return false;
     ::xmod::setClientNospammed(clientNum, false);
     ::xmod::setClientNospamExpiry(clientNum, 0);
     ::xmod::setClientNospamLastChat(clientNum, 0);
@@ -2762,7 +2764,7 @@ void G_AntiRushInit( void ) {
     level.antirushEndTime = 0;
     antirushProtectedObjectives.clear();
 
-    if ( !g_antirush.integer )
+    if ( g_antirush.integer != 1 )
         return;
 
     if ( g_antirushTime.integer <= 0 )
@@ -2812,7 +2814,7 @@ Returns qtrue if the antirush timer is still active.
 ===================
 */
 qboolean G_AntiRushActive( void ) {
-    if ( !g_antirush.integer )
+    if ( g_antirush.integer != 1 )
         return qfalse;
 
     if ( !level.antirushEndTime )
@@ -2833,7 +2835,7 @@ announces to all clients and unfreezes antirush-frozen players.
 ===================
 */
 void G_AntiRushCheck( void ) {
-    if ( !g_antirush.integer )
+    if ( g_antirush.integer != 1 )
         return;
 
     if ( !level.antirushEndTime )
@@ -2859,7 +2861,7 @@ Sends antirush status message to a connecting client.
 ===================
 */
 void G_AntiRushNotify( int clientNum ) {
-    if ( !g_antirush.integer )
+    if ( g_antirush.integer != 1 )
         return;
 
     if ( !G_AntiRushActive() )

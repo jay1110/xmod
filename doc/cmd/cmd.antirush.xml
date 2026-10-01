@@ -1,0 +1,6 @@
+<refentry id="cmd.antirush">
+<refmeta><refentrytitle>antirush</refentrytitle><manvolnum>1</manvolnum></refmeta>
+<refnamediv><refname>antirush</refname><refpurpose>Manage native Antirush protection.</refpurpose></refnamediv>
+<refsynopsisdiv><cmdsynopsis><command>!antirush</command><arg><replaceable>status | on | off</replaceable></arg></cmdsynopsis></refsynopsisdiv>
+<refsection><title>Description</title><para>Requires g_admin 1 and confirmed internal GUID authentication for players. C/antirush or the configured management level grants access; explicit ACL denials override legacy access. On/off persists the native switch and selects g_antirush 2 only after saving succeeds. Keep g_antirush 2 in the startup configuration. Status reports mode and remaining protection. Console antirush uses the same admin system.</para></refsection>
+</refentry>

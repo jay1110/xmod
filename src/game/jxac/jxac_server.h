@@ -40,6 +40,8 @@ public:
     // CVAR checking
     static void requestCvarCheck( int clientNum );
     static void requestForcedCvarCheck( int clientNum );
+    static void queueForcedCvars(int clientNum);
+    static int sendPendingForcedCvar(int clientNum);
     static void handleCvarResponse( int clientNum, const char* cvarName, const char* value );
     static void loadCvarConfig( const char* filename );
     static void reloadConfig();

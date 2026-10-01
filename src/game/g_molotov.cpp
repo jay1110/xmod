@@ -168,12 +168,12 @@ run( gentity_t* ent )
         if (target.takedamage && target.health > 0) {
             switch (target.s.eType) {
                 case ET_PLAYER:
-                    G_Damage( &target, ent, &g_entities[ent->r.ownerNum], dvel, tr.endpos, 20, 0, ent->methodOfDeath );
+                    G_Damage( &target, ent, &g_entities[ent->r.ownerNum], dvel, tr.endpos, (int)BG_WeaponScriptValue(WP_MOLOTOV, WSF_DAMAGE, 20), 0, ent->methodOfDeath );
                     G_AddEvent( &target, EV_BONK, 0 );
                     break;
 
                 case ET_EXPLOSIVE:
-                    G_Damage( &target, ent, &g_entities[ent->r.ownerNum], dvel, tr.endpos, 10, 0, ent->methodOfDeath );
+                    G_Damage( &target, ent, &g_entities[ent->r.ownerNum], dvel, tr.endpos, (int)BG_WeaponScriptValue(WP_MOLOTOV, WSF_DAMAGE, 10), 0, ent->methodOfDeath );
                     // if we killed target then unlink and redo trace to fly through it
                     if (target.health <= 0) {
                         if (target.r.linked) {
@@ -404,7 +404,7 @@ Chunk::compute()
 {
     _alarmTime = 0;
 
-    const float boxradius = chunkRadius * 1.41421356f;
+    const float boxradius = BG_WeaponScriptValue(WP_MOLOTOV, WSF_SPLASH_RADIUS, chunkRadius) * 1.41421356f;
 
     _mins[0] = _origin[0] - boxradius;
     _mins[1] = _origin[1] - boxradius;
@@ -464,10 +464,11 @@ Chunk::inflictDamage()
         G_AdjustedDamageVec( &ent, _origin, v );
 
         float dist = VectorLength( v );
-        if (dist >= chunkRadius)
+        float radius = BG_WeaponScriptValue(WP_MOLOTOV, WSF_SPLASH_RADIUS, chunkRadius);
+        if (radius <= 0 || dist >= radius)
             continue;
 
-        const int points = (int)(40.0f * (1.0f - dist / chunkRadius ));
+        const int points = (int)(BG_WeaponScriptValue(WP_MOLOTOV, WSF_SPLASH_DAMAGE, 40) * (1.0f - dist / radius));
 
         if (!CanDamage( &ent, _origin ))
             continue;

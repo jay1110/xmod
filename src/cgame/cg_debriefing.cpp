@@ -1292,18 +1292,7 @@ qboolean CG_Debriefing_Draw( void ) {
 
 	CG_Debriefing_InfoRequests();
 
-	// Draw widescreen side bars (like limbo panel)
-	if( cgs.glconfig.windowAspect != RATIO43 ) {
-		float xoffset = Ccg_WideXoffset() * cgs.screenXScale * cgs.r43da;
-		if( !cgs.media.backTileShader ) {
-			cgs.media.backTileShader = trap_R_RegisterShaderNoMip( "gfx/2d/backtile" );
-		}
-		trap_R_DrawStretchPic( 0, 0, xoffset, cgs.glconfig.vidHeight, 0, 0, 1, 1, cgs.media.backTileShader );
-		trap_R_DrawStretchPic( cgs.glconfig.vidWidth - xoffset, 0, xoffset, cgs.glconfig.vidHeight, 0, 0, 1, 1, cgs.media.backTileShader );
-	}
-
-	// Fill background with black (full widescreen width)
-	CG_FillRect( -10, -10, Ccg_WideX(SCREEN_WIDTH) + 20, 490, colorBlack );
+	// Keep the intermission camera visible behind the translucent panels.
 
 	if( trap_Key_GetCatcher() & KEYCATCH_UI ) {
 		return qtrue;
@@ -2478,6 +2467,29 @@ void CG_Debreifing2_Awards_Draw( panel_button_t* button ) {
 	if( !cgs.dbAwardsParsed ) {
 		CG_Debreifing2_Awards_Parse();
 	}
+
+    if (cgs.rpcsRoundAwards[0]) {
+        roundAwardDisplay_t awards[XMOD_ROUND_AWARDS];
+        if (!ParseRoundAwards(cgs.rpcsRoundAwards, awards)) return;
+        for (int i = 0; i < XMOD_ROUND_AWARDS; ++i) {
+            if (!awards[i].team || !awards[i].name[0]) continue;
+            CG_DrawPic(button->rect.x + 4, y + 2, 12, 12,
+                trap_R_RegisterShaderNoMip(va("gfx/awards/%d", roundAwardIconIds[i])));
+            CG_Text_Paint_Ext(button->rect.x + 20, y + 12, .18f, .18f, clrTxtBck,
+                roundAwardTitles[i], 0, 0, 0, &cgs.media.limboFont2);
+            CG_DrawPic(button->rect.x + 208, y + 4, 13, 9,
+                awards[i].team == TEAM_AXIS ? cgs.media.axisFlag : cgs.media.alliedFlag);
+            // Fit long colored names and values inside the existing panel.
+            float scale = .18f;
+            float width = CG_Text_Width_Ext(awards[i].name, scale, 0, &cgs.media.limboFont2);
+            float available = button->rect.w - 230;
+            if (width > available && width > 0) scale *= available / width;
+            CG_Text_Paint_Ext(button->rect.x + 226, y + 12, scale, scale, clrTxtBck,
+                awards[i].name, 0, 0, 0, &cgs.media.limboFont2);
+            y += 12;
+        }
+        return;
+    }
 
 	for( i = 0; i < NUM_ENDGAME_AWARDS; i++ ) {
 		if( cgs.dbAwardTeams[ i ] == -1 ) {

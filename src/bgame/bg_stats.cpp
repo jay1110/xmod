@@ -84,15 +84,16 @@ static const weap_ws_convert_t aWeapID[WP_NUM_WEAPONS] = {
 	{ WP_LANDMINE_PGAS,			WS_POISON_GAS		},
 	{ WP_MOLOTOV,		    	WS_MOLOTOV  		},
 	{ WP_BOMB,					WS_BOMB				},
+	{ WP_BOMB_ALLIES,					WS_BOMB				},
 	{ WP_PPSH,					WS_PPSH				},
 };
 
 
 // Get right stats index based on weapon id
 extWeaponStats_t BG_WeapStatForWeapon( weapon_t iWeaponID ) {
-	weapon_t i;
+	int i;
 
-	for( i = WP_NONE; i < WP_NUM_WEAPONS; i = (weapon_t)( i+1 )) {
+	for( i = 0; i < WP_NUM_WEAPONS; ++i ) {
 		if( iWeaponID == aWeapID[i].iWeapon ) {
 			return aWeapID[i].iWS;
 		}

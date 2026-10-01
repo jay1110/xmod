@@ -1,0 +1,15 @@
+all:: MODULE.JSONCPP.build
+
+MODULE.JSONCPP.build: CXX.inherit=MODULE.JSONCPP
+MODULE.JSONCPP.build: $(MODULE.JSONCPP.a)
+
+$(MODULE.JSONCPP.objs): CXX.inherit=MODULE.JSONCPP
+$(MODULE.JSONCPP.objs): CXX.opt.std = -std=c++17 -fexceptions -fno-rtti
+# JSON number validation must retain IEEE finite/NaN checks.
+$(MODULE.JSONCPP.objs): CXX.opt.O := $(filter-out -ffast-math,$(CXX.opt.O))
+$(MODULE.JSONCPP.objs): $(BUILD/)%.o: $(PROJECT/)src/%.cpp
+	$(call CXX.fnCompile,$<,$@)
+
+$(MODULE.JSONCPP.a): $(MODULE.JSONCPP.objs)
+	$(call CXX.fnCompileStatic,$@,$^)
+	$(call CXX.fnRanlib,$@)

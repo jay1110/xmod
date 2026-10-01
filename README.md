@@ -1,6 +1,6 @@
 # Xmod
 
-Xmod is a popular server-side modification for **Wolfenstein: Enemy Territory** that adds extensive gameplay features, admin tools, and customization options. This repository contains version 2.0.0.
+Xmod is a popular server-side modification for **Wolfenstein: Enemy Territory** that adds extensive gameplay features, admin tools, and customization options. This repository contains version 2.0.4.
 
 ## Table of Contents
 
@@ -98,7 +98,7 @@ Full **Omnibot** integration for AI-controlled players:
 
 ```
 xmod/
-├── xmod-2.0.0.pk3      # Client-side assets (cgame, ui)
+├── xmod-2.0.4.pk3      # Client-side assets (cgame, ui)
 ├── qagame.mp.*.so      # Linux server module
 ├── qagame_mp_*.dll     # Windows server module
 ├── xmod.cfg            # Mod configuration
@@ -335,6 +335,18 @@ modules. This mirrors the ET:Legacy in-browser (Emscripten/WASM) approach.
 
 ### Visual Studio 2022 Build System
 
+Linux 32/64-bit modules can also be compiled directly on Windows without WSL:
+
+```powershell
+./build-tools/build-linux32-local.ps1
+./build-tools/build-linux64-local.ps1
+```
+
+These use MSYS2 tools and Windows-hosted Clang with separate Linux sysroots.
+See [VPN server platforms and runtime requirements](docs/VPN_BLOCKER.md)
+for native Windows, Linux, macOS and Alpine/musl compatibility. The release
+workflows build and check the Unix targets through `build-native-unix.yml`.
+
 **New!** Complete cross-platform build system for Windows developers:
 
 - **Visual Studio 2022** - Build Windows 32-bit and 64-bit natively using MSVC
@@ -350,7 +362,7 @@ modules. This mirrors the ET:Legacy in-browser (Emscripten/WASM) approach.
 .\build-all.ps1
 ```
 
-**Output:** `release/xmod-2.0.0.zip` with all platform binaries, pk3 file, and configs.
+**Output:** `release/xmod-2.0.4.zip` with all platform binaries, pk3 file, and configs.
 
 📖 **Full Documentation:** [docs/BUILD_VS2022.md](docs/BUILD_VS2022.md)
 
@@ -436,6 +448,9 @@ Feel free to use this codebase as you please, as long as both licenses are bundl
 
 ## Links
 
+- [Documentation and server setup](docs/index.md)
+- [Build the searchable documentation locally](docs/README.md)
+- [Native Antirush setup and commands (English / Deutsch)](docs/ANTIRUSH.md)
 - [GitHub Repository](https://github.com/jay1110/xmod)
 - [Wolfenstein: Enemy Territory](https://www.splashdamage.com/games/wolfenstein-enemy-territory/)
 

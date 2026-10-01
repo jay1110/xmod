@@ -137,7 +137,9 @@ BUILD.output += $(CXX.libstdcxx.DEPS)
 
 ###############################################################################
 
-CXX.fnCompileStatic = $(call print.STATIC,$(AR),$(1),$(2),$(AR) cq $(1) $(2))
+# Build a fresh archive: cq appends and otherwise duplicates every member on
+# incremental rebuilds. Keep distinct objects with equal basenames (util.o).
+CXX.fnCompileStatic = $(call print.STATIC,$(AR),$(1),$(2),rm -f $(1).tmp && $(AR) cq $(1).tmp $(2) && mv -f $(1).tmp $(1))
 
 ###############################################################################
 

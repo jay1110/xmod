@@ -1,6 +1,8 @@
 #include <bgame/impl.h>
+#include <bgame/chat_text.h>
 #include <omnibot/et/g_etbot_interface.h>
 #include <game/g_lua.h>
+#include <game/g_antirush.h>
 #include <game/jxac/jxac_server.h>
 #include <bgame/xm_auth_shared.h>
 #include <game/xmod_globals.h>
@@ -1656,7 +1658,6 @@ void G_EntitySoundNoCut(
 G_Say
 ==================
 */
-#define	MAX_SAY_TEXT	150
 
 void G_SayTo( gentity_t *ent, gentity_t *other, int mode, int color, const string name, const string message, bool localize )
 {
@@ -1664,9 +1665,12 @@ void G_SayTo( gentity_t *ent, gentity_t *other, int mode, int color, const strin
 		return;
 	}
 
+    const std::string suffix = va(" %i %i %i", (int)(ent-g_entities), localize, ent->client->sess.sessionTeam);
+    const std::string prefix = name + Q_COLOR_ESCAPE + char(color);
+
 	// Jaybird - admin permission
 	if( other->client->sess.sessionTeam == TEAM_SPECTATOR && cmd::entityHasPermission( other, priv::base::specChat )) {
-		trap_SendServerCommand( other-g_entities, va("chat \"%s%c%c%s\" %i %i %i", name.c_str(), Q_COLOR_ESCAPE, color, message.c_str(), (int)(ent-g_entities), localize, ent->client->sess.sessionTeam ));
+		trap_SendServerCommand(other-g_entities, XmodChatCommand("chat", prefix, message, suffix).c_str());
 		return;
 	}
 
@@ -1695,7 +1699,7 @@ void G_SayTo( gentity_t *ent, gentity_t *other, int mode, int color, const strin
 			}
 		}
 
-		trap_SendServerCommand( other-g_entities, va("%s \"%s%c%c%s\" %i %i %i", mode == SAY_TEAM || mode == SAY_BUDDY ? "tchat" : "chat", name.c_str(), Q_COLOR_ESCAPE, color, message.c_str(), (int)(ent-g_entities), localize, ent->client->sess.sessionTeam ));
+		trap_SendServerCommand(other-g_entities, XmodChatCommand(mode == SAY_TEAM || mode == SAY_BUDDY ? "tchat" : "chat", prefix, message, suffix).c_str());
 
 		// Omni-bot: Tell the bot about the chat message
 		Bot_Event_ChatMessage(other-g_entities, ent, mode, message.c_str());
@@ -1703,6 +1707,7 @@ void G_SayTo( gentity_t *ent, gentity_t *other, int mode, int color, const strin
 }
 
 void G_Say( gentity_t *ent, gentity_t *target, int mode, const char *chatText ) {
+    if (!chatText || !*chatText || !::xmod::checkClientNospam(ent - g_entities)) return;
 	int			color;
 
 	string		name;
@@ -1775,7 +1780,16 @@ void G_Say( gentity_t *ent, gentity_t *target, int mode, const char *chatText ) 
 	}
 
 	// Shrubbot command check
-	cmd::process( &g_clientObjects[ent-g_entities], false, &text );
+    // Preserve the AutoAdmin semicolon aliases through the same chat, access,
+    // help and logging path as every other admin command.
+    string adminText = text;
+    const size_t first = adminText.find_first_not_of(" \t");
+    if (first != string::npos && adminText[first] == ';') {
+        const size_t end = adminText.find_first_of(" \t", first);
+        const string alias = str::toLowerCopy(adminText.substr(first, end - first));
+        if (alias == ";aa" || alias == ";antirush") adminText[first] = '!';
+    }
+	cmd::process( &g_clientObjects[ent-g_entities], false, &adminText );
 }
 
 
@@ -1867,6 +1881,7 @@ void G_VoiceTo( gentity_t *ent, gentity_t *other, int mode, const char *id, qboo
 }
 
 void G_Voice( gentity_t *ent, gentity_t *target, int mode, const char *id, qboolean voiceonly, string msg ) {
+    if (!::xmod::checkClientNospam(ent - g_entities)) return;
 	int			j;
 
 	// DHM - Nerve :: Don't allow excessive spamming of voice chats
@@ -2731,6 +2746,7 @@ qboolean Do_Activate2_f(gentity_t *ent, gentity_t *traceEnt) {
 
 						// sound effect
 						G_AddEvent( ent, EV_DISGUISE_SOUND, 0 );
+                        if (cvars::gameState.ivalue == GS_PLAYING) ent->client->pers.roundAwards.uniforms++;
 
 						G_AddSkillPoints( ent, SK_MILITARY_INTELLIGENCE_AND_SCOPED_WEAPONS, 5.f );
 						G_DebugAddSkillPoints( ent, SK_MILITARY_INTELLIGENCE_AND_SCOPED_WEAPONS, 5.f, "stealing uniform" ); // CHRUKER: b068 - Passed 5 as integer instead of float
@@ -3631,8 +3647,8 @@ void ClientCommand( int clientNum ) {
 	// Get command name first - needed for early-stage command handling
 	trap_Argv( 0, cmd, sizeof( cmd ) );
 	
-	// DEBUG: Log ALL commands at the very beginning
-	G_LogPrintf("[ClientCommand] client=%d cmd='%s'\n", clientNum, cmd);
+	// Authentication/admin/security handlers log meaningful events themselves.
+	// Per-chunk JXAC logging here can stall a synchronous game log under load.
 
 	// XMOD: Handle commands that can come BEFORE client is fully connected
 	// This is critical for authentication - the authenticate command arrives
@@ -3645,67 +3661,27 @@ void ClientCommand( int clientNum ) {
 		return;		// not fully in game yet
 	}
 
+	if (antirush::clientCommand(ent)) {
+		return;
+	}
+
 	// Call Lua et_ClientCommand callback
 	if (G_LuaHook_ClientCommand(clientNum, cmd)) {
 		return;  // Command was handled by Lua
 	}
 
-	if (Q_stricmp (cmd, "say") == 0) {
-		if( !::xmod::isClientMuted(ent-g_entities) ) {
-			if (::xmod::isClientNospamAllowed(ent-g_entities)) {
-				Cmd_Say_f (ent, SAY_ALL, qfalse);
-			} else {
-				trap_SendServerCommand( ent-g_entities, "cp \"^xNospam: ^7You can only send 1 message per minute.\n\"" );
-			}
-		}
-		return;
-	}
-
-	if( Q_stricmp (cmd, "say_team") == 0 ) {
-		if( !::xmod::isClientMuted(ent-g_entities) ) {
-			if (::xmod::isClientNospamAllowed(ent-g_entities)) {
-				Cmd_Say_f (ent, SAY_TEAM, qfalse);
-			} else {
-				trap_SendServerCommand( ent-g_entities, "cp \"^xNospam: ^7You can only send 1 message per minute.\n\"" );
-			}
-		}
-		return;
-	} else if (Q_stricmp (cmd, "vsay") == 0) {
-		if( !::xmod::isClientMuted(ent-g_entities) ) {
-			if (::xmod::isClientNospamAllowed(ent-g_entities)) {
-				Cmd_Voice_f (ent, SAY_ALL, qfalse, qfalse);
-			} else {
-				trap_SendServerCommand( ent-g_entities, "cp \"^xNospam: ^7You can only send 1 sound per minute.\n\"" );
-			}
-		}
-		return;
-	} else if (Q_stricmp (cmd, "vsay_team") == 0) {
-		if( !::xmod::isClientMuted(ent-g_entities) ) {
-			if (::xmod::isClientNospamAllowed(ent-g_entities)) {
-				Cmd_Voice_f (ent, SAY_TEAM, qfalse, qfalse);
-			} else {
-				trap_SendServerCommand( ent-g_entities, "cp \"^xNospam: ^7You can only send 1 sound per minute.\n\"" );
-			}
-		}
-		return;
-	} else if (Q_stricmp (cmd, "say_buddy") == 0) {
-		if( !::xmod::isClientMuted(ent-g_entities) ) {
-			if (::xmod::isClientNospamAllowed(ent-g_entities)) {
-				Cmd_Say_f( ent, SAY_BUDDY, qfalse );
-			} else {
-				trap_SendServerCommand( ent-g_entities, "cp \"^xNospam: ^7You can only send 1 message per minute.\n\"" );
-			}
-		}
-		return;
-	} else if (Q_stricmp (cmd, "vsay_buddy") == 0) {
-		if( !::xmod::isClientMuted(ent-g_entities) ) {
-			if (::xmod::isClientNospamAllowed(ent-g_entities)) {
-				Cmd_Voice_f( ent, SAY_BUDDY, qfalse, qfalse );
-			} else {
-				trap_SendServerCommand( ent-g_entities, "cp \"^xNospam: ^7You can only send 1 sound per minute.\n\"" );
-			}
-		}
-		return;
+    if (!Q_stricmp(cmd, "say") || !Q_stricmp(cmd, "say_team") || !Q_stricmp(cmd, "say_buddy")) {
+        if (!::xmod::isClientMuted(clientNum)) {
+            const int mode = !Q_stricmp(cmd, "say") ? SAY_ALL : !Q_stricmp(cmd, "say_team") ? SAY_TEAM : SAY_BUDDY;
+            Cmd_Say_f(ent, mode, qfalse);
+        }
+        return;
+    } else if (!Q_stricmp(cmd, "vsay") || !Q_stricmp(cmd, "vsay_team") || !Q_stricmp(cmd, "vsay_buddy")) {
+        if (!::xmod::isClientMuted(clientNum)) {
+            const int mode = !Q_stricmp(cmd, "vsay") ? SAY_ALL : !Q_stricmp(cmd, "vsay_team") ? SAY_TEAM : SAY_BUDDY;
+            Cmd_Voice_f(ent, mode, qfalse, qfalse);
+        }
+        return;
 	} else if (Q_stricmp (cmd, "score") == 0) {
 		Cmd_Score_f (ent);
 		return;
@@ -3788,6 +3764,11 @@ void ClientCommand( int clientNum ) {
         }
         return;
 	}
+
+    if (!Q_stricmp(cmd, "records")) {
+        G_PrintMapRecords(clientNum);
+        return;
+    }
 
 	// Jaybird - private messaging
 	if (!Q_stricmp(cmd, "m")) {

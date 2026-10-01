@@ -6,6 +6,105 @@
 */
 
 #include <bgame/impl.h>
+#include <bgame/numeric_text.h>
+
+weaponScriptDef_t bg_weaponScripts[WP_NUM_WEAPONS];
+
+bool BG_WeaponScriptHas(int weapon, weaponScriptField_t field) {
+    return weapon > WP_NONE && weapon < WP_NUM_WEAPONS &&
+        (bg_weaponScripts[weapon].present & (1u << field)) != 0;
+}
+
+float BG_WeaponScriptValue(int weapon, weaponScriptField_t field, float fallback) {
+    return BG_WeaponScriptHas(weapon, field) ? bg_weaponScripts[weapon].values[field] : fallback;
+}
+
+void BG_ApplyWeaponScriptAmmo(int weapon) {
+    if (weapon <= WP_NONE || weapon >= WP_NUM_WEAPONS) return;
+    ammotable_t& ammo = ammoTableMP[weapon];
+    const weaponScriptField_t fields[] = { WSF_MAXAMMO, WSF_USES, WSF_MAXCLIP,
+        WSF_STARTAMMO, WSF_STARTCLIP, WSF_RELOADTIME, WSF_FIREDELAYTIME,
+        WSF_NEXTSHOTTIME, WSF_MAXHEAT, WSF_COOLRATE };
+    int* targets[] = { &ammo.maxammo, &ammo.uses, &ammo.maxclip,
+        &ammo.defaultStartingAmmo, &ammo.defaultStartingClip, &ammo.reloadTime,
+        &ammo.fireDelayTime, &ammo.nextShotTime, &ammo.maxHeat, &ammo.coolRate };
+    for (unsigned int i = 0; i < sizeof(fields) / sizeof(fields[0]); ++i)
+        if (BG_WeaponScriptHas(weapon, fields[i])) *targets[i] = (int)bg_weaponScripts[weapon].values[fields[i]];
+}
+
+void BG_ApplyWeaponScriptStatNames() {
+#if defined(CGAMEDLL) || defined(GAMEDLL)
+    static const char* defaults[WS_MAX];
+    static bool savedDefaults = false;
+    if (!savedDefaults) {
+        for (int i = 0; i < WS_MAX; ++i) defaults[i] = aWeaponInfo[i].pszName;
+        savedDefaults = true;
+    }
+    for (int i = 0; i < WS_MAX; ++i) aWeaponInfo[i].pszName = defaults[i];
+    for (int i = 1; i < WP_NUM_WEAPONS; ++i) {
+        int stat = BG_WeapStatForWeapon((weapon_t)i);
+        if (stat >= 0 && stat < WS_MAX && bg_weaponScripts[i].statname[0])
+            aWeaponInfo[stat].pszName = bg_weaponScripts[i].statname;
+    }
+#endif
+}
+
+void BG_InitWeaponScriptState() {
+#if defined(CGAMEDLL) || defined(GAMEDLL)
+    // WASM/map_restart may retain the module. Never back up an already modified table.
+    static bool savedDefaults = false;
+    if (!savedDefaults) {
+        memcpy(ammoTableMP_BACKUP, ammoTableMP, sizeof(ammoTableMP_BACKUP));
+        savedDefaults = true;
+    }
+    memcpy(ammoTableMP, ammoTableMP_BACKUP, sizeof(ammoTableMP));
+    ammoTableNeedsUpdate = true;
+#endif
+    memset(bg_weaponScripts, 0, sizeof(bg_weaponScripts));
+    BG_ApplyWeaponScriptStatNames();
+}
+
+qboolean BG_ParseWeaponScriptInfo(int weapon, const char* info) {
+    if (weapon <= WP_NONE || weapon >= WP_NUM_WEAPONS || !info) return qfalse;
+    weaponScriptDef_t parsed = {};
+    const char* values = Info_ValueForKey(info, "v");
+    if (*values) {
+        char* end;
+        unsigned long mask = strtoul(values, &end, 10);
+        if (end == values || mask >= (1u << WSF_COUNT)) return qfalse;
+        parsed.present = (unsigned int)mask;
+        values = end;
+        for (int i = 0; i < WSF_COUNT; ++i) {
+            if (*values++ != ',') return qfalse;
+            const char* numberEnd = values;
+            while (*numberEnd && *numberEnd != ',') ++numberEnd;
+            char token[64];
+            if (numberEnd - values >= (int)sizeof(token)) return qfalse;
+            memcpy(token, values, numberEnd - values);
+            token[numberEnd - values] = 0;
+            double value;
+            if (!XmodParseFiniteDecimal(token, value) || !(value >= 0.0 && value <= 65535.0)) return qfalse;
+            if (i >= WSF_HEADSHOT && i <= WSF_GIBBING && value != 0.0 && value != 1.0) return qfalse;
+            if (i != WSF_SPREAD_RATIO && i != WSF_MOVESPEED && value != (int)value) return qfalse;
+            parsed.values[i] = (float)value;
+            values = numberEnd;
+        }
+        if (*values) return qfalse;
+    }
+    Q_strncpyz(parsed.name, Info_ValueForKey(info, "n"), sizeof(parsed.name));
+    Q_strncpyz(parsed.statname, Info_ValueForKey(info, "t"), sizeof(parsed.statname));
+    Q_strncpyz(parsed.killMessage, Info_ValueForKey(info, "k"), sizeof(parsed.killMessage));
+    Q_strncpyz(parsed.killMessage2, Info_ValueForKey(info, "l"), sizeof(parsed.killMessage2));
+    Q_strncpyz(parsed.selfKillMessage, Info_ValueForKey(info, "s"), sizeof(parsed.selfKillMessage));
+    parsed.hasScript = qtrue;
+    bg_weaponScripts[weapon] = parsed;
+    BG_ApplyWeaponScriptStatNames();
+#if defined(CGAMEDLL) || defined(GAMEDLL)
+    ammoTableNeedsUpdate = true;
+    BG_updateAmmoTable();
+#endif
+    return qtrue;
+}
 
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -95,7 +194,7 @@ int weapBanksMultiPlayer[MAX_WEAP_BANKS_MP][MAX_WEAPS_IN_BANK_MP] = {
 	{WP_KNIFE,				0,						0,					0,							0,						0,							0,			0,			0,			0,		0,				0,			0,			0,			0			},
 	{WP_LUGER,				WP_COLT,				WP_AKIMBO_COLT,		WP_AKIMBO_LUGER,			WP_AKIMBO_SILENCEDCOLT,	WP_AKIMBO_SILENCEDLUGER,	0,			0,			0,			0,		0,				0,			0,			0,			0			},
 	{WP_PANZERFAUST,		WP_FLAMETHROWER,		WP_MOBILE_MG42,		WP_MORTAR,					WP_GARAND,				WP_CARBINE,					WP_STEN,	WP_FG42,	WP_K43,		WP_KAR98,	WP_M97,		WP_MP40,	WP_THOMPSON,WP_PPSH,	0			},	// Jaybird - rearranged so SMG can be modified on-the-fly
-	{WP_GRENADE_LAUNCHER,	WP_GRENADE_PINEAPPLE,	WP_BOMB,			WP_MOLOTOV,					WP_POISON_SYRINGE,		0,							0,			0,			0,			0,		0,				0,			0,			0,			0			},
+	{WP_GRENADE_LAUNCHER,	WP_GRENADE_PINEAPPLE,	WP_BOMB, WP_BOMB_ALLIES,			WP_MOLOTOV,					WP_POISON_SYRINGE,		0,							0,			0,			0,			0,		0,				0,			0,			0	},
 	{WP_MEDIC_SYRINGE,		WP_PLIERS,				WP_SMOKE_MARKER,	WP_SMOKE_BOMB,				WP_POISON_GAS,			0,							0,			0,			0,			0,		0,				0,			0,			0,			0			},
 	{WP_DYNAMITE,			WP_MEDKIT,				WP_AMMO,			WP_SATCHEL,					WP_SATCHEL_DET,			0,							0,			0,			0,			0,		0,				0,			0,			0,			0			},
 	{WP_LANDMINE,			WP_LANDMINE_BBETTY,		WP_LANDMINE_PGAS,	WP_TRIPMINE,				WP_MEDIC_ADRENALINE,	0,							0,			0,			0,			0,		0,				0,			0,			0,			0			},
@@ -210,6 +309,7 @@ ammotable_t ammoTableMP[WP_NUM_WEAPONS] = {
 	{	3,				1,		3,		0,		3,		0,  	DELAY_THROW,	0,	    0,		0,		MOD_MOLOTOV 			},	// WP_MOLOTOV   			// 56
 	{	1,				1,		1,		0,		1,		1000,	DELAY_THROW,	1600,	0,		0,		MOD_BOMB				},	// WP_BOMB					// 57
 	{	90,				1,		30,		30,		30,		2400,	DELAY_LOW,		150,	0,		0,		MOD_PPSH				},	// WP_PPSH					// 58
+	{	1,				1,		1,		0,		1,		1000,	DELAY_THROW,	1600,	0,		0,		MOD_BOMB				},	// WP_BOMB_ALLIES					// 59
 };
 
 //----(SA)	moved in here so both games can get to it
@@ -278,6 +378,7 @@ int weapAlts[] = {
 	WP_NONE,			// 56 WP_MOLOTOV
 	WP_NONE,			// 57 WP_BOMB
 	WP_NONE,			// 58 WP_PPSH
+	WP_NONE,			// 59 WP_BOMB_ALLIES
 };
 
 
@@ -2790,6 +2891,17 @@ model="models/powerups/xp_key/key.md3"
 
 */
 
+    {
+        "weapon_bomb_axis", "", { "models/multiplayer/bomb2/grenade2.md3", "models/multiplayer/bomb2/v_grenade.mdc", 0 },
+        "icons/iconw_bomb2", NULL, "Axis Bomb", 1, IT_WEAPON,
+        WP_BOMB, WP_BOMB, WP_BOMB, "", ""
+    },
+    {
+        "weapon_bomb_allies", "", { "models/multiplayer/bomb/pineapple3.md3", "models/multiplayer/bomb/v_pineapple.mdc", 0 },
+        "icons/iconw_bomb", NULL, "Allied Bomb", 1, IT_WEAPON,
+        WP_BOMB_ALLIES, WP_BOMB_ALLIES, WP_BOMB_ALLIES, "", ""
+    },
+
 	// end of list marker
 	{ NULL }
 };
@@ -3077,6 +3189,7 @@ qboolean BG_WeaponInWolfMP( int weapon ) {
 	case WP_STEN:
 	case WP_THOMPSON:
 	case WP_TRIPMINE:
+	case WP_BOMB_ALLIES:
 	case WP_BOMB:
 		return qtrue;
 
@@ -3484,6 +3597,10 @@ qboolean	BG_CanItemBeGrabbed( const entityState_t *ent, const playerState_t *ps,
 
 	switch( item->giType ) {
 	case IT_WEAPON:
+		if ((item->giTag == WP_BOMB && teamNum != TEAM_AXIS) ||
+		    (item->giTag == WP_BOMB_ALLIES && teamNum != TEAM_ALLIES)) {
+			return qfalse;
+		}
 		if( item->giTag == WP_AMMO ) {
 			// magic ammo for any two-handed weapon
 			// xkan, 11/21/2002 - only pick up if ammo is not full, numClips is 0, so ps will
@@ -5162,7 +5279,7 @@ int numVotesAvailable = sizeof(voteToggles) / sizeof(voteType_t);
 const unsigned int aReinfSeeds[MAX_REINFSEEDS] = { 11, 3, 13, 7, 2, 5, 1, 17 };
 
 // Weapon full names + headshot capability
-const weap_ws_t aWeaponInfo[WS_MAX] = {
+weap_ws_t aWeaponInfo[WS_MAX] = {
 	{ qfalse,	"KNIF",	"Knife"		},	// 0
 	{ qtrue,	"LUGR",	"Luger"		},	// 1
 	{ qtrue,	"COLT",	"Colt"		},	// 2

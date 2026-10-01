@@ -6,8 +6,10 @@
 */
 
 #include <bgame/impl.h>
+#include <game/g_antirush.h>
 #include <omnibot/et/g_etbot_interface.h>
 #include <game/g_xmod.h>
+#include <game/g_weaponscripts.h>
 
 namespace {
 
@@ -182,7 +184,7 @@ void Weapon_Knife( gentity_t *ent ) {
 
 	// SBW_KNIFE_HEADSHOT - Check for headshot with knife (only if not a backstab)
 	// Use hitvol from the trace if available (more accurate)
-	if (!isBackstab && traceEnt->client && traceEnt->health > 0 && (cvars::bg_weapons.ivalue & SBW_KNIFE_HEADSHOT)) {
+	if (!isBackstab && traceEnt->client && traceEnt->health > 0 && BG_WeaponScriptValue(WP_KNIFE, WSF_HEADSHOT, (cvars::bg_weapons.ivalue & SBW_KNIFE_HEADSHOT) ? 1 : 0) != 0) {
 		qboolean isHeadshot = qfalse;
 		
 		// Check if we got a headshot via the hit volume system
@@ -223,7 +225,8 @@ void Weapon_Knife( gentity_t *ent ) {
 		}
 	}
 
-	G_Damage( traceEnt, ent, ent, vec3_origin, tr.endpos, (damage + rand()%5), 0, mod);
+	if (BG_WeaponScriptHas(WP_KNIFE, WSF_DAMAGE) && BG_WeaponScriptValue(WP_KNIFE, WSF_DAMAGE, 0) == 0) damage = 0;
+	G_Damage( traceEnt, ent, ent, vec3_origin, tr.endpos, damage > 0 ? (damage + rand()%5) : 0, 0, mod);
 }
 
 // JPW NERVE
@@ -701,6 +704,11 @@ void Weapon_Syringe(gentity_t *ent) {
 
 					// Stats
 					ent->client->sess.revives++;
+                    if (cvars::gameState.ivalue == GS_PLAYING) {
+                        roundAwardCounters_t& awards = ent->client->pers.roundAwards;
+                        if (++awards.reviveSpree > awards.bestReviveSpree)
+                            awards.bestReviveSpree = awards.reviveSpree;
+                    }
 
 					// Multi-revive tracking
 					G_ProcessRevive(ent, traceEnt);
@@ -1347,6 +1355,7 @@ static qboolean TryConstructing( gentity_t *ent ) {
 			constructible->s.angles2[1] = 1;
 		}
 
+		if (cvars::gameState.ivalue == GS_PLAYING) ent->client->pers.roundAwards.engineerObjectives++;
 		AddScore( ent, int(constructible->accuracy) ); // give drop score to guy who built it
 
         if (g_engineers.integer & ENGI_SHAREXP) {
@@ -2287,6 +2296,13 @@ evilbanigoto:
 
 				// Gordon: moved down here to prevent two prints when dynamite IS near objective
 
+                // Include trickplants away from objective triggers. Only this newly
+                // armed charge is removed; no plant events or XP have fired yet.
+                if (!antirush::dynamiteArmed(traceEnt, ent)) {
+                    G_FreeEntity(traceEnt);
+                    return;
+                }
+
 				trap_SendServerCommand( ent-g_entities, va("cp \"Dynamite is now armed with a %i second timer!\" 1",(dynamiteTime / 1000)));
 
 				// check if player is in trigger objective field
@@ -2342,7 +2358,7 @@ evilbanigoto:
 
 							if ( g_logOptions.integer & LOGOPTS_OBJECTIVE ) {
 								const char *teamStr = (ent->client->sess.sessionTeam == TEAM_ALLIES) ? "allies" : "axis";
-								G_LogPrintf("xmod popup: %s planted \"%s\"\n", teamStr, Goalname);
+								G_LogPrintf("xmod popup: %s planted \"%s\"\n", teamStr, G_ObjectiveLogName(hit));
 							}
 
 							G_Script_ScriptEvent( hit, "dynamited", "" );
@@ -2428,7 +2444,7 @@ evilbanigoto:
 
 							if ( g_logOptions.integer & LOGOPTS_OBJECTIVE ) {
 								const char *teamStr = (ent->client->sess.sessionTeam == TEAM_ALLIES) ? "allies" : "axis";
-								G_LogPrintf("xmod popup: %s planted \"%s\"\n", teamStr, Goalname);
+								G_LogPrintf("xmod popup: %s planted \"%s\"\n", teamStr, G_ObjectiveLogName(hit->parent));
 							}
 
 							G_Script_ScriptEvent( hit, "dynamited", "" );
@@ -2592,9 +2608,13 @@ evilbanigoto:
 							if (ent->client->sess.sessionTeam == TEAM_AXIS) {
 								if ((hit->spawnflags & AXIS_OBJECTIVE) && (!scored)) {
 									AddScore(ent,WOLF_DYNAMITE_DIFFUSE);
+                                    if (cvars::gameState.ivalue == GS_PLAYING) ent->client->pers.roundAwards.engineerObjectives++;
 									G_AddSkillPoints( ent, SK_EXPLOSIVES_AND_CONSTRUCTION, 6.f );
 									G_DebugAddSkillPoints( ent, SK_EXPLOSIVES_AND_CONSTRUCTION, 6.f, "defusing enemy dynamite" );
 									scored++;
+								}
+								if ( g_logOptions.integer & LOGOPTS_OBJECTIVE ) {
+									G_LogPrintf("xmod popup: axis defused \"%s\"\n", G_ObjectiveLogName(hit));
 								}
 								if(hit->target_ent) {
 									G_Script_ScriptEvent( hit->target_ent, "defused", "" );
@@ -2605,10 +2625,6 @@ evilbanigoto:
 									pm->s.effect2Time = 1; // 1 = defused
 									pm->s.effect3Time = hit->s.teamNum;
 									pm->s.teamNum = ent->client->sess.sessionTeam;
-								}
-
-								if ( g_logOptions.integer & LOGOPTS_OBJECTIVE ) {
-									G_LogPrintf("xmod popup: axis defused dynamite\n");
 								}
 
 //								trap_SendServerCommand(-1, "cp \"Axis engineer disarmed the Dynamite!\n\"");
@@ -2617,10 +2633,14 @@ evilbanigoto:
 							} else { // TEAM_ALLIES
 								if ((hit->spawnflags & ALLIED_OBJECTIVE) && (!scored)) {
 									AddScore(ent,WOLF_DYNAMITE_DIFFUSE);
+                                    if (cvars::gameState.ivalue == GS_PLAYING) ent->client->pers.roundAwards.engineerObjectives++;
 									G_AddSkillPoints( ent, SK_EXPLOSIVES_AND_CONSTRUCTION, 6.f );
 									G_DebugAddSkillPoints( ent, SK_EXPLOSIVES_AND_CONSTRUCTION, 6.f, "defusing enemy dynamite" );
 									scored++; 
 									hit->spawnflags &= ~OBJECTIVE_DESTROYED; // "re-activate" objective since it wasn't destroyed
+								}
+								if ( g_logOptions.integer & LOGOPTS_OBJECTIVE ) {
+									G_LogPrintf("xmod popup: allies defused \"%s\"\n", G_ObjectiveLogName(hit));
 								}
 								if(hit->target_ent) {
 									G_Script_ScriptEvent( hit->target_ent, "defused", "" );
@@ -2631,10 +2651,6 @@ evilbanigoto:
 									pm->s.effect2Time = 1; // 1 = defused
 									pm->s.effect3Time = hit->s.teamNum;
 									pm->s.teamNum = ent->client->sess.sessionTeam;
-								}
-
-								if ( g_logOptions.integer & LOGOPTS_OBJECTIVE ) {
-									G_LogPrintf("xmod popup: allies defused dynamite\n");
 								}
 
 //								trap_SendServerCommand(-1, "cp \"Allied engineer disarmed the Dynamite!\n\"");
@@ -2683,10 +2699,14 @@ evilbanigoto:
 							if (ent->client->sess.sessionTeam == TEAM_AXIS) {
 								if ( hit->s.teamNum == TEAM_AXIS && (!scored)) {
 									AddScore(ent,WOLF_DYNAMITE_DIFFUSE);
+                                    if (cvars::gameState.ivalue == GS_PLAYING) ent->client->pers.roundAwards.engineerObjectives++;
 									if(ent && ent->client) G_LogPrintf("Dynamite_Diffuse: %d\n", (int)(ent - g_entities));	// OSP
 									G_AddSkillPoints( ent, SK_EXPLOSIVES_AND_CONSTRUCTION, 6.f );
 									G_DebugAddSkillPoints( ent, SK_EXPLOSIVES_AND_CONSTRUCTION, 6.f, "defusing enemy dynamite" );
 									scored++;
+								}
+								if ( g_logOptions.integer & LOGOPTS_OBJECTIVE ) {
+									G_LogPrintf("xmod popup: axis defused \"%s\"\n", G_ObjectiveLogName(hit));
 								}
 								G_Script_ScriptEvent( hit, "defused", "" );
 
@@ -2695,20 +2715,20 @@ evilbanigoto:
 									pm->s.effect2Time = 1; // 1 = defused
 									pm->s.effect3Time = hit->parent->s.teamNum;
 									pm->s.teamNum = ent->client->sess.sessionTeam;
-								}
-
-								if ( g_logOptions.integer & LOGOPTS_OBJECTIVE ) {
-									G_LogPrintf("xmod popup: axis defused dynamite\n");
 								}
 
 //								trap_SendServerCommand(-1, "cp \"Axis engineer disarmed the Dynamite!\" 2");
 							} else { // TEAM_ALLIES
 								if ( hit->s.teamNum == TEAM_ALLIES && (!scored)) {
 									AddScore(ent,WOLF_DYNAMITE_DIFFUSE);
+                                    if (cvars::gameState.ivalue == GS_PLAYING) ent->client->pers.roundAwards.engineerObjectives++;
 									if(ent && ent->client) G_LogPrintf("Dynamite_Diffuse: %d\n", (int)(ent - g_entities));	// OSP
 									G_AddSkillPoints( ent, SK_EXPLOSIVES_AND_CONSTRUCTION, 6.f );
 									G_DebugAddSkillPoints( ent, SK_EXPLOSIVES_AND_CONSTRUCTION, 6.f, "defusing enemy dynamite" );
 									scored++; 
+								}
+								if ( g_logOptions.integer & LOGOPTS_OBJECTIVE ) {
+									G_LogPrintf("xmod popup: allies defused \"%s\"\n", G_ObjectiveLogName(hit));
 								}
 								G_Script_ScriptEvent( hit, "defused", "" );
 
@@ -2717,10 +2737,6 @@ evilbanigoto:
 									pm->s.effect2Time = 1; // 1 = defused
 									pm->s.effect3Time = hit->parent->s.teamNum;
 									pm->s.teamNum = ent->client->sess.sessionTeam;
-								}
-
-								if ( g_logOptions.integer & LOGOPTS_OBJECTIVE ) {
-									G_LogPrintf("xmod popup: allies defused dynamite\n");
 								}
 
 //								trap_SendServerCommand(-1, "cp \"Allied engineer disarmed the Dynamite!\" 2");
@@ -3035,6 +3051,7 @@ void weapon_callAirStrike( gentity_t *ent ) {
 			bomb->accuracy				= 2;
 			bomb->classname				= "air strike";
 			bomb->splashRadius			= 400;
+            G_ApplyWeaponProjectileOverrides(bomb, WP_SMOKE_MARKER);
 			bomb->methodOfDeath			= MOD_AIRSTRIKE;
 			bomb->splashMethodOfDeath	= MOD_AIRSTRIKE;
 			bomb->clipmask		= MASK_MISSILESHOT;
@@ -3291,6 +3308,7 @@ void Weapon_Artillery(gentity_t *ent) {
 			bomb->splashRadius	= 400;
 		}
 		bomb->methodOfDeath			= MOD_ARTY;
+        G_ApplyWeaponProjectileOverrides(bomb, WP_ARTY);
 		bomb->splashMethodOfDeath	= MOD_ARTY;
 		bomb->clipmask				= MASK_MISSILESHOT;
 		bomb->s.pos.trType			= TR_STATIONARY; // was TR_GRAVITY,  might wanna go back to this and drop from height
@@ -3472,8 +3490,8 @@ void G_PoisonGasTrip(gentity_t* ent) {
     landmine->parent        = ent->parent;
 
     landmine->poisonGasAlarm  = level.time + SMOKEBOMB_GROWTIME;
-    landmine->poisonGasDamage = 30;
-    landmine->poisonGasRadius = 300;
+    landmine->poisonGasDamage = (int)BG_WeaponScriptValue(WP_LANDMINE_PGAS, WSF_DAMAGE, 30);
+    landmine->poisonGasRadius = (int)BG_WeaponScriptValue(WP_LANDMINE_PGAS, WSF_SPLASH_RADIUS, 300);
     
     landmine->s.pos.trType = TR_GRAVITY;
     landmine->s.pos.trTime = level.time;
@@ -3547,6 +3565,8 @@ SnapVectorTowards( vec3_t v, const vec3_t to )
 // KLUDGE/FIXME: also modded #defines below to become macros that call this fn for minimal impact elsewhere
 //
 int G_GetWeaponDamage( int weapon ) {
+	if (BG_WeaponScriptHas(weapon, WSF_DAMAGE))
+		return (int)BG_WeaponScriptValue(weapon, WSF_DAMAGE, 0);
 		switch (weapon) {
 		default:
 			return 1;
@@ -3596,6 +3616,7 @@ int G_GetWeaponDamage( int weapon ) {
 		case WP_PANZERFAUST: 
 		case WP_MORTAR_SET: 
 		case WP_DYNAMITE:
+		case WP_BOMB_ALLIES:
 		case WP_BOMB:
 			return 400;
 		case WP_LANDMINE_BBETTY: 
@@ -3604,8 +3625,9 @@ int G_GetWeaponDamage( int weapon ) {
 }
 
 
-float G_GetWeaponSpread( int weapon ) {
+static float G_DefaultWeaponSpread( int weapon ) {
 	switch (weapon) {
+		case WP_M97: return M97_SPREAD;
 		case WP_LUGER:
 		case WP_SILENCER:
 		case WP_AKIMBO_LUGER:
@@ -3618,6 +3640,7 @@ float G_GetWeaponSpread( int weapon ) {
 			return 600;
 		case WP_MP40:
 		case WP_THOMPSON:
+		case WP_PPSH:
 			return 400;
 		case WP_STEN:
 			return 200;
@@ -3641,6 +3664,12 @@ float G_GetWeaponSpread( int weapon ) {
 	G_Printf( "shouldn't ever get here (weapon %d)\n", weapon );
 	// jpw
 	return 0;	// shouldn't get here
+}
+
+float G_GetWeaponSpread(int weapon) {
+    float spread = BG_WeaponScriptHas(weapon, WSF_SPREAD)
+        ? BG_WeaponScriptValue(weapon, WSF_SPREAD, 0) : G_DefaultWeaponSpread(weapon);
+    return spread * BG_WeaponScriptValue(weapon, WSF_SPREAD_RATIO, 1);
 }
 
 #define LUGER_SPREAD	G_GetWeaponSpread(WP_LUGER)
@@ -3868,12 +3897,14 @@ Bullet_Fire_Extended(
     vec3_t     end,
     int        damage,
     bool       distanceFalloff,
-    bool       noEvents)
+    bool       noEvents,
+    int        reflections = 0)
 {
+    distanceFalloff = BG_WeaponScriptValue(actor->s.weapon, WSF_FALLOFF, distanceFalloff ? 1 : 0) != 0;
     // Give active bullet-model a chance to adjust start point.
-    if (source->client)
+    if (!reflections && source->client)
         g_clientObjects[source->s.number].bulletModel->adjustStartPoint( start );
-    else if (actor->client)
+    else if (!reflections && actor->client)
         g_clientObjects[actor->s.number].bulletModel->adjustStartPoint( start );
 
     // Do the trace
@@ -3950,11 +3981,23 @@ Bullet_Fire_Extended(
                 // start new bullet at position this hit the bmodel and continue to the end position
                 // (ignoring shot-through bmodel in next trace)
                 // spread = 0 as this is an extension of an already spread shot
-                return Bullet_Fire_Extended( &traceEnt, actor, trx.data.endpos, end, damage, distanceFalloff, noEvents );
+                return Bullet_Fire_Extended( &traceEnt, actor, trx.data.endpos, end, damage, distanceFalloff, noEvents, reflections );
             }
         }
     }
 
+    // Opt-in ricochet: one bounce, no sky/no-impact surfaces, and no endless corner loops.
+    if (!traceEnt.takedamage && trx.data.fraction < 1.0f && reflections == 0 &&
+        !(trx.data.surfaceFlags & (SURF_SKY | SURF_NOIMPACT)) &&
+        BG_WeaponScriptValue(actor->s.weapon, WSF_REFLECTION, 0) != 0) {
+        vec3_t direction, reflected, bounceStart, bounceEnd;
+        VectorSubtract(end, start, direction);
+        float length = VectorNormalize(direction);
+        VectorMA(direction, -2.0f * DotProduct(direction, trx.data.plane.normal), trx.data.plane.normal, reflected);
+        VectorMA(trx.data.endpos, 1.0f, trx.data.plane.normal, bounceStart);
+        VectorMA(bounceStart, length * (1.0f - trx.data.fraction), reflected, bounceEnd);
+        hitClient = Bullet_Fire_Extended(source, actor, bounceStart, bounceEnd, damage, distanceFalloff, noEvents, reflections + 1) || hitClient;
+    }
     return hitClient;
 }
 
@@ -4032,8 +4075,8 @@ void Weapon_M97( gentity_t *ent ) {
         float		r, u;
 
         // Get the endpoint
-		r = Q_crandom( &seed ) * M97_SPREAD * 16;
-		u = Q_crandom( &seed ) * M97_SPREAD * 16;
+		r = Q_crandom( &seed ) * G_GetWeaponSpread(WP_M97) * 16;
+		u = Q_crandom( &seed ) * G_GetWeaponSpread(WP_M97) * 16;
 		VectorMA( ev->s.pos.trBase, 8192 * 16, __forward, end);
 		VectorMA (end, r, __right, end);
 		VectorMA (end, u, __up, end);
@@ -4097,7 +4140,7 @@ gentity_t *weapon_gpg40_fire (gentity_t *ent, int grenType) {
 
 	m = fire_grenade (ent, tosspos, __forward, grenType);
 
-	m->damage = 0;
+	m->damage = (int)BG_WeaponScriptValue(grenType, WSF_DAMAGE, 0);
 	
 	// Ridah, return the grenade so we can do some prediction before deciding if we really want to throw it or not
 	return m;
@@ -4254,7 +4297,7 @@ gentity_t *weapon_grenadelauncher_fire (gentity_t *ent, int grenType) {
 
 	m = fire_grenade (ent, tosspos, __forward, grenType);
 
-	m->damage = 0;	// Ridah, grenade's don't explode on contact
+	m->damage = (int)BG_WeaponScriptValue(grenType, WSF_DAMAGE, 0); // Default grenades have no direct impact damage.
 
     switch (grenType) {
         case WP_LANDMINE:
@@ -4282,8 +4325,8 @@ gentity_t *weapon_grenadelauncher_fire (gentity_t *ent, int grenType) {
             m->s.effect1Time = 16;
             m->think = G_PoisonGasExplode;
             m->poisonGasAlarm  = level.time + SMOKEBOMB_GROWTIME;
-            m->poisonGasDamage = 30;
-            m->poisonGasRadius = 300;
+            m->poisonGasDamage = (int)BG_WeaponScriptValue(grenType, WSF_DAMAGE, 30);
+            m->poisonGasRadius = (int)BG_WeaponScriptValue(grenType, WSF_SPLASH_RADIUS, 300);
             break;
 
         case WP_SMOKE_MARKER:
@@ -4367,7 +4410,7 @@ void G_BurnMeGood( gentity_t *self, gentity_t *body, gentity_t *chunk )
 	
 	// JPW NERVE -- yet another flamethrower damage model, trying to find a feels-good damage combo that isn't overpowered
 	if (body->lastBurnedFrameNumber != level.framenum) {
-		G_Damage( body, self, self, vec3_origin, self->r.currentOrigin, 5, 0, MOD_FLAMETHROWER ); // was 2 dmg in release ver, hit avg. 2.5 times per frame
+		G_Damage( body, self, self, vec3_origin, self->r.currentOrigin, (int)BG_WeaponScriptValue(WP_FLAMETHROWER, WSF_DAMAGE, 5), 0, MOD_FLAMETHROWER );
 		body->lastBurnedFrameNumber = level.framenum;
 	}
 	// jpw
@@ -4524,6 +4567,7 @@ void CalcMuzzlePoint ( gentity_t *ent, int weapon, vec3_t forward, vec3_t right,
 		case WP_LANDMINE:
 		case WP_LANDMINE_BBETTY:
 		case WP_LANDMINE_PGAS:
+		case WP_BOMB_ALLIES:
 		case WP_BOMB:
 			VectorMA( muzzlePoint, 20, right, muzzlePoint );
 			break;
@@ -4714,6 +4758,7 @@ void FireWeapon( gentity_t *ent ) {
 			case WP_SATCHEL_DET:
 			case WP_SMOKE_BOMB:
 			case WP_POISON_GAS:
+			case WP_BOMB_ALLIES:
 			case WP_BOMB:
 				break;
 
@@ -4984,8 +5029,10 @@ void FireWeapon( gentity_t *ent ) {
 		pFiredShot = weapon_grenadelauncher_fire( ent, ent->s.weapon );
 		break;
 
+	case WP_BOMB_ALLIES:
 	case WP_BOMB:
-		// Bomb - 1 per life, no charge needed
+		// Team selection happens when granting weapons. Like grenades, either
+		// variant can be fired when owned (including devmap's give all).
 		pFiredShot = weapon_grenadelauncher_fire( ent, ent->s.weapon );
 		break;
 

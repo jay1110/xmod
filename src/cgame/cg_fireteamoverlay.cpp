@@ -3,6 +3,7 @@
 ****/
 
 #include <bgame/impl.h> 
+#include "fireteam_members.h"
 
 /******************************************************************************
 ***** Defines, constants, etc 
@@ -94,8 +95,9 @@ void CG_ParseFireteams() {
 	}
 
 	for(i = 0; i < MAX_FIRETEAMS; i++) {
-		char hexbuffer[11] = "0x00000000";
+		memset(&cg.fireTeams[i], 0, sizeof(cg.fireTeams[i]));
 		p = CG_ConfigString(CS_FIRETEAMS + i);
+		if (!p || !*p) continue;
 		
 /*		s = Info_ValueForKey(p, "n");
 		if(!s || !*s) {
@@ -108,8 +110,9 @@ void CG_ParseFireteams() {
 //		Q_strncpyz(cg.fireTeams[i].name, s, 32);
 //		CG_Printf("Fireteam: %s\n", cg.fireTeams[i].name);
 
-		j = atoi(Info_ValueForKey(p, "id"));
-		if(j == -1) {
+		s = Info_ValueForKey(p, "id");
+		j = atoi(s);
+		if(!*s || j < 0 || j >= MAX_FIRETEAMS) {
 			cg.fireTeams[i].inuse = qfalse;
 			continue;
 		} else {
@@ -119,12 +122,16 @@ void CG_ParseFireteams() {
 
 		s = Info_ValueForKey(p, "l");
 		cg.fireTeams[i].leader = atoi(s);
+		if (!*s || cg.fireTeams[i].leader < 0 || cg.fireTeams[i].leader >= MAX_CLIENTS) {
+			cg.fireTeams[i].inuse = qfalse;
+			continue;
+		}
 
 		s = Info_ValueForKey(p, "c");
-		Q_strncpyz(hexbuffer+2, s, 9);
-		sscanf(hexbuffer, "%x", &clnts[1]);
-		Q_strncpyz(hexbuffer+2, s+8, 9);
-		sscanf(hexbuffer, "%x", &clnts[0]);
+		if (!CG_DecodeFireteamMembers(s, clnts)) {
+			cg.fireTeams[i].inuse = qfalse;
+			continue;
+		}
 
 		for(j = 0; j < MAX_CLIENTS; j++) {
 			if(COM_BitCheck(clnts, j)) {

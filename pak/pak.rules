@@ -33,7 +33,7 @@ $(MODULE.PAK.out.ui): $(MODULE.UI.so)
 
 ###############################################################################
 
-$(BUILD/)make/pak.in.defs:
+$(BUILD/)make/pak.in.defs: $(PROJECT/)pak/pak.rules
 	$(call print.HEADER,GENERATING,$@)
 	@mkdir -p $(dir $@)
 	@find $(PROJECT/)pak -type f \

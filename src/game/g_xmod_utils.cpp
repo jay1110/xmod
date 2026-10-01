@@ -193,6 +193,7 @@ char* G_WeaponNumToStr(weapon_t weapon) {
         case WP_PPSH:                   return "PPSH";
         case WP_MOLOTOV:                return "molotov cocktail";
 		case WP_BOMB:					return "bomb";
+		case WP_BOMB_ALLIES:					return "bomb";
 
 		case WP_GRENADE_LAUNCHER:
 		case WP_GRENADE_PINEAPPLE:

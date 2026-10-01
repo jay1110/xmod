@@ -2514,6 +2514,9 @@ static void landmine_setup( gentity_t *ent ) {
 	ent->r.contents		= CONTENTS_CORPSE;	// (player can walk through)
 
 	ent->splashRadius	= G_GetWeaponDamage(WP_LANDMINE);
+    ent->damage = (int)BG_WeaponScriptValue(WP_LANDMINE, WSF_DAMAGE, ent->damage);
+    ent->splashDamage = (int)BG_WeaponScriptValue(WP_LANDMINE, WSF_SPLASH_DAMAGE, ent->splashDamage);
+    ent->splashRadius = (int)BG_WeaponScriptValue(WP_LANDMINE, WSF_SPLASH_RADIUS, ent->splashRadius);
 
 	ent->health			= 0;
 	ent->s.modelindex2	= 0;

@@ -1,5 +1,9 @@
 GCC/ = /usr/
 
+# Apple Silicon starts at macOS 11; use the SDK/system libcurl on every host.
+export SDKROOT ?= $(shell xcrun --sdk macosx --show-sdk-path)
+export MACOSX_DEPLOYMENT_TARGET ?= 11.0
+
 ###############################################################################
 
 IDMODULE.prefix  =
@@ -13,6 +17,8 @@ MATH.l     =
 IPHLPAPI.l =
 ADVAPI.l   =
 WS2_32.l   =
+VPNHTTP.l = curl pthread
+VPNHTTP.cflags = -pthread
 
 ###############################################################################
 

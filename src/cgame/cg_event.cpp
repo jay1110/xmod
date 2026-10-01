@@ -2320,6 +2320,7 @@ void CG_EntityEvent( centity_t *cent, vec3_t position ) {
 			(es->weapon != WP_SMOKE_BOMB) &&
 			(es->weapon != WP_POISON_GAS) &&
 			(es->weapon != WP_BOMB) &&
+			(es->weapon != WP_BOMB_ALLIES) &&
 			(es->weapon != WP_AMMO) &&
 			(es->weapon != WP_MEDKIT) &&
 			(es->weapon != WP_PLIERS) &&
@@ -2345,6 +2346,7 @@ void CG_EntityEvent( centity_t *cent, vec3_t position ) {
 			es->weapon == WP_SMOKE_BOMB ||
 			es->weapon == WP_POISON_GAS ||
 			es->weapon == WP_BOMB ||
+			es->weapon == WP_BOMB_ALLIES ||
 			es->weapon == WP_AMMO ||
 			es->weapon == WP_MEDKIT ) ) {
 			CG_OutOfAmmoChange( event == EV_WEAPONSWITCHED ? qfalse : qtrue);

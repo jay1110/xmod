@@ -1,6 +1,7 @@
 #include <bgame/impl.h>
 #include <omnibot/et/g_etbot_interface.h>
 #include <game/g_xmod.h>
+#include <game/g_weaponscripts.h>
 
 #define	MISSILE_PRESTEP_TIME	50
 
@@ -102,6 +103,7 @@ void G_BounceMissile( gentity_t *ent, trace_t *trace ) {
 				case WP_SATCHEL:
 				case WP_SMOKE_BOMB:
 				case WP_TRIPMINE:
+				case WP_BOMB_ALLIES:
 				case WP_BOMB:
 					ent->r.ownerNum = ENTITYNUM_WORLD;
 					break;
@@ -206,14 +208,14 @@ void G_MissileImpact( gentity_t *ent, trace_t *trace, int impactDamage ) {
 
 			// Panzer hits are auto gibs, anything else is cheap
 			int damage = ent->damage;
-			if (ent->methodOfDeath == MOD_PANZERFAUST && other->client) {
+			if (ent->methodOfDeath == MOD_PANZERFAUST && other->client && !BG_WeaponScriptHas(WP_PANZERFAUST, WSF_DAMAGE)) {
 				damage = 10000;
 			}
 
 			// SBW_THKNIFE_HEADSHOT - Check for headshot with throwing knife
 			gentity_t* target = other->dmgparent ? other->dmgparent : other;
 			if (ent->methodOfDeath == MOD_THROWING_KNIFE && target->client && target->health > 0 && 
-				(cvars::bg_weapons.ivalue & SBW_THKNIFE_HEADSHOT)) {
+				BG_WeaponScriptValue(WP_KNIFE, WSF_HEADSHOT, (cvars::bg_weapons.ivalue & SBW_THKNIFE_HEADSHOT) ? 1 : 0) != 0) {
 				// Calculate the height of the hit relative to the target's origin
 				float hitHeight = trace->endpos[2] - target->r.currentOrigin[2];
 				
@@ -548,6 +550,7 @@ void G_ExplodeMissile( gentity_t *ent ) {
 			case WP_SATCHEL:
 			case WP_SMOKE_MARKER:
 			case WP_TRIPMINE:
+			case WP_BOMB_ALLIES:
 			case WP_BOMB: {
 				gentity_t* tent = G_TempEntity( ent->r.currentOrigin, EV_SHAKE );
 				tent->s.onFireStart = ent->splashDamage * 4;
@@ -687,6 +690,7 @@ void Landmine_Check_Ground (gentity_t *self)
 			case WP_SATCHEL:
 			case WP_SMOKE_BOMB:
 			case WP_SMOKE_MARKER:
+			case WP_BOMB_ALLIES:
 			case WP_BOMB:
 				if (!self->s.pos.trDelta[0] && !self->s.pos.trDelta[1] && !self->s.pos.trDelta[2])
 					self->clipmask &= ~CONTENTS_BODY;
@@ -760,6 +764,7 @@ void G_RunMissile( gentity_t *ent ) {
 			case WP_SATCHEL:
 			case WP_SMOKE_BOMB:
 			case WP_SMOKE_MARKER:
+			case WP_BOMB_ALLIES:
 			case WP_BOMB:
 				if (!ent->s.pos.trDelta[0] && !ent->s.pos.trDelta[1] && !ent->s.pos.trDelta[2])
 					ent->clipmask &= ~CONTENTS_BODY;
@@ -1168,7 +1173,7 @@ void G_BurnTarget( gentity_t *self, gentity_t *body, qboolean directhit )
 	// Non-clients that take damage get damaged here
 	if ( !body->client ) {
 		if ( body->health > 0 )
-			G_Damage( body, self->parent, self->parent, vec3_origin, self->r.currentOrigin, 2, 0, MOD_FLAMETHROWER );
+			G_Damage( body, self->parent, self->parent, vec3_origin, self->r.currentOrigin, (int)BG_WeaponScriptValue(WP_FLAMETHROWER, WSF_DAMAGE, 2), 0, MOD_FLAMETHROWER );
 		return;
 	}
 
@@ -2434,6 +2439,7 @@ gentity_t *fire_grenade (gentity_t *self, vec3_t start, vec3_t dir, int grenadeW
 			VectorCopy(bolt->r.maxs, bolt->r.absmax);
 
 			break;
+		case WP_BOMB_ALLIES:
 		case WP_BOMB:
 			bolt->classname				= "bomb";
 			bolt->splashRadius			= 400;
@@ -2462,6 +2468,7 @@ gentity_t *fire_grenade (gentity_t *self, vec3_t start, vec3_t dir, int grenadeW
 
 // JPW NERVE -- blast radius proportional to damage
 	bolt->splashRadius = G_GetWeaponDamage(grenadeWPID);
+    G_ApplyWeaponProjectileOverrides(bolt, grenadeWPID);
 // jpw
 
 	bolt->clipmask = MASK_MISSILESHOT;
@@ -2533,6 +2540,7 @@ gentity_t *fire_rocket (gentity_t *self, vec3_t start, vec3_t dir) {
 	bolt->damage = G_GetWeaponDamage(WP_PANZERFAUST); // JPW NERVE
 	bolt->splashDamage = G_GetWeaponDamage(WP_PANZERFAUST); // JPW NERVE
 	bolt->splashRadius = 300; //G_GetWeaponDamage(WP_PANZERFAUST);	// Arnout : hardcoded bleh hack
+    G_ApplyWeaponProjectileOverrides(bolt, WP_PANZERFAUST);
 
 	// Jaybird - half damage in Panzer War mode
 	if (cvars::bg_panzerWar.ivalue) {
@@ -2737,6 +2745,7 @@ gentity_t *fire_mortar(gentity_t *self, vec3_t start, vec3_t dir) {
 	bolt->damage = G_GetWeaponDamage(WP_MAPMORTAR); // JPW NERVE
 	bolt->splashDamage = G_GetWeaponDamage(WP_MAPMORTAR); // JPW NERVE
 	bolt->splashRadius = 120;
+    G_ApplyWeaponProjectileOverrides(bolt, WP_MAPMORTAR);
 	bolt->methodOfDeath = MOD_MAPMORTAR;
 	bolt->splashMethodOfDeath = MOD_MAPMORTAR_SPLASH;
 	bolt->clipmask = MASK_MISSILESHOT;

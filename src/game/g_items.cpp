@@ -617,7 +617,8 @@ int Pickup_Weapon( gentity_t *ent, gentity_t *other ) {
 				Q_strncpyz(other->client->pers.lastammo, ent->parent->client->pers.netname, sizeof(other->client->pers.lastammo));
 
 				ent->parent->client->PCSpecialPickedUpCount++;
-				G_AddSkillPoints( ent->parent, SK_SIGNALS, 1.f );
+				if (cvars::gameState.ivalue == GS_PLAYING) ent->parent->client->pers.roundAwards.ammo++;
+			G_AddSkillPoints( ent->parent, SK_SIGNALS, 1.f );
 				G_DebugAddSkillPoints( ent->parent, SK_SIGNALS, 1.f, "ammo pack picked up" ); 
 				
 				//omni-bot event
@@ -773,6 +774,7 @@ int Pickup_Health (gentity_t *ent, gentity_t *other) {
 			// Jaybird - shrubbot text shortcuts
 			Q_strncpyz(other->client->pers.lasthealth, ent->parent->client->pers.netname, sizeof(other->client->pers.lasthealth));
 
+			if (cvars::gameState.ivalue == GS_PLAYING) ent->parent->client->pers.roundAwards.heals++;
 			G_AddSkillPoints( ent->parent, SK_FIRST_AID, 1.f );
 			G_DebugAddSkillPoints( ent->parent, SK_FIRST_AID, 1.f, "health pack picked up" ); 
 			ent->parent->client->PCSpecialPickedUpCount++;

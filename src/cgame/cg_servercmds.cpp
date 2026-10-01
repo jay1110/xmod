@@ -12,7 +12,7 @@
 void CG_LimboMenu_f();
 
 static void CG_PrivateMessage( const char *from, const char *to, int sent, const char *message, qboolean sound ) {
-	char text[MAX_SAY_TEXT];
+	char text[MAX_STRING_CHARS + 2 * MAX_QPATH + 32]; // sender/recipient prefix
 
 	Com_sprintf(text, sizeof(text), "%s^7 -> %s ^7(%d): ^3%s", from, to, sent, message);
 	CG_AddToTeamChat( text, -1, -1 );
@@ -381,21 +381,15 @@ static void CG_ParseWeaponScript( int weapon, const char* info ) {
         return;
     }
 
-    // Parse M97
+    if (!BG_ParseWeaponScriptInfo(weapon, info)) return;
+
+    // Parse display name
     val = Info_ValueForKey( info, "n" );
     if ( val[0] ) {
         Q_strncpyz( cgs.weaponScripts[weapon].name, val, sizeof(cgs.weaponScripts[weapon].name) );
     } else {
         cgs.weaponScripts[weapon].name[0] = '\0';
     }
-
-	// Parse PPSH
-	val = Info_ValueForKey( info, "K" );
-	if ( val[0] ) {
-		Q_strncpyz( cgs.weaponScripts[weapon].name, val, sizeof(cgs.weaponScripts[weapon].name) );
-	} else {
-		cgs.weaponScripts[weapon].name[0] = '\0';
-	}
 
     // Parse killMessage
     val = Info_ValueForKey( info, "k" );
@@ -712,6 +706,12 @@ Called when an NCS entry is updated via server command.
 */
 static void CG_NcsResourceRegister( int ncsIndex ) {
 	const char *data = CG_NcsConfigString( ncsIndex );
+	// Empty entries also remove a fireteam. Rebuild client membership pointers
+	// before the resource-only empty-string guard below.
+	if ( ncsIndex >= NCS_FIRETEAMS && ncsIndex < NCS_FIRETEAMS + MAX_FIRETEAMS ) {
+		CG_ParseFireteams();
+		return;
+	}
 	if ( !data[0] ) {
 		return;
 	}
@@ -762,10 +762,6 @@ static void CG_NcsResourceRegister( int ncsIndex ) {
 	}
 	if ( ncsIndex >= NCS_OID_DATA && ncsIndex < NCS_OID_DATA + MAX_OID_TRIGGERS ) {
 		CG_ParseOIDInfo( CS_OID_DATA + (ncsIndex - NCS_OID_DATA) );
-		return;
-	}
-	if ( ncsIndex >= NCS_FIRETEAMS && ncsIndex < NCS_FIRETEAMS + MAX_FIRETEAMS ) {
-		CG_ParseFireteams();
 		return;
 	}
 }
@@ -1033,7 +1029,7 @@ void CG_AddToTeamChat( const char *str, int clientnum, int teamnum ) {
 
 	ls = NULL;
 	while (*str) {
-		if (len > TEAMCHAT_WIDTH - 1) {
+		if (len > TEAMCHAT_WIDTH - 1 || p - cgs.teamChatMsgs[cgs.teamChatPos % chatHeight] >= (int)sizeof(cgs.teamChatMsgs[0]) - 3) {
 			if (ls) {
 				str -= (p - ls);
 				str++;
@@ -1042,7 +1038,7 @@ void CG_AddToTeamChat( const char *str, int clientnum, int teamnum ) {
 			*p = 0;
 
 			cgs.teamChatMsgTimes[cgs.teamChatPos % chatHeight] = cg.time;
-			cgs.teamChatMsgTeams[cgs.teamChatPos % chatHeight] = cgs.clientinfo[ clientnum ].team;
+			cgs.teamChatMsgTeams[cgs.teamChatPos % chatHeight] = (clientnum >= 0 && clientnum < MAX_CLIENTS) ? cgs.clientinfo[clientnum].team : TEAM_FREE;
             if (!iconSet) {
                 cgs.teamChatMsgIcons[cgs.teamChatPos % chatHeight] = CG_ChatIcon(teamnum);
                 iconSet = true;
@@ -1082,7 +1078,7 @@ void CG_AddToTeamChat( const char *str, int clientnum, int teamnum ) {
 	}
 	*p = 0;
 
-	cgs.teamChatMsgTeams[cgs.teamChatPos % chatHeight] = cgs.clientinfo[ clientnum ].team;
+	cgs.teamChatMsgTeams[cgs.teamChatPos % chatHeight] = (clientnum >= 0 && clientnum < MAX_CLIENTS) ? cgs.clientinfo[clientnum].team : TEAM_FREE;
 	cgs.teamChatMsgTimes[cgs.teamChatPos % chatHeight] = cg.time;
     if (!iconSet) {
         cgs.teamChatMsgIcons[cgs.teamChatPos % chatHeight] = CG_ChatIcon(teamnum);
@@ -1131,7 +1127,7 @@ void CG_AddToNotify( const char *str ) {
 
 	ls = NULL;
 	while (*str) {
-		if (len > NOTIFY_WIDTH - 1 || (*str == '\n' && (*(str + 1) != 0)) ) {
+		if (len > NOTIFY_WIDTH - 1 || p - cgs.notifyMsgs[cgs.notifyPos % chatHeight] >= (int)sizeof(cgs.notifyMsgs[0]) - 3 || (*str == '\n' && (*(str + 1) != 0)) ) {
 			if (ls) {
 				str -= (p - ls);
 				str++;
@@ -1199,6 +1195,11 @@ static void CG_MapRestart( void ) {
 
 	cg.numbufferedSoundScripts = 0;
 	cg.clientInfoReceived = qfalse;	// reset so first CS_PLAYERS update doesn't trigger skill announcements
+    // map_restart keeps the module loaded; clear removed script overrides
+    // before the server resends the current weapon definitions.
+    BG_InitWeaponScriptState();
+    CG_ParseWeaponScripts();
+    BG_updateAmmoTable();
 
 	// Jaybird - bp
 	cg.bPrintTime = 0;
@@ -1271,6 +1272,7 @@ static void CG_MapRestart( void ) {
 	cg.intermissionStarted = qfalse;
 	cg.lightstylesInited = qfalse;
 	cg.mapRestart = qtrue;
+    cgs.rpcsRoundAwards[0] = 0;
 	cg.timelimitWarnings = 0;
 	cgs.voteTime = 0;
 	cgs.dumpStatsTime = 0;
@@ -2383,7 +2385,7 @@ void CG_ForceTapOut_f( void );
 
 static void CG_ServerCommand( void ) {
 	const char	*cmd;
-	char		text[MAX_SAY_TEXT];
+	char		text[MAX_STRING_CHARS];
 
  	cmd = CG_Argv(0);
 
@@ -2464,15 +2466,15 @@ static void CG_ServerCommand( void ) {
 		return;
 	}
 
-	// Handle forced CVAR from server (NitMod-compatible "fc" command)
-	if (!strcmp( cmd, "fc" )) {
-		const char* cvarName = CG_Argv(1);
-		const char* cvarValue = CG_Argv(2);
-		if ( cvarName && cvarName[0] && cvarValue ) {
-			trap_Cvar_Set( cvarName, cvarValue );
-		}
-		return;
-	}
+    // Keep rules for every-frame enforcement; refreshed after vid_restart.
+    if (!strcmp(cmd, "fc_clear")) {
+        CG_ClearForcedCvars();
+        return;
+    }
+    if (!strcmp(cmd, "fc") || !strcmp(cmd, "fcr")) {
+        CG_ReceiveForcedCvar(!strcmp(cmd, "fcr"));
+        return;
+    }
 
 	if ( !strcmp( cmd, "tinfo" ) ) {
 		CG_ParseTeamInfo();
@@ -2680,9 +2682,12 @@ static void CG_ServerCommand( void ) {
 			// Filtercams via RPCS
 			Q_strncpyz( cgs.rpcsFilterCams, CG_Argv(2), sizeof(cgs.rpcsFilterCams) );
 			cg.filtercams = atoi( cgs.rpcsFilterCams ) ? qtrue : qfalse;
-		} else if ( !Q_stricmp( type, "e" ) ) {
+		} else if ( !Q_stricmp( type, "awards" ) ) {
+            Q_strncpyz(cgs.rpcsRoundAwards, CG_Argv(2), sizeof(cgs.rpcsRoundAwards));
+        } else if ( !Q_stricmp( type, "e" ) ) {
 			// Endgame stats via RPCS
 			Q_strncpyz( cgs.rpcsEndgameStats, CG_Argv(2), sizeof(cgs.rpcsEndgameStats) );
+            cgs.dbAwardsParsed = qfalse;
 		}
 		return;
 	}
@@ -2811,7 +2816,7 @@ static void CG_ServerCommand( void ) {
 			s = CG_Argv( 1 );
 		}
 
-		Q_strncpyz( text, s, MAX_SAY_TEXT );
+		Q_strncpyz( text, s, sizeof(text) );
 		CG_RemoveChatEscapeChar( text );
 		CG_AddToTeamChat(text, atoi(CG_Argv(2)), team);
 		CG_Printf( "%s\n", text );
@@ -2832,7 +2837,7 @@ static void CG_ServerCommand( void ) {
 			s = CG_Argv( 1 );
 		}
 
-		Q_strncpyz( text, s, MAX_SAY_TEXT );
+		Q_strncpyz( text, s, sizeof(text) );
 		CG_RemoveChatEscapeChar( text );
 		CG_AddToTeamChat(text, atoi(CG_Argv(2)), team);
 		CG_Printf( "%s\n", text ); // JPW NERVE

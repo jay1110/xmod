@@ -124,14 +124,8 @@ void trap_SendServerCommand( int clientNum, const char *text ) {
 		return;
 	}
 
-	// Make sure no extended ASCII gets sent over the wire
-	for (int i = 0, end = strlen(text); i < end; i++) {
-		char c = text[i];
-		if (c < 0) {
-			G_LogPrintf("%s: trap_SendServerCommand(%d ...) dropped due to extended ASCII.\n", GAMEVERSION, clientNum);
-			return;
-		}
-	}
+    // ET text also uses bytes above 127 (names, localized text and glyphs).
+    // They are data, not a reason to silently drop the whole command.
 
 	Engine::ptr( G_SEND_SERVER_COMMAND, clientNum, text );
 }

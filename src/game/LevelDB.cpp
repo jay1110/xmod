@@ -1,9 +1,40 @@
 #include <bgame/impl.h>
+#include <cstdio>
+#ifdef _WIN32
+#include <windows.h>
+#endif
+
+namespace {
+bool replaceLevelFile(const string& temporary, const string& destination)
+{
+#ifdef _WIN32
+    return MoveFileExA(temporary.c_str(), destination.c_str(),
+        MOVEFILE_REPLACE_EXISTING | MOVEFILE_WRITE_THROUGH) != 0;
+#else
+    return std::rename(temporary.c_str(), destination.c_str()) == 0;
+#endif
+}
+
+bool writeLevelFile(const string& destination, const string& contents)
+{
+    const string temporary = destination + ".tmp";
+    ofstream output(temporary.c_str(), ios::binary | ios::trunc);
+    if (!output.is_open()) return false;
+    output.write(contents.data(), contents.size());
+    output.flush();
+    const bool written = output.good();
+    output.close();
+    if (!written || output.fail()) return false;
+    return replaceLevelFile(temporary, destination);
+}
+}
+
 
 ///////////////////////////////////////////////////////////////////////////////
 
 LevelDB::LevelDB()
     : Database ( "level.db", "level" )
+    , _canSave ( false )
     , mapLEVEL ( _mapLEVEL )
 {
 }
@@ -106,55 +137,71 @@ LevelDB::fetchByName( const string& name, string& err )
 void
 LevelDB::load()
 {
-    _mapLEVEL.clear();
-
-    {
-        // setup DEFAULT level
-        Level& level = Level::DEFAULT;
-        level._level = 0;
-        level.name = "default";
-        level.namex = level.name;
-        level.privGranted.insert( cmd::builtins::listPlayers._privilege );
-        level.privGranted.insert( cmd::builtins::resetmyXp._privilege );
-
-        _mapLEVEL[ level._level ] = level;
+    // Never permit a failed reload to overwrite the last valid file.
+    _canSave = false;
+    Level defaults;
+    defaults._level = 0;
+    defaults.name = "default";
+    defaults.namex = defaults.name;
+    defaults.privGranted.insert(cmd::builtins::listPlayers._privilege);
+    defaults.privGranted.insert(cmd::builtins::resetmyXp._privilege);
+    if (_mapLEVEL.empty()) {
+        Level::DEFAULT = defaults;
+        _mapLEVEL[0] = defaults;
     }
 
-    // Open file
     string filename;
-    if (open( false, filename ))
+    if (open(false, filename)) {
+        close();
         return;
-
-    logBegin( false, filename );
-
-    // parse DEFAULT user information
-    map<string,string> data;
-
-    // Parse each record
-    while (!_stream.rdstate()) {
-        parseData( data );
-
-        map<string,string>::const_iterator it = data.find( _key );
-        if (it == data.end())
-            continue;
-
-        const int reckey = toKey( it->second );
-
-        string err;
-        Level& level = fetchByKey( reckey, err, true );
-        if (level == Level::BAD) {
-            ostringstream msg;
-            msg << "WARNING: skipping invalid LEVEL record: " << it->second << endl;
-            trap_Printf( msg.str().c_str() );
-            _mapLEVEL.erase( reckey );
-            continue;
-        }
-
-        level.decode( data );
     }
 
-    logEnd( _mapLEVEL.size(), "levels" );
+    // Keep the loaded text as the backup, including comments and formatting.
+    ostringstream original;
+    original << _stream.rdbuf();
+    if (_stream.bad()) {
+        close();
+        trap_Printf("WARNING: level.db read failed; saving disabled.\n");
+        return;
+    }
+    _stream.clear();
+    _stream.seekg(0);
+    mapLEVEL_t candidate;
+    candidate[0] = defaults;
+    set<int> seen;
+    bool valid = _stream.good();
+    map<string,string> data;
+    while (valid && !_stream.rdstate()) {
+        parseData(data);
+        if (data.empty()) continue;
+        map<string,string>::const_iterator it = data.find(_key);
+        if (it == data.end()) { valid = false; break; }
+        int key = -1;
+        istringstream keyStream(it->second);
+        keyStream >> key;
+        if (keyStream.fail()) { valid = false; break; }
+        keyStream >> ws;
+        if (!keyStream.eof() || key < Level::NUM_MIN || key > Level::NUM_MAX ||
+            !seen.insert(key).second) {
+            valid = false;
+            break;
+        }
+        Level record = defaults;
+        record.decode(data);
+        candidate[key] = record;
+    }
+    valid = valid && !_stream.bad() && !seen.empty();
     close();
+    if (!valid) {
+        trap_Printf("WARNING: invalid or empty level.db; existing levels retained, saving disabled.\n");
+        return;
+    }
+    _mapLEVEL.swap(candidate);
+    _lastGoodContents = original.str();
+    _loadedPath = filename;
+    _canSave = true;
+    trap_Printf(va("Reading: %s, %d levels\n", filename.c_str(), int(_mapLEVEL.size())));
+
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -173,36 +220,51 @@ LevelDB::remove( Level& obj, const Level& migrate )
 void
 LevelDB::save()
 {
-    // Open file
-    string filename;
-    if ( open( true, filename ) )
+    if (!_canSave) {
+        trap_Printf("WARNING: level.db save skipped: no successful load. Restore the file and use !dbload.\n");
         return;
+    }
+    char home[MAX_CVAR_VALUE_STRING], game[MAX_CVAR_VALUE_STRING];
+    trap_Cvar_VariableStringBuffer("fs_homepath", home, sizeof(home));
+    trap_Cvar_VariableStringBuffer("fs_game", game, sizeof(game));
+    const string filename = string(home) + "/" + game + "/" + _filename;
+    if (filename != _loadedPath) {
+        trap_Printf("WARNING: level.db path changed; save skipped.\n");
+        return;
+    }
 
-    logBegin( true, filename );
-
-    time_t now = time( 0 );
+    ostringstream output;
+    time_t now = time(0);
     char fnow[32];
-    strftime( fnow, sizeof(fnow), "%c", localtime( &now ));
-
-    // Output header
-    _stream << "###############################################################################"
-        << '\n' << "##"
+    strftime(fnow, sizeof(fnow), "%c", localtime(&now));
+    output << "###############################################################################"
         << '\n' << "## " << XMOD_title << " -- " << _filename
         << '\n' << "## updated: " << fnow
         << '\n' << "## levels:  " << _mapLEVEL.size()
-        << '\n' << "##"
         << '\n' << "###############################################################################";
-
-    // Output users
     int recnum = 0;
-    const mapLEVEL_t::iterator max = _mapLEVEL.end();
-    for ( mapLEVEL_t::iterator it = _mapLEVEL.begin(); it != max; it++ )
-        it->second.encode( _stream, recnum++ );
+    for (mapLEVEL_t::iterator it = _mapLEVEL.begin(); it != _mapLEVEL.end(); ++it)
+        it->second.encode(output, recnum++);
+    output << '\n';
+    if (!output.good()) {
+        trap_Printf("WARNING: level.db serialization failed; file unchanged.\n");
+        return;
+    }
 
-    _stream << '\n';
+    // Both replacements stay on the same filesystem. Never truncate level.db.
+    if (!writeLevelFile(filename + ".bak", _lastGoodContents)) {
+        trap_Printf("WARNING: level.db backup failed; file unchanged.\n");
+        return;
+    }
+    const string contents = output.str();
+    if (!writeLevelFile(filename, contents)) {
+        trap_Printf("WARNING: level.db replacement failed; previous file retained.\n");
+        return;
+    }
+    _lastGoodContents = contents;
+    trap_Printf(va("Writing: %s, %d levels (backup: level.db.bak)\n",
+        filename.c_str(), int(_mapLEVEL.size())));
 
-    logEnd( _mapLEVEL.size(), "levels" );
-    close();
 }
 
 ///////////////////////////////////////////////////////////////////////////////

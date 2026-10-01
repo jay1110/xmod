@@ -2641,6 +2641,11 @@ void CG_LimboPanel_GetWeaponCardIconData( weapon_t weap, qhandle_t* shader, floa
             *shader = cgs.media.limboWeaponCard_M97;
             return;
 
+        case WP_PPSH:
+            *shader = cgs.media.limboWeaponCard3;
+            *t1 = 1.0f / 8.0f; // First 64-pixel row of the 256x512 atlas.
+            return;
+
 		case WP_MORTAR:
 		case WP_PANZERFAUST:
 		case WP_FLAMETHROWER:
@@ -2649,7 +2654,6 @@ void CG_LimboPanel_GetWeaponCardIconData( weapon_t weap, qhandle_t* shader, floa
 		case WP_MP40:
 		case WP_STEN:
 		case WP_THOMPSON:
-		case WP_PPSH:
 			*shader = cgs.media.limboWeaponCard1;
 			break;
 

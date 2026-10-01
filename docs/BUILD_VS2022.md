@@ -72,7 +72,7 @@ WSL2 is required to build the Linux variants. If you only need Windows builds, y
 
 4. **Find your release package:**
    ```
-   release/xmod-2.0.0.zip
+   release/xmod-2.0.4.zip
    ```
 
 ### Building Without Linux Support
@@ -111,11 +111,11 @@ wsl bash build-tools/build-linux.sh
 
 ## Release Package Structure
 
-The `xmod-2.0.0.zip` package contains:
+The `xmod-2.0.4.zip` package contains:
 
 ```
 xmod/
-├── xmod-2.0.0.pk3          # Client binaries + pak data (all platforms)
+├── xmod-2.0.4.pk3          # Client binaries + pak data (all platforms)
 ├── qagame_mp_x86.dll       # Windows 32-bit server
 ├── qagame_mp_x64.dll       # Windows 64-bit server
 ├── qagame.mp.i386.so       # Linux 32-bit server
@@ -176,5 +176,5 @@ For issues:
 
 ## See Also
 
-- [BUILD.md](../BUILD.md) - Makefile-based build documentation
-- [README.md](../README.md) - Project overview
+- [BUILD.md](BUILD.md) - Makefile-based build documentation
+- [README.md](https://github.com/jay1110/xmod/blob/master/README.md) - Project overview

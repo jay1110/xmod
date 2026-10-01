@@ -552,6 +552,7 @@ void player_die( gentity_t *self, gentity_t *inflictor, gentity_t *attacker, int
 	// Jaybird - They're dead.  Adjust their spree info.
 	// G_endKillSpree(self, attacker, meansOfDeath);
 	G_AddLoseSpree( self );
+    self->client->pers.roundAwards.reviveSpree = 0;
 
 	self->enemy = attacker;
 	// Jaybird - shrubbot shortcuts
@@ -581,6 +582,7 @@ void player_die( gentity_t *self, gentity_t *inflictor, gentity_t *attacker, int
 			case WP_MOLOTOV:
 			case WP_SATCHEL:
 			case WP_TRIPMINE:
+			case WP_BOMB_ALLIES:
 			case WP_BOMB:
 				break;
 
@@ -931,6 +933,7 @@ dflags		these flags are used to control how T_Damage works
 */
 
 void G_Damage( gentity_t *targ, gentity_t *inflictor, gentity_t *attacker, const vec3_t in_dir, vec3_t point, int damage, int dflags, int mod ) {
+	if (damage <= 0) return;
 	gclient_t	*client;
 	int			take;
 	int			knockback;
@@ -1301,7 +1304,7 @@ void G_Damage( gentity_t *targ, gentity_t *inflictor, gentity_t *attacker, const
 		// Arnout: attacker == inflictor can happen in other cases as well! (movers trying to gib things)
 		//if ( attacker == inflictor && targ->health <= GIB_HEALTH) {
 		if( targ->health <= GIB_HEALTH ) {
-			if( !G_WeaponIsExplosive( (meansOfDeath_t)mod ) ) {
+			if (BG_WeaponScriptValue(inflictor->s.weapon, WSF_GIBBING, G_WeaponIsExplosive((meansOfDeath_t)mod) ? 1 : 0) == 0) {
 				targ->health = GIB_HEALTH + 1;
 			}
 		}
@@ -1317,7 +1320,7 @@ void G_Damage( gentity_t *targ, gentity_t *inflictor, gentity_t *attacker, const
 // JPW NERVE overcome previous chunk of code for making grenades work again
 //		if ((take > 190)) // 190 is greater than 2x mauser headshot, so headshots don't gib
 		// Arnout: only player entities! messes up ents like func_constructibles and func_explosives otherwise
-		if( ( (targ->s.number < MAX_CLIENTS) && (take > 190) ) && !(targ->r.svFlags & SVF_POW) ) {
+		if( ( (targ->s.number < MAX_CLIENTS) && (take > 190) ) && !(targ->r.svFlags & SVF_POW) && BG_WeaponScriptValue(inflictor->s.weapon, WSF_GIBBING, 1) != 0 ) {
 			targ->health = GIB_HEALTH - 1;
 		}
 

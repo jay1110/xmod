@@ -31,7 +31,7 @@ jobs:
       - name: Install dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y build-essential python3 zip m4 libcurl4-openssl-dev libjsoncpp-dev
+          sudo apt-get install -y build-essential python3 zip m4 libcurl4-openssl-dev
       
       - name: Ensure scripts are executable
         run: chmod +x project/info.py
@@ -39,7 +39,7 @@ jobs:
       - name: Build qagame only (Linux 64-bit Release)
         run: |
           # Build only the qagame module (server-side) for faster quick builds
-          make PLATFORM=linux64 VARIANT=release all MODULES="src/lua src/sqlite3 src/base src/game"
+          make PLATFORM=linux64 VARIANT=release all MODULES="src/lua src/sqlite3 src/jsoncpp src/base src/game"
       
       - name: Upload Linux 64-bit qagame
         uses: actions/upload-artifact@v7

@@ -4,6 +4,7 @@
 // this file holds commands that can be executed by the server console, but not remote clients
 
 #include <bgame/impl.h>
+#include <game/g_antirush.h>
 #include <omnibot/et/g_etbot_interface.h>
 #include <game/g_lua.h>
 #include <game/xmod_globals.h>
@@ -1004,6 +1005,10 @@ qboolean	ConsoleCommand( void ) {
 	char	cmd[MAX_TOKEN_CHARS];
 
 	trap_Argv( 0, cmd, sizeof( cmd ) );
+
+	if (antirush::consoleCommand()) {
+		return qtrue;
+	}
 
 	// Call Lua et_ConsoleCommand callback
 	if (G_LuaHook_ConsoleCommand(cmd)) {

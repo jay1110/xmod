@@ -4,6 +4,9 @@ MODULE.GAME.build: CXX.inherit=MODULE.GAME
 MODULE.GAME.build: $(MODULE.GAME.so)
 
 $(MODULE.GAME.pchs): $(MODULE.BASE.pchs)
+# Builtin command declarations are included by impl.h. Adding an admin command
+# must invalidate old PCHs in incremental local builds as well as clean CI builds.
+$(MODULE.GAME.pchs): $(wildcard $(PROJECT/)src/game/cmd/*.h)
 $(MODULE.GAME.pchs): $(BUILD/)game/bgame/impl.h.$(CXX.pch.ext)/%: $(PROJECT/)src/bgame/impl.h
 	$(call CXX.fnPrecompile,$<,$@,$*)
 
@@ -14,8 +17,18 @@ $(MODULE.GAME.objs.pch): $(BUILD/)game/%.o: $(PROJECT/)src/%.cpp
 $(MODULE.GAME.objs.nch): $(BUILD/)game/%.o: $(PROJECT/)src/%.cpp
 	$(call CXX.fnCompile,$<,$@)
 
+$(MODULE.GAME.objs.nch): $(PROJECT/)src/game/vpn_service.h $(PROJECT/)src/game/vpn_globals.h $(PROJECT/)src/game/vpn_policy.h
+
+# Isolated worker code catches transport/JSON failures without changing the
+# exception settings or precompiled headers of the game itself.
+$(MODULE.GAME.objs.nch): CXX.opt.std = -std=c++17 -fexceptions -fno-rtti $(VPNHTTP.cflags)
+ifneq (,$(filter wasm android-%,$(PROJECT.platformNamef)))
+# Unsupported HTTP platforms compile only stubs, preserving their runtime ABI.
+$(MODULE.GAME.objs.nch): CXX.opt.std = -std=c++17 -fno-exceptions -fno-rtti
+endif
+
 $(MODULE.GAME.so): $(CXX.libstdcxx.DEPS)
-$(MODULE.GAME.so): $(MODULE.GAME.objs.pch) $(MODULE.GAME.objs.nch) $(MODULE.LUA.a) $(MODULE.BASE.a) $(MODULE.SQLITE3.a)
+$(MODULE.GAME.so): $(MODULE.GAME.objs.pch) $(MODULE.GAME.objs.nch) $(MODULE.LUA.a) $(MODULE.BASE.a) $(MODULE.SQLITE3.a) $(MODULE.GAME.jsoncpp)
 	$(call CXX.fnLinkSo,$@,$^)
 	$(call CXX.fnStrip,$@)
 	$(OSX.bundle)

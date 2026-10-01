@@ -1,4 +1,5 @@
 # Build output directories
+/ETGAME/
 build/
 build-*/
 build.*/
@@ -62,3 +63,19 @@ Release_x64/
 nitmod_*.c
 nitmod_*.h
 build_output.log
+
+# Local screenshots, attachments, logs and tests
+/.codex-remote-attachments/
+screenshots/
+codex-clipboard-*.png
+*.log
+/tests/
+/Testing/
+/antirush_v2.tgz
+/antirush/
+/vpn/
+__pycache__/
+*.pyc
+**/server-private.cfg
+docs/_build/
+docs/_generated/

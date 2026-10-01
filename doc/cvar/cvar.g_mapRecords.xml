@@ -1,0 +1,30 @@
+<refentry id="cvar.g_mapRecords">
+<refmeta>
+    <refentrytitle>g_mapRecords</refentrytitle>
+    <manvolnum>cvar</manvolnum>
+</refmeta>
+<refnamediv>
+    <refname>g_mapRecords</refname>
+    <refpurpose>enable SQLite map spree and frag records</refpurpose>
+</refnamediv>
+<refsynopsisdiv>
+    <cmdsynopsis>
+        <command>g_mapRecords</command>
+        <arg><replaceable>0|1</replaceable></arg>
+    </cmdsynopsis>
+</refsynopsisdiv>
+<refsection>
+    <title>Default</title>
+    <para>1 (enabled).</para>
+</refsection>
+<refsection>
+    <title>Description</title>
+    <para>Requires a valid SQLite database. Tracks the highest kill spree and
+    total frags in a round for each map, saving at intermission and map shutdown.
+    Warmup results are excluded. Disconnecting does not erase a round winner.
+    Existing higher records are retained. Set to 0 to disable records.</para>
+    <para>Use /records in the console or !records in chat to display saved records.
+    Use !stats [PLAYER] to display current round statistics for yourself or a
+    player selected by name or slot.</para>
+</refsection>
+</refentry>

@@ -301,11 +301,15 @@ namespace cache {
 #define SPEC_PERSIST   4
 #define SPEC_FREE      8
 
-#define LOGOPTS_CHAT           1
+#define LOGOPTS_REALTIME       1
 #define LOGOPTS_EXTENDED_WEAPS 2
-#define LOGOPTS_OBJECTIVE      4
+// Bit 4 is reserved and intentionally unused.
 #define LOGOPTS_BAN            8
-#define LOGOPTS_REALTIME       16
+#define LOGOPTS_REALTIME_LEGACY 16
+#define LOGOPTS_OBJECTIVE      32
+
+const char* G_LogSafeText(const char* text);
+const char* G_ObjectiveLogName(const gentity_t* ent);
 
 /*
 ===================

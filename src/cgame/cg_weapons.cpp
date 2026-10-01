@@ -1666,7 +1666,8 @@ void CG_RegisterWeapon( int weaponNum, qboolean force ) {
 		case WP_LANDMINE_PGAS:			filename = "landmine_pgas.weap"; break;
 		case WP_MOLOTOV:				filename = "molotov.weap"; break;
 		case WP_TRIPMINE:				filename = "tripmine.weap"; break;
-		case WP_BOMB:					filename = "bomb.weap"; break;
+		case WP_BOMB:					filename = "bombax.weap"; break;
+		case WP_BOMB_ALLIES:					filename = "bomb.weap"; break;
 		case WP_ARTY:					return;	// to shut the game up
 		default:						CG_Printf( S_COLOR_RED "WARNING: trying to register weapon %i but there is no weapon file entry for it.\n", weaponNum ); return;
 	}
@@ -5424,6 +5425,7 @@ void CG_MissileHitWall( int weapon, int clientNum, vec3_t origin, vec3_t dir, in
 
 	case WP_DYNAMITE:
 	case WP_TRIPMINE:
+	case WP_BOMB_ALLIES:
 	case WP_BOMB:
 		shader = cgs.media.rocketExplosionShader;
 		sfx = cgs.media.sfx_dynamiteexp;
@@ -6402,8 +6404,9 @@ static void CG_M97Pattern( vec3_t origin, vec3_t origin2, int seed, int otherEnt
         trace_t tr2;
         float waterfraction = 0.0f;
 
-		float r = Q_crandom( &seed ) * M97_SPREAD * 16;
-		float u = Q_crandom( &seed ) * M97_SPREAD * 16;
+		float spread = BG_WeaponScriptValue(WP_M97, WSF_SPREAD, M97_SPREAD) * BG_WeaponScriptValue(WP_M97, WSF_SPREAD_RATIO, 1);
+		float r = Q_crandom( &seed ) * spread * 16;
+		float u = Q_crandom( &seed ) * spread * 16;
 		VectorMA( origin, 8192 * 16, forward, end);
 		VectorMA (end, r, right, end);
 		VectorMA (end, u, up, end);

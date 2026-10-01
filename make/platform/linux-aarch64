@@ -17,6 +17,8 @@ MATH.l     = m
 IPHLPAPI.l =
 ADVAPI.l   =
 WS2_32.l   =
+VPNHTTP.l = curl pthread
+VPNHTTP.cflags = -pthread
 
 ###############################################################################
 

@@ -1,6 +1,10 @@
 #ifndef BGAME_ENGINE_H
 #define BGAME_ENGINE_H
 
+#if !defined( __EMSCRIPTEN__ )
+#include <bgame/native_syscall.h>
+#endif
+
 ///////////////////////////////////////////////////////////////////////////////
 
 /* Static class for global ET engine functions.
@@ -44,9 +48,10 @@ public:
 
     static Caller ptr;
 #else
-    typedef intptr_t (QDECL* Ptr)( intptr_t, ... );
+    typedef NativeSyscall::Ptr Ptr;
+    typedef NativeSyscall Caller;
 
-    static Ptr ptr;
+    static Caller ptr;
 #endif
 
     static size_t argc ( );

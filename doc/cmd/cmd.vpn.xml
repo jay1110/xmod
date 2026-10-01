@@ -1,0 +1,6 @@
+<refentry id="cmd.vpn">
+<refmeta><refentrytitle>vpn</refentrytitle><manvolnum>1</manvolnum></refmeta>
+<refnamediv><refname>vpn</refname><refpurpose>Manage the VPN blocker.</refpurpose></refnamediv>
+<refsynopsisdiv><cmdsynopsis><command>!vpn</command><arg><replaceable>status | on | off | reload | check PLAYER | check all</replaceable></arg></cmdsynopsis></refsynopsisdiv>
+<refsection><title>Description</title><para>Requires C/vpn and confirmed internal GUID authentication for players. Status reports providers and policy counters without API keys. Reload loads the configured SQLite lists. Player checks run asynchronously and respect authenticated level/GUID exemptions and IP lists. On/off changes the current cvar; keep the startup setting in the server configuration.</para></refsection>
+</refentry>

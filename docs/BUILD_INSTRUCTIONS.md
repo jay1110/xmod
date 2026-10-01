@@ -50,7 +50,7 @@ Each platform builds three modules:
 
 ### From GitHub Actions
 
-1. Go to the [Actions tab](../../actions) in the repository
+1. Go to the [Actions tab](https://github.com/jay1110/xmod/actions) in the repository
 2. Click on a completed workflow run
 3. Scroll down to the **Artifacts** section
 4. Download the artifacts you need:
@@ -397,15 +397,15 @@ If the Android build fails with linker errors, ensure:
 ## Related Documentation
 
 - [BUILD.md](BUILD.md) - General build instructions for Windows and Linux
-- [README.md](README.md) - Project overview
-- [GitHub Actions Workflow](.github/workflows/build-multiplatform.yml) - Automated build configuration
+- [Project README](https://github.com/jay1110/xmod/blob/master/README.md) - Project overview
+- [GitHub Actions Workflow](https://github.com/jay1110/xmod/blob/master/.github/workflows/build-multiplatform.yml) - Automated build configuration
 
 ---
 
 ## Support
 
 For build issues:
-1. Check the [Actions tab](../../actions) for automated build logs
+1. Check the [Actions tab](https://github.com/jay1110/xmod/actions) for automated build logs
 2. Review this documentation
 3. Open an issue on GitHub with:
    - Your OS and version

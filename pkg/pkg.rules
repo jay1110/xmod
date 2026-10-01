@@ -15,21 +15,28 @@ pkg.clean:: pak.clean
 $(MODULE.PKG.out.bin): $(MODULE.PKG.stage/)%: $(PROJECT/)pkg/%
 	$(call fn.cp,$<,$@)
 
-$(MODULE.PKG.out.m4): $(MODULE.PKG.stage/)%: $(PROJECT/)pkg/%.m4
+$(filter-out $(MODULE.PKG.stage/)server-private.cfg,$(MODULE.PKG.out.m4)): $(MODULE.PKG.stage/)%: $(PROJECT/)pkg/%.m4
+	@mkdir -p $(dir $@)
 	m4 -I $(BUILD/)m4 $< > $@
 ifneq ($(PROJECT.platformName),OSX)
 	chmod --reference=$< $@
 endif
 
+# Credentials are never overwritten by an incremental package build.
+$(MODULE.PKG.stage/)server-private.cfg: $(PROJECT/)pkg/server-private.cfg.m4
+	python3 $(PROJECT/)build-tools/stage_server_files.py --private-only $(MODULE.PKG.stage/)
+
 ###############################################################################
 
 .PHONY: $(MODULE.PKG.pk3)
-$(MODULE.PKG.pk3):
+$(MODULE.PKG.pk3): all
+	@mkdir -p $(dir $@)
 	$(call print.HEADER,CREATING,$@)
-	(cd $(MODULE.PAK.stage/) && zip -qr - *) > $@
+	(cd $(MODULE.PAK.stage/) && zip -qr - * -x 'antirush/*') > $@
 
 .PHONY: $(MODULE.PKG.tar)
-$(MODULE.PKG.tar):
+$(MODULE.PKG.tar): $(MODULE.PKG.out.bin) $(MODULE.PKG.out.m4) $(MODULE.PKG.pk3)
+	python3 $(PROJECT/)build-tools/stage_server_files.py --check-private $(MODULE.PKG.stage/)
 	$(call print.HEADER,CREATING,$@)
 ifneq ($(PROJECT.platformName),OSX)
 	$(call fn.cp,$(MODULE.GAME.so),$(MODULE.PKG.stage/))
@@ -40,7 +47,7 @@ endif
 
 ###############################################################################
 
-$(BUILD/)make/pkg.in.defs:
+$(BUILD/)make/pkg.in.defs: $(PROJECT/)pkg/pkg.rules
 	$(call print.HEADER,GENERATING,$@)
 	@mkdir -p $(dir $@)
 	@find $(PROJECT/)pkg -type f \
@@ -68,8 +75,9 @@ $(BUILD/)make/pkg.in.defs:
 
 final:: $(MODULE.PKG.final.pak/) $(MODULE.PKG.final.pkg/) $(dir $(MODULE.PKG.final.doc.pdf))
 final:: final.linux final.osx final.windows final.doc
+	python3 $(PROJECT/)build-tools/stage_server_files.py --check-private $(MODULE.PKG.final.pkg/)
 	$(call print.HEADER,CREATING,$(MODULE.PKG.final.pkg/)$(PROJECT.pk3))
-	(cd $(MODULE.PKG.final.pak/) && zip -qr - *) > $(MODULE.PKG.final.pkg/)$(PROJECT.pk3)
+	(cd $(MODULE.PKG.final.pak/) && zip -qr - * -x 'antirush/*') > $(MODULE.PKG.final.pkg/)$(PROJECT.pk3)
 	$(call print.HEADER,CREATING,$(MODULE.PKG.final.tar))
 	tar czf $(MODULE.PKG.final.tar) -C $(dir $(MODULE.PKG.final.tar)) $(PROJECT.packageBase)
 

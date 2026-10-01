@@ -1,10 +1,13 @@
 #include <bgame/impl.h>
+#include <game/g_antirush.h>
 #include <omnibot/et/g_etbot_interface.h>
 #include <game/g_lua.h>
 #include <bgame/xm_auth_shared.h>
 #include <bgame/xm_sha1.h>
 #include <game/xmod_globals.h>
 #include <game/g_geoip.h>
+#include <game/jxac/jxac_server.h>
+#include <game/vpn_globals.h>
 
 #ifdef _WIN32
 #include <windows.h>
@@ -909,6 +912,10 @@ static void AddExtraSpawnAmmo( gclient_t *client, weapon_t weaponNum)
 }
 
 qboolean AddWeaponToPlayer( gclient_t *client, weapon_t weapon, int ammo, int ammoclip, qboolean setcurrent ) {
+    if ((weapon == WP_BOMB && client->sess.sessionTeam != TEAM_AXIS) ||
+        (weapon == WP_BOMB_ALLIES && client->sess.sessionTeam != TEAM_ALLIES)) {
+        return qfalse;
+    }
 	COM_BitSet( client->ps.weapons, weapon );
 	client->ps.ammoclip[BG_FindClipForWeapon(weapon)] = ammoclip;
 	client->ps.ammo[BG_FindAmmoForWeapon(weapon)] = ammo;
@@ -933,6 +940,11 @@ void BotSetPOW(int entityNum, qboolean isPOW);
  */
 void G_AddClassSpecificTools(gclient_t *client) 
 {
+    // Class/team changes must not retain the other team's bomb.
+    COM_BitClear(client->ps.weapons, WP_BOMB);
+    COM_BitClear(client->ps.weapons, WP_BOMB_ALLIES);
+    client->ps.ammo[WP_BOMB] = client->ps.ammoclip[WP_BOMB] = 0;
+    client->ps.ammo[WP_BOMB_ALLIES] = client->ps.ammoclip[WP_BOMB_ALLIES] = 0;
 	qboolean add_binocs = qfalse;
 	if(client->sess.skill[SK_BATTLE_SENSE] >= 1)
 		add_binocs = qtrue;
@@ -954,8 +966,10 @@ void G_AddClassSpecificTools(gclient_t *client)
 					AddWeaponToPlayer(client, WP_LANDMINE_BBETTY, GetAmmoTableData(WP_LANDMINE_BBETTY)->defaultStartingAmmo, GetAmmoTableData(WP_LANDMINE_BBETTY)->defaultStartingClip, qfalse );
 				if ((cvars::bg_sk5_eng.ivalue & SK5_ENG_LM_PGAS) || (cvars::bg_weaponsenable.ivalue & WPEN_POISONMINE))
 					AddWeaponToPlayer(client, WP_LANDMINE_PGAS, GetAmmoTableData(WP_LANDMINE_PGAS)->defaultStartingAmmo, GetAmmoTableData(WP_LANDMINE_PGAS)->defaultStartingClip, qfalse );
-				if (cvars::bg_weapons.ivalue & SBW_ENG_BOMB)
-					AddWeaponToPlayer(client, WP_BOMB, GetAmmoTableData(WP_BOMB)->defaultStartingAmmo, GetAmmoTableData(WP_BOMB)->defaultStartingClip, qfalse );
+				if (cvars::bg_weapons.ivalue & SBW_ENG_BOMB) {
+                    weapon_t bomb = client->sess.sessionTeam == TEAM_AXIS ? WP_BOMB : WP_BOMB_ALLIES;
+                    AddWeaponToPlayer(client, bomb, GetAmmoTableData(bomb)->defaultStartingAmmo, GetAmmoTableData(bomb)->defaultStartingClip, qfalse);
+                }
 			}
 			break;
 		case PC_COVERTOPS:
@@ -2142,7 +2156,9 @@ restarts.
 */
 bool
 ClientConnect( string& outmsg, int clientNum, qboolean firstTime, qboolean isBot ) {
+    antirush::clientReset(clientNum);
     outmsg.clear();
+    vpnblocker::clientDisconnect(clientNum);
 
 	gclient_t	*client;
 	char		userinfo[MAX_INFO_STRING];
@@ -2578,6 +2594,8 @@ ClientConnect( string& outmsg, int clientNum, qboolean firstTime, qboolean isBot
 		}
 	}
 
+	jxac::Server::clientConnect(clientNum);
+	vpnblocker::clientConnect(clientNum, userinfo, isBot != qfalse);
 	return false;
 }
 
@@ -2626,6 +2644,7 @@ void ClientBegin( int clientNum )
 
 	client->pers.connected = CON_CONNECTED;
 	client->pers.teamState.state = TEAM_BEGIN;
+	jxac::Server::clientBegin(clientNum);
 
 	// save eflags around this, because changing teams will
 	// cause this to happen with a valid entity, and we
@@ -2738,6 +2757,7 @@ void ClientBegin( int clientNum )
 
 	// AntiRush: notify connecting player about antirush
 	G_AntiRushNotify( clientNum );
+    antirush::notify(clientNum);
 
 	// Send RPCS (xmod configstring) data to the connecting client
 	// This data is no longer in the gamestate to avoid MAX_GAMESTATE_CHARS exceeded
@@ -2893,6 +2913,7 @@ void ClientSpawn( gentity_t *ent, qboolean revived )
 
 	const int index = ent - g_entities;
 	gclient_t* const client = ent->client;
+    antirush::clientReset(index);
 
 	G_UpdateSpawnCounts();
 
@@ -3293,6 +3314,7 @@ server system housekeeping.
 ============
 */
 void ClientDisconnect( int clientNum ) {
+    antirush::clientReset(clientNum);
 
 	gentity_t	*ent;
 	gentity_t	*flag=NULL;
@@ -3300,6 +3322,8 @@ void ClientDisconnect( int clientNum ) {
 	vec3_t		launchvel;
 	int			i;
 
+	jxac::Server::clientDisconnect(clientNum);
+	vpnblocker::clientDisconnect(clientNum);
 	ent = g_entities + clientNum;
 	if ( !ent->client ) {
 		return;

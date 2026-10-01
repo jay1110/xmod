@@ -1,0 +1,6 @@
+<refentry id="cmd.blacklist">
+<refmeta><refentrytitle>blacklist</refentrytitle><manvolnum>1</manvolnum></refmeta>
+<refnamediv><refname>blacklist</refname><refpurpose>Manage persistent IPv4 blocks.</refpurpose></refnamediv>
+<refsynopsisdiv><cmdsynopsis><command>!blacklist</command><arg><replaceable>show [PAGE] | add-ip IP REASON | add-ip-range START END REASON | remove-entry ID</replaceable></arg></cmdsynopsis></refsynopsisdiv>
+<refsection><title>Description</title><para>Requires C/blacklist and confirmed internal GUID authentication for players. Saves entries in g_vpnBlockerDBPath. Ranges include both endpoints. Show displays eight entries per page. Reasons contain 1 to 100 printable bytes. Authenticated exemptions and IP whitelist rules override blacklist rules. Enforcement requires g_vpnBlockerEnabled 1 and uses g_vpnBlockerBanMessageBlacklist. Changes re-evaluate connected players.</para></refsection>
+</refentry>

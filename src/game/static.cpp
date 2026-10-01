@@ -90,7 +90,7 @@ namespace objects {
 ///////////////////////////////////////////////////////////////////////////////
 
     Cvar g_admin    ( "g_admin",    "", CVAR_ARCHIVE | CVAR_LATCH );
-    Cvar g_adminLog ( "g_adminLog", "", CVAR_ARCHIVE, AdminLog::cvarCallback );
+    Cvar g_adminLog ( "g_adminLog", "admin.log", CVAR_ARCHIVE, AdminLog::cvarCallback );
 
     Cvar g_bulletmodeDebug     ( "g_bulletmodeDebug",     "0", 0, NULL );
     Cvar g_bulletmodeReference ( "g_bulletmodeReference", "1", 0, NULL );
@@ -111,7 +111,7 @@ namespace objects {
     Cvar g_jxacCheckWallhack      ( "jxac_checkWallhack",      "1",              CVAR_ARCHIVE );
     Cvar g_jxacAutoBan            ( "jxac_autoBan",            "0",              CVAR_ARCHIVE );
     Cvar g_jxacAutoKick           ( "jxac_autoKick",           "1",              CVAR_ARCHIVE );
-    Cvar g_jxacLogFile            ( "jxac_logFile",            "jxac.log",       CVAR_ARCHIVE );
+    Cvar g_jxacLogFile            ( "jxac_logFile",            "jxac/jxac.log",  CVAR_ARCHIVE );
     Cvar g_jxacHeartbeatTimeout   ( "jxac_heartbeatTimeout",   "60000",          CVAR_ARCHIVE );
     Cvar g_jxacCvarFile           ( "jxac_cvarFile",           "jxac/jxac_cvars.cfg", CVAR_ARCHIVE );
     Cvar g_jxacCheatFile          ( "jxac_cheatFile",          "jxac/jxac_cheats.cfg", CVAR_ARCHIVE );
@@ -223,6 +223,13 @@ Registry registry;
 ///////////////////////////////////////////////////////////////////////////////
 
 namespace builtins {
+    Aa               aa;
+    AntiRush         antirush;
+    Vpn              vpn;
+    VpnCheck         vpnCheck;
+    Whitelist        whitelist;
+    Blacklist        blacklist;
+    NguidList        nguidList;
     About            about;
     AddXp            addXp;
     AdminTest        adminTest;
@@ -272,6 +279,7 @@ namespace builtins {
     Pop              pop;
     PutTeam          putTeam;
     Rename           rename;
+    Records          records;
     Reset            reset;
     ResetXp          resetXp;
     ResetmyXp        resetmyXp;
@@ -289,6 +297,7 @@ namespace builtins {
     Spec999          spec999;
     Splat            splat;
     Splata           splata;
+    Stats            stats;
     Status           status;
     Swap             swap;
     Throw            throw_;

@@ -21,7 +21,7 @@
 <title>Default</title>
     <cmdsynopsis>
         <command>jxac_logFile</command>
-        <arg choice="plain"><literal>jxac.log</literal></arg>
+        <arg choice="plain"><literal>jxac/jxac.log</literal></arg>
     </cmdsynopsis>
 </refsection>
 
@@ -29,7 +29,11 @@
 <title>Description</title>
 <para>
     <command>jxac_logFile</command>
-    sets the filename for the JXAC anticheat log.
+    sets the filename for the JXAC anticheat log. Relative filenames are resolved
+    beneath <literal>fs_homepath/fs_game</literal>; the default is
+    <literal>fs_homepath/fs_game/jxac/jxac.log</literal>. Parent directories are
+    created automatically. Explicit absolute custom filenames remain supported.
+    Existing files are appended to; an empty filename disables this log.
 </para>
 </refsection>
 

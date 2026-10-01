@@ -1041,6 +1041,7 @@ typedef enum {
 	WP_MOLOTOV,	        	// 56 - molotov cocktail
 	WP_BOMB,				// 57 - bomb (like red smoke bomb, explodes like dynamite)
 	WP_PPSH,				// 58
+	WP_BOMB_ALLIES,		// 59 - Allied bomb; existing IDs stay unchanged
 
 	WP_NUM_WEAPONS			// WolfMP: 32 WolfXP: 50
 							// NOTE: this cannot be larger than 64 for AI/player weapons!
@@ -1109,6 +1110,8 @@ typedef struct ammotable_s {
 //----(SA)	end
 	int		mod;			// means of death
 } ammotable_t;
+
+#include <bgame/weapon_script.h>
 
 extern int weapAlts[];	// defined in bg_misc.c
 
@@ -1439,7 +1442,7 @@ typedef struct {
 	const char *pszName;
 } weap_ws_t;
 
-extern const weap_ws_t aWeaponInfo[WS_MAX];
+extern weap_ws_t aWeaponInfo[WS_MAX];
 // OSP
 
 // means of death

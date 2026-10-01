@@ -1,0 +1,19 @@
+<refentry id="cvar.g_antirush">
+<refmeta><refentrytitle>g_antirush</refentrytitle><manvolnum>cvar</manvolnum></refmeta>
+<refnamediv><refname>g_antirush</refname><refpurpose>control objective and trickplant protection</refpurpose></refnamediv>
+<refsynopsisdiv><cmdsynopsis><command>g_antirush</command><arg><replaceable>0|1|2</replaceable></arg></cmdsynopsis></refsynopsisdiv>
+<refsection><title>Default</title><para>0 (disabled).</para></refsection>
+<refsection><title>Description</title>
+<para>Mode 1 uses the legacy name-based antirush_objectives.cfg rules and g_antirushTime.
+Mode 2 enables native AutoAdmin rules from antirush/antirush.cfg and antirush/maps/MAP.cfg.
+The protected duration is a configurable fraction of the map timelimit, excluding pauses.
+Trickplant areas remain active throughout the match. Native rules do not require Lua or game logs.</para>
+<para>Use !aa or /aa for the objective editor and !antirush status/on/off for native mode management.
+Both commands use the admin system, its help and logs, and require g_admin 1.
+Player access requires an authenticated internal Xmod GUID and C/aa or C/antirush respectively;
+configured legacy levels and editor GUID permissions remain supported unless an explicit ACL denies access.
+GUID permission management requires both rights. Enabling/disabling selects mode 2 and saves its switch.
+The server console also accepts aa commands and antirush status/on/off. The loose antirush directory
+is installed beside the server module, outside the PK3. See docs/ANTIRUSH.md for configuration and migration.</para>
+</refsection>
+</refentry>

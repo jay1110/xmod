@@ -21,7 +21,7 @@
 <title>Default</title>
     <cmdsynopsis>
         <command>g_adminLog</command>
-        <arg choice="plain"><literal>""</literal></arg>
+        <arg choice="plain"><literal>"admin.log"</literal></arg>
     </cmdsynopsis>
 </refsection>
 
@@ -30,7 +30,12 @@
 <para>
     <command>g_adminLog</command>
     sets the filename used for admin command logging.
-    The file is always appended to.
+    Relative filenames are resolved beneath <literal>fs_homepath/fs_game</literal>,
+    so the default writes <literal>fs_homepath/fs_game/admin.log</literal>.
+    Parent directories are created when needed. An existing leading mod-directory
+    prefix is accepted once; use <literal>admin.log</literal> rather than
+    <literal>xmod/admin.log</literal> in new configurations. Explicit absolute
+    custom filenames remain supported. The file is always appended to.
     A value of <literal>""</literal> will disable this functionality.
 </para>
 </refsection>

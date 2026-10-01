@@ -1,4 +1,5 @@
 #include <bgame/impl.h>
+#include <game/g_antirush.h>
 #include <bgame/xm_auth_shared.h>
 #include <game/xmod_globals.h>
 
@@ -1533,7 +1534,7 @@ void ClientThink_real( gentity_t *ent, bool skipServerTime ) {
 			VectorClear(client->ps.velocity);
 			client->ps.pm_type = PM_FREEZE;
 		}
-	} else if ( g_clientObjects[ent - g_entities].frozen ) {
+	} else if ( g_clientObjects[ent - g_entities].frozen || antirush::held(ent - g_entities) ) {
 		ucmd->buttons = 0;
 		ucmd->forwardmove = 0;
 		ucmd->rightmove = 0;

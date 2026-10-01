@@ -65,6 +65,8 @@ void setClientNospamLastChat(int clientNum, time_t lastChat);
 // Check if a nospammed player is allowed to chat (rate limit: 1 per 60s)
 // Returns true if allowed, false if rate-limited
 bool isClientNospamAllowed(int clientNum);
+bool checkClientNospam(int clientNum);
+bool saveClientNospam(int clientNum, time_t expiry);
 
 // Get player GUID
 const std::string& getClientGuid(int clientNum);

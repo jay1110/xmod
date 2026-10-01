@@ -13,55 +13,8 @@ permissions:
   contents: write
 
 jobs:
-  build-linux64:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v6
-      
-      - name: Install dependencies
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y build-essential python3 zip m4
-      
-      - name: Ensure scripts are executable
-        run: chmod +x project/info.py
-      
-      - name: Build Linux 64-bit
-        run: PLATFORM=linux64 make release
-      
-      - name: Upload Linux 64-bit artifacts
-        uses: actions/upload-artifact@v7
-        with:
-          name: xmod-linux64
-          path: |
-            build.linux64-release/game/qagame.mp.x86_64.so
-            build.linux64-release/cgame/cgame.mp.x86_64.so
-            build.linux64-release/ui/ui.mp.x86_64.so
-
-  build-linux32:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v6
-      
-      - name: Install dependencies
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y build-essential python3 gcc-multilib g++-multilib zip m4
-      
-      - name: Ensure scripts are executable
-        run: chmod +x project/info.py
-      
-      - name: Build Linux 32-bit
-        run: PLATFORM=linux make release
-      
-      - name: Upload Linux 32-bit artifacts
-        uses: actions/upload-artifact@v7
-        with:
-          name: xmod-linux32
-          path: |
-            build.linux-release/game/qagame.mp.i386.so
-            build.linux-release/cgame/cgame.mp.i386.so
-            build.linux-release/ui/ui.mp.i386.so
+  build-native-unix:
+    uses: ./.github/workflows/build-native-unix.yml
 
   build-windows:
     name: Build Windows 32-bit and 64-bit (MSVC)
@@ -113,29 +66,29 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
-      
+
       - name: Install dependencies
         run: |
           sudo apt-get update
           sudo apt-get install -y build-essential python3 zip m4
-      
+
       - name: Build pak data files
         run: |
           # pak data files are in the pak/ directory
           # We need to collect all the raw data files (not cgame/ui, those come from other builds)
           mkdir -p pak-data
-          
+
           # Copy all pak resources directly
           cp -r pak/* pak-data/
-          
+
           # Remove build definition files from pak-data (they're not needed in release)
           rm -f pak-data/pak.defs pak-data/pak.rules 2>/dev/null || true
-          
+
           # Show what we collected
           echo "=== Files collected for pak data ==="
           find pak-data -type f | head -30
           echo "Total files: $(find pak-data -type f | wc -l)"
-      
+
       - name: Upload pak data
         uses: actions/upload-artifact@v7
         with:
@@ -144,121 +97,128 @@ jobs:
           if-no-files-found: warn
 
   create-release:
-    needs: [build-linux64, build-linux32, build-windows, build-pak-data]
+    needs: [build-native-unix, build-windows, build-pak-data]
     runs-on: ubuntu-latest
     # Do not publish an incomplete package if any platform failed to build.
     if: success()
     steps:
       - uses: actions/checkout@v6
-      
+
       - name: Download all artifacts
         uses: actions/download-artifact@v8
         with:
           path: artifacts
-      
+
       - name: Create unified release package
         run: |
           mkdir -p release/xmod
           mkdir -p pak-combined
-          
+
           # Debug: Show artifact structure
           echo "=== Artifact structure ==="
           find artifacts -type f
-          
+
           # === Create pk3 with all client-side binaries (cgame, ui) for all platforms ===
           # Copy pak data files first (if they exist)
           if [ -d "artifacts/xmod-pak-data" ] && [ "$(ls -A artifacts/xmod-pak-data 2>/dev/null)" ]; then
             cp -r artifacts/xmod-pak-data/* pak-combined/
           fi
-          
+
           # Add cgame and ui binaries from all platforms to pak
           # Linux 64-bit
           find artifacts/xmod-linux64 -name "cgame*.so" -exec cp {} pak-combined/ \; 2>/dev/null || true
           find artifacts/xmod-linux64 -name "ui*.so" -exec cp {} pak-combined/ \; 2>/dev/null || true
-          
+
           # Linux 32-bit
           find artifacts/xmod-linux32 -name "cgame*.so" -exec cp {} pak-combined/ \; 2>/dev/null || true
           find artifacts/xmod-linux32 -name "ui*.so" -exec cp {} pak-combined/ \; 2>/dev/null || true
-          
+
+          # Native Linux ARM64 and macOS Intel/Apple Silicon clients.
+          cp artifacts/xmod-linux-arm64/cgame.mp.aarch64.so pak-combined/
+          cp artifacts/xmod-linux-arm64/ui.mp.aarch64.so pak-combined/
+          cp artifacts/xmod-macos/cgame_mac artifacts/xmod-macos/ui_mac pak-combined/
+
           # Windows 64-bit
           find artifacts/xmod-windows64 -name "cgame*.dll" -exec cp {} pak-combined/ \; 2>/dev/null || true
           find artifacts/xmod-windows64 -name "ui*.dll" -exec cp {} pak-combined/ \; 2>/dev/null || true
-          
+
           # Windows 32-bit
           find artifacts/xmod-windows32 -name "cgame*.dll" -exec cp {} pak-combined/ \; 2>/dev/null || true
           find artifacts/xmod-windows32 -name "ui*.dll" -exec cp {} pak-combined/ \; 2>/dev/null || true
-          
+
           echo "=== pak-combined contents ==="
           ls -la pak-combined/
-          
+
           # Create the .dat file (marker file required by the mod)
-          touch pak-combined/xmod-2.0.0.dat
-          
+          touch pak-combined/xmod-2.0.4.dat
+
           # Create the pk3 file (contains all pak data + cgame/ui for all platforms)
+          # Editable server configuration must never be sent to clients in the PK3.
+          test ! -d pak-combined/antirush
           cd pak-combined
           if [ "$(ls -A 2>/dev/null)" ]; then
-            zip -r ../release/xmod/xmod-2.0.0.pk3 *
+            zip -r ../release/xmod/xmod-2.0.4.pk3 *
           else
             echo "WARNING: No pak data found to package!"
           fi
           cd ..
-          
+
           # === Add all qagame (server-side) binaries to release folder ===
           # Linux 64-bit qagame
           find artifacts/xmod-linux64 -name "qagame*.so" -exec cp {} release/xmod/ \; 2>/dev/null || true
-          
+
           # Linux 32-bit qagame
           find artifacts/xmod-linux32 -name "qagame*.so" -exec cp {} release/xmod/ \; 2>/dev/null || true
-          
+
           # Windows 64-bit qagame
           find artifacts/xmod-windows64 -name "qagame*.dll" -exec cp {} release/xmod/ \; 2>/dev/null || true
-          
+
           # Windows 32-bit qagame
           find artifacts/xmod-windows32 -name "qagame*.dll" -exec cp {} release/xmod/ \; 2>/dev/null || true
-          
-          # === Add config files ===
-          # Copy mapscripts
-          mkdir -p release/xmod/mapscripts
-          cp -r pkg/mapscripts/* release/xmod/mapscripts/ 2>/dev/null || true
-          
-          # Copy README and config templates
-          cp pkg/README.txt.m4 release/xmod/README.txt 2>/dev/null || true
-          cp pkg/server.cfg.m4 release/xmod/server.cfg 2>/dev/null || true
-          cp pkg/jaymod.cfg.m4 release/xmod/xmod.cfg 2>/dev/null || true
-          
-          # Copy linux scripts
-          mkdir -p release/xmod/linux
-          cp pkg/linux/*.m4 release/xmod/linux/ 2>/dev/null || true
-          
+
+          cp artifacts/xmod-linux-arm64/qagame.mp.aarch64.so release/xmod/
+          cp artifacts/xmod-macos/qagame_mac release/xmod/
+
+          # Alpine/musl uses the same filenames but a different C runtime.
+          # Keep these replacements separate from the default glibc modules.
+          mkdir -p release/linux-musl-x64
+          cp artifacts/xmod-linux-musl64/*.so release/linux-musl-x64/
+          cp docs/VPN_BLOCKER.md release/VPN_BLOCKER.md
+
+          # Complete source-checked cfg defaults, editable Antirush presets and docs.
+          # Render templates; never distribute raw m4 directives as game commands.
+          python3 build-tools/stage_server_files.py --release release/xmod
+          cp README.md release/xmod/README.md
+
           # Show what we have in xmod folder
           echo "=== xmod folder contents ==="
           ls -la release/xmod/
           echo "=== xmod/mapscripts contents ==="
           ls -la release/xmod/mapscripts/ || true
-          
+
           # Create single release zip
           cd release
-          zip -r xmod-2.0.0.zip xmod/
-          
+          zip -r xmod-2.0.4.zip xmod/ linux-musl-x64/ VPN_BLOCKER.md
+
           # Show what we created
           echo "=== Release package contents ==="
-          unzip -l xmod-2.0.0.zip
-          
+          unzip -l xmod-2.0.4.zip
+
           echo "=== pk3 contents ==="
-          if [ -f "xmod/xmod-2.0.0.pk3" ]; then
-            unzip -l xmod/xmod-2.0.0.pk3
+          if [ -f "xmod/xmod-2.0.4.pk3" ]; then
+            unzip -l xmod/xmod-2.0.4.pk3
           else
             echo "WARNING: pk3 not found"
           fi
-      
+
       - name: Create GitHub Release
-        uses: softprops/action-gh-release@v1
+        uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ github.event_name == 'workflow_dispatch' && format('dev-{0}', github.run_number) || github.ref_name }}
           name: "${{ github.event_name == 'workflow_dispatch' && format('Development Build {0}', github.run_number) || github.ref_name }}"
           prerelease: ${{ github.event_name == 'workflow_dispatch' }}
           generate_release_notes: true
           files: |
-            release/xmod-2.0.0.zip
+            release/xmod-2.0.4.zip
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

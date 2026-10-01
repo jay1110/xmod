@@ -5071,6 +5071,7 @@ static int CG_PlayerAmmoValue( int *ammo, int *clips, int *akimboammo ) {
 		case WP_SATCHEL_DET:
 		case WP_SMOKE_BOMB:
 		case WP_SMOKE_MARKER:
+		case WP_BOMB_ALLIES:
 		case WP_BOMB:
 			return weap;
 

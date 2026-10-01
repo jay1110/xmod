@@ -213,6 +213,9 @@ void G_AddKillSpree(gentity_t *ent) {
 
 	// Increment kills
 	kills = ++ent->client->pers.killspreekills;
+    if (cvars::gameState.ivalue == GS_PLAYING && kills > ent->client->pers.roundAwards.bestSpree)
+        ent->client->pers.roundAwards.bestSpree = kills;
+    G_TrackMapRecords(ent);
 
 	// Also update the map's longest spree
 	if( kills > level.longestSpree ) {
@@ -233,47 +236,7 @@ void G_AddKillSpree(gentity_t *ent) {
 }
 
 void G_LSFinalizeMap( void ) {
-	int        i;
-	gentity_t* ent;
-
-	if(!( g_killingSpree.integer & KS_RECORD ))
-		return;
-
-	// Find the longest spree for this round
-	for( i = 0; i < level.numConnectedClients; i++ ) {
-		ent = g_entities + level.sortedClients[i];
-		if( ent->client->pers.killspreekills > level.longestSpree ) {
-			level.longestSpree = ent->client->pers.killspreekills;
-			Q_strncpyz(level.longestSpreeName, ent->client->pers.netname, sizeof(level.longestSpreeName));
-		}
-	}
-
-	// Found a record, if it's not new, just print it and return
-	if( currentMap->longestSpree > level.longestSpree ) {
-		char timestr[32];
-		struct tm *lt = localtime( &currentMap->longestSpreeTime );
-		strftime( timestr, sizeof( timestr ), "%c", lt );
-
-		AP("chat \"^3*** ^fThe longest killing spree on this map was:\"");
-		AP(va("chat \"^3*** ^x%i ^fkills by ^7%s ^fon ^x%s\"", currentMap->longestSpree, currentMap->longestSpreeNamex.c_str(), timestr ));
-		return;
-	}
-
-	if( !level.longestSpree ) {
-		// Disregard this if there are no kills.
-		return;
-	}
-
-	// New record
-	currentMap->longestSpree = level.longestSpree;
-	currentMap->longestSpreeTime = time(NULL);
-	currentMap->longestSpreeNamex = level.longestSpreeName;
-    char tmpName[MAX_NETNAME];
-    SanitizeString(level.longestSpreeName, tmpName, qtrue);
-    currentMap->longestSpreeName = tmpName;
-
-	AP("chat \"^3*** ^fThere is a new killing spree record for this map!\"");
-	AP(va("chat \"^3*** ^fCongratulations to ^7%s ^fwith a ^x%i ^fspree on this map!\"", currentMap->longestSpreeNamex.c_str(), currentMap->longestSpree ));
+    G_SaveMapRecords(qtrue);
 }
 
 void G_AddMultiKill( gentity_t *ent ) {

@@ -1,5 +1,6 @@
 #include <bgame/impl.h>
 #include <game/xmod_globals.h>
+#include <game/server_log_path.h>
 
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -84,33 +85,25 @@ AdminLog::log( Client* actor, const vector<string>& args, bool denied )
 void
 AdminLog::recompute()
 {
-    const string s = cvars::g_adminLog.svalue;
+    const string configured = cvars::g_adminLog.svalue;
+    string filename;
+    const bool resolved = !configured.empty() && serverlog::resolve(configured, filename);
+    if (resolved && _out.is_open() && filename == _filename) return;
 
-    if (_out.is_open() && s.empty()) {
-        _out.close();
+    if (_out.is_open()) _out.close();
+    _out.clear();
+    _filename.clear();
+    if (configured.empty()) return;
+
+    if (resolved) _out.open(filename.c_str(), ios::app);
+    if (!resolved || !_out.is_open() || _out.fail()) {
+        if (_out.is_open()) _out.close();
         _out.clear();
-        _filename.clear();
+        trap_Printf(va("WARNING: unable to open admin log '%s'. Check its path and write permissions.\n",
+            (filename.empty() ? configured : filename).c_str()));
+        return;
     }
-    else if ((!_out.is_open() && !s.empty()) || (_out.is_open() && s != _filename)) {
-        _out.close();
-        _out.clear();
-        _filename = s;
-        _out.open( _filename.c_str(), ios::app );
-
-        if (_out.rdstate()) {
-            _out.close();
-            _out.clear();
-            _filename.clear();
-
-            ostringstream msg;
-            msg.str( "" );
-            msg << "-------" << endl
-                << "------- WARNING: unable to open " << _filename << " ." << endl
-                << "------- Please verify file is available for write access." << endl
-                << "-------" << endl;
-            trap_Printf( msg.str().c_str() );
-        }
-    }
+    _filename = filename;
 }
 
 ///////////////////////////////////////////////////////////////////////////////

@@ -28,8 +28,4 @@ Engine::args( vector<string>& out, const string& in )
 
 ///////////////////////////////////////////////////////////////////////////////
 
-#if defined( __EMSCRIPTEN__ )
 Engine::Caller Engine::ptr = { (Engine::Ptr)-1 };
-#else
-Engine::Ptr Engine::ptr = (Engine::Ptr)-1;
-#endif

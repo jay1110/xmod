@@ -9,6 +9,9 @@ public:
 
 private:
     mapLEVEL_t _mapLEVEL; // memory-map for all records
+    bool _canSave;
+    string _loadedPath;
+    string _lastGoodContents;
 
 public:
     LevelDB();

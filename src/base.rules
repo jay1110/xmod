@@ -12,6 +12,10 @@ $(MODULE.BASE.prj): $(PROJECT/)project/info.py $(PROJECT/)project/info.db
 $(MODULE.BASE.pchs): $(BUILD/)base/public.h.$(CXX.pch.ext)/%: $(PROJECT/)src/base/public.h
 	$(call CXX.fnPrecompile,$<,$@,$*)
 
+# All module PCHs depend on this one. Rebuild inline native trap callers when
+# their ABI changes, even in the legacy Make build without compiler depfiles.
+$(MODULE.BASE.pchs): $(PROJECT/)src/bgame/Engine.h $(PROJECT/)src/bgame/native_syscall.h
+
 $(MODULE.BASE.objs): $(MODULE.BASE.pchs)
 $(MODULE.BASE.objs): $(BUILD/)%.o: $(PROJECT/)src/%.cpp
 	$(call CXX.fnCompilePch,$<,$@,base/public.h,$(MODULE.BASE.pchs))

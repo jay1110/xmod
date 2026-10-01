@@ -463,6 +463,7 @@ void G_deleteStats(int nClient)
 {
 	gclient_t *cl = &level.clients[nClient];
 
+	memset(&cl->pers.roundAwards, 0, sizeof(cl->pers.roundAwards));
 	cl->sess.damage_given = 0;
 	cl->sess.damage_received = 0;
 	cl->sess.deaths = 0;

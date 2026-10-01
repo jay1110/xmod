@@ -14,6 +14,8 @@ BG_updateAmmoTable()
 
     ammoTableNeedsUpdate = false;
     memcpy( ammoTableMP, ammoTableMP_BACKUP, sizeof(ammoTableMP) );
+    for (int weapon = 1; weapon < WP_NUM_WEAPONS; ++weapon)
+        BG_ApplyWeaponScriptAmmo(weapon);
 
     if (cvars::bg_weapons.ivalue & SBW_FAIRRIFLES ) {
 

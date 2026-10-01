@@ -23,7 +23,7 @@ Nospam::~Nospam()
 AbstractCommand::PostAction
 Nospam::doExecute( Context& txt )
 {
-    if (txt._args.size() < 2)
+    if (txt._args.size() < 2 || txt._args.size() > 3)
         return PA_USAGE;
 
     Client* target;
@@ -55,11 +55,17 @@ Nospam::doExecute( Context& txt )
     time_t nospamExpiry = 0;
     if (txt._args.size() > 2) {
         int seconds = str::toSeconds( txt._args[2] );
-        if (seconds > 0)
-            nospamExpiry = time(NULL) + seconds;
+        if (seconds < 1) {
+            txt._ebuf << "Invalid duration. Use e.g. 5m or 1h, or omit TIME for permanent.";
+            return PA_ERROR;
+        }
+        nospamExpiry = time(NULL) + seconds;
     }
 
-    G_NospamPlayer( &target->gentity, nospamExpiry );
+    if (!G_NospamPlayer(&target->gentity, nospamExpiry)) {
+        txt._ebuf << "Unable to save nospam. Player must be authenticated and SQLite available.";
+        return PA_ERROR;
+    }
     trap_SendServerCommand( target->slot, "cp \"^xYou've been nospammed.\n^7You can only send 1 message per minute.\n\"" );
 
     Buffer buf;

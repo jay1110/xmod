@@ -160,6 +160,7 @@ static void scanLoadedModulesLinux(std::vector<ModuleInfo>& modules) {
 
 // Public function to scan and send modules
 void scanAndSendModules() {
+    if (moduleTransferActive) return;
     std::vector<ModuleInfo> modules;
     
 #ifdef _WIN32
@@ -172,41 +173,35 @@ void scanAndSendModules() {
     moduleQueueHead = 0;
     moduleQueueTail = 0;
     moduleQueueCount = 0;
-    moduleTotalCount = (int)modules.size();
+    moduleTotalCount = 0;
 
     for (size_t i = 0; i < modules.size() && moduleQueueCount < JXAC_MAX_MODULE_QUEUE; i++) {
         memcpy(&moduleQueue[moduleQueueTail], &modules[i], sizeof(ModuleInfo));
         moduleQueueTail = (moduleQueueTail + 1) % JXAC_MAX_MODULE_QUEUE;
         moduleQueueCount++;
+        moduleTotalCount++;
     }
 
-    if (moduleQueueCount > 0) {
-        moduleTransferActive = qtrue;
-    }
+    moduleTransferActive = qtrue;
 }
 
-// Process module queue (call each frame)
-void processModuleQueue() {
-    if (!moduleTransferActive || moduleQueueCount == 0) {
-        return;
-    }
+void clearModuleQueue() {
+    moduleQueueHead = moduleQueueTail = moduleQueueCount = moduleTotalCount = 0;
+    moduleTransferActive = qfalse;
+}
 
-    // Send up to 2 modules per frame to avoid command overflow
-    int modulesToSend = (moduleQueueCount > 2) ? 2 : moduleQueueCount;
-
-    for (int i = 0; i < modulesToSend; i++) {
-        ModuleInfo* mod = &moduleQueue[moduleQueueHead];
-        trap_SendClientCommand(va("jxac_module %s %s", mod->name, mod->checksum));
-
-        moduleQueueHead = (moduleQueueHead + 1) % JXAC_MAX_MODULE_QUEUE;
-        moduleQueueCount--;
-    }
-
-    // Check if transfer is complete
+bool processModuleQueue() {
+    if (!moduleTransferActive) return false;
     if (moduleQueueCount == 0) {
         moduleTransferActive = qfalse;
         trap_SendClientCommand(va("jxac_module_complete %d", moduleTotalCount));
+    } else {
+        ModuleInfo* mod = &moduleQueue[moduleQueueHead];
+        trap_SendClientCommand(va("jxac_module %s %s", mod->name, mod->checksum));
+        moduleQueueHead = (moduleQueueHead + 1) % JXAC_MAX_MODULE_QUEUE;
+        --moduleQueueCount;
     }
+    return true;
 }
 
 } // namespace jxac

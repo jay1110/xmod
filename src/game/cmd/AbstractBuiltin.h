@@ -18,6 +18,10 @@ private:
 ///////////////////////////////////////////////////////////////////////////////
 
 #include <game/cmd/About.h>
+#include <game/cmd/Aa.h>
+#include <game/cmd/AntiRush.h>
+#include <game/cmd/Vpn.h>
+#include <game/cmd/VpnLists.h>
 #include <game/cmd/AddXp.h>
 #include <game/cmd/AdminTest.h>
 #include <game/cmd/Ban.h>
@@ -65,6 +69,7 @@ private:
 #include <game/cmd/Pip.h>
 #include <game/cmd/Pop.h>
 #include <game/cmd/PutTeam.h>
+#include <game/cmd/Records.h>
 #include <game/cmd/Rename.h>
 #include <game/cmd/Reset.h>
 #include <game/cmd/ResetXp.h>
@@ -83,6 +88,7 @@ private:
 #include <game/cmd/Spec999.h>
 #include <game/cmd/Splat.h>
 #include <game/cmd/Splata.h>
+#include <game/cmd/Stats.h>
 #include <game/cmd/Status.h>
 #include <game/cmd/Swap.h>
 #include <game/cmd/Throw.h>
@@ -104,6 +110,13 @@ private:
 ///////////////////////////////////////////////////////////////////////////////
 
 namespace builtins {
+    extern Aa           aa;
+    extern AntiRush     antirush;
+    extern Vpn          vpn;
+    extern VpnCheck     vpnCheck;
+    extern Whitelist    whitelist;
+    extern Blacklist    blacklist;
+    extern NguidList    nguidList;
     extern About        about;
     extern AddXp        addXp;
     extern AdminTest    adminTest;
@@ -151,6 +164,7 @@ namespace builtins {
     extern Pip          pip;
     extern Pop          pop;;
     extern PutTeam      putTeam;
+    extern Records      records;
     extern Rename       rename;
     extern Reset        reset;
     extern ResetXp      resetXp;
@@ -169,6 +183,7 @@ namespace builtins {
     extern Spec999      spec999;
     extern Splat        splat;
     extern Splata       splata;
+    extern Stats        stats;
     extern Status       status;
     extern Swap         swap;
     extern Throw        throw_;

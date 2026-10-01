@@ -42,7 +42,7 @@ Cross-Compilation für macOS ist **komplex und hat rechtliche Einschränkungen**
 | **Cloud Mac** | ⭐⭐ Niedrig | ⭐⭐⭐⭐ Hoch | 💰 $20-30/Monat | Bei Budget |
 | **Nativer Mac** | ⭐ Niedrig | ⭐⭐⭐⭐⭐ Sehr hoch | Kostenlos* | Bei vorhandener Hardware |
 
-## 2. Weg 1: GitHub Actions (EMPFOHLEN) 🏆
+## 2. Weg 1: GitHub Actions (EMPFOHLEN)
 
 **Schwierigkeitsgrad:** ⭐ Niedrig  
 **Zuverlässigkeit:** ⭐⭐⭐⭐⭐ Sehr hoch  
@@ -147,7 +147,7 @@ Erweitere den `create-release` Job um macOS-Artefakte:
 Nach erfolgreichem Build:
 1. Gehe zu GitHub → Actions → Dein Workflow Run
 2. Scrolle zu "Artifacts"
-3. Lade `xmod-2.0.0.zip` herunter
+3. Lade `xmod-2.0.4.zip` herunter
 
 ### Unterschiedliche macOS Runner
 
@@ -213,7 +213,7 @@ GitHub bietet verschiedene macOS-Runner:
         continue-on-error: true
 ```
 
-## 3. Weg 2: OSXCross Toolchain ⚠️
+## 3. Weg 2: OSXCross Toolchain
 
 **Schwierigkeitsgrad:** ⭐⭐⭐⭐⭐ Sehr hoch  
 **Zuverlässigkeit:** ⭐⭐ Mittel  
@@ -298,7 +298,7 @@ x86_64-apple-darwin21-clang --version
 
 Erstelle eine neue Datei `make/platform/osx64-cross` basierend auf `make/platform/osx64`:
 
-```makefile
+```text
 # OSXCross Cross-Compilation Configuration
 OSXCROSS_ROOT ?= $(HOME)/osxcross
 OSXCROSS_TARGET_DIR = $(OSXCROSS_ROOT)/target
@@ -499,7 +499,7 @@ Cross-kompilierte Binaries sind nicht signiert und werden von modernen macOS-Ver
 **Fazit:** Verwende OSXCross nur für Tests, nicht für Production!
 
 
-## 4. Weg 3: Cloud-basierter Mac 💰
+## 4. Weg 3: Cloud-basierter Mac
 
 **Schwierigkeitsgrad:** ⭐⭐ Niedrig  
 **Zuverlässigkeit:** ⭐⭐⭐⭐ Hoch  
@@ -800,7 +800,7 @@ build.osx64-release/            # Release build
 ```
 etmain/
 └── xmod/
-    ├── xmod-2.0.0.pk3           # Enthält cgame + ui
+    ├── xmod-2.0.4.pk3           # Enthält cgame + ui
     └── qagame.mp.x86_64.dylib   # Server-Modul
 ```
 
@@ -1108,8 +1108,8 @@ which x86_64-apple-darwin21-ar
 
 ### Xmod-spezifisch
 
-- **Build-System Dokumentation:** [notes/BuildSystem.txt](../notes/BuildSystem.txt)
-- **Allgemeine Build-Anleitung:** [BUILD.md](../BUILD.md)
+- **Build-System Dokumentation:** [notes/BuildSystem.txt](https://github.com/jay1110/xmod/blob/master/notes/BuildSystem.txt)
+- **Allgemeine Build-Anleitung:** [BUILD.md](BUILD.md)
 - **Visual Studio Build:** [BUILD_VS2022.md](BUILD_VS2022.md)
 - **GitHub Repository:** https://github.com/jay1110/xmod
 

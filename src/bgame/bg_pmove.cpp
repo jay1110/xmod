@@ -592,6 +592,11 @@ static float PM_CmdScale( usercmd_t *cmd ) {
 	if (pm->ps->pm_type == PM_NOCLIP)
 		scale *= 3;
 
+	// Zero preserves the normal ET weapon slowdown; a positive script value replaces it.
+	float weaponScale = BG_WeaponScriptValue(pm->ps->weapon, WSF_MOVESPEED, 0);
+	if (weaponScale > 0 && pm->ps->pm_type == PM_NORMAL)
+		return scale * weaponScale;
+
 // JPW NERVE -- half move speed if heavy weapon is carried
 // this is the counterstrike way of doing it -- ie you can switch to a non-heavy weapon and move at
 // full speed.  not completely realistic (well, sure, you can run faster with the weapon strapped to your
@@ -2553,6 +2558,7 @@ static void PM_BeginWeaponReload( int weapon ) {
 		case WP_GRENADE_PINEAPPLE:
 		case WP_SMOKE_BOMB:
 		case WP_POISON_GAS:
+		case WP_BOMB_ALLIES:
 		case WP_BOMB:
 			break;
 
@@ -2636,6 +2642,7 @@ void PM_BeginWeaponChange( int oldweapon, int newweapon, qboolean reload ) {	//-
 		case WP_GRENADE_PINEAPPLE:
 		case WP_SMOKE_BOMB:
 		case WP_POISON_GAS:
+		case WP_BOMB_ALLIES:
 		case WP_BOMB:
 			// initialize the timer on the potato you're switching to
 			pm->ps->grenadeTimeLeft = 0;
@@ -3140,6 +3147,7 @@ static void PM_SwitchIfEmpty(void)
         case WP_POISON_GAS:
         case WP_SMOKE_BOMB:
         case WP_TRIPMINE:
+        case WP_BOMB_ALLIES:
         case WP_BOMB:
             break;
 
@@ -3160,6 +3168,7 @@ static void PM_SwitchIfEmpty(void)
 		case WP_DYNAMITE:
 		case WP_GRENADE_LAUNCHER:
 		case WP_GRENADE_PINEAPPLE:
+		case WP_BOMB_ALLIES:
 		case WP_BOMB:
 			COM_BitClear( pm->ps->weapons, pm->ps->weapon);
 			break;
@@ -4147,6 +4156,7 @@ static void PM_Weapon( void ) {
         case WP_GRENADE_PINEAPPLE:
         case WP_POISON_GAS:
         case WP_SMOKE_BOMB:
+        case WP_BOMB_ALLIES:
         case WP_BOMB:
             if (pm->ps->grenadeTimeLeft > 0) {
                 qboolean forcethrow = qfalse;
@@ -4474,7 +4484,7 @@ static void PM_Weapon( void ) {
 	// check for fire
 	// if not on fire button and there's not a delayed shot this frame...
 	// consider also leaning, with delayed attack reset (unless SBW_FIRE_LEAN flag allows it)
-	qboolean blockLeanFire = (qboolean)(pm->ps->leanf != 0 && pm->ps->weapon != WP_GRENADE_LAUNCHER && pm->ps->weapon != WP_GRENADE_PINEAPPLE && pm->ps->weapon != WP_SMOKE_BOMB && pm->ps->weapon != WP_POISON_GAS && pm->ps->weapon != WP_BOMB);
+	qboolean blockLeanFire = (qboolean)(pm->ps->leanf != 0 && pm->ps->weapon != WP_GRENADE_LAUNCHER && pm->ps->weapon != WP_GRENADE_PINEAPPLE && pm->ps->weapon != WP_SMOKE_BOMB && pm->ps->weapon != WP_POISON_GAS && pm->ps->weapon != WP_BOMB && pm->ps->weapon != WP_BOMB_ALLIES);
 	
 	// SBW_FIRE_LEAN - Allow players to fire while leaning
 	if (cvars::bg_weapons.ivalue & SBW_FIRE_LEAN) {
@@ -4531,6 +4541,7 @@ static void PM_Weapon( void ) {
 			case WP_SMOKE_BOMB:
 			case WP_TRIPMINE:
 			case WP_POISON_GAS:
+			case WP_BOMB_ALLIES:
 			case WP_BOMB:
 				break;
 
@@ -4694,6 +4705,7 @@ static void PM_Weapon( void ) {
 		case WP_GRENADE_PINEAPPLE:
 		case WP_POISON_GAS:
 		case WP_SMOKE_BOMB:
+		case WP_BOMB_ALLIES:
 		case WP_BOMB:
 			if(!delayedFire) {
 				if(PM_WeaponAmmoAvailable(pm->ps->weapon)) {
@@ -4789,6 +4801,7 @@ static void PM_Weapon( void ) {
 				case WP_TRIPMINE:
 				case WP_SMOKE_BOMB:
 				case WP_POISON_GAS:
+				case WP_BOMB_ALLIES:
 				case WP_BOMB:
 					playswitchsound = qfalse;
 					break;
@@ -4915,6 +4928,7 @@ static void PM_Weapon( void ) {
 		case WP_PPSH:
 		case WP_M97:
 		case WP_POISON_GAS:
+		case WP_BOMB_ALLIES:
 		case WP_BOMB:
 			PM_StartWeaponAnim(weapattackanim);
 			break;
@@ -4954,6 +4968,7 @@ static void PM_Weapon( void ) {
 		case WP_SMOKE_BOMB:
 		case WP_SMOKE_MARKER:
 		case WP_TRIPMINE:
+		case WP_BOMB_ALLIES:
 		case WP_BOMB:
  			PM_AddEvent( EV_NOAMMO );
 			break;
@@ -5020,6 +5035,7 @@ static void PM_Weapon( void ) {
 	case WP_POISON_GAS:
 	case WP_SMOKE_BOMB:
 	case WP_TRIPMINE:
+	case WP_BOMB_ALLIES:
 	case WP_BOMB:
 		addTime = GetAmmoTableData(pm->ps->weapon)->nextShotTime;
 		break;
@@ -6106,6 +6122,7 @@ void PmoveSingle (pmove_t *pmove) {
                 case WP_MOLOTOV:
                 case WP_POISON_GAS:
                 case WP_SMOKE_BOMB:
+                case WP_BOMB_ALLIES:
                 case WP_BOMB:
 			        pm->ps->eFlags &= ~EF_ZOOMING;
                     break;

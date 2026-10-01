@@ -16,7 +16,7 @@
 #define MAX_WEAPONSCRIPT_PATH 256
 
 // Maximum length of weapon script file
-#define MAX_WEAPONSCRIPT_SIZE 8192
+#define MAX_WEAPONSCRIPT_SIZE 65536
 
 // Cvar for weapon scripts directory
 extern vmCvar_t g_weaponScriptsDir;
@@ -28,49 +28,7 @@ extern vmCvar_t g_weaponScriptsDir;
 // to modify server-side weapon behavior
 ///////////////////////////////////////////////////////////////////////////////
 
-typedef struct weaponScriptDef_s {
-    // Basic weapon info
-    char    name[64];           // Display name
-    char    statname[64];       // Stats display name
-    
-    // Damage properties
-    int     damage;             // Base damage per hit
-    int     splashDamage;       // Splash damage amount
-    int     splashRadius;       // Splash damage radius
-    
-    // Spread properties  
-    int     spread;             // Base spread value
-    float   spreadRatio;        // Spread ratio multiplier
-    
-    // Ammo properties
-    int     maxAmmo;            // Maximum ammo capacity
-    int     maxClip;            // Maximum clip size
-    int     startAmmo;          // Starting ammo
-    int     startClip;          // Starting clip
-    
-    // Timing properties
-    int     reloadTime;         // Reload time in ms
-    int     fireDelayTime;      // Fire delay in ms
-    int     nextShotTime;       // Time between shots in ms
-    
-    // Heat properties
-    int     maxHeat;            // Maximum heat before overheat
-    int     coolRate;           // Cooling rate
-    
-    // Flags
-    qboolean headshotWeapon;    // Can this weapon headshot?
-    qboolean bulletReflection;  // Does this weapon reflect bullets?
-    qboolean distanceFalloff;   // Does damage fall off with distance?
-    
-    // Kill messages
-    char    selfKillMessage[128];   // Message when player kills self
-    char    killMessage[128];       // Kill message part 1
-    char    killMessage2[128];      // Kill message part 2
-    
-    // Set to qtrue if this weapon has a custom script loaded
-    qboolean hasScript;
-} weaponScriptDef_t;
-
+// Shared definition is included by bg_public.h.
 ///////////////////////////////////////////////////////////////////////////////
 // Function Declarations
 ///////////////////////////////////////////////////////////////////////////////
@@ -95,6 +53,9 @@ void G_ApplyWeaponScript( int weapon );
 
 // Reset all weapon scripts to defaults
 void G_ResetWeaponScripts( void );
+
+void G_BuildWeaponScriptInfo(int weapon, char* info, int size);
+void G_ApplyWeaponProjectileOverrides(struct gentity_s* projectile, int weapon);
 
 // Broadcast weapon scripts to all clients via server commands
 void G_BroadcastWeaponScripts( void );

@@ -1,3 +1,4 @@
+#include <bgame/round_awards.h>
 #ifndef GAME_G_LOCAL_H
 #define GAME_G_LOCAL_H
 
@@ -806,6 +807,7 @@ typedef struct {
 	ipFilter_t		complaintips[MAX_COMPLAINTIPS];
 
 	// jaybird
+	roundAwardCounters_t roundAwards;
 	int killspreekills;
 	int losespreekills;
 	int multikills;
@@ -1324,6 +1326,7 @@ typedef struct {
 	char		rpcsChargeTimes[MAX_INFO_STRING];
 	char		rpcsFilterCams[32];
 	char		rpcsEndgameStats[MAX_INFO_STRING];
+    char rpcsRoundAwards[MAX_INFO_STRING];
 
 	int         flagIndicator;
 	int         redFlagCounter;
@@ -2761,6 +2764,7 @@ qboolean G_LandmineSnapshotCallback( int entityNum, int clientNum );
 
 ///////////////////////////////////////////////////////////////////////////////
 
+#include <game/g_maprecords.h>
 #include <game/cmd/public.h>
 #include <game/cvar/public.h>
 #include <game/str/public.h>

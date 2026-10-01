@@ -72,7 +72,9 @@ bool Database::createTables() {
         "muteTime INTEGER DEFAULT 0,"
         "muteExpiry INTEGER DEFAULT 0,"
         "muteReason TEXT,"
-        "muteAuthority TEXT"
+        "muteAuthority TEXT,"
+        "nospam_expiry INTEGER DEFAULT 0,"
+        "nospam_last_chat INTEGER DEFAULT 0"
         ");";
 
     const char* sql_bans = 
@@ -104,7 +106,10 @@ bool Database::createTables() {
         "map_name TEXT PRIMARY KEY,"
         "spree_record INTEGER,"
         "spree_player TEXT,"
-        "spree_date INTEGER"
+        "spree_date INTEGER,"
+        "frag_record INTEGER DEFAULT 0,"
+        "frag_player TEXT,"
+        "frag_date INTEGER DEFAULT 0"
         ");";
 
     const char* sql_names = 
@@ -141,6 +146,15 @@ bool Database::createTables() {
         executeSQLSilent("ALTER TABLE users ADD COLUMN muteExpiry INTEGER DEFAULT 0;");
         executeSQLSilent("ALTER TABLE users ADD COLUMN muteReason TEXT;");
         executeSQLSilent("ALTER TABLE users ADD COLUMN muteAuthority TEXT;");
+        executeSQLSilent("ALTER TABLE users ADD COLUMN nospam_expiry INTEGER DEFAULT 0;");
+        executeSQLSilent("ALTER TABLE users ADD COLUMN nospam_last_chat INTEGER DEFAULT 0;");
+        executeSQLSilent("ALTER TABLE maps ADD COLUMN frag_record INTEGER DEFAULT 0;");
+        executeSQLSilent("ALTER TABLE maps ADD COLUMN frag_player TEXT;");
+        executeSQLSilent("ALTER TABLE maps ADD COLUMN frag_date INTEGER DEFAULT 0;");
+        // Duplicate columns are expected; a failed migration must not leave the
+        // database marked usable when the new fields are actually unavailable.
+        result = executeSQL("SELECT nospam_expiry, nospam_last_chat FROM users LIMIT 0;") &&
+                 executeSQL("SELECT frag_record, frag_player, frag_date FROM maps LIMIT 0;");
     }
     
     return result;
@@ -267,7 +281,7 @@ bool Database::getUserData(const std::string& guid, UserData& data) {
     if (!isOpen || !db) return false;
 
     const char* sql = "SELECT id, guid, level, lastSeen, name, hwid, title, commands, greeting, xp_skills, "
-                      "muted, muteTime, muteExpiry, muteReason, muteAuthority "
+                      "muted, muteTime, muteExpiry, muteReason, muteAuthority, nospam_expiry, nospam_last_chat "
                       "FROM users WHERE guid = ? LIMIT 1;";
     sqlite3_stmt* stmt = nullptr;
     
@@ -312,6 +326,8 @@ bool Database::getUserData(const std::string& guid, UserData& data) {
         
         const char* muteAuthority = (const char*)sqlite3_column_text(stmt, 14);
         data.muteAuthority = muteAuthority ? muteAuthority : "";
+        data.nospamExpiry = (time_t)sqlite3_column_int64(stmt, 15);
+        data.nospamLastChat = (time_t)sqlite3_column_int64(stmt, 16);
         
         sqlite3_finalize(stmt);
         return true;
@@ -327,7 +343,7 @@ bool Database::getUserDataById(int id, UserData& data) {
     if (!isOpen || !db) return false;
 
     const char* sql = "SELECT id, guid, level, lastSeen, name, hwid, title, commands, greeting, xp_skills, "
-                      "muted, muteTime, muteExpiry, muteReason, muteAuthority "
+                      "muted, muteTime, muteExpiry, muteReason, muteAuthority, nospam_expiry, nospam_last_chat "
                       "FROM users WHERE id = ? LIMIT 1;";
     sqlite3_stmt* stmt = nullptr;
     
@@ -372,6 +388,8 @@ bool Database::getUserDataById(int id, UserData& data) {
         
         const char* muteAuthority = (const char*)sqlite3_column_text(stmt, 14);
         data.muteAuthority = muteAuthority ? muteAuthority : "";
+        data.nospamExpiry = (time_t)sqlite3_column_int64(stmt, 15);
+        data.nospamLastChat = (time_t)sqlite3_column_int64(stmt, 16);
         
         sqlite3_finalize(stmt);
         return true;
@@ -798,28 +816,102 @@ bool Database::levelExists(int level) {
 
 ///////////////////////////////////////////////////////////////////////////////
 
-bool Database::updateMapSpreeRecord(const std::string& mapName, int spreeRecord, 
-                                   const std::string& spreePlayer, time_t spreeDate) {
-    if (!isOpen || !db) return false;
-
-    const char* sql = "INSERT OR REPLACE INTO maps (map_name, spree_record, spree_player, spree_date) "
-                      "VALUES (?, ?, ?, ?);";
+bool Database::getMapRecords(const std::string& mapName, MapRecords& records) {
+    records = MapRecords();
+    if (!isOpen || !db || mapName.empty()) return false;
     sqlite3_stmt* stmt = nullptr;
-    
-    int rc = sqlite3_prepare_v2(db, sql, -1, &stmt, nullptr);
-    if (rc != SQLITE_OK) {
-        return false;
-    }
-
+    const char* sql = "SELECT spree_record, spree_player, spree_date, frag_record, frag_player, frag_date "
+                      "FROM maps WHERE map_name = ? LIMIT 1;";
+    if (sqlite3_prepare_v2(db, sql, -1, &stmt, nullptr) != SQLITE_OK) return false;
     sqlite3_bind_text(stmt, 1, mapName.c_str(), -1, SQLITE_TRANSIENT);
-    sqlite3_bind_int(stmt, 2, spreeRecord);
-    sqlite3_bind_text(stmt, 3, spreePlayer.c_str(), -1, SQLITE_TRANSIENT);
-    sqlite3_bind_int64(stmt, 4, (sqlite3_int64)spreeDate);
-
-    rc = sqlite3_step(stmt);
+    const int rc = sqlite3_step(stmt);
+    if (rc == SQLITE_ROW) {
+        records.spreeRecord = sqlite3_column_int(stmt, 0);
+        const char* name = (const char*)sqlite3_column_text(stmt, 1);
+        records.spreePlayer = name ? name : "";
+        records.spreeDate = (time_t)sqlite3_column_int64(stmt, 2);
+        records.fragRecord = sqlite3_column_int(stmt, 3);
+        name = (const char*)sqlite3_column_text(stmt, 4);
+        records.fragPlayer = name ? name : "";
+        records.fragDate = (time_t)sqlite3_column_int64(stmt, 5);
+    }
     sqlite3_finalize(stmt);
+    return rc == SQLITE_ROW || rc == SQLITE_DONE;
+}
 
-    return rc == SQLITE_DONE;
+bool Database::updateMapRecords(const std::string& mapName, const MapRecords& records, int& changed) {
+    changed = 0;
+    if (!isOpen || !db || mapName.empty()) return false;
+    if (records.spreeRecord <= 0 && records.fragRecord <= 0) return true;
+    if (!executeSQL("BEGIN IMMEDIATE;")) return false;
+    sqlite3_stmt* stmt = nullptr;
+    bool ok = sqlite3_prepare_v2(db, "INSERT OR IGNORE INTO maps(map_name) VALUES(?);", -1, &stmt, nullptr) == SQLITE_OK;
+    if (ok) {
+        ok = sqlite3_bind_text(stmt, 1, mapName.c_str(), -1, SQLITE_TRANSIENT) == SQLITE_OK &&
+             sqlite3_step(stmt) == SQLITE_DONE;
+    }
+    sqlite3_finalize(stmt);
+    const char* sql[] = {
+        "UPDATE maps SET spree_record=?1, spree_player=?2, spree_date=?3 WHERE map_name=?4 AND COALESCE(spree_record,0)<?1;",
+        "UPDATE maps SET frag_record=?1, frag_player=?2, frag_date=?3 WHERE map_name=?4 AND COALESCE(frag_record,0)<?1;"
+    };
+    for (int i = 0; ok && i < 2; ++i) {
+        const int value = i ? records.fragRecord : records.spreeRecord;
+        if (value <= 0) continue;
+        const std::string& name = i ? records.fragPlayer : records.spreePlayer;
+        const time_t date = i ? records.fragDate : records.spreeDate;
+        stmt = nullptr;
+        ok = sqlite3_prepare_v2(db, sql[i], -1, &stmt, nullptr) == SQLITE_OK;
+        if (ok) {
+            ok = sqlite3_bind_int(stmt, 1, value) == SQLITE_OK &&
+                 sqlite3_bind_text(stmt, 2, name.c_str(), -1, SQLITE_TRANSIENT) == SQLITE_OK &&
+                 sqlite3_bind_int64(stmt, 3, (sqlite3_int64)date) == SQLITE_OK &&
+                 sqlite3_bind_text(stmt, 4, mapName.c_str(), -1, SQLITE_TRANSIENT) == SQLITE_OK &&
+                 sqlite3_step(stmt) == SQLITE_DONE;
+            if (ok && sqlite3_changes(db)) changed |= 1 << i;
+        }
+        sqlite3_finalize(stmt);
+    }
+    if (ok && executeSQL("COMMIT;")) return true;
+    executeSQL("ROLLBACK;");
+    changed = 0;
+    return false;
+}
+
+bool Database::updateMapSpreeRecord(const std::string& mapName, int spreeRecord,
+                                   const std::string& spreePlayer, time_t spreeDate) {
+    MapRecords records;
+    records.spreeRecord = spreeRecord;
+    records.spreePlayer = spreePlayer;
+    records.spreeDate = spreeDate;
+    int changed;
+    return updateMapRecords(mapName, records, changed);
+}
+
+bool Database::setNospamExpiry(int userId, time_t expiry) {
+    if (!isOpen || !db || userId <= 0 || expiry < (time_t)-1) return false;
+    sqlite3_stmt* stmt = nullptr;
+    const char* sql = "UPDATE users SET nospam_expiry=?, nospam_last_chat=0 WHERE id=?;";
+    if (sqlite3_prepare_v2(db, sql, -1, &stmt, nullptr) != SQLITE_OK) return false;
+    const bool ok = sqlite3_bind_int64(stmt, 1, (sqlite3_int64)expiry) == SQLITE_OK &&
+                    sqlite3_bind_int(stmt, 2, userId) == SQLITE_OK &&
+                    sqlite3_step(stmt) == SQLITE_DONE && sqlite3_changes(db) > 0;
+    sqlite3_finalize(stmt);
+    return ok;
+}
+
+bool Database::setNospamLastChat(int userId, time_t lastChat) {
+    if (!isOpen || !db || userId <= 0 || lastChat < 0) return false;
+    sqlite3_stmt* stmt = nullptr;
+    const char* sql = "UPDATE users SET nospam_last_chat=?1 WHERE id=?2 "
+                      "AND (nospam_expiry=-1 OR nospam_expiry>?1) "
+                      "AND (COALESCE(nospam_last_chat,0)=0 OR nospam_last_chat<=?1-60);";
+    if (sqlite3_prepare_v2(db, sql, -1, &stmt, nullptr) != SQLITE_OK) return false;
+    const bool ok = sqlite3_bind_int64(stmt, 1, (sqlite3_int64)lastChat) == SQLITE_OK &&
+                    sqlite3_bind_int(stmt, 2, userId) == SQLITE_OK &&
+                    sqlite3_step(stmt) == SQLITE_DONE && sqlite3_changes(db) > 0;
+    sqlite3_finalize(stmt);
+    return ok;
 }
 
 ///////////////////////////////////////////////////////////////////////////////

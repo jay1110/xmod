@@ -104,7 +104,7 @@ MapRecord::operator=( const MapRecord& mapRecord )
     count     = mapRecord.count;
 
     // Longest killing spree
-    longestSpree      = mapRecord.timestamp;
+    longestSpree      = mapRecord.longestSpree;
     longestSpreeName  = mapRecord.longestSpreeName;
     longestSpreeNamex = mapRecord.longestSpreeNamex;
     longestSpreeTime  = mapRecord.longestSpreeTime;

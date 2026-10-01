@@ -483,8 +483,8 @@ Client::takeBulletDamageFrom( const TraceContext& trx, Client& actor, int damage
 
     const bool onSameTeam = gclient.sess.sessionTeam == actor.gclient.sess.sessionTeam;
 
-    if (damage < 1)
-        damage = 1;
+    if (damage <= 0)
+        return;
 
     int take = damage;
 
@@ -521,7 +521,8 @@ Client::takeBulletDamageFrom( const TraceContext& trx, Client& actor, int damage
         }
     }
 
-    const bool isHeadShot = trx.hitvol->zone == AbstractHitVolume::ZONE_HEAD;
+    const bool isHeadShot = trx.hitvol->zone == AbstractHitVolume::ZONE_HEAD &&
+        BG_WeaponScriptValue(actor.gentity.s.weapon, WSF_HEADSHOT, 1) != 0;
     const bool wasAlive = gentity.health > 0;
     const hitRegion_t hr = isHeadShot ? HR_HEAD : HR_BODY;
 
@@ -531,7 +532,7 @@ Client::takeBulletDamageFrom( const TraceContext& trx, Client& actor, int damage
 
     // Bump hitsound counters.
     if ((g_friendlyFire.integer & FF_ENABLE) || !onSameTeam)
-        actor.recordHit( trx.hitvol->zone, onSameTeam );
+        actor.recordHit( !isHeadShot && trx.hitvol->zone == AbstractHitVolume::ZONE_HEAD ? AbstractHitVolume::ZONE_BODY : trx.hitvol->zone, onSameTeam );
 
     // Fast-exit if god.
     if (gclient.noclip || gclient.ps.powerups[PW_INVULNERABLE] || gentity.flags & FL_GODMODE)
@@ -577,7 +578,7 @@ Client::takeBulletDamageFrom( const TraceContext& trx, Client& actor, int damage
         knockback = calculateKnockback(damage, dir);
 
     if (isHeadShot) {
-        if (headshotAllowed(mod)) {
+        if (BG_WeaponScriptValue(actor.gentity.s.weapon, WSF_HEADSHOT, headshotAllowed(mod) ? 1 : 0) != 0) {
             if (take * 2 < 50) // head shots, all weapons, do minimum 50 points damage
                 take = 50;
             else
@@ -613,7 +614,7 @@ Client::takeBulletDamageFrom( const TraceContext& trx, Client& actor, int damage
     }
 
     // Jaybird - add stats for logging
-    actor.addStats(trx.hitvol->zone, mod);
+    actor.addStats(!isHeadShot && trx.hitvol->zone == AbstractHitVolume::ZONE_HEAD ? AbstractHitVolume::ZONE_BODY : trx.hitvol->zone, mod);
 
     // Reflected friendly fire (FF_SAME_DAMAGE)
         if( gentity.health > 0 && onSameTeam && (g_friendlyFire.integer & FF_SAME_DAMAGE) && IsReflectable( mod )) {
@@ -672,7 +673,7 @@ Client::takeBulletDamageFrom( const TraceContext& trx, Client& actor, int damage
 
     // Ridah, can't gib with bullet weapons (except VENOM)
     // Arnout: attacker == inflictor can happen in other cases as well! (movers trying to gib things)
-    if (gentity.health <= GIB_HEALTH && !G_WeaponIsExplosive( meansOfDeath_t(mod) ))
+    if (gentity.health <= GIB_HEALTH && BG_WeaponScriptValue(actor.gentity.s.weapon, WSF_GIBBING, G_WeaponIsExplosive(meansOfDeath_t(mod)) ? 1 : 0) == 0)
         gentity.health = GIB_HEALTH + 1;
 
     if (g_damagexp.integer && !onSameTeam) {
@@ -683,7 +684,7 @@ Client::takeBulletDamageFrom( const TraceContext& trx, Client& actor, int damage
             G_AddSkillPoints( &actor.gentity, skillType_t(skill), take * 0.02f );
     }
 
-    if (take > 190)
+    if (take > 190 && BG_WeaponScriptValue(actor.gentity.s.weapon, WSF_GIBBING, 1) != 0)
         gentity.health = GIB_HEALTH - 1;
 
     if (gentity.health <= 0) {

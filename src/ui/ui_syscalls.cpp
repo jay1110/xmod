@@ -39,7 +39,8 @@ dllEntry( intptr_t (QDECL *syscallptr)( intptr_t* ) ) {
 	engineSyscall = syscallptr;
 }
 #else
-static intptr_t (QDECL *engine)( intptr_t arg, ... ) = (intptr_t (QDECL *)( intptr_t, ...))-1;
+#include <bgame/native_syscall.h>
+static NativeSyscall engine = { (NativeSyscall::Ptr)-1 };
 
 extern "C" LF_PUBLIC void
 dllEntry( intptr_t (QDECL *syscallptr)( intptr_t arg,... ) ) {

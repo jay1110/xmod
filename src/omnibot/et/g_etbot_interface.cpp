@@ -185,7 +185,7 @@ void GetMG42s()
 			if ( name )
 				strcpy(mg42s[ numofmg42s ].name, name);
 			else
-				mg42s[ numofmg42s ].name[ 0 ] = (char)NULL;
+				mg42s[ numofmg42s ].name[ 0 ] = '\0';
 
 			mg42s[ numofmg42s ].buildable = false;
 			numofmg42s++;
@@ -5247,10 +5247,10 @@ const char *_GetEntityName(gentity_t *_ent)
 		Q_CleanStr(name);
 		if ( name )
 		{
-			char undschar[] = { '-', (char)NULL };
+			char undschar[] = { '-', '\0' };
 			char skipchar[] = { '[', ']', '#', '!', '*', '`',
 				'^', '&', '<', '>', '+', '=', '|', '\'', '%',
-				'.', ':', '/', '(', ')', (char)NULL };
+				'.', ':', '/', '(', ')', '\0' };
 			char *curchar = NULL;
 			char *tmp = NULL;
 			char *tmpdst = NULL;

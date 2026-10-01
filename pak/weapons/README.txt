@@ -79,6 +79,7 @@ Available Properties (both section)
 - spreadRatio   - Spread ratio multiplier (float, e.g., 0.6)
 
 ### Ammo
+- uses          - Rounds consumed per shot (0 allows firing without consuming ammo)
 - maxammo       - Maximum ammo capacity
 - maxclip       - Maximum clip size  
 - startammo     - Starting ammo
@@ -93,10 +94,15 @@ Available Properties (both section)
 - maxHeat       - Maximum heat before overheat
 - coolRate      - Cooling rate
 
-### Flags (no value, just presence)
+### Flags (yes/no, true/false, 1/0; presence alone means yes)
 - headshotWeapon    - Weapon can headshot
-- bulletReflection  - Bullets can reflect
+- bulletReflection  - Opt-in single bullet ricochet from solid, non-sky surfaces
 - DistanceFalloff   - Damage falls off with distance
+- GibbingWeapon     - Allow or prevent this weapon from gibbing players
+
+### Movement
+- movementSpeedScale - Positive multiplier replacing the usual weapon slowdown;
+                       0 keeps normal ET movement (including heavy-weapon penalties)
 
 ### Kill Messages
 - selfKillMessage   - Message when player kills self
@@ -141,11 +147,30 @@ weaponDef
 Notes
 -----
 
-1. Only properties in the "both" section are processed by the server
-2. The "client" section is processed by the client game module
-3. Properties not specified will use default values from ammoTableMP
-4. Weapon scripts are loaded during game initialization
-5. Changes to weapon scripts require a map restart to take effect
+1. Gameplay values in "both" and "both_altweap" are read by the server and
+   synchronized to client prediction, including after vid_restart.
+2. "client" defines local models, sounds, animations and icons. Custom media must
+   be present in a PK3 downloaded by the client. The custom directory is sent in
+   serverinfo. Missing/invalid custom files fall back to weapons/<name>.weap.
+3. An omitted property keeps its normal default; explicit zero and false values
+   are applied. Negative/non-finite/invalid numeric values reject the entire file.
+   Integer values are limited to 65535; spreadRatio/movementSpeedScale to 100.
+4. Both // and /* */ comments and UTF-8 BOMs are accepted. Invalid files never
+   partially change a weapon. Unsupported properties produce a server warning.
+5. g_weaponScriptsDir is latched: change it, then restart/change the map. Empty
+   disables gameplay scripts. Repeated map restarts restore clean defaults first.
+6. Global gameplay modes (unlimited ammo, firing delay offsets, fair rifles,
+   no-overheat settings, etc.) still apply after the script ammo/timing values.
+7. Scoped/set values come from both_altweap in the base weapon's file:
+   m1_garand_s, k43, fg42, mg42 and mortar. Omitted alternate values keep the
+   normal defaults. These weapons do not read separate scoped/set gameplay files.
+8. damage is base hit damage; normal skills, hit-region bonuses and game modes
+   can still adjust it. splashdamage and splashRadius apply independently.
+   For gas, damage/radius control its periodic effect; for Molotov, splashdamage
+   and splashRadius apply to each fire patch. Zero damage does no damage.
+9. statname renames the shared statistics category. If multiple weapons sharing
+   a category set a statname, the highest weapon index wins consistently on both
+   server and client. name controls the weapon's display/kill-message name.
 
 Supported Weapons
 -----------------
@@ -160,24 +185,24 @@ The following weapon script filenames are supported:
 - flamethrower.weap
 - colt.weap
 - thompson.weap
-- grenade_pineapple.weap
+- pineapple.weap
 - sten.weap
 - syringe.weap
-- silencer.weap (Luger with silencer)
+- silenced_luger.weap
 - dynamite.weap
-- medkit.weap
-- binoculars.weap
+- medpack.weap
+- binocs.weap
 - pliers.weap
-- smoke_marker.weap
+- smokemarker.weap
 - kar98.weap
-- carbine.weap
-- garand.weap
+- m1_garand.weap
+- m1_garand_s.weap
 - landmine.weap
 - satchel.weap
 - satchel_det.weap
 - tripmine.weap
-- smoke_bomb.weap
-- mobile_mg42.weap
+- smokegrenade.weap
+- mg42.weap
 - k43.weap
 - fg42.weap
 - mortar.weap
@@ -186,18 +211,19 @@ The following weapon script filenames are supported:
 - gpg40.weap
 - m7.weap
 - silenced_colt.weap (Colt with silencer)
-- garand_scope.weap
-- k43_scope.weap
-- fg42_scope.weap
-- mortar_set.weap
 - adrenaline.weap
-- akimbo_silencedcolt.weap
-- akimbo_silencedluger.weap
-- mobile_mg42_set.weap
-- poison_syringe.weap
+- akimbo_silenced_colt.weap
+- akimbo_silenced_luger.weap
+- poison.weap
 - adrenaline_share.weap
 - m97.weap
 - poison_gas.weap
 - landmine_bbetty.weap
 - landmine_pgas.weap
 - molotov.weap
+- bombax.weap (Axis bomb)
+- bomb.weap (Allied bomb)
+- ppsh.weap
+- arty.weap
+- mapmortar.weap
+- ammopack.weap

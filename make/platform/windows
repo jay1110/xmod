@@ -19,6 +19,8 @@ MATH.l     =
 IPHLPAPI.l = iphlpapi
 ADVAPI.l   = advapi32
 WS2_32.l   = ws2_32
+VPNHTTP.l = winhttp
+VPNHTTP.cflags =
 
 ###############################################################################
 

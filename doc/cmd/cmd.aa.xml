@@ -1,0 +1,6 @@
+<refentry id="cmd.aa">
+<refmeta><refentrytitle>aa</refentrytitle><manvolnum>1</manvolnum></refmeta>
+<refnamediv><refname>aa</refname><refpurpose>Edit native Antirush map rules.</refpurpose></refnamediv>
+<refsynopsisdiv><cmdsynopsis><command>!aa</command><arg><replaceable>[EDITOR ARGUMENTS]</replaceable></arg></cmdsynopsis></refsynopsisdiv>
+<refsection><title>Description</title><para>Requires g_admin 1, g_antirush 2 and confirmed internal GUID authentication for players. C/aa grants editor access. Legacy configured levels and GUID permissions remain supported; explicit ACL denials override them. Adding/removing editor GUIDs also requires C/antirush or the configured management level. /aa and console aa share the same permission checks and admin logs. Use !help aa and docs/ANTIRUSH.md for editor commands.</para></refsection>
+</refentry>

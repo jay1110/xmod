@@ -815,6 +815,16 @@ G_Script_ScriptEvent
 
 void G_Script_ScriptEvent( gentity_t *ent, const char* eventStr, const char* params )
 {
+    // Capture labels before map handlers can remove or mutate the objective.
+    if (ent && (g_logOptions.integer & LOGOPTS_OBJECTIVE)) {
+        if (!Q_stricmp(eventStr, "trigger") && params && !Q_stricmp(params, "dropped") && ent->item && ent->item->giType == IT_TEAM) {
+            const char* team = ent->item->giTag == PW_REDFLAG ? "allies" : "axis";
+            G_LogPrintf("xmod popup: %s dropped \"%s\"\n", team, G_ObjectiveLogName(ent));
+        } else if (!Q_stricmp(eventStr, "destroyed") || !Q_stricmp(eventStr, "exploded")) {
+            G_LogPrintf("xmod objective: %s \"%s\"\n", eventStr, G_ObjectiveLogName(ent));
+        }
+    }
+
 	int i = G_Script_GetEventIndex(ent, eventStr, params);
 
 	if (i>=0)

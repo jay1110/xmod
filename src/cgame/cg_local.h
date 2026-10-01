@@ -1,3 +1,4 @@
+#include <bgame/round_awards.h>
 /*
  * name:	cg_local.h
  *
@@ -1881,6 +1882,7 @@ typedef struct {
 	qhandle_t		limboWeaponCard2;
 	qhandle_t		limboWeaponCardArrow;	
 	qhandle_t		limboWeaponCard_M97;
+	qhandle_t		limboWeaponCard3;
 	qhandle_t		limboObjectiveBack[3];
 	qhandle_t		limboClassBar;
 	qhandle_t		limboBriefingButtonOn;
@@ -2294,7 +2296,8 @@ typedef struct {
 
 	char				rpcsChargeTimes[MAX_INFO_STRING]; // Charge times via RPCS
 	char				rpcsFilterCams[32]; // Filtercams via RPCS
-	char				rpcsEndgameStats[MAX_INFO_STRING]; // Endgame stats via RPCS
+	char				rpcsEndgameStats[MAX_INFO_STRING];
+    char rpcsRoundAwards[MAX_INFO_STRING]; // Endgame stats via RPCS
 
 	int					sv_missileCams;     // g_missileCams from server (bitflags)
 	int					sv_customClassMaxHP; // g_classesMaxHP active (any class has non-zero)
@@ -2586,6 +2589,9 @@ void CG_StartMusic( void );
 void CG_QueueMusic( void );
 
 void CG_UpdateCvars( void );
+void CG_ClearForcedCvars();
+void CG_UpdateForcedCvars();
+void CG_ReceiveForcedCvar(bool range);
 
 int CG_CrosshairPlayer( void );
 int CG_LastAttacker( void );

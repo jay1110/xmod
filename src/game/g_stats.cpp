@@ -531,7 +531,11 @@ void G_AddKillSkillPoints( gentity_t *attacker, meansOfDeath_t mod, hitRegion_t 
 
 void G_AddKillSkillPointsForDestruction( gentity_t *attacker, meansOfDeath_t mod, g_constructible_stats_t *constructibleStats )
 {
-	switch( mod ) {
+	if (attacker && attacker->client && cvars::gameState.ivalue == GS_PLAYING) {
+        if (mod == MOD_DYNAMITE) attacker->client->pers.roundAwards.engineerObjectives++;
+        else if (mod == MOD_AIRSTRIKE || mod == MOD_ARTY) attacker->client->pers.roundAwards.ammo++;
+    }
+    switch( mod ) {
 		case MOD_GRENADE_LAUNCHER:
 		case MOD_GRENADE_PINEAPPLE:
 			G_AddSkillPoints( attacker, SK_LIGHT_WEAPONS, constructibleStats->destructxpbonus );
@@ -755,12 +759,65 @@ void G_DebugAddSkillPoints( gentity_t *ent, skillType_t skill, float points, con
 	if( best ) { best->hasaward = qtrue; }										\
 	Q_strcat( buffer, 1024, va( ";%s; %i ", best ? best->pers.netname : "", best ? best->sess.sessionTeam : -1 ) )
 
+// Nitmod-style presentation, using xmod's round statistics and objective events.
+static double G_RoundAwardValue(const gclient_t* cl, int award) {
+    const roundAwardCounters_t& a = cl->pers.roundAwards;
+    switch (award) {
+    case 0: return cl->sess.kills;
+    case 1: return cl->ps.persistant[PERS_SCORE];
+    case 2: return a.bestSpree;
+    case 3: return cl->sess.headshots;
+    case 4: return cl->sess.damage_given;
+    case 5: return cl->acc;
+    case 6: return cl->sess.aWeaponStats[WS_SYRINGE].hits;
+    case 7: return a.heals;
+    case 8: return a.bestReviveSpree;
+    case 9: return a.engineerObjectives;
+    case 10: return a.uniforms;
+    case 11: return a.ammo;
+    }
+    return 0;
+}
+
+void G_BuildRoundAwards() {
+    char* buffer = level.rpcsRoundAwards;
+    buffer[0] = 0;
+    for (int award = 0; award < XMOD_ROUND_AWARDS; ++award) {
+        gclient_t* best = NULL;
+        double value = 0;
+        for (int i = 0; i < level.numConnectedClients; ++i) {
+            gclient_t* cl = &level.clients[level.sortedClients[i]];
+            if (cl->pers.connected != CON_CONNECTED ||
+                (cl->sess.sessionTeam != TEAM_AXIS && cl->sess.sessionTeam != TEAM_ALLIES)) continue;
+            double candidate = G_RoundAwardValue(cl, award);
+            if (!best || candidate > value || (award == 0 && candidate == value && cl->sess.deaths < best->sess.deaths)) {
+                best = cl; value = candidate;
+            }
+        }
+        // Nitmod omits empty awards and sprees shorter than five kills.
+        if (!best || (award != 1 && value <= (award == 2 ? 4 : award == 4 ? 5 : 0))) {
+            Q_strcat(buffer, sizeof(level.rpcsRoundAwards), ";; 0 ");
+            continue;
+        }
+        char name[MAX_NETNAME];
+        Q_strncpyz(name, best->pers.netname, sizeof(name));
+        for (char* p = name; *p; ++p) {
+            if (*p == ';' || *p == '"' || *p == '\\' || (unsigned char)*p < 32) *p = ' ';
+        }
+        if (award == 1) Q_strcat(buffer, sizeof(level.rpcsRoundAwards), va(";%s; %i ", name, best->sess.sessionTeam));
+        else if (award == 5) Q_strcat(buffer, sizeof(level.rpcsRoundAwards), va(";%s ^7(%.1f); %i ", name, value, best->sess.sessionTeam));
+        else Q_strcat(buffer, sizeof(level.rpcsRoundAwards), va(";%s ^7(%i); %i ", name, (int)value, best->sess.sessionTeam));
+    }
+    trap_SendServerCommand(-1, va("xcs awards \"%s\"", buffer));
+}
+
 void G_BuildEndgameStats( void ) {
 	char buffer[1024];
 	int i;
 	gclient_t* best;
 
 	G_CalcClientAccuracies();
+    G_BuildRoundAwards();
 
 	for( i = 0; i < level.numConnectedClients; i++ ) {
 		level.clients[ i ].hasaward = qfalse;

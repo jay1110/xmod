@@ -26,6 +26,10 @@
     An optional <replaceable>TIME</replaceable> parameter sets the duration
     (e.g. <literal>5m</literal>, <literal>1h</literal>).
     If no time is specified, the restriction is permanent until manually removed.
+    Public, team, private and admin chat and voice commands share the same minute.
+    Restrictions and the last permitted message are saved in SQLite and survive
+    reconnects, map changes and server restarts. The player must be authenticated
+    and the database available. Use <command>!unnospam PLAYER</command> to remove it.
 </para>
 </refsection>
 

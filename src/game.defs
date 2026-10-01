@@ -1,4 +1,4 @@
-MODULE.GAME.srcs.pch = $(sort \
+MODULE.GAME.srcs.pch = $(filter-out $(MODULE.GAME.srcs.nch),$(sort \
     $(wildcard $(PROJECT/)src/game/*.cpp) \
     $(wildcard $(PROJECT/)src/game/cmd/*.cpp) \
     $(wildcard $(PROJECT/)src/game/cvar/*.cpp) \
@@ -13,22 +13,36 @@ MODULE.GAME.srcs.pch = $(sort \
 	\
     $(wildcard $(PROJECT/)src/omnibot/common/*.cpp) \
     $(wildcard $(PROJECT/)src/omnibot/et/*.cpp) \
-    $(wildcard $(PROJECT/)src/omnibot/$(PROJECT.platspecific)/*.cpp))
+    $(wildcard $(PROJECT/)src/omnibot/$(PROJECT.platspecific)/*.cpp)))
 
+# The VPN worker/transport use standard-library and operating-system headers,
+# which must not inherit the game PCH's CRT macro replacements.
+MODULE.GAME.srcs.nch = \
+    $(PROJECT/)src/game/vpn_globals.cpp \
+    $(PROJECT/)src/game/vpn_service.cpp \
+    $(PROJECT/)src/game/vpn_http.cpp \
+    $(PROJECT/)src/game/vpn_policy.cpp
+MODULE.GAME.objs.nch = $(MODULE.GAME.srcs.nch:$(PROJECT/)src/%.cpp=$(BUILD/)game/%.o)
 MODULE.GAME.objs.pch = $(MODULE.GAME.srcs.pch:$(PROJECT/)src/%.cpp=$(BUILD/)game/%.o)
 MODULE.GAME.pchs     = $(foreach i,$(CXX.pch.arch),$(BUILD/)game/bgame/impl.h.$(CXX.pch.ext)/$(i))
 MODULE.GAME.so       = $(BUILD/)game/$(IDMODULE.prefix)qagame$(IDMODULE.suffix)
 MODULE.GAME.pdb      = $(BUILD/)game/
+MODULE.GAME.jsoncpp  = $(MODULE.JSONCPP.a)
+ifneq (,$(filter wasm android-%,$(PROJECT.platformNamef)))
+MODULE.GAME.jsoncpp  =
+endif
 
 ###############################################################################
 
 MODULE.GAME.CXX.I< += $(BUILD/)game
 MODULE.GAME.CXX.I< += $(PROJECT/)src/sqlite3
+MODULE.GAME.CXX.I< += $(PROJECT/)src/jsoncpp
 MODULE.GAME.CXX.D  += GAMEDLL
-MODULE.GAME.CXX.l  += $(DYNLOAD.l) $(MATH.l) $(WS2_32.l)
+MODULE.GAME.CXX.l  += $(DYNLOAD.l) $(MATH.l) $(WS2_32.l) $(VPNHTTP.l)
 
 ###############################################################################
 
 BUILD.output += $(MODULE.GAME.objs.pch)
+BUILD.output += $(MODULE.GAME.objs.nch)
 BUILD.output += $(MODULE.GAME.pchs)
 BUILD.output += $(MODULE.GAME.so)

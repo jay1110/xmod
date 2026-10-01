@@ -1316,6 +1316,7 @@ void CG_InitConsoleCommands( void ) {
 
 	// Jaybird - Xmod commands
 	trap_AddCommand ("campaigninfo");
+	trap_AddCommand ("records");
 	trap_AddCommand ("m");
 	trap_AddCommand ("messagemode4");
 	trap_AddCommand ("messagemode5");

@@ -1,5 +1,7 @@
 #include <bgame/impl.h>
 #include <bgame/jxac_common.h>
+#include <bgame/jxac_command.h>
+#include <bgame/reliable_budget.h>
 #include <cgame/jxac/jxac_client.h>
 #include <cgame/jxac/jxac_screenshot.h>
 #include <cgame/jxac/jxac_modules.h>
@@ -15,24 +17,26 @@ namespace jxac {
 struct ScreenshotChunk {
     int chunkNum;
     int bytesToSend;
-    char hexData[901];  // 450 bytes * 2 + null terminator
+    char hexData[XMOD_JXAC_COMMAND_HEX_SIZE];
 };
 
 // Screenshot state tracking
 static int screenshotRequestTime = 0;
 static int screenshotQuality = 85;
 
-#define MAX_CHUNK_QUEUE 300  // Max chunks in queue (for ~135KB screenshot)
+#define MAX_CHUNK_QUEUE XMOD_JXAC_UDP_QUEUE_CAPACITY
 static ScreenshotChunk chunkQueue[MAX_CHUNK_QUEUE];
 static int chunkQueueHead = 0;  // Next chunk to send
 static int chunkQueueTail = 0;  // Next free slot
 static int chunkQueueCount = 0;
 static qboolean screenshotTransferActive = qfalse;
+static XmodReliableBudget bulkCommandBudget;
 
 // Static state
 static qboolean initialized = qfalse;
 static qboolean enabled = qtrue;
 static int lastHeartbeat = 0;
+static qboolean initialHeartbeatPending = qtrue;
 static qboolean screenshotPending = qfalse;
 static int lastModuleScan = 0;
 static qboolean initialModuleScanDone = qfalse;
@@ -111,11 +115,15 @@ void Client::init() {
     initialized = qtrue;
     enabled = qtrue;
     lastHeartbeat = 0;
+    initialHeartbeatPending = qtrue;
     screenshotPending = qfalse;
     chunkQueueHead = 0;
     chunkQueueTail = 0;
     chunkQueueCount = 0;
     screenshotTransferActive = qfalse;
+    bulkCommandBudget.reset();
+    clearModuleQueue();
+    screenshotCaptureDeferred = qfalse;
     lastModuleScan = 0;
     initialModuleScanDone = qfalse;
     screenshotRequestTime = 0;
@@ -152,6 +160,10 @@ void Client::shutdown() {
     
     initialized = qfalse;
     enabled = qfalse;
+    bulkCommandBudget.reset();
+    clearModuleQueue();
+    screenshotPending = screenshotTransferActive = screenshotCaptureDeferred = qfalse;
+    chunkQueueCount = 0;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -169,8 +181,12 @@ void Client::frame() {
         // Clear any pending state when server disables JXAC
         screenshotPending = qfalse;
         screenshotTransferActive = qfalse;
+        screenshotCaptureDeferred = qfalse;
         chunkQueueCount = 0;
+        bulkCommandBudget.reset();
+        clearModuleQueue();
         initialModuleScanDone = qfalse;
+        initialHeartbeatPending = qtrue;
         // Disconnect TCP if connected
         if (tcpConnected) {
             TcpClient::disconnect();
@@ -220,15 +236,12 @@ void Client::frame() {
         initialModuleScanDone = qtrue;
     }
     
-    // Process module queue (send 2 modules per frame)
-    if ( isModuleScanEnabled() ) {
-        processModuleQueue();
-    }
-
     // Send periodic heartbeat
-    if ( cg.time - lastHeartbeat > JXAC_HEARTBEAT_INTERVAL ) {
+    if ( initialHeartbeatPending || cg.time < lastHeartbeat ||
+         cg.time - lastHeartbeat > JXAC_HEARTBEAT_INTERVAL ) {
         sendHeartbeat();
         lastHeartbeat = cg.time;
+        initialHeartbeatPending = qfalse;
     }
     
     // Periodic module scan (every 180 seconds) - only if enabled
@@ -242,28 +255,24 @@ void Client::frame() {
         AntiTamper::check();
     }
     
-    // Process screenshot chunk queue (send 1-2 chunks per frame to avoid overflow)
-    // This is the UDP fallback - only used if TCP is not connected
-    if ( screenshotTransferActive && chunkQueueCount > 0 && !TcpClient::isReady() ) {
-        // Send up to 2 chunks per frame to balance transfer speed and stability
-        int chunksToSend = (chunkQueueCount > 2) ? 2 : chunkQueueCount;
-        
-        for ( int i = 0; i < chunksToSend; i++ ) {
-            ScreenshotChunk* chunk = &chunkQueue[chunkQueueHead];
-            
-            // Send chunk to server
-            trap_SendClientCommand( va("jxac_ss_data %d %d %s", 
-                chunk->chunkNum, chunk->bytesToSend, chunk->hexData) );
-            
-            // Move to next chunk
-            chunkQueueHead = (chunkQueueHead + 1) % MAX_CHUNK_QUEUE;
-            chunkQueueCount--;
-        }
-        
-        // Check if transfer is complete
-        if ( chunkQueueCount == 0 ) {
-            screenshotTransferActive = qfalse;
-            sendScreenshotComplete();
+    // One wall-clock budget for both bulk producers, independent of rendering
+    // FPS or cg.time (which can pause/restart). No catch-up burst after a stall.
+    // Screenshots take priority to finish within the server's request deadline.
+    const uint32_t now = (uint32_t)trap_Milliseconds();
+    while (bulkCommandBudget.take(now)) {
+        if (screenshotTransferActive) {
+            if (chunkQueueCount > 0) {
+                ScreenshotChunk* chunk = &chunkQueue[chunkQueueHead];
+                trap_SendClientCommand(va("jxac_ss_data %d %d %s",
+                    chunk->chunkNum, chunk->bytesToSend, chunk->hexData));
+                chunkQueueHead = (chunkQueueHead + 1) % MAX_CHUNK_QUEUE;
+                --chunkQueueCount;
+            } else {
+                sendScreenshotComplete();
+                screenshotTransferActive = screenshotPending = qfalse;
+            }
+        } else if (!isModuleScanEnabled() || !processModuleQueue()) {
+            break;
         }
     }
     
@@ -432,13 +441,17 @@ void Client::sendScreenshotData( const void* data, int size ) {
     
     // Fallback to UDP chunked transfer
     const unsigned char* bytes = (const unsigned char*)data;
-    const int CHUNK_SIZE = 450;
-    
-    static const char hexChars[] = "0123456789abcdef";
+    const int CHUNK_SIZE = XMOD_JXAC_COMMAND_CHUNK_BYTES;
     
     chunkQueueHead = 0;
     chunkQueueTail = 0;
     chunkQueueCount = 0;
+
+    if (!data || size <= 0 || size > XMOD_JXAC_UDP_MAX_BYTES) {
+        screenshotTransferActive = screenshotPending = qfalse;
+        CG_Printf("JXAC: Screenshot exceeds UDP capacity; use TCP or a lower screenshot quality.\n");
+        return;
+    }
     
     int chunkNum = 0;
     int offset = 0;
@@ -458,12 +471,8 @@ void Client::sendScreenshotData( const void* data, int size ) {
         chunk->chunkNum = chunkNum;
         chunk->bytesToSend = bytesToSend;
         
-        for ( int i = 0; i < bytesToSend; i++ ) {
-            unsigned char byte = bytes[offset + i];
-            chunk->hexData[i * 2] = hexChars[(byte >> 4) & 0xF];
-            chunk->hexData[i * 2 + 1] = hexChars[byte & 0xF];
-        }
-        chunk->hexData[bytesToSend * 2] = '\0';
+        XmodJxacEncodeScreenshotChunk(bytes + offset, bytesToSend,
+                                     chunk->hexData, sizeof(chunk->hexData));
         
         chunkQueueTail = (chunkQueueTail + 1) % MAX_CHUNK_QUEUE;
         chunkQueueCount++;

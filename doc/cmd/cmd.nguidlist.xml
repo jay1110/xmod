@@ -1,0 +1,6 @@
+<refentry id="cmd.nguidlist">
+<refmeta><refentrytitle>nguidlist</refentrytitle><manvolnum>1</manvolnum></refmeta>
+<refnamediv><refname>nguidlist</refname><refpurpose>Manage persistent GUID VPN exemptions.</refpurpose></refnamediv>
+<refsynopsisdiv><cmdsynopsis><command>!nguidlist</command><arg><replaceable>show [PAGE] | add-nguid GUID REASON | remove-nguid GUID</replaceable></arg></cmdsynopsis></refsynopsisdiv>
+<refsection><title>Description</title><para>Requires C/nguidlist and confirmed internal GUID authentication for players. New entries require a 40-character hexadecimal Xmod GUID. Old Nitmod GUIDs remain visible and removable, but do not exempt Xmod players. Reasons contain 1 to 100 printable bytes. Show displays eight entries per page. Changes are saved immediately to g_vpnBlockerDBPath.</para></refsection>
+</refentry>

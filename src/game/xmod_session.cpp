@@ -219,6 +219,10 @@ bool Session::guidReceived(const std::string& hashedGuid, const std::string& has
             muteExpiry = userData.muteExpiry;
             muteReason = userData.muteReason;
             muteAuthority = userData.muteAuthority;
+            const time_t now = time(NULL);
+            nospammed = userData.nospamExpiry == (time_t)-1 || userData.nospamExpiry > now;
+            nospamExpiry = userData.nospamExpiry > 0 ? userData.nospamExpiry : 0;
+            nospamLastChat = nospammed ? userData.nospamLastChat : 0;
             name = userData.name;
             
             // Get namex from gclient if available, otherwise use plain name

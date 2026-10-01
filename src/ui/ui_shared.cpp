@@ -7726,16 +7726,6 @@ void BG_PanelButtonsSetup( panel_button_t** buttons ) {
 	}
 }
 
-// Add widescreen offset to panel button x coordinates (ETLegacy)
-void C_PanelButtonsSetup( panel_button_t** buttons, float xoffset ) {
-	panel_button_t* button;
-
-	for( ; *buttons; buttons++ ) {
-		button = (*buttons);
-		button->rect.x += xoffset;
-	}
-}
-
 panel_button_t* BG_PanelButtonsGetHighlightButton( panel_button_t** buttons ) {
 	panel_button_t* button;
 

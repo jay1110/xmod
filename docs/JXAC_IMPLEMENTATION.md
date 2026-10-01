@@ -281,7 +281,7 @@ jxac_checkWallhack      (default: 1)              - Enable wallhack detection
 jxac_checkSpeedhack     (default: 1)              - Enable speedhack detection
 jxac_autoBan            (default: 0)              - Auto-ban on detection
 jxac_autoKick           (default: 1)              - Auto-kick on detection
-jxac_logFile            (default: "jxac.log")     - Violation log file path
+jxac_logFile            (default: "jxac/jxac.log") - Violation log path relative to fs_homepath/fs_game
 ```
 
 All CVARs are archived (saved to config) and can be modified via server.cfg or console.

@@ -1,5 +1,9 @@
 GCC/ = /usr/
 
+# Build against Apple's SDK/system libcurl, with a stable deployment baseline.
+export SDKROOT ?= $(shell xcrun --sdk macosx --show-sdk-path)
+export MACOSX_DEPLOYMENT_TARGET ?= 10.15
+
 ###############################################################################
 
 IDMODULE.prefix  =
@@ -13,6 +17,8 @@ MATH.l     =
 IPHLPAPI.l =
 ADVAPI.l   =
 WS2_32.l   =
+VPNHTTP.l = curl pthread
+VPNHTTP.cflags = -pthread
 
 ###############################################################################
 

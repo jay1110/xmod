@@ -19,7 +19,7 @@ set &cvar:sv_privatePassword;   "<literal></literal>"
 set &cvar:g_log;         "<literal></literal>"
 set &cvar:g_logOptions;  "<literal>0</literal>"
 set &cvar:g_logSync;     "<literal>0</literal>"
-set &cvar:g_adminLog;    "<literal></literal>"
+set &cvar:g_adminLog;    "<literal>admin.log</literal>"
 
 //////////////////////////////////////////////////////////////////////
 //

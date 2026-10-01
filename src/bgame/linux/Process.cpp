@@ -32,7 +32,9 @@
 
 #include <signal.h>
 #include <errno.h>
+#if defined(__GLIBC__)
 #include <execinfo.h>
+#endif
 #include <fcntl.h>
 
 namespace {
@@ -54,6 +56,7 @@ sigset_t sigSavedMask;
 void
 coreTrace( int num, siginfo_t* info, ucontext_t* context )
 {
+#if defined(__GLIBC__)
     int    i;
     void*  array[1024];
     char** elements;
@@ -79,6 +82,11 @@ coreTrace( int num, siginfo_t* info, ucontext_t* context )
 
     for (i = 1; i < size; i++)
         printf( "[%02d] %s\n", i, elements[i] );
+#else
+    // musl (for example Alpine) has no glibc execinfo API. Keep native signal
+    // handling and the crash report; a core dump can provide the stack trace.
+    printf( "STACK TRACE: unavailable without execinfo support\n" );
+#endif
 }
 
 //////////////////////////////////////////////////////////////////////////////
@@ -111,7 +119,8 @@ writeCrashLog( int num, siginfo_t* info, ucontext_t* context )
         (int)info->si_pid, (int)info->si_uid );
     write( fd, buf, len );
 
-    // Write backtrace
+    // glibc provides execinfo; musl builds still record the signal metadata.
+#if defined(__GLIBC__)
     void*  array[1024];
     int    size;
     size = backtrace( array, sizeof(array) / sizeof(void*) );
@@ -131,6 +140,10 @@ writeCrashLog( int num, siginfo_t* info, ucontext_t* context )
 
     // backtrace_symbols_fd is async-signal-safe
     backtrace_symbols_fd( array + 1, size - 1, fd );
+#else
+    const char noTrace[] = "Stack trace: unavailable without execinfo support\n";
+    write( fd, noTrace, sizeof(noTrace) - 1 );
+#endif
 
     len = snprintf( buf, sizeof(buf), "=== END CRASH LOG ===\n\n" );
     write( fd, buf, len );

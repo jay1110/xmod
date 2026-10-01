@@ -1,0 +1,6 @@
+<refentry id="cmd.vpn-check">
+<refmeta><refentrytitle>vpn-check</refentrytitle><manvolnum>1</manvolnum></refmeta>
+<refnamediv><refname>vpn-check</refname><refpurpose>Check one public IPv4 address.</refpurpose></refnamediv>
+<refsynopsisdiv><cmdsynopsis><command>!vpn-check</command><arg><replaceable>IP</replaceable></arg></cmdsynopsis></refsynopsisdiv>
+<refsection><title>Description</title><para>Requires C/vpn-check and confirmed internal GUID authentication for players. Local lists are evaluated first; an undecided address is checked by background API requests, bypassing the temporary cache. Results go only to the requesting administrator. This diagnostic command does not disconnect a player.</para></refsection>
+</refentry>

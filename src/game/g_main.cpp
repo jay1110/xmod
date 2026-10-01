@@ -1,4 +1,5 @@
 #include <bgame/impl.h>
+#include <game/g_antirush.h>
 #include <omnibot/et/g_etbot_interface.h>
 #include <omnibot/common/BotExports.h>
 #include <game/g_lua.h>
@@ -6,6 +7,7 @@
 #include <game/xmod_globals.h>
 #include <game/g_geoip.h>
 #include <game/g_weaponscripts.h>
+#include <game/vpn_globals.h>
 
 // Forward declaration for Bot_Event_EntityCreated (defined in g_etbot_interface.cpp)
 void Bot_Event_EntityCreated(gentity_t *pEnt);
@@ -320,6 +322,7 @@ vmCvar_t        g_revenge;           // Show "REVENGE!" and award 1XP
 vmCvar_t        g_noReload;          // Unlimited ammo, clips auto-refill
 vmCvar_t        g_noCharge;          // No charge usage
 vmCvar_t        g_instantSpawn;      // Players respawn instantly
+vmCvar_t        g_mapRecords;
 vmCvar_t        g_instantJoinTeam;   // 1=instant spawn from spectator, 2=also from other team
 vmCvar_t        g_spawnInvulNoClip;  // Players can pass through bodies during spawn invul
 
@@ -462,8 +465,8 @@ cvarTable_t		gameCvarTable[] = {
     // Damage weapons (shoot to destroy)
     { &g_damageweapons,     "g_damageweapons",      "0",        CVAR_ARCHIVE },
 
-    // Weapon scripts directory - synced via XMODINFO, no need for SERVERINFO
-    { &g_weaponScriptsDir,  "g_weaponScriptsDir",   "",         CVAR_ARCHIVE },
+    // Clients need the directory in SERVERINFO to load matching weapon media.
+    { &g_weaponScriptsDir,  "g_weaponScriptsDir",   "",         CVAR_ARCHIVE | CVAR_SERVERINFO | CVAR_LATCH },
 
     // New gameplay cvars
     { &g_noAttackInvul,     "g_noAttackInvul",      "0",        CVAR_ARCHIVE },
@@ -474,6 +477,7 @@ cvarTable_t		gameCvarTable[] = {
     { &g_noReload,          "g_noReload",           "0",        CVAR_ARCHIVE | CVAR_XMODINFO },
     { &g_noCharge,          "g_noCharge",           "0",        CVAR_ARCHIVE | CVAR_XMODINFO },
     { &g_instantSpawn,      "g_instantSpawn",       "0",        CVAR_ARCHIVE },
+    { &g_mapRecords,        "g_mapRecords",        "1",        CVAR_ARCHIVE },
     { &g_instantJoinTeam,   "g_instantJoinTeam",    "0",        CVAR_ARCHIVE },
     { &g_spawnInvulNoClip,  "g_spawnInvulNoClip",   "0",        CVAR_ARCHIVE | CVAR_XMODINFO },
 
@@ -696,6 +700,13 @@ cvarTable_t		gameCvarTable[] = {
 	{ &g_OmniBotEnable, "omnibot_enable", "1", CVAR_ARCHIVE | CVAR_SERVERINFO_NOUPDATE | CVAR_NORESTART, 0, qfalse },
 	{ &g_OmniBotPlaying, "omnibot_playing", "0", CVAR_SERVERINFO_NOUPDATE | CVAR_ROM, 0, qfalse },	
 	{ &g_OmniBotFlags, "omnibot_flags", "0", CVAR_ARCHIVE | CVAR_NORESTART, 0, qfalse },
+	{ &vpnblocker::g_vpnBlockerEnabled, "g_vpnBlockerEnabled", "0", CVAR_ARCHIVE },
+	{ &vpnblocker::g_vpnBlockerApiKey1, "g_vpnBlockerApiKey1", "", CVAR_ARCHIVE },
+	{ &vpnblocker::g_vpnBlockerApiKey2, "g_vpnBlockerApiKey2", "", CVAR_ARCHIVE },
+	{ &vpnblocker::g_vpnBlockerMaxLevel, "g_vpnBlockerMaxLevel", "0", CVAR_ARCHIVE },
+	{ &vpnblocker::g_vpnBlockerBanMessageVPN, "g_vpnBlockerBanMessageVPN", "VPN/proxy connections are not allowed on this server.", CVAR_ARCHIVE },
+	{ &vpnblocker::g_vpnBlockerDBPath, "g_vpnBlockerDBPath", "vpnblocker.sqlite", CVAR_ARCHIVE },
+	{ &vpnblocker::g_vpnBlockerBanMessageBlacklist, "g_vpnBlockerBanMessageBlacklist", "", CVAR_ARCHIVE },
 };
 
 // bk001129 - made static to avoid aliasing
@@ -734,13 +745,14 @@ This must be the very first function compiled into the .q3vm file
 ================
 */
 // NOTE: WebAssembly's call_indirect requires exact signature matching. The
-// engine calls vmMain through VM_EntryPoint_t which takes 13 arguments (command
+// web engine calls vmMain through VM_EntryPoint_t which takes 13 arguments (command
 // + arg0..arg11). On native platforms extra arguments are harmlessly ignored,
 // but on wasm a mismatched arity traps with "indirect call signature mismatch".
-// Keep this signature identical to cgame/ui and the engine's VM_EntryPoint_t.
+// Keep this arity identical to cgame/ui and the web engine's VM_EntryPoint_t.
+// Native arguments must retain the full pointer width (e.g. binary messages).
 extern "C" LF_PUBLIC intptr_t
-vmMain( int command, int arg0, int arg1, int arg2, int arg3, int arg4, int arg5, int arg6,
-        int arg7, int arg8, int arg9, int arg10, int arg11 ) {
+vmMain( int command, intptr_t arg0, intptr_t arg1, intptr_t arg2, intptr_t arg3, intptr_t arg4, intptr_t arg5, intptr_t arg6,
+        intptr_t arg7, intptr_t arg8, intptr_t arg9, intptr_t arg10, intptr_t arg11 ) {
 	switch ( command ) {
 	case GAME_INIT:
 		Bot_Interface_InitHandles();
@@ -1924,7 +1936,7 @@ G_InitGame
 ============
 */
 void G_InitGame( int levelTime, int randomSeed, int restart ) {
-    memcpy( ammoTableMP_BACKUP, ammoTableMP, sizeof(ammoTableMP_BACKUP) );
+    BG_InitWeaponScriptState();
 
 	int					i;
 	char				cs[MAX_INFO_STRING];
@@ -1967,7 +1979,6 @@ void G_InitGame( int levelTime, int randomSeed, int restart ) {
     molotov::init();
 	BG_cpuUpdate();
     adminLog.init();
-    jxac::Server::init();  // Initialize JXAC server module
 
     // Initialize GeoIP database for country flags
     GeoIP_open();
@@ -2034,6 +2045,8 @@ void G_InitGame( int levelTime, int randomSeed, int restart ) {
 	level.time = levelTime;
 	level.startTime = levelTime;
 	level.server_settings = i;
+    jxac::Server::init();  // Timers use this map's initialized server time.
+    vpnblocker::init();
 
 	// Initialize per-client NCS pending state (no pending sends)
 	for ( i = 0; i < MAX_CLIENTS; i++ ) {
@@ -2367,6 +2380,8 @@ void G_InitGame( int levelTime, int randomSeed, int restart ) {
 
 	// Initialize xmod SQLite database and sessions
 	xmod::initXmod();
+    G_InitMapRecords();
+    antirush::init();
 
 	// Clear NCS dirty flags from init-time model/sound/shader registration.
 	// Each connecting client receives full NCS data via deferred G_ProcessPendingCommands.
@@ -2392,6 +2407,8 @@ G_ShutdownGame
 */
 void G_ShutdownGame( int restart ) {
 
+    antirush::shutdown();
+
 	// Arnout: gametype latching
 	if	( 
 		( ( g_gametype.integer == GT_WOLF || g_gametype.integer == GT_WOLF_CAMPAIGN ) && (g_entities[ENTITYNUM_WORLD].r.worldflags & NO_GT_WOLF)) ||
@@ -2415,7 +2432,11 @@ void G_ShutdownGame( int restart ) {
 	// Shutdown Lua
 	G_LuaShutdown();
 
+    jxac::Server::shutdown();
+    vpnblocker::shutdown();
+
 	// Shutdown xmod
+    G_SaveMapRecords(qfalse);
 	xmod::shutdownXmod();
 
     // Clear custom commands before further shutdown
@@ -3027,11 +3048,12 @@ void QDECL G_LogPrintf( const char *fmt, ... ) {
 	sec -= tens * 10;
 
 	// When LOGOPTS_REALTIME is set, prepend real-time timestamp
-	if ( g_logOptions.integer & LOGOPTS_REALTIME ) {
+	if ( g_logOptions.integer & (LOGOPTS_REALTIME | LOGOPTS_REALTIME_LEGACY) ) {
 		time_t now = time( NULL );
 		struct tm* lt = localtime( &now );
 		char stime[32];
-		strftime( stime, sizeof(stime), "%Y-%m-%d %H:%M:%S", lt );
+		if (!lt || !strftime( stime, sizeof(stime), "%Y-%m-%d %H:%M:%S", lt ))
+			Q_strncpyz(stime, "time unavailable", sizeof(stime));
 		Com_sprintf( string, sizeof(string), "[%s] %i:%i%i ", stime, min, tens, sec );
 	} else {
 		Com_sprintf( string, sizeof(string), "%i:%i%i ", min, tens, sec );
@@ -4168,6 +4190,8 @@ void G_RunFrame( int levelTime ) {
 	
 	// get any cvar changes
 	G_UpdateCvars();
+	vpnblocker::frame();
+	antirush::frame();
 
 	for( i = 0; i < level.num_entities; i++ ) {
 		g_entities[i].runthisframe = qfalse;

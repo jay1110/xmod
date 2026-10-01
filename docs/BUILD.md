@@ -238,9 +238,9 @@ make PLATFORM=linux ARCH=x86_64 -j4
 
 ## Related Documentation
 
-- [README.md](README.md) - General project information
-- [notes/BuildSystem.txt](notes/BuildSystem.txt) - Detailed build system documentation
-- [DATABASE_MIGRATION.md](DATABASE_MIGRATION.md) - Database migration guide
+- [Project README](https://github.com/jay1110/xmod/blob/master/README.md) - General project information
+- [notes/BuildSystem.txt](https://github.com/jay1110/xmod/blob/master/notes/BuildSystem.txt) - Detailed build system documentation
+- [Server setup](SERVER_SETUP.md) - Configuration and preserving existing databases during updates
 
 ## Support
 

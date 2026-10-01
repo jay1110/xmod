@@ -6,8 +6,12 @@ namespace jxac {
 // Scan loaded modules and queue for sending
 void scanAndSendModules();
 
-// Process module queue (call each frame)
-void processModuleQueue();
+// Reset pending reports when reinitializing the client or disabling JXAC.
+void clearModuleQueue();
+
+// Send at most one reliable command, after the caller acquires bulk budget.
+// The completion message uses a separate command slot.
+bool processModuleQueue();
 
 } // namespace jxac
 

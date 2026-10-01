@@ -1,10 +1,13 @@
 #include <bgame/impl.h>
 #include <bgame/jxac_common.h>
+#include <bgame/forced_cvars.h>
 #include <game/jxac/jxac_server.h>
 #include <game/jxac/jxac_tcp_server.h>
+#include <game/server_log_path.h>
 #include <vector>
 #include <cstdlib>
 #include <cstring>
+#include <cfloat>
 
 namespace jxac {
 
@@ -126,6 +129,7 @@ static int currentForcedCvarOffset[MAX_CLIENTS];
 #define JXAC_SS_MIN_INTERVAL    5000    // Minimum 5 seconds between screenshots per client (for testing)
 #define JXAC_SS_MAX_PER_HOUR    120     // Maximum 120 screenshots per client per hour (for testing)
 static int lastScreenshotTime[MAX_CLIENTS];
+static int screenshotLastProgress[MAX_CLIENTS];
 static int screenshotsThisHour[MAX_CLIENTS];
 static int hourStartTime[MAX_CLIENTS];
 
@@ -147,6 +151,32 @@ struct ForcedCvar {
 };
 
 static std::vector<ForcedCvar> forcedCvars;
+static int pendingForcedCvar[MAX_CLIENTS];
+static bool forcedCvarsEnabled;
+
+void Server::queueForcedCvars(int clientNum) {
+    if (clientNum >= 0 && clientNum < MAX_CLIENTS) pendingForcedCvar[clientNum] = 0;
+}
+
+int Server::sendPendingForcedCvar(int clientNum) {
+    if (clientNum < 0 || clientNum >= MAX_CLIENTS) return 0;
+    int& cursor = pendingForcedCvar[clientNum];
+    if (cursor < 0 || (g_entities[clientNum].r.svFlags & SVF_BOT)) return 0;
+    const int count = cvar::objects::g_jxacEnable.ivalue ? (int)forcedCvars.size() : 0;
+    if (cursor == 0) {
+        trap_SendServerCommand(clientNum, "fc_clear");
+        cursor = count ? 1 : -1;
+        return 1;
+    }
+    if (cursor > count) { cursor = -1; return 0; }
+    const ForcedCvar& rule = forcedCvars[cursor - 1];
+    if (rule.isRange)
+        trap_SendServerCommand(clientNum, va("fcr \"%s\" %.9g %.9g", rule.name, rule.minValue, rule.maxValue));
+    else
+        trap_SendServerCommand(clientNum, va("fc \"%s\" \"%s\"", rule.name, rule.value));
+    if (++cursor > count) cursor = -1;
+    return 1;
+}
 
 // Structure for cheat CVAR detection
 struct CheatCvar {
@@ -184,6 +214,7 @@ static void sendScreenshotRequest( int clientNum, int quality ) {
     
     pd->screenshotPending = qtrue;
     pd->screenshotRequestTime = level.time;
+    screenshotLastProgress[clientNum] = level.time;
     pd->ssDataReceived = 0;
     pd->ssDataExpected = 0;
     
@@ -211,11 +242,15 @@ void Server::init() {
     // Initialize CVAR batch indexes
     memset( currentCvarBatch, 0, sizeof( currentCvarBatch ) );
     memset( currentForcedCvarOffset, 0, sizeof( currentForcedCvarOffset ) );
+    for (int i = 0; i < MAX_CLIENTS; ++i) pendingForcedCvar[i] = -1;
+    forcedCvarsEnabled = cvar::objects::g_jxacEnable.ivalue != 0;
     
     // Initialize rate limiting arrays (security: prevent disk fill attacks)
     memset( lastScreenshotTime, 0, sizeof( lastScreenshotTime ) );
+    memset( screenshotLastProgress, 0, sizeof( screenshotLastProgress ) );
     memset( screenshotsThisHour, 0, sizeof( screenshotsThisHour ) );
     memset( hourStartTime, 0, sizeof( hourStartTime ) );
+    lastCvarCheckTime = lastForcedCvarCheckTime = lastCheatCvarScanTime = level.time;
     
     // Load CVAR config file (if exists)
     loadCvarConfig( cvar::objects::g_jxacCvarFile.svalue );
@@ -261,12 +296,9 @@ void Server::shutdown() {
     // Stop TCP server
     TcpServer::stop();
     
-    // Free any allocated screenshot buffers
+    // Release per-slot state even when JXAC was disabled before shutdown.
     for ( int i = 0; i < MAX_CLIENTS; i++ ) {
-        if ( playerData[i].ssBuffer ) {
-            free( playerData[i].ssBuffer );
-            playerData[i].ssBuffer = NULL;
-        }
+        clientDisconnect(i);
     }
     
     initialized = qfalse;
@@ -275,6 +307,15 @@ void Server::shutdown() {
 ///////////////////////////////////////////////////////////////////////////////
 
 void Server::frame() {
+    const bool enabled = cvar::objects::g_jxacEnable.ivalue != 0;
+    if (enabled != forcedCvarsEnabled) {
+        forcedCvarsEnabled = enabled;
+        for (int i = 0; i < level.maxclients; ++i) {
+            if (level.clients[i].pers.connected != CON_CONNECTED) continue;
+            if (enabled) clientBegin(i);
+            else queueForcedCvars(i);
+        }
+    }
     if ( !initialized || !cvar::objects::g_jxacEnable.ivalue ) {
         return;
     }
@@ -362,7 +403,7 @@ void Server::frame() {
 ///////////////////////////////////////////////////////////////////////////////
 
 void Server::clientConnect( int clientNum ) {
-    if ( !initialized || !cvar::objects::g_jxacEnable.ivalue ) {
+    if ( !initialized ) {
         return;
     }
     
@@ -370,9 +411,9 @@ void Server::clientConnect( int clientNum ) {
         return;
     }
     
-    // Initialize player data
+    // A reused slot must not inherit uploads or violations from its old owner.
+    clientDisconnect(clientNum);
     jxacPlayerData_t* pd = &playerData[clientNum];
-    memset( pd, 0, sizeof( jxacPlayerData_t ) );
     
     pd->clientNum = clientNum;
     pd->status = JXAC_STATUS_CONNECTED;
@@ -389,13 +430,15 @@ void Server::clientConnect( int clientNum ) {
 ///////////////////////////////////////////////////////////////////////////////
 
 void Server::clientDisconnect( int clientNum ) {
-    if ( !initialized || !cvar::objects::g_jxacEnable.ivalue ) {
+    if ( !initialized ) {
         return;
     }
     
     if ( clientNum < 0 || clientNum >= MAX_CLIENTS ) {
         return;
     }
+
+    if (TcpServer::isRunning()) TcpServer::disconnectClient(clientNum);
     
     jxacPlayerData_t* pd = &playerData[clientNum];
     
@@ -407,12 +450,16 @@ void Server::clientDisconnect( int clientNum ) {
     
     // Clear player data
     memset( pd, 0, sizeof( jxacPlayerData_t ) );
+    currentCvarBatch[clientNum] = currentForcedCvarOffset[clientNum] = 0;
+    pendingForcedCvar[clientNum] = -1;
+    lastScreenshotTime[clientNum] = screenshotLastProgress[clientNum] = 0;
+    screenshotsThisHour[clientNum] = hourStartTime[clientNum] = 0;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
 
 void Server::clientBegin( int clientNum ) {
-    if ( !initialized || !cvar::objects::g_jxacEnable.ivalue ) {
+    if ( !initialized ) {
         return;
     }
     
@@ -420,22 +467,19 @@ void Server::clientBegin( int clientNum ) {
         return;
     }
     
+    // Start the response window after loading, including cgame-only restarts.
+    // This does not reset pending screenshot deadlines or violation history.
+    playerData[clientNum].lastHeartbeat = level.time;
+    playerData[clientNum].violationReported[JXAC_VIOLATION_NO_RESPONSE] = qfalse;
+    playerData[clientNum].status |= JXAC_STATUS_CONNECTED;
+
     // Send JXAC status check to client
     // This would normally send a network message to the client
     // For now, just mark as verified (placeholder)
     playerData[clientNum].status |= JXAC_STATUS_VERIFIED | JXAC_STATUS_CLEAN;
     
-    // Send all forced CVARs to this client so they can enforce them locally
-    // This follows the NitMod pattern: server sends "fc" commands on client begin
-    gentity_t* ent = &g_entities[clientNum];
-    if ( ent->r.svFlags & SVF_BOT ) {
-        return;
-    }
-    for ( int i = 0; i < (int)forcedCvars.size(); i++ ) {
-        if ( !forcedCvars[i].isRange ) {
-            trap_SendServerCommand( clientNum, va("fc \"%s\" \"%s\"", forcedCvars[i].name, forcedCvars[i].value) );
-        }
-    }
+    // Share the deferred command budget with XCS/NCS instead of bursting.
+    queueForcedCvars(clientNum);
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -561,6 +605,9 @@ void Server::handleScreenshotData( int clientNum, const void* data, int size ) {
         return;
     }
     
+    // Keep the timeout based on progress for throttled/low-FPS clients.
+    if (!data || size <= 0) return;
+    screenshotLastProgress[clientNum] = level.time;
     // Copy data to buffer
     memcpy( pd->ssBuffer + pd->ssDataReceived, data, size );
     pd->ssDataReceived += size;
@@ -1118,12 +1165,16 @@ void Server::logViolation( const jxacViolation_t* violation ) {
     timeinfo = localtime( &rawtime );
     strftime( timestamp, sizeof( timestamp ), "%Y-%m-%d %H:%M:%S", timeinfo );
     
-    // Open log file for append
-    fileHandle_t f;
-    trap_FS_FOpenFile( cvar::objects::g_jxacLogFile.svalue, &f, FS_APPEND );
-    
-    if ( !f ) {
+    // Use the same mod-home path rules as the admin log, including creation of
+    // the default jxac/ directory and explicit absolute custom filenames.
+    std::string path;
+    if (!serverlog::resolve(cvar::objects::g_jxacLogFile.svalue, path)) {
         Com_Printf( "JXAC: Failed to open log file: %s\n", cvar::objects::g_jxacLogFile.svalue );
+        return;
+    }
+    std::ofstream file(path.c_str(), std::ios::out | std::ios::app | std::ios::binary);
+    if (!file.is_open()) {
+        Com_Printf("JXAC: Failed to open log file: %s\n", path.c_str());
         return;
     }
     
@@ -1134,8 +1185,9 @@ void Server::logViolation( const jxacViolation_t* violation ) {
                  timestamp, violation->clientNum, violation->playerName, 
                  violation->type, violation->details );
     
-    trap_FS_Write( logEntry, strlen( logEntry ), f );
-    trap_FS_FCloseFile( f );
+    file.write(logEntry, strlen(logEntry));
+    file.flush();
+    if (!file.good()) Com_Printf("JXAC: Failed to write log file: %s\n", path.c_str());
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -1159,7 +1211,13 @@ void Server::checkHeartbeats() {
         }
         
         jxacPlayerData_t* pd = &playerData[i];
-        
+
+        // A backwards server clock must not retain a future heartbeat deadline.
+        if (level.time < pd->lastHeartbeat) {
+            pd->lastHeartbeat = level.time;
+            pd->violationReported[JXAC_VIOLATION_NO_RESPONSE] = qfalse;
+        }
+
         // Check heartbeat timeout
         if ( level.time - pd->lastHeartbeat > timeout ) {
             // Only report violation once (prevents spam)
@@ -1184,10 +1242,11 @@ void Server::checkTimeouts() {
         
         jxacPlayerData_t* pd = &playerData[i];
         
-        // Check screenshot request timeout (30 seconds)
+        // Allow paced uploads while still bounding stalled and endless uploads.
         if ( pd->screenshotPending ) {
             int elapsed = level.time - pd->screenshotRequestTime;
-            if ( elapsed > 30000 ) {
+            int inactive = level.time - screenshotLastProgress[i];
+            if (inactive > 30000 || elapsed > 180000) {
                 
                 if ( pd->ssBuffer ) {
                     free( pd->ssBuffer );
@@ -1241,67 +1300,64 @@ void Server::reloadConfig() {
 
 ///////////////////////////////////////////////////////////////////////////////
 
-void Server::loadForceCvarConfig( const char* filename ) {
-    if ( !filename || filename[0] == '\0' ) {
-        Com_Printf( "JXAC: No forced CVAR config file specified\n" );
-        return;
-    }
-    
-    fileHandle_t f;
-    int len = trap_FS_FOpenFile( filename, &f, FS_READ );
-    
-    if ( !f || len <= 0 ) {
-        Com_Printf( "JXAC: Failed to load forced CVAR config: %s\n", filename );
-        return;
-    }
-    
-    forcedCvars.clear();
-    
-    char* buffer = (char*)malloc( len + 1 );
-    if ( !buffer ) {
-        Com_Printf( "JXAC: Failed to allocate memory for forced CVAR config\n" );
-        trap_FS_FCloseFile( f );
-        return;
-    }
-    
-    trap_FS_Read( buffer, len, f );
-    buffer[len] = '\0';
-    trap_FS_FCloseFile( f );
-    
-    // Parse line by line
-    char* line = strtok( buffer, "\n" );
-    while ( line ) {
-        // Skip comments and empty lines
-        while ( *line == ' ' || *line == '\t' ) line++;
-        if ( *line == '/' || *line == '\0' ) {
-            line = strtok( NULL, "\n" );
-            continue;
+void Server::loadForceCvarConfig(const char* filename) {
+    std::vector<ForcedCvar> parsed;
+    fileHandle_t file = 0;
+    int length = 0;
+    if (filename && *filename) {
+        length = trap_FS_FOpenFile(filename, &file, FS_READ);
+        if (!file || length < 0 || length > 65536) {
+            if (file) trap_FS_FCloseFile(file);
+            Com_Printf("JXAC: Cannot load forced CVAR config %s; previous rules retained.\n", filename);
+            return;
         }
-        
-        ForcedCvar fcvar;
-        memset( &fcvar, 0, sizeof( fcvar ) );
-        
-        // Parse "forcecvar <cvar> <value>"
-        if ( sscanf( line, "forcecvar %63s %127s", fcvar.name, fcvar.value ) == 2 ) {
-            fcvar.isRange = false;
-            forcedCvars.push_back( fcvar );
-        }
-        // Parse "sv_cvar <cvar> IN <min> <max>"
-        else if ( sscanf( line, "sv_cvar %63s IN %f %f", fcvar.name, &fcvar.minValue, &fcvar.maxValue ) == 3 ) {
-            fcvar.isRange = true;
-            forcedCvars.push_back( fcvar );
-        }
-        // Parse "sv_cvar <cvar> EQ <value>"
-        else if ( sscanf( line, "sv_cvar %63s EQ %127s", fcvar.name, fcvar.value ) == 2 ) {
-            fcvar.isRange = false;
-            forcedCvars.push_back( fcvar );
-        }
-        
-        line = strtok( NULL, "\n" );
     }
-    
-    free( buffer );
-    Com_Printf( "JXAC: Loaded %d forced CVARs from %s\n", (int)forcedCvars.size(), filename );
+    std::vector<char> buffer(length + 1, 0);
+    if (file) {
+        if (length) trap_FS_Read(buffer.data(), length, file);
+        trap_FS_FCloseFile(file);
+    }
+    char* line = strtok(buffer.data(), "\n");
+    while (line) {
+        char* cursor = line;
+        const std::string directive = COM_ParseExt(&cursor, qfalse);
+        const std::string name = COM_ParseExt(&cursor, qfalse);
+        const std::string operation = COM_ParseExt(&cursor, qfalse);
+        std::string value, maximum;
+        bool range = false, valid = false;
+        if (directive == "forcecvar") { value = operation; valid = true; }
+        else if (directive == "sv_cvar" && (operation == "EQ" || operation == "IN")) {
+            value = COM_ParseExt(&cursor, qfalse);
+            range = operation == "IN";
+            if (range) maximum = COM_ParseExt(&cursor, qfalse);
+            valid = true;
+        }
+        double lo = 0, hi = 0;
+        valid = valid && XmodCvarNameValid(name) && value.size() < 128 &&
+                value.find_first_of("\"\r\n") == std::string::npos;
+        if (range) valid = valid && XmodCvarNumber(value, lo) && XmodCvarNumber(maximum, hi) &&
+                           lo <= hi && lo >= -FLT_MAX && hi <= FLT_MAX;
+        if (valid) {
+            ForcedCvar rule = {};
+            Q_strncpyz(rule.name, name.c_str(), sizeof(rule.name));
+            Q_strncpyz(rule.value, value.c_str(), sizeof(rule.value));
+            rule.isRange = range;
+            rule.minValue = (float)lo;
+            rule.maxValue = (float)hi;
+            bool replaced = false;
+            for (auto& old : parsed) {
+                if (!Q_stricmp(old.name, rule.name)) { old = rule; replaced = true; break; }
+            }
+            if (!replaced && parsed.size() < 256) parsed.push_back(rule);
+        } else if (!directive.empty()) {
+            Com_Printf("JXAC: Ignoring invalid forced CVAR rule: %s\n", line);
+        }
+        line = strtok(NULL, "\n");
+    }
+    forcedCvars.swap(parsed);
+    for (int i = 0; i < level.maxclients; ++i)
+        if (level.clients[i].pers.connected == CON_CONNECTED) queueForcedCvars(i);
+    Com_Printf("JXAC: Loaded %d forced CVARs.\n", (int)forcedCvars.size());
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -1310,12 +1366,11 @@ void Server::checkForcedCvar( int clientNum, const char* cvarName, const char* v
     for ( const auto& fcvar : forcedCvars ) {
         if ( Q_stricmp( fcvar.name, cvarName ) == 0 ) {
             if ( fcvar.isRange ) {
-                float fval = atof( value );
-                if ( fval < fcvar.minValue || fval > fcvar.maxValue ) {
-                    // Out of range - re-send forced value to client
-                    // For range checks we can't force a specific value, so clamp to nearest bound
-                    float clamped = fval < fcvar.minValue ? fcvar.minValue : fcvar.maxValue;
-                    trap_SendServerCommand( clientNum, va("fc \"%s\" \"%g\"", fcvar.name, clamped) );
+                double fval;
+                if (!XmodCvarNumber(value, fval) || fval < fcvar.minValue || fval > fcvar.maxValue) {
+                    // Keep the range rule: forcing one clamped value would prevent
+                    // players from changing to another permitted value later.
+                    trap_SendServerCommand(clientNum, va("fcr \"%s\" %.9g %.9g", fcvar.name, fcvar.minValue, fcvar.maxValue));
                 }
             } else {
                 if ( Q_stricmp( value, fcvar.value ) != 0 ) {

@@ -31,7 +31,7 @@ JXAC (Jays XMod AntiCheat) is a comprehensive anticheat system for xmod (Wolfens
 
 ### Server-Side Features
 - Player tracking with JXAC status monitoring
-- Violation logging with timestamps to `jxac.log`
+- Violation logging with timestamps to `fs_homepath/fs_game/jxac/jxac.log`
 - Configurable auto-kick/ban on detection
 - Admin notifications of violations
 - Screenshot storage with metadata
@@ -73,7 +73,7 @@ seta jxac_autoBan "0"
 seta jxac_autoKick "1"
 
 // Log file path
-seta jxac_logFile "jxac.log"
+seta jxac_logFile "jxac/jxac.log"
 
 // Heartbeat timeout in milliseconds (default: 60000 = 60 seconds)
 seta jxac_heartbeatTimeout "60000"
@@ -97,6 +97,13 @@ seta jxac_cheatDbFile "jxac/jxac_cheats.cfg"
 ---
 
 ## Admin Commands
+
+Forced cvars from `jxac_forceCvarFile` are enforced continuously by updated Xmod
+clients while JXAC is enabled. `forcecvar name value` and `sv_cvar name EQ value`
+lock a value; `sv_cvar name IN minimum maximum` permits changes within the range.
+Rules are restored after `vid_restart` and replaced when the configuration is
+reloaded. Screenshot fallback and module reports share a limit of two reliable
+commands per 125 ms so their upload rate does not grow with rendering FPS.
 
 All JXAC commands require admin privileges. Use the `!` prefix in-game chat.
 
