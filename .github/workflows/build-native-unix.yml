@@ -205,7 +205,8 @@ jobs:
             "build.$PLATFORM-release/jsoncpp/libjsoncpp.a" -lcurl -ldl -o build/vpn-ci/check
           build/vpn-ci/check "$PWD/$module"
           if [ "$RUNNER_OS" = macOS ]; then
-            lipo -verify_arch "$BUILD_ARCH" "$module"
+            # Apple lipo treats every argument after -verify_arch as an architecture.
+            lipo "$module" -verify_arch "$BUILD_ARCH"
             otool -L "$module"
             otool -L "$module" | grep -q '/usr/lib/libcurl'
             if otool -L "$module" | grep -Eq '/opt/homebrew|/usr/local'; then
@@ -237,7 +238,7 @@ jobs:
           if-no-files-found: error
 
   macos-universal:
-    name: Package macOS Intel and Apple Silicon
+    name: Package macOS Universal (Intel + Apple Silicon)
     needs: build
     runs-on: macos-15
     steps:
@@ -254,7 +255,7 @@ jobs:
             mkdir -p "$bundle/Contents/MacOS"
             lipo -create "artifacts/xmod-macos-x86_64/$file.binary" \
               "artifacts/xmod-macos-arm64/$file.binary" -output "$bundle/Contents/MacOS/$file"
-            lipo -verify_arch x86_64 arm64 "$bundle/Contents/MacOS/$file"
+            lipo "$bundle/Contents/MacOS/$file" -verify_arch x86_64 arm64
             /usr/libexec/PlistBuddy -c "Add :CFBundleExecutable string $file" "$bundle/Contents/Info.plist"
             /usr/libexec/PlistBuddy -c "Add :CFBundleName string $file" "$bundle/Contents/Info.plist"
             /usr/libexec/PlistBuddy -c 'Add :CFBundlePackageType string BNDL' "$bundle/Contents/Info.plist"
@@ -313,7 +314,7 @@ jobs:
           mkdir -p build/vpn-ci
           printf '%s\n' "$VPN_SMOKE_SOURCE" > build/vpn-ci/check.cpp
           docker run --rm -v "$PWD:/src" -w /src alpine:3.22 sh -ec '
-            apk add --no-cache build-base python3 zip m4 curl-dev
+            apk add --no-cache build-base python3 zip m4 curl-dev linux-headers
             chmod +x project/info.py
             make PLATFORM=linux64 VARIANT=release all \
               MODULES="src/lua src/sqlite3 src/jsoncpp src/base src/game src/cgame src/ui" -j2

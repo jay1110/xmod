@@ -2,9 +2,11 @@
 
 ## English
 
-Updated: 2026-10-01 · Unreleased
+Updated: 2026-10-09 · Unreleased
 
 - **Fixed:**
+  - Fixed macOS architecture checks and Universal packaging in GitHub Actions; added missing Alpine Linux headers.
+  - Fixed configuration documentation lookup on case-sensitive filesystems to unblock Linux documentation builds.
   - Removed a duplicate cvar reference that broke Read the Docs builds on Linux.
   - Store relative admin and JXAC logs in the mod directory; default JXAC logs use `jxac/jxac.log`.
   - Prevented duplicate archive members when rebuilding WASM libraries.
@@ -55,9 +57,11 @@ Updated: 2026-10-01 · Unreleased
 
 ## Deutsch
 
-Stand: 01.10.2026 · Noch nicht veröffentlicht
+Stand: 09.10.2026 · Noch nicht veröffentlicht
 
 - **Fixed:**
+  - macOS-Architekturprüfung und Universal-Pakete in GitHub Actions korrigiert; fehlende Alpine-Linux-Header ergänzt.
+  - Config-Dokumentation auch auf Dateisystemen mit Groß-/Kleinschreibung korrekt gefunden; Linux-Dokumentationsbuilds repariert.
   - Doppelte Cvar-Referenz entfernt, die Read-the-Docs-Builds unter Linux verhinderte.
   - Relative Admin- und JXAC-Logs im Mod-Verzeichnis abgelegt; JXAC verwendet standardmäßig `jxac/jxac.log`.
   - Doppelte Archiveinträge beim erneuten Bauen der WASM-Bibliotheken verhindert.

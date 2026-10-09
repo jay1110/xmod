@@ -133,11 +133,11 @@ def registrations():
     return sorted(result.values(), key=lambda item: item.name.lower())
 
 
-def description(name):
+def description(name, sources):
     if name in NOTES:
         return NOTES[name]
-    source = ROOT / "doc/cvar" / f"cvar.{name}.xml"
-    if source.exists():
+    source = sources.get(f"cvar.{name}.xml".casefold())
+    if source is not None:
         match = re.search(r"<refpurpose>(.*?)</refpurpose>", source.read_text(encoding="utf-8"), re.S)
         if match:
             value = re.sub(r"<[^>]+>", "", match[1])
@@ -154,6 +154,8 @@ def quote(value):
 
 def generate():
     cvars = registrations()
+    # Cvar names are case-insensitive; preserve each document's actual filename.
+    sources = {source.name.casefold(): source for source in (ROOT / "doc/cvar").glob("cvar.*.xml")}
     lines = [
         "changequote(<<, >>)dnl", "include(<<project.m4>>)dnl", "dnl",
         "// __title - complete mod configuration",
@@ -180,7 +182,7 @@ def generate():
     for title, matches in groups:
         lines.extend(["// " + "=" * 74, "// " + title, "// " + "=" * 74, ""])
         for cvar in filter(matches, owned_cvars):
-            note = description(cvar.name)
+            note = description(cvar.name, sources)
             if note:
                 lines.append("// " + note)
             if "CVAR_LATCH" in cvar.flags:
