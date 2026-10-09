@@ -221,6 +221,9 @@
     <ClCompile Include="cmd/JxacStatus.cpp">
       <Filter>cmd</Filter>
     </ClCompile>
+    <ClCompile Include="cmd/JxacReload.cpp">
+      <Filter>cmd</Filter>
+    </ClCompile>
     <ClCompile Include="cmd/Kick.cpp">
       <Filter>cmd</Filter>
     </ClCompile>
@@ -490,6 +493,9 @@
     <ClInclude Include="../bgame/jxac_common.h">
       <Filter>../bgame</Filter>
     </ClInclude>
+    <ClInclude Include="../bgame/jxac_memory_rules.h">
+      <Filter>../bgame</Filter>
+    </ClInclude>
     <ClInclude Include="../bgame/q_shared.h">
       <Filter>../bgame</Filter>
     </ClInclude>
@@ -657,6 +663,9 @@
       <Filter>cmd</Filter>
     </ClInclude>
     <ClInclude Include="cmd/JxacStatus.h">
+      <Filter>cmd</Filter>
+    </ClInclude>
+    <ClInclude Include="cmd/JxacReload.h">
       <Filter>cmd</Filter>
     </ClInclude>
     <ClInclude Include="cmd/Kick.h">
@@ -848,6 +857,9 @@
       <Filter>jxac</Filter>
     </ClInclude>
     <ClInclude Include="jxac/jxac_server.h">
+      <Filter>jxac</Filter>
+    </ClInclude>
+    <ClInclude Include="jxac/jpeg_validation.h">
       <Filter>jxac</Filter>
     </ClInclude>
     <ClInclude Include="str/public.h">

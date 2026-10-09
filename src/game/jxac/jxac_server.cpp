@@ -1,13 +1,18 @@
 #include <bgame/impl.h>
 #include <bgame/jxac_common.h>
+#include <bgame/jxac_memory_rules.h>
 #include <bgame/forced_cvars.h>
 #include <game/jxac/jxac_server.h>
 #include <game/jxac/jxac_tcp_server.h>
+#include <game/jxac/md5_rules.h>
+#include <game/jxac/jpeg_validation.h>
 #include <game/server_log_path.h>
+#include <game/xmod_globals.h>
 #include <vector>
 #include <cstdlib>
 #include <cstring>
 #include <cfloat>
+#include <climits>
 
 namespace jxac {
 
@@ -40,6 +45,92 @@ const char* jxacObfuscatedCmds[JXAC_NUM_OBFUSCATED_CMDS] = {
 // Static storage for player data
 static jxacPlayerData_t playerData[MAX_CLIENTS];
 static qboolean initialized = qfalse;
+
+struct ModuleDigest {
+    std::string md5, sha1, name;
+};
+static const size_t MAX_CACHED_MODULES = 1024;
+static std::vector<ModuleDigest> moduleDigests[MAX_CLIENTS];
+static size_t nextModuleDigest[MAX_CLIENTS];
+static unsigned int validMd5Reports[MAX_CLIENTS];
+static bool gamehackReported[MAX_CLIENTS];
+struct BanIdentity {
+    std::string guid, hwid, ip, name;
+};
+struct PendingEvidence {
+    bool pending = false;
+    bool finished = false;
+    bool ban = false;
+    BanIdentity identity;
+    std::string reason, details;
+};
+static PendingEvidence evidence[MAX_CLIENTS];
+
+static BanIdentity banIdentity(int clientNum) {
+    BanIdentity identity;
+    identity.name = md5rules::safeText(g_entities[clientNum].client->pers.netname, 63);
+    const auto* session = ::xmod::g_sessions[clientNum];
+    // Never persist the temporary PENDING identity used before authentication.
+    if (session && session->isAuthenticated()) {
+        identity.guid = session->getGuid();
+        identity.hwid = session->getHwid();
+        identity.ip = session->getIp();
+    } else if (!session) {
+        const User* user = connectedUsers[clientNum];
+        if (user && user != &User::BAD && !user->fakeguid) {
+            identity.guid = user->guid;
+            identity.hwid = user->mac;
+            identity.ip = user->ip;
+        }
+    }
+    std::string validated;
+    if (!md5rules::normalizeHash(identity.guid.c_str(), 40, validated)) identity.guid.clear();
+    if (!md5rules::normalizeHash(identity.hwid.c_str(), 40, validated)) identity.hwid.clear();
+    return identity;
+}
+
+static void logAction(int clientNum, const std::string& name, const std::string& message) {
+    const std::string safeName = md5rules::safeText(name.c_str(), 63);
+    const std::string safeMessage = md5rules::safeText(message.c_str(), 511);
+    Com_Printf("JXAC: Client %d (%s): %s\n", clientNum, safeName.c_str(), safeMessage.c_str());
+    std::string path;
+    if (!cvar::objects::g_jxacLogFile.svalue[0] ||
+        !serverlog::resolve(cvar::objects::g_jxacLogFile.svalue, path)) return;
+    std::ofstream file(path.c_str(), std::ios::out | std::ios::app | std::ios::binary);
+    time_t now = time(NULL);
+    char timestamp[64];
+    strftime(timestamp, sizeof(timestamp), "%Y-%m-%d %H:%M:%S", localtime(&now));
+    file << '[' << timestamp << "] Client " << clientNum << " (" << safeName << "): " << safeMessage << '\n';
+    file.flush();
+    if (!file.good()) Com_Printf("JXAC: Failed to write log file: %s\n", path.c_str());
+}
+
+static bool persistBan(int clientNum, const BanIdentity& identity, const std::string& reason) {
+    if (identity.guid.empty() || !::xmod::g_database || !::xmod::g_database->isOpened() ||
+        !::xmod::g_database->banUser(identity.guid, identity.hwid, identity.ip,
+            identity.name, "JXAC", reason, 0)) {
+        logAction(clientNum, identity.name, "Permanent ban NOT saved (authenticated identity or writable SQLite database unavailable); kick only");
+        return false;
+    }
+    logAction(clientNum, identity.name, "Permanent ban saved in admin database: " + reason);
+    return true;
+}
+static md5rules::Rules md5Denylist;
+enum class MemoryScanState { NotReported, Scanning, Complete, Partial, Unsupported };
+static MemoryScanState memoryScanState[MAX_CLIENTS];
+static bool memoryScanEnabled = false;
+
+static bool activeHuman(int clientNum) {
+    return initialized && cvar::objects::g_jxacEnable.ivalue &&
+        clientNum >= 0 && clientNum < MAX_CLIENTS &&
+        g_entities[clientNum].client &&
+        g_entities[clientNum].client->pers.connected == CON_CONNECTED &&
+        !(g_entities[clientNum].r.svFlags & SVF_BOT);
+}
+
+static bool moduleScanActive(int clientNum) {
+    return activeHuman(clientNum) && cvar::objects::g_jxacModuleScan.ivalue && !gamehackReported[clientNum];
+}
 
 // Protected CVARs to check - organized in batches
 // Batch 1: Renderer CVARs (wallhack related)
@@ -89,33 +180,36 @@ static const char* cvarBatch4[] = {
     NULL
 };
 
-// Expected values for protected CVARs (cvarName, expectedValue, exactMatch)
-// Only CVARs that need specific value validation are listed here
-// Other CVARs in batches are just logged for monitoring
-static const jxacCvarCheck_t protectedCvars[] = {
+// Built-in numeric limits are fallback rules. Explicit administrator rules
+// take precedence; a zero-width range requires exactly that numeric value.
+struct ProtectedCvar {
+    const char* name;
+    double minimum, maximum;
+};
+static const ProtectedCvar protectedCvars[] = {
     // Batch 1 - Wallhack related (critical)
-    { "r_drawentities", "1", qtrue },
-    { "r_drawworld", "1", qtrue },
-    { "r_fullbright", "0", qtrue },
-    { "r_lightmap", "0", qtrue },
-    { "r_showimages", "0", qtrue },
-    { "r_shownormals", "0", qtrue },
-    { "r_showtris", "0", qtrue },
-    { "r_showsky", "1", qtrue },
-    { "r_fastsky", "0", qtrue },
+    { "r_drawentities", 1, 1 },
+    { "r_drawworld", 1, 1 },
+    { "r_fullbright", 0, 0 },
+    { "r_lightmap", 0, 0 },
+    { "r_showimages", 0, 0 },
+    { "r_shownormals", 0, 0 },
+    { "r_showtris", 0, 0 },
+    { "r_showsky", 1, 1 },
+    { "r_fastsky", 0, 0 },
     // Batch 2 - Visibility related
-    { "r_znear", "4", qfalse },      // Allow values close to 4
-    { "r_nocull", "0", qtrue },
-    { "r_drawfoliage", "1", qtrue },
-    { "r_noportals", "0", qtrue },
-    { "r_mapoverbrightbits", "2", qfalse },  // Allow 2 or 3
-    { "r_intensity", "1", qfalse },          // Tolerance ±0.5
+    { "r_znear", 3, 3 },
+    { "r_nocull", 0, 0 },
+    { "r_drawfoliage", 1, 1 },
+    { "r_noportals", 0, 0 },
+    { "r_mapoverbrightbits", 2, 3 },
+    { "r_intensity", 0.5, 1.5 },
     // Batch 3 - Client misc
-    { "cg_thirdPerson", "0", qtrue },
-    { "cg_shadows", "1", qfalse },   // Allow 0-1
+    { "cg_thirdPerson", 0, 0 },
+    { "cg_shadows", 0, 1 },
     // Batch 4 - Textures
-    { "r_picmip", "0", qfalse },     // Allow 0-2
-    { "", "", qfalse }  // Terminator
+    { "r_picmip", 0, 2 },
+    { "", 0, 0 }  // Terminator
 };
 
 // Current batch index per client for rotating checks
@@ -238,6 +332,13 @@ void Server::init() {
     
     // Clear player data
     memset( playerData, 0, sizeof( playerData ) );
+    memset(gamehackReported, 0, sizeof(gamehackReported));
+    for (int i = 0; i < MAX_CLIENTS; ++i) evidence[i] = PendingEvidence();
+    memset(nextModuleDigest, 0, sizeof(nextModuleDigest));
+    memset(validMd5Reports, 0, sizeof(validMd5Reports));
+    for (int i = 0; i < MAX_CLIENTS; ++i) memoryScanState[i] = MemoryScanState::NotReported;
+    memoryScanEnabled = cvar::objects::g_jxacEnable.ivalue && cvar::objects::g_jxacModuleScan.ivalue;
+    for (int i = 0; i < MAX_CLIENTS; ++i) moduleDigests[i].clear();
     
     // Initialize CVAR batch indexes
     memset( currentCvarBatch, 0, sizeof( currentCvarBatch ) );
@@ -263,6 +364,7 @@ void Server::init() {
     
     // Load cheat signature database
     loadCheatDatabase( cvar::objects::g_jxacCheatDbFile.svalue );
+    loadMd5Config( cvar::objects::g_jxacMd5File.svalue );
     
     // Start TCP server on same port as game server (net_port)
     // Get port from engine CVAR net_port
@@ -308,6 +410,16 @@ void Server::shutdown() {
 
 void Server::frame() {
     const bool enabled = cvar::objects::g_jxacEnable.ivalue != 0;
+    if (initialized && !enabled) {
+        // Disabling checks cannot erase a verdict already awaiting evidence.
+        for (int i = 0; i < MAX_CLIENTS; ++i)
+            finishEvidence(i, "Screenshot interrupted: JXAC disabled");
+    }
+    const bool memoryEnabled = enabled && cvar::objects::g_jxacModuleScan.ivalue;
+    if (memoryEnabled != memoryScanEnabled) {
+        memoryScanEnabled = memoryEnabled;
+        for (int i = 0; i < MAX_CLIENTS; ++i) memoryScanState[i] = MemoryScanState::NotReported;
+    }
     if (enabled != forcedCvarsEnabled) {
         forcedCvarsEnabled = enabled;
         for (int i = 0; i < level.maxclients; ++i) {
@@ -412,6 +524,7 @@ void Server::clientConnect( int clientNum ) {
     }
     
     // A reused slot must not inherit uploads or violations from its old owner.
+    finishEvidence(clientNum, "Screenshot interrupted: client slot reused", false, false);
     clientDisconnect(clientNum);
     jxacPlayerData_t* pd = &playerData[clientNum];
     
@@ -438,6 +551,9 @@ void Server::clientDisconnect( int clientNum ) {
         return;
     }
 
+    // The engine is already disconnecting; persist the captured identity but
+    // never recursively drop this slot, which may be reused immediately.
+    finishEvidence(clientNum, "Screenshot interrupted: disconnect or map shutdown", false);
     if (TcpServer::isRunning()) TcpServer::disconnectClient(clientNum);
     
     jxacPlayerData_t* pd = &playerData[clientNum];
@@ -454,11 +570,17 @@ void Server::clientDisconnect( int clientNum ) {
     pendingForcedCvar[clientNum] = -1;
     lastScreenshotTime[clientNum] = screenshotLastProgress[clientNum] = 0;
     screenshotsThisHour[clientNum] = hourStartTime[clientNum] = 0;
+    moduleDigests[clientNum].clear();
+    nextModuleDigest[clientNum] = 0;
+    validMd5Reports[clientNum] = 0;
+    gamehackReported[clientNum] = false;
+    evidence[clientNum] = PendingEvidence();
+    memoryScanState[clientNum] = MemoryScanState::NotReported;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
 
-void Server::clientBegin( int clientNum ) {
+void Server::clientBegin( int clientNum, bool cgameRestart ) {
     if ( !initialized ) {
         return;
     }
@@ -472,11 +594,19 @@ void Server::clientBegin( int clientNum ) {
     playerData[clientNum].lastHeartbeat = level.time;
     playerData[clientNum].violationReported[JXAC_VIOLATION_NO_RESPONSE] = qfalse;
     playerData[clientNum].status |= JXAC_STATUS_CONNECTED;
+    // Team changes also call ClientBegin without reloading cgame. Preserve
+    // those module reports; only an explicit renderer restart starts a scan.
+    // Preserve a pending kick latch so xmod_request cannot undo a detection.
+    if (cgameRestart) {
+        moduleDigests[clientNum].clear();
+        nextModuleDigest[clientNum] = 0;
+        validMd5Reports[clientNum] = 0;
+        memoryScanState[clientNum] = MemoryScanState::NotReported;
+    }
 
-    // Send JXAC status check to client
-    // This would normally send a network message to the client
-    // For now, just mark as verified (placeholder)
-    playerData[clientNum].status |= JXAC_STATUS_VERIFIED | JXAC_STATUS_CLEAN;
+    // Connecting or answering a heartbeat does not prove a clean client.
+    // Capabilities and scan completion remain informational client reports.
+    playerData[clientNum].status &= ~(JXAC_STATUS_VERIFIED | JXAC_STATUS_CLEAN);
     
     // Share the deferred command budget with XCS/NCS instead of bursting.
     queueForcedCvars(clientNum);
@@ -506,7 +636,7 @@ void Server::requestScreenshot( int clientNum, int quality, const char* reason )
     
     jxacPlayerData_t* pd = &playerData[clientNum];
     
-    if ( pd->screenshotPending ) {
+    if ( pd->screenshotPending || evidence[clientNum].pending || evidence[clientNum].finished ) {
         Com_Printf( "JXAC: Screenshot already pending for client %d\n", clientNum );
         return;
     }
@@ -592,22 +722,26 @@ void Server::handleScreenshotData( int clientNum, const void* data, int size ) {
         pd->ssBuffer = (unsigned char*)malloc( JXAC_SS_MAX_SIZE );
         if ( !pd->ssBuffer ) {
             pd->screenshotPending = qfalse;
+            finishEvidence(clientNum, "Screenshot unavailable: allocation failed");
             return;
         }
     }
     
     // Check bounds
-    if ( pd->ssDataReceived + size > JXAC_SS_MAX_SIZE ) {
+    if (!data || size <= 0) return;
+    if ( size > JXAC_SS_MAX_SIZE - pd->ssDataReceived ) {
         free( pd->ssBuffer );
         pd->ssBuffer = NULL;
         pd->screenshotPending = qfalse;
-        reportViolation( clientNum, JXAC_VIOLATION_SS_BLOCKED, "Screenshot too large" );
+        if (evidence[clientNum].pending)
+            finishEvidence(clientNum, "Screenshot unavailable: upload too large");
+        else
+            reportViolation( clientNum, JXAC_VIOLATION_SS_BLOCKED, "Screenshot too large" );
         return;
     }
     
     // Keep the timeout based on progress for throttled/low-FPS clients.
-    if (!data || size <= 0) return;
-    screenshotLastProgress[clientNum] = level.time;
+    screenshotProgress(clientNum);
     // Copy data to buffer
     memcpy( pd->ssBuffer + pd->ssDataReceived, data, size );
     pd->ssDataReceived += size;
@@ -615,6 +749,11 @@ void Server::handleScreenshotData( int clientNum, const void* data, int size ) {
 }
 
 ///////////////////////////////////////////////////////////////////////////////
+
+void Server::screenshotProgress(int clientNum) {
+    if (activeHuman(clientNum) && playerData[clientNum].screenshotPending)
+        screenshotLastProgress[clientNum] = level.time;
+}
 
 void Server::handleScreenshotComplete( int clientNum ) {
     
@@ -632,38 +771,74 @@ void Server::handleScreenshotComplete( int clientNum ) {
         return;
     }
     
-    // Security: Validate JPEG header (SOI marker: 0xFF 0xD8)
-    if ( pd->ssDataReceived < 3 || 
-         pd->ssBuffer[0] != 0xFF || 
-         pd->ssBuffer[1] != 0xD8 ) {
+    // Reject truncated/malformed containers rather than treating a two-byte
+    // JPEG signature as a successfully received screenshot.
+    if ( !jpeg::valid(pd->ssBuffer, static_cast<size_t>(pd->ssDataReceived)) ) {
         free( pd->ssBuffer );
         pd->ssBuffer = NULL;
         pd->screenshotPending = qfalse;
-        reportViolation( clientNum, JXAC_VIOLATION_SS_BLOCKED, "Invalid screenshot data (not JPEG)" );
+        if (evidence[clientNum].pending)
+            finishEvidence(clientNum, "Screenshot unavailable: invalid JPEG data");
+        else
+            reportViolation( clientNum, JXAC_VIOLATION_SS_BLOCKED, "Invalid screenshot data (not JPEG)" );
         return;
     }
-    
-    // Security: Validate JPEG footer (EOI marker: 0xFF 0xD9) - optional but recommended
-    if ( pd->ssDataReceived >= 2 ) {
-        if ( pd->ssBuffer[pd->ssDataReceived - 2] != 0xFF || 
-             pd->ssBuffer[pd->ssDataReceived - 1] != 0xD9 ) {
-            // Just warn, don't reject - some JPEGs might have trailing data
-        }
-    }
-    
     
     // Update rate limiting counters
     lastScreenshotTime[clientNum] = level.time;
     screenshotsThisHour[clientNum]++;
     
     // Save screenshot to disk
-    saveScreenshot( clientNum, pd->ssBuffer, pd->ssDataReceived );
+    const bool saved = saveScreenshot( clientNum, pd->ssBuffer, pd->ssDataReceived );
     
     // Clean up
     free( pd->ssBuffer );
     pd->ssBuffer = NULL;
     pd->screenshotPending = qfalse;
+    finishEvidence(clientNum, saved ? "Screenshot saved" : "Screenshot unavailable: file write failed");
     
+}
+
+///////////////////////////////////////////////////////////////////////////////
+
+void Server::handleScreenshotFailed(int clientNum, const char* reason) {
+    if (!activeHuman(clientNum) || !reason || strcmp(reason, "reentrant")) return;
+    jxacPlayerData_t* pd = &playerData[clientNum];
+    if (!pd->screenshotPending) return;
+
+    // A capture interrupted by renderer reentry proves neither cheating nor a
+    // clean picture. Cancel this request without a later timeout accusation.
+    if (pd->ssBuffer) free(pd->ssBuffer);
+    pd->ssBuffer = NULL;
+    pd->screenshotPending = pd->scheduledScreenshot = qfalse;
+    pd->ssDataReceived = pd->ssDataExpected = pd->screenshotRequestTime = 0;
+    screenshotLastProgress[clientNum] = 0;
+    pd->status &= ~(JXAC_STATUS_VERIFIED | JXAC_STATUS_CLEAN);
+    lastScreenshotTime[clientNum] = level.time;
+    ++screenshotsThisHour[clientNum];
+
+    const char* message = "Screenshot unavailable: reentrant capture (unverified)";
+    const std::string name = md5rules::safeText(g_entities[clientNum].client->pers.netname, 63);
+    Com_Printf("JXAC: Client %d (%s): %s\n", clientNum, name.c_str(), message);
+    for (int i = 0; i < level.maxclients; ++i) {
+        if (activeHuman(i) && ::xmod::hasClientPrivilege(i, priv::base::adminChat))
+            trap_SendServerCommand(i, va("print \"^3[JXAC] ^7Client %d (%s): %s\n\"", clientNum, name.c_str(), message));
+    }
+    if (cvar::objects::g_jxacLogFile.svalue[0]) {
+        std::string path;
+        if (serverlog::resolve(cvar::objects::g_jxacLogFile.svalue, path)) {
+            std::ofstream file(path.c_str(), std::ios::out | std::ios::app | std::ios::binary);
+            time_t now = time(NULL);
+            char timestamp[64];
+            strftime(timestamp, sizeof(timestamp), "%Y-%m-%d %H:%M:%S", localtime(&now));
+            file << '[' << timestamp << "] Client " << clientNum << " (" << name << "): " << message << '\n';
+            file.flush();
+            if (!file.good()) Com_Printf("JXAC: Failed to write log file: %s\n", path.c_str());
+        }
+    }
+    // Capture failure is not a cheat verdict. A previous independent detection
+    // still carries its original sanction, even if no image can be obtained.
+    finishEvidence(clientNum, "Screenshot unavailable: reentrant capture");
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -780,44 +955,31 @@ void Server::handleCvarResponse( int clientNum, const char* cvarName, const char
     
     // First, check against forced CVAR list
     checkForcedCvar( clientNum, cvarName, value );
+    // The server owner's explicit rule is the sole policy for that CVAR.
+    // Falling through could reject a value that we just required the client
+    // to use (the shipped r_znear rule previously forced 3 but expected 4).
+    for (const auto& rule : forcedCvars)
+        if (!Q_stricmp(rule.name, cvarName)) return;
+
+    // Engine variants may omit default renderer CVARs (for example ET Legacy
+    // has no r_fullbright). An empty reply cannot prove an illegal setting.
+    // Explicit administrator rules still run above and resend required values.
+    if (!value[0]) return;
     
     // Check against protected CVARs list
     for ( int i = 0; protectedCvars[i].name[0] != '\0'; i++ ) {
         if ( Q_stricmp( protectedCvars[i].name, cvarName ) == 0 ) {
-            qboolean violation = qfalse;
-            
-            if ( protectedCvars[i].exactMatch ) {
-                // Exact match required
-                if ( Q_stricmp( protectedCvars[i].expectedValue, value ) != 0 ) {
-                    violation = qtrue;
-                }
-            } else {
-                // Check if value is within acceptable range (for numeric values)
-                // First verify both values are actually numeric
-                char* endptr1 = NULL;
-                char* endptr2 = NULL;
-                float expected = strtof( protectedCvars[i].expectedValue, &endptr1 );
-                float actual = strtof( value, &endptr2 );
-                
-                // Only apply tolerance if both values parsed as valid numbers (check endptr points past input)
-                if ( endptr1 != NULL && endptr1 != protectedCvars[i].expectedValue && *endptr1 == '\0' &&
-                     endptr2 != NULL && endptr2 != value && *endptr2 == '\0' ) {
-                    // Both are numeric - allow some tolerance for non-exact matches
-                    if ( fabs( expected - actual ) > 0.5f ) {
-                        violation = qtrue;
-                    }
-                } else {
-                    // At least one is non-numeric - do string comparison
-                    if ( Q_stricmp( protectedCvars[i].expectedValue, value ) != 0 ) {
-                        violation = qtrue;
-                    }
-                }
-            }
-            
-            if ( violation ) {
+            const ProtectedCvar& rule = protectedCvars[i];
+            double actual;
+            if (!XmodCvarNumber(value, actual) || actual < rule.minimum || actual > rule.maximum) {
+                char expected[64];
+                if (rule.minimum == rule.maximum)
+                    Com_sprintf(expected, sizeof(expected), "%.9g", rule.minimum);
+                else
+                    Com_sprintf(expected, sizeof(expected), "%.9g..%.9g", rule.minimum, rule.maximum);
                 char details[256];
                 Com_sprintf( details, sizeof(details), "Illegal CVAR: %s=%s (expected %s)", 
-                            cvarName, value, protectedCvars[i].expectedValue );
+                            cvarName, value, expected );
                 reportViolation( clientNum, JXAC_VIOLATION_CVAR, details );
             }
             
@@ -829,6 +991,10 @@ void Server::handleCvarResponse( int clientNum, const char* cvarName, const char
 ///////////////////////////////////////////////////////////////////////////////
 
 void Server::reportViolation( int clientNum, jxacViolationType_t type, const char* details ) {
+    if (type == JXAC_VIOLATION_GAMEHACK) {
+        reportGamehack(clientNum, details);
+        return;
+    }
     if ( !initialized || !cvar::objects::g_jxacEnable.ivalue ) {
         return;
     }
@@ -843,6 +1009,32 @@ void Server::reportViolation( int clientNum, jxacViolationType_t type, const cha
 ///////////////////////////////////////////////////////////////////////////////
 
 void Server::handleViolation( int clientNum, jxacViolationType_t type, const char* details ) {
+    if (type == JXAC_VIOLATION_GAMEHACK) {
+        reportGamehack(clientNum, details);
+        return;
+    }
+    if (clientNum < 0 || clientNum >= MAX_CLIENTS || !g_entities[clientNum].client ||
+        type <= JXAC_VIOLATION_NONE || type >= _JXAC_VIOLATION_MAX) return;
+    recordViolation(clientNum, type, details);
+
+    // An unrelated heartbeat/cvar timeout must not interrupt evidence capture
+    // or replace a confirmed cheat verdict while its upload is in progress.
+    if (evidence[clientNum].pending || evidence[clientNum].finished) return;
+
+    const bool ban = cvar::objects::g_jxacAutoBan.ivalue != 0;
+    if (!ban && !cvar::objects::g_jxacAutoKick.ivalue) return;
+    const std::string reason = "JXAC Violation: " +
+        md5rules::safeText(details ? details : "Cheating detected", 255);
+    // A missing heartbeat/image is not a confirmed cheat. Preserve the former
+    // disconnect policy without creating a permanent ban for a transport fault
+    // or recursively requesting another screenshot of a screenshot timeout.
+    if (type == JXAC_VIOLATION_NO_RESPONSE || type == JXAC_VIOLATION_SS_BLOCKED)
+        kickPlayer(clientNum, reason.c_str());
+    else
+        beginEvidence(clientNum, ban, reason.c_str(), reason.c_str());
+}
+
+void Server::recordViolation(int clientNum, jxacViolationType_t type, const char* details, bool notifyAdmins) {
     if ( clientNum < 0 || clientNum >= MAX_CLIENTS ) {
         return;
     }
@@ -865,20 +1057,82 @@ void Server::handleViolation( int clientNum, jxacViolationType_t type, const cha
     violation.clientNum = clientNum;
     violation.timestamp = level.time;
     violation.type = type;
-    Q_strncpyz( violation.playerName, ent->client->pers.netname, sizeof( violation.playerName ) );
-    Q_strncpyz( violation.details, details ? details : "", sizeof( violation.details ) );
+    const std::string safeName = md5rules::safeText(ent->client->pers.netname, sizeof(violation.playerName) - 1);
+    const std::string safeDetails = md5rules::safeText(details ? details : "", sizeof(violation.details) - 1);
+    Q_strncpyz( violation.playerName, safeName.c_str(), sizeof( violation.playerName ) );
+    Q_strncpyz( violation.details, safeDetails.c_str(), sizeof( violation.details ) );
     
     logViolation( &violation );
     
     Com_Printf( "^1JXAC VIOLATION: Client %d (%s) - Type %d: %s\n", 
-                clientNum, ent->client->pers.netname, type, details ? details : "N/A" );
-    
-    // Auto-actions
-    if ( cvar::objects::g_jxacAutoBan.ivalue ) {
-        banPlayer( clientNum, va( "JXAC Violation: %s", details ? details : "Cheating detected" ) );
-    } else if ( cvar::objects::g_jxacAutoKick.ivalue ) {
-        kickPlayer( clientNum, va( "JXAC Violation: %s", details ? details : "Cheating detected" ) );
+                clientNum, safeName.c_str(), type, safeDetails.c_str() );
+    if (notifyAdmins) {
+        for (int i = 0; i < level.maxclients; ++i) {
+            if (activeHuman(i) && ::xmod::hasClientPrivilege(i, priv::base::adminChat)) {
+                trap_SendServerCommand(i, va("print \"^1[JXAC] GAMEHACK: ^7%s (%d): %s\n\"",
+                    safeName.c_str(), clientNum, safeDetails.c_str()));
+            }
+        }
     }
+}
+
+void Server::reportGamehack(int clientNum, const char* details) {
+    if (!activeHuman(clientNum) || gamehackReported[clientNum]) return;
+    gamehackReported[clientNum] = true;
+    const std::string report = "GAMEHACK: " + std::string(details ? details : "Detected game modification");
+    recordViolation(clientNum, JXAC_VIOLATION_GAMEHACK, report.c_str(), true);
+    beginEvidence(clientNum, cvar::objects::g_jxacAutoBan.ivalue != 0, "GAMEHACK", report.c_str());
+}
+
+void Server::beginEvidence(int clientNum, bool ban, const char* reason, const char* details) {
+    if (!activeHuman(clientNum)) return;
+    PendingEvidence& action = evidence[clientNum];
+    if (action.finished) return;
+    if (action.pending) {
+        // A stronger verdict may upgrade a pending kick without restarting its
+        // screenshot or extending the deadline with duplicate reports.
+        action.ban = action.ban || ban;
+        return;
+    }
+    action.pending = true;
+    action.ban = ban;
+    action.identity = banIdentity(clientNum);
+    action.reason = md5rules::safeText(reason ? reason : "Cheating detected", 128);
+    action.details = md5rules::safeText(details ? details : action.reason.c_str(), 255);
+
+    jxacPlayerData_t* pd = &playerData[clientNum];
+    Q_strncpyz(pd->screenshotReason, action.details.c_str(), sizeof(pd->screenshotReason));
+    pd->scheduledScreenshot = qfalse;
+    // Reuse an upload already in progress. Otherwise request immediately, once
+    // per connection, independently of manual screenshot rate limits/delays.
+    if (!pd->screenshotPending) sendScreenshotRequest(clientNum, JXAC_SS_QUALITY_DEFAULT);
+    logAction(clientNum, action.identity.name,
+        ban ? "Cheat detected: awaiting screenshot before permanent ban" : "Cheat detected: awaiting screenshot before kick");
+}
+
+void Server::finishEvidence(int clientNum, const char* outcome, bool drop, bool refreshIdentity) {
+    if (clientNum < 0 || clientNum >= MAX_CLIENTS || !evidence[clientNum].pending) return;
+    PendingEvidence action = evidence[clientNum];
+    // Authentication may finish during capture. Only the same connection can
+    // supply an identity here; slot replacement explicitly disables refresh.
+    if (refreshIdentity && action.identity.guid.empty() && g_entities[clientNum].client)
+        action.identity = banIdentity(clientNum);
+    evidence[clientNum].pending = false;
+    evidence[clientNum].finished = true;
+    jxacPlayerData_t* pd = &playerData[clientNum];
+    pd->screenshotPending = pd->scheduledScreenshot = qfalse;
+    if (pd->ssBuffer) free(pd->ssBuffer);
+    pd->ssBuffer = NULL;
+    pd->ssDataReceived = pd->ssDataExpected = 0;
+
+    logAction(clientNum, action.identity.name, outcome);
+    if (action.ban && persistBan(clientNum, action.identity, action.details))
+        pd->status |= JXAC_STATUS_BANNED;
+    // Clear the pending action BEFORE DropClient: native engines synchronously
+    // reenter ClientDisconnect, which must neither insert nor drop twice.
+    if (drop && g_entities[clientNum].client &&
+        g_entities[clientNum].client->pers.connected != CON_DISCONNECTED)
+        kickPlayer(clientNum, action.reason.c_str());
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -912,15 +1166,11 @@ const char* Server::getStatusString( int clientNum ) {
         return "^3FLAGGED";
     }
     
-    if ( pd->status & JXAC_STATUS_CLEAN ) {
-        return "^2CLEAN";
-    }
-    
-    if ( pd->status & JXAC_STATUS_VERIFIED ) {
-        return "^5VERIFIED";
-    }
-    
     if ( pd->status & JXAC_STATUS_CONNECTED ) {
+        if (memoryScanState[clientNum] == MemoryScanState::Unsupported || memoryScanState[clientNum] == MemoryScanState::Partial)
+            return "^3LIMITED";
+        if (memoryScanState[clientNum] != MemoryScanState::NotReported || validMd5Reports[clientNum])
+            return "^5MONITORED";
         return "^6CONNECTED";
     }
     
@@ -929,47 +1179,73 @@ const char* Server::getStatusString( int clientNum ) {
 
 ///////////////////////////////////////////////////////////////////////////////
 
-void Server::printStatus( int clientNum ) {
+// Use the admin system's buffered, encoded output for player requests. This
+// keeps names out of command syntax and avoids sending one command per row.
+class StatusOutput {
+    int recipient;
+    text::Buffer buffer;
+public:
+    explicit StatusOutput(int target) : recipient(target) {}
+    ~StatusOutput() {
+        cmd::print(recipient >= 0 && recipient < MAX_CLIENTS ? &g_clientObjects[recipient] : NULL, buffer);
+    }
+    void write(const char* format, ...) {
+        char line[768];
+        va_list arguments; va_start(arguments, format);
+        Q_vsnprintf(line, sizeof(line), format, arguments);
+        va_end(arguments);
+        buffer << std::string(line);
+    }
+};
+
+void Server::printStatus( int clientNum, int recipient ) {
+    StatusOutput output(recipient);
     if ( !initialized ) {
-        Com_Printf( "JXAC: Not initialized\n" );
+        output.write( "JXAC: Not initialized\n" );
         return;
     }
     
     if ( clientNum < 0 || clientNum >= MAX_CLIENTS ) {
-        Com_Printf( "JXAC: Invalid client number\n" );
+        output.write( "JXAC: Invalid client number\n" );
         return;
     }
     
     gentity_t* ent = &g_entities[clientNum];
     if ( !ent->client || ent->client->pers.connected != CON_CONNECTED ) {
-        Com_Printf( "JXAC: Client not connected\n" );
+        output.write( "JXAC: Client not connected\n" );
         return;
     }
     
     jxacPlayerData_t* pd = &playerData[clientNum];
     
-    Com_Printf( "JXAC Status for client %d (%s):\n", clientNum, ent->client->pers.netname );
-    Com_Printf( "  Status: %s\n", getStatusString( clientNum ) );
-    Com_Printf( "  Violations: %d\n", pd->violations );
-    Com_Printf( "  Last Heartbeat: %d ms ago\n", level.time - pd->lastHeartbeat );
+    output.write( "JXAC Status for client %d (%s):\n", clientNum, md5rules::safeText(ent->client->pers.netname).c_str() );
+    output.write( "  Status: %s\n", getStatusString( clientNum ) );
+    output.write( "  Violations: %d\n", pd->violations );
+    output.write( "  MD5 module reports: %u, cached modules: %d%s\n", validMd5Reports[clientNum],
+        (int)moduleDigests[clientNum].size(), validMd5Reports[clientNum] ? "" : " (client support not confirmed)" );
+    output.write("  Memory scan: %s (client report; not proof of a clean client)\n", getMemoryStatusString(clientNum));
+    output.write( "  Last Heartbeat: %d ms ago\n", level.time - pd->lastHeartbeat );
     
     if ( pd->lastViolation != JXAC_VIOLATION_NONE ) {
-        Com_Printf( "  Last Violation: Type %d at %d\n", pd->lastViolation, pd->lastViolationTime );
+        output.write( "  Last Violation: Type %d at %d\n", pd->lastViolation, pd->lastViolationTime );
     }
 }
 
 ///////////////////////////////////////////////////////////////////////////////
 
-void Server::printStatusAll() {
+void Server::printStatusAll(int recipient) {
+    StatusOutput output(recipient);
     if ( !initialized ) {
-        Com_Printf( "JXAC: Not initialized\n" );
+        output.write( "JXAC: Not initialized\n" );
         return;
     }
     
-    Com_Printf( "JXAC Status (v%s) - Enabled: %s\n", 
+    output.write( "JXAC Status (v%s) - Enabled: %s\n",
                 JXAC_VERSION_STRING, cvar::objects::g_jxacEnable.ivalue ? "YES" : "NO" );
-    Com_Printf( "%-4s %-32s %-12s %-10s\n", "Slot", "Name", "Status", "Violations" );
-    Com_Printf( "------------------------------------------------------------\n" );
+    output.write( "MD5 denylist: %d hashes; module scanning: %s (zero reports does not confirm client support)\n",
+        getMd5RuleCount(), cvar::objects::g_jxacModuleScan.ivalue ? "YES" : "NO" );
+    output.write( "%-4s %-32s %-12s %-10s %-10s %-8s %s\n", "Slot", "Name", "Status", "Violations", "MD5 reports", "Cached", "Memory scan (reported)" );
+    output.write( "------------------------------------------------------------\n" );
     
     for ( int i = 0; i < level.maxclients; i++ ) {
         gentity_t* ent = &g_entities[i];
@@ -978,11 +1254,11 @@ void Server::printStatusAll() {
         }
         
         jxacPlayerData_t* pd = &playerData[i];
-        Com_Printf( "%-4d %-32s %-12s %-10d\n", 
+        output.write( "%-4d %-32s %-12s %-10d %-10u %-8d %s\n",
                     i, 
-                    ent->client->pers.netname, 
+                    md5rules::safeText(ent->client->pers.netname).c_str(),
                     getStatusString( i ), 
-                    pd->violations );
+                    pd->violations, validMd5Reports[i], (int)moduleDigests[i].size(), getMemoryStatusString(i) );
     }
 }
 
@@ -1016,11 +1292,9 @@ void Server::banPlayer( int clientNum, const char* reason ) {
         return;
     }
     
-    Com_Printf( "JXAC: Banning client %d (%s): %s\n", 
-                clientNum, ent->client->pers.netname, reason ? reason : "JXAC Violation" );
-    
-    // Mark as banned
-    playerData[clientNum].status |= JXAC_STATUS_BANNED;
+    const std::string banReason = md5rules::safeText(reason ? reason : "JXAC Violation", 255);
+    if (persistBan(clientNum, banIdentity(clientNum), banReason))
+        playerData[clientNum].status |= JXAC_STATUS_BANNED;
     
     // Drop client
     trap_DropClient( clientNum, reason ? reason : "JXAC Ban", 0 );
@@ -1028,15 +1302,15 @@ void Server::banPlayer( int clientNum, const char* reason ) {
 
 ///////////////////////////////////////////////////////////////////////////////
 
-void Server::saveScreenshot( int clientNum, const unsigned char* data, int size ) {
+bool Server::saveScreenshot( int clientNum, const unsigned char* data, int size ) {
     
     if ( clientNum < 0 || clientNum >= MAX_CLIENTS ) {
-        return;
+        return false;
     }
     
     gentity_t* ent = &g_entities[clientNum];
     if ( !ent->client ) {
-        return;
+        return false;
     }
     
     // Get XMOD GUID (last 8 chars for filename)
@@ -1080,11 +1354,16 @@ void Server::saveScreenshot( int clientNum, const unsigned char* data, int size 
     trap_FS_FOpenFile( jpgPath, &f, FS_WRITE );
     
     if ( !f ) {
-        return;
+        return false;
     }
     
-    trap_FS_Write( data, size, f );
+    const int written = trap_FS_Write( data, size, f );
     trap_FS_FCloseFile( f );
+
+    // Both stock ET and Legacy return FS_Write's byte count. Check it after
+    // closing; reopening a loose JPG for reading can be blocked by sv_pure.
+    if (written != size) return false;
+    logAction(clientNum, ent->client->pers.netname, std::string("Screenshot file saved: ") + jpgPath);
     
     // Gather player information for the text file
     char cleanname[64];
@@ -1146,7 +1425,7 @@ void Server::saveScreenshot( int clientNum, const unsigned char* data, int size 
         trap_FS_Write( txtContent, strlen( txtContent ), f );
         trap_FS_FCloseFile( f );
     }
-    
+    return true;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -1246,7 +1525,7 @@ void Server::checkTimeouts() {
         if ( pd->screenshotPending ) {
             int elapsed = level.time - pd->screenshotRequestTime;
             int inactive = level.time - screenshotLastProgress[i];
-            if (inactive > 30000 || elapsed > 180000) {
+            if (inactive < 0 || elapsed < 0 || inactive > 30000 || elapsed > 180000) {
                 
                 if ( pd->ssBuffer ) {
                     free( pd->ssBuffer );
@@ -1254,7 +1533,10 @@ void Server::checkTimeouts() {
                 }
                 
                 pd->screenshotPending = qfalse;
-                reportViolation( i, JXAC_VIOLATION_SS_BLOCKED, "Screenshot request timeout" );
+                if (evidence[i].pending)
+                    finishEvidence(i, "Screenshot unavailable: upload timeout");
+                else
+                    reportViolation( i, JXAC_VIOLATION_SS_BLOCKED, "Screenshot request timeout" );
             }
         }
     }
@@ -1280,7 +1562,8 @@ void Server::loadCvarConfig( const char* filename ) {
 
 ///////////////////////////////////////////////////////////////////////////////
 
-void Server::reloadConfig() {
+bool Server::reloadConfig() {
+    if (!initialized) return false;
     Com_Printf( "JXAC: Reloading configuration files\n" );
     
     // Reload CVAR config
@@ -1294,8 +1577,14 @@ void Server::reloadConfig() {
     
     // Reload cheat signature database
     loadCheatDatabase( cvar::objects::g_jxacCheatDbFile.svalue );
+    const bool md5Loaded = loadMd5Config( cvar::objects::g_jxacMd5File.svalue );
     
     Com_Printf( "JXAC: Configuration reload complete\n" );
+    return md5Loaded;
+}
+
+int Server::getMd5RuleCount() {
+    return (int)md5Denylist.size();
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -1461,7 +1750,7 @@ void Server::requestCheatCvarScan( int clientNum ) {
 ///////////////////////////////////////////////////////////////////////////////
 
 void Server::handleCheatCvarResponse( int clientNum, const char* cvarName, const char* value ) {
-    if ( clientNum < 0 || clientNum >= MAX_CLIENTS || !cvarName || !value ) {
+    if ( !activeHuman(clientNum) || !cvarName || !value || evidence[clientNum].finished ) {
         return;
     }
     
@@ -1477,13 +1766,13 @@ void Server::handleCheatCvarResponse( int clientNum, const char* cvarName, const
                        "Cheat CVAR detected: '%s' = '%s'", cvarName, value );
             
             if ( Q_stricmp( ccvar.action, "ban" ) == 0 ) {
-                reportViolation( clientNum, JXAC_VIOLATION_TAMPER, details );
-                banPlayer( clientNum, "Cheat CVAR detected" );
+                if (!evidence[clientNum].pending) recordViolation( clientNum, JXAC_VIOLATION_TAMPER, details );
+                beginEvidence(clientNum, true, "Cheat CVAR detected", details);
             } else if ( Q_stricmp( ccvar.action, "kick" ) == 0 ) {
-                reportViolation( clientNum, JXAC_VIOLATION_TAMPER, details );
-                kickPlayer( clientNum, "Cheat CVAR detected" );
-            } else {
-                reportViolation( clientNum, JXAC_VIOLATION_TAMPER, details );
+                if (!evidence[clientNum].pending) recordViolation( clientNum, JXAC_VIOLATION_TAMPER, details );
+                beginEvidence(clientNum, false, "Cheat CVAR detected", details);
+            } else if ( Q_stricmp( ccvar.action, "none" ) != 0 ) {
+                recordViolation( clientNum, JXAC_VIOLATION_TAMPER, details );
             }
             return;
         }
@@ -1546,10 +1835,115 @@ void Server::loadCheatDatabase( const char* filename ) {
 
 ///////////////////////////////////////////////////////////////////////////////
 
-void Server::checkModuleSignature( int clientNum, const char* moduleName, const char* checksum ) {
-    if ( clientNum < 0 || clientNum >= MAX_CLIENTS || !moduleName || !checksum ) {
+bool Server::loadMd5Config(const char* filename) {
+    if (!filename || !*filename) {
+        Com_Printf("JXAC: MD5 list path is empty; keeping %d active hashes\n", (int)md5Denylist.size());
+        return false;
+    }
+    fileHandle_t file = 0;
+    const int length = trap_FS_FOpenFile(filename, &file, FS_READ);
+    if (!file || length < 0 || (size_t)length > md5rules::MAX_FILE_BYTES) {
+        if (file) trap_FS_FCloseFile(file);
+        Com_Printf("JXAC: Cannot read MD5 list %s (missing, unreadable or over 1 MiB); keeping %d active hashes\n",
+            filename, (int)md5Denylist.size());
+        return false;
+    }
+    // FS_Read has no return value. Unfilled bytes remain NUL and fail parsing.
+    std::string contents((size_t)length, '\0');
+    if (length) trap_FS_Read(&contents[0], length, file);
+    trap_FS_FCloseFile(file);
+    md5rules::Rules parsed;
+    size_t line = 0;
+    std::string error;
+    if (!md5rules::parse(contents, parsed, line, error)) {
+        Com_Printf("JXAC: Invalid MD5 list %s:%d: %s; keeping %d active hashes\n",
+            filename, (int)line, error.c_str(), (int)md5Denylist.size());
+        return false;
+    }
+    md5Denylist.swap(parsed);
+    Com_Printf("JXAC: Loaded %d MD5 hashes from %s\n", (int)md5Denylist.size(), filename);
+    for (int i = 0; i < MAX_CLIENTS; ++i) checkCachedModuleMd5(i);
+    return true;
+}
+
+void Server::checkCachedModuleMd5(int clientNum) {
+    if (!moduleScanActive(clientNum)) return;
+    for (const auto& module : moduleDigests[clientNum]) {
+        const auto match = md5Denylist.find(module.md5);
+        if (match == md5Denylist.end()) continue;
+        const std::string details = "MD5 " + module.md5 + " module " + md5rules::safeText(module.name) +
+            (match->second.empty() ? "" : " [" + match->second + "]");
+        reportGamehack(clientNum, details.c_str());
         return;
     }
+}
+
+const char* Server::getMemoryStatusString(int clientNum) {
+    if (clientNum < 0 || clientNum >= MAX_CLIENTS) return "invalid";
+    switch (memoryScanState[clientNum]) {
+        case MemoryScanState::Scanning: return "scanning";
+        case MemoryScanState::Complete: return "complete";
+        case MemoryScanState::Partial: return "partial";
+        case MemoryScanState::Unsupported: return "unsupported";
+        default: return "not reported";
+    }
+}
+
+void Server::handleMemoryStatus(int clientNum, const char* status) {
+    if (!moduleScanActive(clientNum) || !status) return;
+    MemoryScanState state;
+    if (!strcmp(status, "scanning")) state = MemoryScanState::Scanning;
+    else if (!strcmp(status, "complete")) state = MemoryScanState::Complete;
+    else if (!strcmp(status, "partial")) state = MemoryScanState::Partial;
+    else if (!strcmp(status, "unsupported")) state = MemoryScanState::Unsupported;
+    else return;
+    // Reporting capabilities or finishing a scan is not an attestation. There
+    // is no timeout penalty for unsupported or unreported memory scanning.
+    memoryScanState[clientNum] = state;
+}
+
+void Server::handleMemoryHit(int clientNum, const char* ruleId) {
+    if (!moduleScanActive(clientNum) || !ruleId || strlen(ruleId) > 31) return;
+    const char* label = memoryrules::knownRuleLabel(ruleId);
+    if (!label) return;
+    // Only fixed rule identifiers cross the protocol. All diagnostic text is
+    // supplied by the server; no memory bytes, paths or arbitrary text arrive.
+    const std::string details = "Memory fingerprint " + std::string(ruleId) + " [" + label + "]";
+    reportGamehack(clientNum, details.c_str());
+}
+
+void Server::handleModuleMd5(int clientNum, const char* md5, const char* sha1, const char* encodedBasename) {
+    if (!moduleScanActive(clientNum) || !md5 || !sha1 || !encodedBasename) return;
+    ModuleDigest module;
+    if (!md5rules::normalizeHash(md5, 32, module.md5) ||
+        !md5rules::normalizeHash(sha1, 40, module.sha1) ||
+        !md5rules::decodeBasename(encodedBasename, module.name)) return;
+    if (validMd5Reports[clientNum] < UINT_MAX) ++validMd5Reports[clientNum];
+
+    // Check before caching so no flood of other reports can hide a match.
+    const auto match = md5Denylist.find(module.md5);
+    if (match != md5Denylist.end()) {
+        const std::string details = "MD5 " + module.md5 + " module " + md5rules::safeText(module.name) +
+            (match->second.empty() ? "" : " [" + match->second + "]");
+        reportGamehack(clientNum, details.c_str());
+        return;
+    }
+    auto& cached = moduleDigests[clientNum];
+    for (const auto& previous : cached) {
+        if (previous.md5 == module.md5 && previous.sha1 == module.sha1 && previous.name == module.name) return;
+    }
+    if (cached.size() < MAX_CACHED_MODULES) cached.push_back(module);
+    else {
+        cached[nextModuleDigest[clientNum]] = module;
+        nextModuleDigest[clientNum] = (nextModuleDigest[clientNum] + 1) % MAX_CACHED_MODULES;
+    }
+    checkModuleSignature(clientNum, module.name.c_str(), module.sha1.c_str());
+}
+
+void Server::checkModuleSignature( int clientNum, const char* moduleName, const char* checksum ) {
+    if (!moduleScanActive(clientNum) || !moduleName || !checksum || evidence[clientNum].finished) return;
+    std::string digest;
+    if (!md5rules::validBasename(moduleName) || !md5rules::normalizeHash(checksum, 40, digest)) return;
     
     for ( const auto& sig : cheatSignatures ) {
         // Check if type matches (dll/exe)
@@ -1567,28 +1961,28 @@ void Server::checkModuleSignature( int clientNum, const char* moduleName, const 
         if ( !typeMatch ) continue;
         
         // Check name match (case-insensitive, partial match)
-        if ( Q_stristr( moduleName, sig.name ) == NULL ) continue;
+        if ( strcmp(sig.name, "*") != 0 && Q_stristr( moduleName, sig.name ) == NULL ) continue;
         
         // Check checksum (if not wildcard)
-        if ( sig.checksum[0] == '*' ) {
+        if ( strcmp(sig.checksum, "*") == 0 ) {
             // Wildcard - any DLL with this name is banned
-        } else if ( Q_stricmp( checksum, sig.checksum ) != 0 ) {
+        } else if ( Q_stricmp( digest.c_str(), sig.checksum ) != 0 ) {
             continue; // Checksum mismatch
         }
         
         // Found match - take action
         char details[512];
         Com_sprintf( details, sizeof( details ), 
-                   "Cheat module detected: %s (SHA1: %s)", moduleName, checksum );
+                   "Cheat module detected: %s (SHA1: %s)", md5rules::safeText(moduleName).c_str(), digest.c_str() );
         
         if ( Q_stricmp( sig.action, "ban" ) == 0 ) {
-            reportViolation( clientNum, JXAC_VIOLATION_CHECKSUM, details );
-            banPlayer( clientNum, "Cheat module detected" );
+            if (!evidence[clientNum].pending) recordViolation( clientNum, JXAC_VIOLATION_CHECKSUM, details );
+            beginEvidence(clientNum, true, "Cheat module detected", details);
         } else if ( Q_stricmp( sig.action, "kick" ) == 0 ) {
-            reportViolation( clientNum, JXAC_VIOLATION_CHECKSUM, details );
-            kickPlayer( clientNum, "Cheat module detected" );
+            if (!evidence[clientNum].pending) recordViolation( clientNum, JXAC_VIOLATION_CHECKSUM, details );
+            beginEvidence(clientNum, false, "Cheat module detected", details);
         } else if ( Q_stricmp( sig.action, "none" ) != 0 ) {
-            reportViolation( clientNum, JXAC_VIOLATION_CHECKSUM, details );
+            recordViolation( clientNum, JXAC_VIOLATION_CHECKSUM, details );
         }
         
         return;
@@ -1720,6 +2114,8 @@ void Server::handleBinaryMessage( int clientNum, const char* buf, int buflen ) {
                 int violationTypeInt;
                 memcpy( &violationTypeInt, data, sizeof(violationTypeInt) );
                 jxacViolationType_t violationType = (jxacViolationType_t)violationTypeInt;
+                if (violationType == JXAC_VIOLATION_GAMEHACK &&
+                    (!cvar::objects::g_jxacCheckWallhack.ivalue || !cvar::objects::g_jxacAntiTamper.ivalue)) break;
                 const char* details = "";
                 if ( header->dataLen > 4 ) {
                     // Verify details string is null-terminated

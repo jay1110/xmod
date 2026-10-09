@@ -5,6 +5,7 @@
 #include <cgame/jxac/jxac_client.h>
 #include <cgame/jxac/jxac_screenshot.h>
 #include <cgame/jxac/jxac_modules.h>
+#include <cgame/jxac/jxac_memory.h>
 #include <cgame/jxac/jxac_antitamper.h>
 #include <cgame/jxac/jxac_tcp_client.h>
 #include <cgame/jxac/jxac_opengl.h>
@@ -38,14 +39,18 @@ static qboolean enabled = qtrue;
 static int lastHeartbeat = 0;
 static qboolean initialHeartbeatPending = qtrue;
 static qboolean screenshotPending = qfalse;
-static int lastModuleScan = 0;
+static uint32_t lastModuleScan = 0;
 static qboolean initialModuleScanDone = qfalse;
+static qboolean clientFrameTimeKnown = qfalse;
+static int lastClientFrameTime = 0;
 
 // Deferred screenshot capture (for Android - must run on GL thread)
 // On Android, OpenGL context is thread-specific. Server commands run on a different thread.
 // We set a flag here and do the actual capture in frame() which runs on the GL thread.
 static qboolean screenshotCaptureDeferred = qfalse;
 static int deferredScreenshotQuality = 85;
+static qboolean captureInProgress = qfalse;
+static qboolean captureReentered = qfalse;
 
 // TCP connection state
 static qboolean tcpConnected = qfalse;
@@ -58,8 +63,8 @@ static int lastTcpConnectAttempt = 0;
 static unsigned char* screenshotBuffer = NULL;
 static int screenshotBufferSize = 0;
 
-// Module scanning interval (180 seconds)
-#define JXAC_MODULE_SCAN_INTERVAL 180000
+// Detect modules loaded after connecting without flooding reliable commands.
+#define JXAC_MODULE_SCAN_INTERVAL 30000
 #define JXAC_SCREENSHOT_TIMEOUT 5000  // 5 seconds timeout for screenshot capture
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -109,7 +114,7 @@ static qboolean getServerInfo(char* ip, int ipSize, int* port) {
 
 void Client::init() {
     if ( initialized ) {
-        return;
+        shutdown();
     }
     
     initialized = qtrue;
@@ -123,9 +128,13 @@ void Client::init() {
     screenshotTransferActive = qfalse;
     bulkCommandBudget.reset();
     clearModuleQueue();
+    clearMemoryScan();
+    AntiTamper::shutdown();
     screenshotCaptureDeferred = qfalse;
+    captureInProgress = captureReentered = qfalse;
     lastModuleScan = 0;
     initialModuleScanDone = qfalse;
+    clientFrameTimeKnown = qfalse;
     screenshotRequestTime = 0;
     screenshotQuality = 85;
     
@@ -143,6 +152,7 @@ void Client::init() {
 ///////////////////////////////////////////////////////////////////////////////
 
 void Client::shutdown() {
+    captureInProgress = captureReentered = qfalse;
     if ( !initialized ) {
         return;
     }
@@ -162,6 +172,9 @@ void Client::shutdown() {
     enabled = qfalse;
     bulkCommandBudget.reset();
     clearModuleQueue();
+    clearMemoryScan();
+    AntiTamper::shutdown();
+    initialModuleScanDone = clientFrameTimeKnown = qfalse;
     screenshotPending = screenshotTransferActive = screenshotCaptureDeferred = qfalse;
     chunkQueueCount = 0;
 }
@@ -171,9 +184,28 @@ void Client::shutdown() {
 ///////////////////////////////////////////////////////////////////////////////
 
 void Client::frame() {
+    // A capture hook can redraw the game recursively to substitute a clean
+    // image. Do not multiply scanner/heartbeat work inside that nested frame.
+    if (captureInProgress) {
+        captureReentered = qtrue;
+        return;
+    }
     if ( !initialized || !enabled ) {
         return;
     }
+
+    // Native/wasm clients can retain static state across map and renderer
+    // restarts. A new game timeline must not retain queued detections/reports.
+    if (clientFrameTimeKnown && cg.time < lastClientFrameTime) {
+        clearModuleQueue();
+        clearMemoryScan();
+        AntiTamper::shutdown();
+        initialModuleScanDone = qfalse;
+        initialHeartbeatPending = qtrue;
+        bulkCommandBudget.reset();
+    }
+    lastClientFrameTime = cg.time;
+    clientFrameTimeKnown = qtrue;
     
     // Check if server has JXAC enabled - if not, skip all JXAC processing
     // This prevents lag from sending commands when server doesn't need them
@@ -182,9 +214,12 @@ void Client::frame() {
         screenshotPending = qfalse;
         screenshotTransferActive = qfalse;
         screenshotCaptureDeferred = qfalse;
+        captureInProgress = captureReentered = qfalse;
         chunkQueueCount = 0;
         bulkCommandBudget.reset();
         clearModuleQueue();
+        clearMemoryScan();
+        AntiTamper::shutdown();
         initialModuleScanDone = qfalse;
         initialHeartbeatPending = qtrue;
         // Disconnect TCP if connected
@@ -227,13 +262,25 @@ void Client::frame() {
     if ( screenshotCaptureDeferred ) {
         screenshotCaptureDeferred = qfalse;
         captureScreenshot( deferredScreenshotQuality );
+        if (!initialized || !enabled || !isServerJxacEnabled()) return;
     }
     
-    // Perform initial module scan when JXAC becomes enabled (if module scan is enabled)
-    if ( !initialModuleScanDone && isModuleScanEnabled() ) {
-        scanAndSendModules();
-        lastModuleScan = cg.time;
-        initialModuleScanDone = qtrue;
+    const uint32_t now = (uint32_t)trap_Milliseconds();
+    if (isModuleScanEnabled()) {
+        processMemoryScan();
+        // Wall-clock scheduling also works when game time pauses or wraps.
+        if (!initialModuleScanDone || now - lastModuleScan >= JXAC_MODULE_SCAN_INTERVAL) {
+            scanAndSendModules();
+            lastModuleScan = now;
+            initialModuleScanDone = qtrue;
+        }
+        // File hashing has its own per-frame limit; reliable send throttling
+        // must not force a whole DLL to be read in one rendering frame.
+        processModuleScan();
+    } else {
+        clearModuleQueue();
+        clearMemoryScan();
+        initialModuleScanDone = qfalse;
     }
     
     // Send periodic heartbeat
@@ -244,23 +291,23 @@ void Client::frame() {
         initialHeartbeatPending = qfalse;
     }
     
-    // Periodic module scan (every 180 seconds) - only if enabled
-    if ( isModuleScanEnabled() && cg.time - lastModuleScan > JXAC_MODULE_SCAN_INTERVAL ) {
-        scanAndSendModules();
-        lastModuleScan = cg.time;
-    }
-    
-    // Anti-tamper checks (handles its own timing) - only if enabled
+    // Renderer callbacks only record evidence. Send at most one violation from
+    // a normal client frame, resetting the detector on every disable/re-enable.
     if ( isAntiTamperEnabled() ) {
+        AntiTamper::init();
         AntiTamper::check();
+    } else {
+        AntiTamper::shutdown();
     }
     
     // One wall-clock budget for both bulk producers, independent of rendering
     // FPS or cg.time (which can pause/restart). No catch-up burst after a stall.
-    // Screenshots take priority to finish within the server's request deadline.
-    const uint32_t now = (uint32_t)trap_Milliseconds();
+    // A confirmed cheat must not wait behind an entire screenshot upload.
+    // Screenshots otherwise retain priority over status/module reports.
     while (bulkCommandBudget.take(now)) {
-        if (screenshotTransferActive) {
+        if (isModuleScanEnabled() && processMemoryHitQueue()) {
+            continue;
+        } else if (screenshotTransferActive) {
             if (chunkQueueCount > 0) {
                 ScreenshotChunk* chunk = &chunkQueue[chunkQueueHead];
                 trap_SendClientCommand(va("jxac_ss_data %d %d %s",
@@ -271,7 +318,9 @@ void Client::frame() {
                 sendScreenshotComplete();
                 screenshotTransferActive = screenshotPending = qfalse;
             }
-        } else if (!isModuleScanEnabled() || !processModuleQueue()) {
+        } else if (isModuleScanEnabled()) {
+            if (!processMemoryQueue() && !processModuleQueue()) break;
+        } else {
             break;
         }
     }
@@ -336,6 +385,10 @@ void Client::captureScreenshot( int quality ) {
     if ( !initialized || !enabled ) {
         return;
     }
+    if (captureInProgress) {
+        captureReentered = qtrue;
+        return;
+    }
     
     // Clamp quality
     if ( quality < JXAC_SS_QUALITY_MIN ) quality = JXAC_SS_QUALITY_MIN;
@@ -352,7 +405,14 @@ void Client::captureScreenshot( int quality ) {
     
     // Allocate buffer for raw RGB framebuffer data
     int channels = 3;
-    int bufferSize = width * height * channels;
+    const size_t captureLimit = 64u * 1024u * 1024u;
+    if (width <= 0 || height <= 0 ||
+        static_cast<size_t>(width) > captureLimit / static_cast<size_t>(height) / channels) {
+        screenshotPending = qfalse;
+        return;
+    }
+    const size_t rowSize = static_cast<size_t>(width) * channels;
+    const size_t bufferSize = rowSize * static_cast<size_t>(height);
     
     unsigned char* framebuffer = (unsigned char*)malloc( bufferSize );
     if ( !framebuffer ) {
@@ -369,7 +429,21 @@ void Client::captureScreenshot( int quality ) {
         }
     }
     
-    if (!OpenGL::captureFramebuffer(0, 0, width, height, framebuffer)) {
+    captureInProgress = qtrue;
+    captureReentered = qfalse;
+    const bool captured = OpenGL::captureFramebuffer(0, 0, width, height, framebuffer);
+    const bool interrupted = !captureInProgress || !initialized || !enabled || !isServerJxacEnabled();
+    const bool reentered = captureReentered != qfalse;
+    captureInProgress = captureReentered = qfalse;
+    if (reentered) {
+        free(framebuffer);
+        screenshotPending = screenshotTransferActive = screenshotCaptureDeferred = qfalse;
+        chunkQueueHead = chunkQueueTail = chunkQueueCount = 0;
+        CG_Printf("JXAC: Screenshot discarded: game redrew during capture; image is unverified.\n");
+        if (!interrupted) trap_SendClientCommand("jxac_ss_failed reentrant");
+        return;
+    }
+    if (!captured || interrupted) {
         free(framebuffer);
         screenshotPending = qfalse;
         return;
@@ -385,9 +459,9 @@ void Client::captureScreenshot( int quality ) {
     
     // Flip the image vertically (OpenGL stores bottom-to-top)
     for ( int y = 0; y < height; y++ ) {
-        memcpy( flippedBuffer + y * width * channels,
-                framebuffer + (height - 1 - y) * width * channels,
-                width * channels );
+        memcpy( flippedBuffer + static_cast<size_t>(y) * rowSize,
+                framebuffer + static_cast<size_t>(height - 1 - y) * rowSize,
+                rowSize );
     }
     
     free( framebuffer );

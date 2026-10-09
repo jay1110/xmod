@@ -45,6 +45,7 @@ private:
 #include <game/cmd/JxacScreenshot.h>
 #include <game/cmd/JxacScreenshotAll.h>
 #include <game/cmd/JxacStatus.h>
+#include <game/cmd/JxacReload.h>
 #include <game/cmd/Kick.h>
 #include <game/cmd/Launch.h>
 #include <game/cmd/Launcha.h>
@@ -140,6 +141,7 @@ namespace builtins {
     extern JxacScreenshot   jxacScreenshot;
     extern JxacScreenshotAll jxacScreenshotAll;
     extern JxacStatus       jxacStatus;
+    extern JxacReload       jxacReload;
     extern Kick             kick;
     extern Launch       launch;
     extern Launcha      launcha;

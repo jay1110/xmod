@@ -51,7 +51,7 @@ def main():
             if not source.is_file():
                 continue
             relative = source.relative_to(ROOT / "pak")
-            if relative.parts[0].lower() in ("antirush", "vpn") or source.suffix.lower() in (".sqlite", ".db", ".log", ".cache", ".bak") or source.name.lower() in ("server.cfg", "server-private.cfg", "xmod.cfg"):
+            if relative.parts[0].lower() in ("antirush", "vpn", "jxac") or source.suffix.lower() in (".sqlite", ".db", ".log", ".cache", ".bak") or source.name.lower() in ("server.cfg", "server-private.cfg", "xmod.cfg"):
                 raise ValueError(f"Server configuration/runtime data must not be packaged in a PK3: {relative}")
             if any(part.startswith(".") for part in relative.parts) or relative.as_posix() in ("pak.defs", "pak.rules"):
                 continue
@@ -68,8 +68,11 @@ def main():
         "EN: Stop the server/game and back up your configuration and databases. Replace the old Xmod PK3 "
         "with the new PK3 and install the matching qagame module. Update clients and servers together. "
         "Do not keep the old Xmod PK3 alongside the new one. For a browser client, update the separately hosted WASM modules too.\n\n"
-        "Copy the loose antirush/ folder beside qagame in your server's fs_game directory. "
-        "Antirush rules are server files and are deliberately absent from the PK3. "
+        "Copy the loose antirush/ and jxac/ folders beside qagame in your server's fs_game directory. "
+        "Antirush and JXAC rules are server files and are deliberately absent from the PK3. "
+        "The local MD5 denylist is jxac/jxac_md5.cfg; reload it with !jxac_reload. "
+        "Updated Windows clients also run the bundled compound memory check when jxac_enable and jxac_moduleScan are enabled. "
+        "Use !jxac_status for reported scan coverage; see JXAC.md for validation limits. "
         "For a new server, copy server.cfg, xmod.cfg and the blank server-private.cfg there too. For an existing server, merge settings "
         "without overwriting existing private config, edited map rules, GUID permissions, caches or databases. "
         "Launch with +set fs_game xmod +set dedicated 2 +exec server.cfg. "
@@ -80,7 +83,10 @@ def main():
         "DE: Server/Spiel stoppen und Konfiguration sowie Datenbanken sichern. Alte Xmod-PK3 ersetzen und "
         "passendes qagame-Modul installieren. Server und Clients gemeinsam aktualisieren. Alte PK3 nicht parallel behalten. "
         "Beim Browserclient separat bereitgestellte WASM-Module aktualisieren.\n\n"
-        "Den losen Ordner antirush/ neben qagame in das fs_game-Verzeichnis des Servers kopieren. "
+        "Die losen Ordner antirush/ und jxac/ neben qagame in das fs_game-Verzeichnis des Servers kopieren. "
+        "Die lokale MD5-Sperrliste liegt unter jxac/jxac_md5.cfg; Neuladen mit !jxac_reload. "
+        "Aktualisierte Windows-Clients pruefen bei jxac_enable und jxac_moduleScan auch kombinierte Speichermerkmale. "
+        "!jxac_status zeigt den gemeldeten Pruefumfang; Grenzen der Validierung stehen in JXAC.md. "
         "Die Regeln liegen absichtlich nicht in der PK3. Bei einem neuen Server auch server.cfg, xmod.cfg und die leere server-private.cfg kopieren. "
         "Bestehende Servereinstellungen abgleichen und eigene Regeln, GUID-Rechte, Caches und Datenbanken erhalten. "
         "Start mit +set fs_game xmod +set dedicated 2 +exec server.cfg. "
@@ -124,7 +130,7 @@ def main():
                 for source in musl_files))
     with zipfile.ZipFile(pk3) as archive:
         assert archive.testzip() is None
-        assert not any(name.startswith("antirush/") for name in archive.namelist())
+        assert not any(name.startswith(("antirush/", "jxac/")) for name in archive.namelist())
         for source in modules:
             if not source.name.startswith("qagame"):
                 assert archive.read(source.name) == source.read_bytes()
@@ -133,6 +139,7 @@ def main():
         assert "xmod/server.cfg" in archive.namelist() and "xmod/xmod.cfg" in archive.namelist()
         assert archive.read("xmod/server-private.cfg") == blank_private
         assert "xmod/antirush/antirush.cfg" in archive.namelist()
+        assert archive.read("xmod/jxac/jxac_md5.cfg") == (ROOT / "pkg/jxac/jxac_md5.cfg").read_bytes()
         assert sum(name.startswith("xmod/antirush/maps/") for name in archive.namelist()) == 30
         assert not any(name.startswith("xmod/vpn/") or name.endswith((".sqlite", ".db", ".log", ".cache", ".bak")) for name in archive.namelist())
     print(f"Verified {archive_path}: {len(modules)} modules; server.cfg, xmod.cfg, blank server-private.cfg and 30 loose Antirush map presets")

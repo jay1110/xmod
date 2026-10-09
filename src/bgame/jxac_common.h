@@ -8,9 +8,9 @@
 
 // JXAC Version
 #define JXAC_VERSION_MAJOR  1
-#define JXAC_VERSION_MINOR  0
-#define JXAC_VERSION_PATCH  0
-#define JXAC_VERSION_STRING "1.0.0"
+#define JXAC_VERSION_MINOR  2
+#define JXAC_VERSION_PATCH  1
+#define JXAC_VERSION_STRING "1.2.1"
 
 // Binary Message Protocol Magic
 #define JXAC_BINARY_MAGIC   0x4A584143  // "JXAC" in hex
@@ -48,6 +48,7 @@ typedef enum {
     JXAC_VIOLATION_SS_BLOCKED       = 5,    // Screenshot blocked/faked
     JXAC_VIOLATION_TAMPER           = 6,    // JXAC client tampered/disabled
     JXAC_VIOLATION_NO_RESPONSE      = 7,    // No response from client
+    JXAC_VIOLATION_GAMEHACK         = 8,    // Confirmed cheat; screenshot then kick or configured automatic ban
     _JXAC_VIOLATION_MAX
 } jxacViolationType_t;
 

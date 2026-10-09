@@ -104,11 +104,11 @@ namespace objects {
     Cvar g_hitmodeReference    ( "g_hitmodeReference",     "1", 0, NULL );
     Cvar g_hitmodeZone         ( "g_hitmodeZone",          "1", 0, AbstractHitModel::cvarZone );
 
-    Cvar g_jxacEnable             ( "jxac_enable",             "1",              CVAR_ARCHIVE );
+    Cvar g_jxacEnable             ( "jxac_enable",             "1",              CVAR_ARCHIVE | CVAR_XMODINFO );
     Cvar g_jxacScreenshotQuality  ( "jxac_screenshotQuality",  "85",             CVAR_ARCHIVE );
     Cvar g_jxacScreenshotPath     ( "jxac_screenshotPath",     "jxac/screenshots/", CVAR_ARCHIVE );
     Cvar g_jxacCheckCvars         ( "jxac_checkCvars",         "1",              CVAR_ARCHIVE );
-    Cvar g_jxacCheckWallhack      ( "jxac_checkWallhack",      "1",              CVAR_ARCHIVE );
+    Cvar g_jxacCheckWallhack      ( "jxac_checkWallhack",      "1",              CVAR_ARCHIVE | CVAR_XMODINFO );
     Cvar g_jxacAutoBan            ( "jxac_autoBan",            "0",              CVAR_ARCHIVE );
     Cvar g_jxacAutoKick           ( "jxac_autoKick",           "1",              CVAR_ARCHIVE );
     Cvar g_jxacLogFile            ( "jxac_logFile",            "jxac/jxac.log",  CVAR_ARCHIVE );
@@ -117,8 +117,8 @@ namespace objects {
     Cvar g_jxacCheatFile          ( "jxac_cheatFile",          "jxac/jxac_cheats.cfg", CVAR_ARCHIVE );
     
     // JXAC Feature toggles (synced to client so they don't send useless data)
-    Cvar g_jxacModuleScan         ( "jxac_moduleScan",         "1",              CVAR_ARCHIVE );
-    Cvar g_jxacAntiTamper         ( "jxac_antiTamper",         "1",              CVAR_ARCHIVE );
+    Cvar g_jxacModuleScan         ( "jxac_moduleScan",         "1",              CVAR_ARCHIVE | CVAR_XMODINFO );
+    Cvar g_jxacAntiTamper         ( "jxac_antiTamper",         "1",              CVAR_ARCHIVE | CVAR_XMODINFO );
     Cvar g_jxacCheckSpeedhack     ( "jxac_checkSpeedhack",     "0",              CVAR_ARCHIVE );
     
     // JXAC CVAR Scanner CVARs
@@ -132,6 +132,7 @@ namespace objects {
     Cvar g_jxacForceCvarFile      ( "jxac_forceCvarFile",      "jxac/jxac_forcecvar.cfg", CVAR_ARCHIVE );
     Cvar g_jxacCheatCvarFile      ( "jxac_cheatCvarFile",      "jxac/jxac_cvarscan.cfg",  CVAR_ARCHIVE );
     Cvar g_jxacCheatDbFile        ( "jxac_cheatDbFile",        "jxac/jxac_cheats.cfg",    CVAR_ARCHIVE );
+    Cvar g_jxacMd5File            ( "jxac_md5File",            "jxac/jxac_md5.cfg",       CVAR_ARCHIVE );
 
     Cvar g_maxLandmines ( "team_maxLandmines", "10" );
     Cvar g_maxTripmines ( "team_maxTripmines", "3" );
@@ -254,6 +255,7 @@ namespace builtins {
     JxacScreenshot   jxacScreenshot;
     JxacScreenshotAll jxacScreenshotAll;
     JxacStatus       jxacStatus;
+    JxacReload       jxacReload;
     Kick             kick;
     Launch           launch;
     Launcha          launcha;

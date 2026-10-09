@@ -783,7 +783,7 @@ set omnibot_path ""
 // enables JXAC anti-tamper protection to detect modifications to the client game module.
 set jxac_antiTamper "1"
 
-// enables automatic banning of players detected cheating by JXAC.
+// Permanent SQLite admin ban after cheat screenshot completes or fails. 0: GAMEHACK still kicks; 1: ban. Requires authenticated identity and writable database.
 set jxac_autoBan "0"
 
 // enables automatic kicking of players detected cheating by JXAC.
@@ -828,7 +828,7 @@ set jxac_cvarScanWait "10000"
 // enables the JXAC anticheat system.
 set jxac_enable "1"
 
-// Forced client cvars; reload using the documented JXAC commands after editing.
+// Forced client cvars; reload with !jxac_reload after editing.
 set jxac_forceCvarFile "jxac/jxac_forcecvar.cfg"
 
 // sets the timeout in milliseconds for JXAC client heartbeats.
@@ -837,7 +837,10 @@ set jxac_heartbeatTimeout "60000"
 // sets the filename for the JXAC anticheat log.
 set jxac_logFile "jxac/jxac.log"
 
-// enables JXAC module scanning to detect known cheat modules loaded by clients.
+// Local MD5 denylist; GAMEHACK screenshot then kick or jxac_autoBan, no masterserver. Reload: !jxac_reload.
+set jxac_md5File "jxac/jxac_md5.cfg"
+
+// Loaded-module hashes and Windows memory fingerprints. !jxac_status shows reported scan coverage; see JXAC.md.
 set jxac_moduleScan "1"
 
 // sets the directory where JXAC anticheat screenshots are saved.

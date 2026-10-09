@@ -2,6 +2,7 @@
 // cg_syscalls.asm is included instead when building a qvm
 
 #include <bgame/impl.h> 
+#include <cgame/jxac/jxac_antitamper.h>
 
 extern "C" LF_PUBLIC void
 dllEntry( Engine::Ptr ptr ) {
@@ -316,7 +317,9 @@ void	trap_R_ClearScene( void ) {
 }
 
 void	trap_R_AddRefEntityToScene( const refEntity_t *re ) {
+	const int originalRenderfx = re->renderfx;
 	Engine::ptr( CG_R_ADDREFENTITYTOSCENE, re );
+	jxac::AntiTamper::observeRenderSubmission(originalRenderfx, re->renderfx);
 }
 
 void	trap_R_AddPolyToScene( qhandle_t hShader , int numVerts, const polyVert_t *verts ) {

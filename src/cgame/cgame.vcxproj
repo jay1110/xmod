@@ -190,6 +190,7 @@
     <ClCompile Include="jxac/jxac_antitamper.cpp" />
     <ClCompile Include="jxac/jxac_client.cpp" />
     <ClCompile Include="jxac/jxac_modules.cpp" />
+    <ClCompile Include="jxac/jxac_memory.cpp" />
     <ClCompile Include="jxac/jxac_screenshot.cpp" />
     <ClCompile Include="linux/cg_hardware.cpp" />
     <ClCompile Include="linux/cg_minimize.cpp" />
@@ -217,6 +218,7 @@
     <ClInclude Include="../bgame/cvar/public.h" />
     <ClInclude Include="../bgame/impl.h" />
     <ClInclude Include="../bgame/jxac_common.h" />
+    <ClInclude Include="../bgame/jxac_memory_rules.h" />
     <ClInclude Include="../bgame/q_shared.h" />
     <ClInclude Include="../bgame/str/PairDump.h" />
     <ClInclude Include="../bgame/str/public.h" />
@@ -241,6 +243,7 @@
     <ClInclude Include="jxac/jxac_antitamper.h" />
     <ClInclude Include="jxac/jxac_client.h" />
     <ClInclude Include="jxac/jxac_modules.h" />
+    <ClInclude Include="jxac/jxac_memory.h" />
     <ClInclude Include="jxac/jxac_screenshot.h" />
     <ClInclude Include="tr_types.h" />
     <ClInclude Include="xm_client_auth.h" />

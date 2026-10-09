@@ -643,7 +643,8 @@ bool Database::isBanned(const std::string& guid, const std::string& hwid, BanDat
     // Check for permanent ban or unexpired ban by GUID or HWID
     const char* sql = "SELECT id, name, guid, hwid, ip, banned_by, ban_date, expires, reason "
                       "FROM bans "
-                      "WHERE (guid = ? OR hwid = ?) AND (expires = 0 OR expires > ?) "
+                      "WHERE ((guid = ? AND guid <> '') OR (hwid = ? AND hwid <> '')) "
+                      "AND (expires = 0 OR expires > ?) "
                       "ORDER BY id DESC LIMIT 1;";
     sqlite3_stmt* stmt = nullptr;
     
@@ -699,7 +700,7 @@ bool Database::isIpBanned(const std::string& ip, BanData& banData) {
 
     const char* sql = "SELECT id, name, guid, hwid, ip, banned_by, ban_date, expires, reason "
                       "FROM bans "
-                      "WHERE ip = ? AND (expires = 0 OR expires > ?) "
+                      "WHERE ip = ? AND ip <> '' AND (expires = 0 OR expires > ?) "
                       "ORDER BY id DESC LIMIT 1;";
     sqlite3_stmt* stmt = nullptr;
     

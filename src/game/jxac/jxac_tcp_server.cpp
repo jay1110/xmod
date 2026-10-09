@@ -17,6 +17,20 @@ static jxac_socket_t        listenSocket = JXAC_INVALID_SOCKET;
 static int                  serverPort = 0;
 static jxacTcpClientConn_t  clients[JXAC_TCP_MAX_CLIENTS];
 
+static bool screenshotStillPending(const jxacTcpClientConn_t* conn) {
+    if (conn->clientNum < 0 || conn->clientNum >= MAX_CLIENTS) return false;
+    const jxacPlayerData_t* pd = Server::getPlayerData(conn->clientNum);
+    return pd && pd->screenshotPending && pd->screenshotRequestTime == conn->ssRequestTime;
+}
+
+static void clearScreenshotTransfer(jxacTcpClientConn_t* conn) {
+    if (conn->ssBuffer) free(conn->ssBuffer);
+    conn->ssBuffer = NULL;
+    conn->ssSize = conn->ssReceived = 0;
+    conn->ssQuality = conn->ssRequestTime = 0;
+    conn->state = JXAC_TCP_STATE_READY;
+}
+
 ///////////////////////////////////////////////////////////////////////////////
 
 qboolean TcpServer::start(int port) {
@@ -289,6 +303,10 @@ void TcpServer::processClientData(jxacTcpClientConn_t* conn) {
                           header->type, conn->clientIP, conn->clientPort);
                 break;
         }
+
+        // Completing evidence can synchronously ban/drop the game client and
+        // close this TCP slot. closeClient already discarded its receive data.
+        if (conn->socket == JXAC_INVALID_SOCKET || conn->state == JXAC_TCP_STATE_DISCONNECTED) return;
         
         // Remove processed message from buffer
         int remaining = conn->recvBufferLen - totalMsgLen;
@@ -327,18 +345,20 @@ void TcpServer::handleScreenshotStart(jxacTcpClientConn_t* conn, const jxacTcpSs
                   conn->clientIP, conn->clientPort);
         return;
     }
+
+    // Transport data belongs only to an outstanding game-channel request.
+    const jxacPlayerData_t* pd = Server::getPlayerData(conn->clientNum);
+    if (!pd || !pd->screenshotPending) return;
     
     // Validate size
-    if (ssStart->totalSize > JXAC_TCP_MAX_SS_SIZE) {
+    if (!ssStart->totalSize || ssStart->totalSize > JXAC_TCP_MAX_SS_SIZE) {
         Com_Printf("JXAC TCP: Screenshot too large (%u bytes) from client %d\n", 
                   ssStart->totalSize, conn->clientNum);
         return;
     }
     
     // Allocate buffer
-    if (conn->ssBuffer) {
-        free(conn->ssBuffer);
-    }
+    clearScreenshotTransfer(conn);
     conn->ssBuffer = (unsigned char*)malloc(ssStart->totalSize);
     if (!conn->ssBuffer) {
         Com_Printf("JXAC TCP: Failed to allocate screenshot buffer (%u bytes)\n", ssStart->totalSize);
@@ -348,6 +368,7 @@ void TcpServer::handleScreenshotStart(jxacTcpClientConn_t* conn, const jxacTcpSs
     conn->ssSize = ssStart->totalSize;
     conn->ssReceived = 0;
     conn->ssQuality = ssStart->quality;
+    conn->ssRequestTime = pd->screenshotRequestTime;
     conn->state = JXAC_TCP_STATE_TRANSFERRING;
     
     // Screenshot transfer started
@@ -359,18 +380,22 @@ void TcpServer::handleScreenshotData(jxacTcpClientConn_t* conn, const unsigned c
     if (conn->state != JXAC_TCP_STATE_TRANSFERRING || !conn->ssBuffer) {
         return;
     }
+    if (!screenshotStillPending(conn)) {
+        clearScreenshotTransfer(conn);
+        return;
+    }
+    if (!data || dataLen <= 0) return;
     
     // Check bounds
-    if (conn->ssReceived + dataLen > conn->ssSize) {
-        conn->state = JXAC_TCP_STATE_READY;
-        free(conn->ssBuffer);
-        conn->ssBuffer = NULL;
+    if (conn->ssReceived > conn->ssSize || static_cast<unsigned int>(dataLen) > conn->ssSize - conn->ssReceived) {
+        clearScreenshotTransfer(conn);
         return;
     }
     
     // Copy data to buffer
     memcpy(conn->ssBuffer + conn->ssReceived, data, dataLen);
     conn->ssReceived += dataLen;
+    Server::screenshotProgress(conn->clientNum);
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -379,34 +404,31 @@ void TcpServer::handleScreenshotEnd(jxacTcpClientConn_t* conn) {
     if (conn->state != JXAC_TCP_STATE_TRANSFERRING || !conn->ssBuffer) {
         return;
     }
+    if (!screenshotStillPending(conn)) {
+        clearScreenshotTransfer(conn);
+        return;
+    }
     
     // Verify we received all data
     if (conn->ssReceived != conn->ssSize) {
         Com_Printf("JXAC TCP: Screenshot incomplete from client %d (%u/%u bytes)\n",
                   conn->clientNum, conn->ssReceived, conn->ssSize);
-        free(conn->ssBuffer);
-        conn->ssBuffer = NULL;
-        conn->state = JXAC_TCP_STATE_READY;
+        clearScreenshotTransfer(conn);
         return;
     }
     
-    // Screenshot received successfully
-    
-    // Pass screenshot to JXAC server for processing
-    if (conn->clientNum >= 0 && conn->clientNum < MAX_CLIENTS) {
-        Server::handleScreenshotData(conn->clientNum, conn->ssBuffer, conn->ssSize);
-        Server::handleScreenshotComplete(conn->clientNum);
-    }
-    
-    // Send acknowledgement
-    sendAck(conn);
-    
-    // Clean up
-    free(conn->ssBuffer);
+    // Detach ownership and acknowledge receipt before callbacks: completing
+    // evidence may drop the game client and synchronously close this TCP slot.
+    const int clientNum = conn->clientNum;
+    const unsigned int size = conn->ssSize;
+    unsigned char* data = conn->ssBuffer;
     conn->ssBuffer = NULL;
-    conn->ssSize = 0;
-    conn->ssReceived = 0;
-    conn->state = JXAC_TCP_STATE_READY;
+    clearScreenshotTransfer(conn);
+    sendAck(conn);
+
+    Server::handleScreenshotData(clientNum, data, size);
+    Server::handleScreenshotComplete(clientNum);
+    free(data);
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -431,10 +453,7 @@ void TcpServer::closeClient(jxacTcpClientConn_t* conn) {
         conn->socket = JXAC_INVALID_SOCKET;
     }
     
-    if (conn->ssBuffer) {
-        free(conn->ssBuffer);
-        conn->ssBuffer = NULL;
-    }
+    clearScreenshotTransfer(conn);
     
     conn->state = JXAC_TCP_STATE_DISCONNECTED;
     conn->clientNum = -1;

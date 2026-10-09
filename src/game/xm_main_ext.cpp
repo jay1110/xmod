@@ -113,8 +113,38 @@ qboolean OnClientCommand(int clientNum, const char* cmd) {
 		return qtrue;
 	}
 	
+	// Memory reports contain only a fixed rule ID or scan state, never raw memory.
+	// The engine supplies the reporting client's slot; no target ID is accepted.
+	if (Q_stricmp(cmd, "jxac_memory_hit") == 0 ||
+		Q_stricmp(cmd, "jxac_memory_status") == 0) {
+		if (trap_Argc() == 2) {
+			char token[34]; // Expose oversized tokens instead of accepting a prefix.
+			trap_Argv(1, token, sizeof(token));
+			if (Q_stricmp(cmd, "jxac_memory_hit") == 0) {
+				jxac::Server::handleMemoryHit(clientNum, token);
+			} else {
+				jxac::Server::handleMemoryStatus(clientNum, token);
+			}
+		}
+		return qtrue;
+	}
+
 	// Handle JXAC module scan data
+	if (Q_stricmp(cmd, "jxac_module_md5") == 0) {
+		if (trap_Argc() == 4) {
+			// One extra byte exposes oversized arguments instead of accepting
+			// their truncated valid prefix. Slot identity comes from the engine.
+			char md5[34], sha1[42], basename[256];
+			trap_Argv(1, md5, sizeof(md5));
+			trap_Argv(2, sha1, sizeof(sha1));
+			trap_Argv(3, basename, sizeof(basename));
+			jxac::Server::handleModuleMd5(clientNum, md5, sha1, basename);
+		}
+		return qtrue;
+	}
+
 	if (Q_stricmp(cmd, "jxac_module") == 0) {
+		if (trap_Argc() != 3) return qtrue;
 		char moduleName[256];
 		char checksum[64];
 		trap_Argv(1, moduleName, sizeof(moduleName));
@@ -126,6 +156,16 @@ qboolean OnClientCommand(int clientNum, const char* cmd) {
 	// Handle JXAC module complete
 	if (Q_stricmp(cmd, "jxac_module_complete") == 0) {
 		// Silently handled - no action needed
+		return qtrue;
+	}
+
+	// Capture failures accept only a fixed reason for this client's own request.
+	if (Q_stricmp(cmd, "jxac_ss_failed") == 0) {
+		if (trap_Argc() == 2) {
+			char reason[16];
+			trap_Argv(1, reason, sizeof(reason));
+			jxac::Server::handleScreenshotFailed(clientNum, reason);
+		}
 		return qtrue;
 	}
 
@@ -186,10 +226,16 @@ qboolean OnClientCommand(int clientNum, const char* cmd) {
 	
 	// Handle JXAC violation reports
 	if (Q_stricmp(cmd, "jxac_violation") == 0) {
+		if (trap_Argc() != 3) return qtrue;
 		char violationType[64];
 		char details[256];
 		trap_Argv(1, violationType, sizeof(violationType));
 		trap_Argv(2, details, sizeof(details));
+		if (Q_stricmp(violationType, "gamehack") == 0) {
+			if (cvar::objects::g_jxacCheckWallhack.ivalue && cvar::objects::g_jxacAntiTamper.ivalue)
+				jxac::Server::reportGamehack(clientNum, details);
+			return qtrue;
+		}
 		
 		jxacViolationType_t type = JXAC_VIOLATION_TAMPER;
 		if (Q_stricmp(violationType, "tamper") == 0) {
@@ -207,7 +253,7 @@ qboolean OnClientCommand(int clientNum, const char* cmd) {
 	if (Q_stricmp(cmd, "xmod_request") == 0) {
 		if (clientNum >= 0 && clientNum < MAX_CLIENTS) {
 			// The renderer reloads cgame without a new engine ClientBegin.
-			jxac::Server::clientBegin(clientNum);
+			jxac::Server::clientBegin(clientNum, true);
 			G_SendXmodCS( clientNum );
 		}
 		return qtrue;

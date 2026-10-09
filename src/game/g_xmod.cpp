@@ -1401,7 +1401,9 @@ static void G_BuildXmodCS( char* cs, int csSize, char* cs2, int cs2Size ) {
     
     // JXAC feature flags - client checks these before sending data
     Info_SetValueForKey( cs2, "H", cvars::g_jxacModuleScan.svalue );      // Module scan enabled
-    Info_SetValueForKey( cs2, "I", cvars::g_jxacAntiTamper.svalue );      // Anti-tamper enabled
+    // Replicate the effective renderer-check gate so toggling either setting
+    // also resets the client's one-report latch instead of discarding a report.
+    Info_SetValueForKey( cs2, "I", (cvars::g_jxacAntiTamper.ivalue && cvars::g_jxacCheckWallhack.ivalue) ? "1" : "0" );
     Info_SetValueForKey( cs2, "J", cvars::g_jxacCheckSpeedhack.svalue );  // Speedhack check enabled
 
 	// "K" is taken!!! (shit code -> shit fixes)

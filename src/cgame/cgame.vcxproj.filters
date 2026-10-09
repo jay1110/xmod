@@ -168,6 +168,9 @@
     <ClCompile Include="jxac/jxac_modules.cpp">
       <Filter>jxac</Filter>
     </ClCompile>
+    <ClCompile Include="jxac/jxac_memory.cpp">
+      <Filter>jxac</Filter>
+    </ClCompile>
     <ClCompile Include="jxac/jxac_screenshot.cpp">
       <Filter>jxac</Filter>
     </ClCompile>
@@ -239,6 +242,9 @@
     <ClInclude Include="../bgame/jxac_common.h">
       <Filter>../bgame</Filter>
     </ClInclude>
+    <ClInclude Include="../bgame/jxac_memory_rules.h">
+      <Filter>../bgame</Filter>
+    </ClInclude>
     <ClInclude Include="../bgame/q_shared.h">
       <Filter>../bgame</Filter>
     </ClInclude>
@@ -289,6 +295,9 @@
       <Filter>jxac</Filter>
     </ClInclude>
     <ClInclude Include="jxac/jxac_modules.h">
+      <Filter>jxac</Filter>
+    </ClInclude>
+    <ClInclude Include="jxac/jxac_memory.h">
       <Filter>jxac</Filter>
     </ClInclude>
     <ClInclude Include="jxac/jxac_screenshot.h">

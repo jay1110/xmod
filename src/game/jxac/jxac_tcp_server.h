@@ -26,6 +26,7 @@ typedef struct {
     unsigned int        ssSize;             // Total expected size
     unsigned int        ssReceived;         // Bytes received so far
     int                 ssQuality;          // JPEG quality
+    int                 ssRequestTime;      // Pending game-channel request at start
     
     // Receive buffer for partial messages
     unsigned char       recvBuffer[JXAC_TCP_RECV_BUFFER];

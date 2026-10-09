@@ -6,6 +6,7 @@
 */
 
 #include <bgame/impl.h> 
+#include <cgame/jxac/jxac_antitamper.h>
 
 #define	SWING_RIGHT	1
 #define SWING_LEFT	2
@@ -2234,7 +2235,9 @@ void CG_Player( centity_t *cent )
 	}
 
 	// set blinking flag
+	const int originalHeadRenderfx = head.renderfx;
 	CG_AddRefEntityWithPowerups( &head, cent->currentState.powerups, ci->team, &cent->currentState, cent->fireRiseDir );
+	jxac::AntiTamper::observePlayerHead(originalHeadRenderfx, head.renderfx);
 
 	cent->pe.headRefEnt = head;
 

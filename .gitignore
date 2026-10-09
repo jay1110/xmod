@@ -74,6 +74,7 @@ codex-clipboard-*.png
 /antirush_v2.tgz
 /antirush/
 /vpn/
+/cheats/
 __pycache__/
 *.pyc
 **/server-private.cfg

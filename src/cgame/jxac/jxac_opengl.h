@@ -9,10 +9,7 @@
 // CRITICAL: On Windows 32-bit, OpenGL uses __stdcall (APIENTRY/WINAPI)
 // On 64-bit and Linux, calling convention doesn't matter
 #ifdef _WIN32
-    #ifndef APIENTRY
-        #define APIENTRY __stdcall
-    #endif
-    #define JXAC_GL_CALL APIENTRY
+    #define JXAC_GL_CALL __stdcall
 #else
     #define JXAC_GL_CALL
 #endif
@@ -51,6 +48,8 @@ bool isInitialized();
 // Capture framebuffer to buffer
 // Returns true on success, false on failure
 // buffer must be pre-allocated with width*height*3 bytes (RGB output)
+// Windows copies the displayed framebuffer into a temporary texture and reads
+// that texture without glReadPixels; GL state is restored even on failure.
 // On Android (OpenGL ES), internally captures RGBA and converts to RGB
 bool captureFramebuffer(int x, int y, int width, int height, unsigned char* buffer);
 

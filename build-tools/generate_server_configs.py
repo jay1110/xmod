@@ -52,7 +52,10 @@ NOTES = {
     "g_loseSpreeLevels": "Space-separated death counts; empty uses built-in losing-spree thresholds.",
     "g_defaultSkills": "Optional starting skill levels; leave empty for the built-in defaults.",
     "jxac_cvarFile": "Optional legacy JXAC cvar-list file. See JXAC.md for current rule files.",
-    "jxac_forceCvarFile": "Forced client cvars; reload using the documented JXAC commands after editing.",
+    "jxac_forceCvarFile": "Forced client cvars; reload with !jxac_reload after editing.",
+    "jxac_md5File": "Local MD5 denylist; GAMEHACK screenshot then kick or jxac_autoBan, no masterserver. Reload: !jxac_reload.",
+    "jxac_autoBan": "Permanent SQLite admin ban after cheat screenshot completes or fails. 0: GAMEHACK still kicks; 1: ban. Requires authenticated identity and writable database.",
+    "jxac_moduleScan": "Loaded-module hashes and Windows memory fingerprints. !jxac_status shows reported scan coverage; see JXAC.md.",
 }
 
 

@@ -199,6 +199,7 @@
     <ClCompile Include="cmd/JxacScreenshot.cpp" />
     <ClCompile Include="cmd/JxacScreenshotAll.cpp" />
     <ClCompile Include="cmd/JxacStatus.cpp" />
+    <ClCompile Include="cmd/JxacReload.cpp" />
     <ClCompile Include="cmd/Kick.cpp" />
     <ClCompile Include="cmd/Launch.cpp" />
     <ClCompile Include="cmd/Launcha.cpp" />
@@ -322,6 +323,7 @@
     <ClInclude Include="../bgame/cvar/public.h" />
     <ClInclude Include="../bgame/impl.h" />
     <ClInclude Include="../bgame/jxac_common.h" />
+    <ClInclude Include="../bgame/jxac_memory_rules.h" />
     <ClInclude Include="../bgame/q_shared.h" />
     <ClInclude Include="../bgame/str/PairDump.h" />
     <ClInclude Include="../bgame/str/public.h" />
@@ -401,6 +403,7 @@
     <ClInclude Include="cmd/JxacScreenshot.h" />
     <ClInclude Include="cmd/JxacScreenshotAll.h" />
     <ClInclude Include="cmd/JxacStatus.h" />
+    <ClInclude Include="cmd/JxacReload.h" />
     <ClInclude Include="cmd/Kick.h" />
     <ClInclude Include="cmd/Launch.h" />
     <ClInclude Include="cmd/Launcha.h" />
@@ -470,6 +473,7 @@
     <ClInclude Include="g_xmod.h" />
     <ClInclude Include="jxac/jxac_screenshot.h" />
     <ClInclude Include="jxac/jxac_server.h" />
+    <ClInclude Include="jxac/jpeg_validation.h" />
     <ClInclude Include="str/public.h" />
     <ClInclude Include="str/util.h" />
     <ClInclude Include="xm_main_ext.h" />

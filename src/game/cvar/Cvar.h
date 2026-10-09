@@ -44,6 +44,7 @@ namespace objects {
     extern Cvar g_jxacForceCvarFile;
     extern Cvar g_jxacCheatCvarFile;
     extern Cvar g_jxacCheatDbFile;
+    extern Cvar g_jxacMd5File;
 
     extern Cvar g_kickMessage;
     extern Cvar g_kickTime;

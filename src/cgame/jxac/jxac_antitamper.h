@@ -3,30 +3,17 @@
 
 namespace jxac {
 
-// Anti-tamper detection system
+// Renderer integrity checks reported only to the connected game server.
 class AntiTamper {
 public:
-    // Initialize anti-tamper system
     static void init();
-    
-    // Check for tampering (called periodically)
+    static void shutdown();
     static void check();
-    
-    // Report tampering detected
-    static void reportTamper( const char* details );
-    
+    static void observeRenderSubmission(int before, int after);
+    static void observePlayerHead(int before, int after);
+
 private:
-    // Check code integrity
-    static bool checkCodeIntegrity();
-    
-    // Check for debugger attachment
-    static bool checkDebugger();
-    
-    // Check for known tamper tools
-    static bool checkTamperTools();
-    
-    // Verify critical functions haven't been hooked
-    static bool checkFunctionHooks();
+    static void reportTamper(const char* details);
 };
 
 } // namespace jxac
